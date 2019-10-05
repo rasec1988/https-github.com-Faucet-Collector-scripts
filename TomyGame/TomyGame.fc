@@ -1,0 +1,678 @@
+﻿
+//============================================//
+//script Written first by: cgerabit 
+//*Collect
+//*solve captcha
+//============================================//
+
+//============================================//
+//script Written last updates + Features | by: AviramDayan 28/8/2018 14:00PM
+//*new way Faucet Collect
+//*Auto Withdraw
+//*Collect Food
+//*Clean The Home
+//*Daily Gift
+//============================================//
+
+
+using System;
+using FaucetCollector.Script;
+
+public class TomyGame: FaucetScript
+{
+    /// <summary>
+    /// List of Settings that will be shown in the bot when selecting this Faucet in the bot.
+    /// You can get the value the user entered with the methods: GetSetting("[Name of the FaucetSetting]"), GetBoolSetting and GetDateTimeSetting
+    /// You can also create a new setting value using SetSetting("[Name you want to use]", "value")
+    /// </summary>
+    public override FaucetSettings Settings
+    {
+        get
+        {
+            return new FaucetSettings("https://tomygame.com/")
+            {
+                new FaucetSetting(){Name="User",Display="Username",Type=EditorType.TextBox,Required=true},
+                new FaucetSetting(){Name="Pass",Display="Password",Type=EditorType.Password,Required=true},
+				
+                new FaucetSetting(){Name="DailyGift",Display="DailyGift - Try your luck every day",Type=EditorType.ComboBox,Default="Box1_blue",Items=new System.Collections.Generic.List<string>{"none","Box1_blue","Box2_orange","Box3_green"} },				
+       
+                new FaucetSetting() { Name = "CleanTheHome", Display = "CleanTheHome - Clean The Home (no info on this topic, but he does something)", Type = EditorType.CheckBox, Default = true},	
+                new FaucetSetting() { Name = "CollectFood", Display = "CollectFood - Collect Food 5 times in one day", Type = EditorType.CheckBox, Default = true},	
+                new FaucetSetting() { Name = "FaucetCollect", Display = "FaucetCollect - Collect 25 satoshi every 1 hour", Type = EditorType.CheckBox, Default = true},	
+                new FaucetSetting() { Name = "AutoWithdraw", Display = "AutoWithdraw - Withdraw through 'FaucetHub' (when you got 5000 satoshi)", Type = EditorType.CheckBox, Default = true},	
+
+                //insert user settings here
+                //new FaucetSetting { 
+                //    Name = "Name of your setting", 
+                //    Display = "Display shown in Faucet Collector", 
+                //    Type = EditorType.TextBox | EditorType.Password | EditorType.CheckBox | EditorType.Wallet | EditorType.Numeric | EditorType.ComboBox | EditorType.CheckComboBox, 
+                //    Required = true | false, 
+                //    Default = "Optionally a default value" | true | false | null.
+                //    Items = new List<string> { "item1", "item2" } (only valid for ComboBox or CheckComboBox)
+                //} 
+            };
+        }
+    }
+	
+
+
+    /// <summary>
+    /// This method gets called when the faucet is enabled and the GO button is clicked
+    /// </summary>
+    public override void Start()
+    {
+        //Title that shows in the browser. Is used to identify and close popup windows
+        Title = "TomyGame";
+
+        //After we did try to claim on the faucet we search for these elements to determine if it was a success or a fail
+        SuccessXPath = "//h1[@font color='#4d2600']";
+        FailXPath = "//div[@id='fail']";
+
+        //Let Faucet Collector start up everything
+        base.Start();
+    }
+	
+
+
+	//loop
+    public static bool cs;
+
+
+	
+    /// <summary>
+    /// This is the first method to run after the browser is opened and the first page is loaded.
+    /// </summary>
+	
+    public override int DoInit()
+    {
+
+        cs = false;
+        //Let Faucet Collector continue.
+        return base.DoInit();
+    }
+
+	
+	
+
+    /// <summary>
+    /// This method gets called after the Start method, here you need to return if we are logged in or not.
+    /// If you return false then it will call the BeforeLogin, Login and AfterLogin methods so you can login.
+    /// After those Login methods are called it will call this IsLoggedIn method again to see if the login did succeed.
+    /// If you return true Faucet Collector will store all cookies so it will probably be already logged in on the next attempt.
+    /// </summary>
+    public override bool IsLoggedIn()
+    {
+        //In here we can check for the presence of an element that is only present when you are logged in.
+        //In this case we check for en element with the class "loggedIn"
+        return ElementByXPath("//a[contains(text(),'Logout')]") != null;
+    }
+
+    /// <summary>
+    /// This method gets called if IsLoggedIn returned false, right before the DoLogin method is called.
+    /// </summary>
+    public override int BeforeLogin()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeLogin();
+    }
+
+	
+	
+	
+    /// <summary>
+    /// This method gets called after BeforeLogin, but only if IsLoggedIn returned false.
+    /// It can be used to actually login the user/enter wallet details in the faucet
+    /// </summary>
+    /// <returns></returns>
+    public override int DoLogin()
+    {
+
+		GoToUrl("https://tomygame.com/index.php?view=login");
+		
+        Wait();
+		
+        var user_box = ElementByXPath("//input[@name='form_user']");
+        Log("Login: set user");
+        SetText(user_box, GetSetting("User"));
+		
+        Wait(3);
+		
+		//pass
+        var pass_box = ElementByXPath("//input[@name='form_pwd']");
+        Log("Login: set pass");
+        SetText(pass_box, GetPassword("Pass"));
+		
+        Wait(3);
+		
+		//captcha
+        var result = DoSolveImageCaptcha(ElementByXPath("//img[contains(@src,'router.php?')]"), ElementByXPath("//input[@name='routing_code']"));
+        if (result > 0)
+        {
+            return Fail("Fail solve captcha");
+        }
+		
+        Wait();
+		
+		//login button
+        var LoginButton1 = ElementByXPath("//input[@value='Login']");
+        Log("Login: Login Button 1");	
+        Click(LoginButton1);
+		
+        Wait();
+		
+		//ads after wait 10 sec
+        while (IsVisible(ElementByXPath("//div[@id='loading']")))
+        {
+        Log("Login: wait for ads 10 sec");	
+        Wait();
+        }
+		
+        Wait(3);
+		
+		//login buttn 2 again
+        var LoginButton2 = ElementByXPath("//input[@value='Login']");
+        if (IsVisible(LoginButton2))
+        {
+        Log("Login: Login Button 2");
+        Click(LoginButton2);
+        }
+		
+        Wait();
+		
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoLogin();
+    }
+
+	
+	
+	
+    /// <summary>
+    /// This method gets called after the DoLogin method.
+    /// </summary>
+    public override int AfterLogin()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterLogin();
+    }
+	
+	
+	
+	
+
+    /// <summary>
+    /// This method gets called after the login methods are successful, so we are logged into the faucet.
+    /// If the faucet is not yet ready to claim you should return a TimeStamp value to return how long it takes before the Faucet claim can be done.
+    /// This is used to pause the script while the faucet its timer runs out.
+    /// Return the number of seconds the bot should wait.
+    /// </summary>
+    public override int GetFaucetWaitTime()
+    {
+		
+	
+		//wait 36 min
+        if (cs)
+        {
+            return 60 * 60;
+        }
+
+        //0 mean let Faucet Collector continue.
+        //return 0;
+		
+        //let Faucet Collector continue.
+        return base.GetFaucetWaitTime();
+    }
+	
+	
+	
+	
+
+    /// <summary>
+    /// This method is called right before a captcha will be solved. 
+    /// If you call SolveCaptcha() in other methods it will start this flow and tries to solve the captcha on the page.
+    /// </summary>
+    public override int BeforeSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeSolveCaptcha();
+    }
+	
+	
+	
+
+    /// <summary>
+    /// This method gets called after BeforeSolveCaptcha and it does the actual captcha solving
+    /// It will automatically try to see if there is a SolveMedia captcha active or a reCAPTCHA active. 
+    /// If it finds either one it will then use the selected method on the Captcha tab of FaucetCollector to solve the Captcha.
+    /// </summary>
+    public override int DoSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoSolveCaptcha();
+    }
+	
+	
+
+    /// <summary>
+    /// This method will get called after DoSolveCaptcha returned it was a success.
+    /// </summary>
+    /// <returns></returns>
+    public override int AfterSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterSolveCaptcha();
+    }
+
+	
+	
+    /// <summary>
+    /// This method is called right before we attempt to claim on the faucet. So we are logged in and good to go.
+    /// Next methods that will be called are DoSolveFaucet, AfterSolveFaucet and CheckFaucetResult.
+    /// </summary>
+    public override int BeforeSolveFaucet()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeSolveCaptcha();
+    }
+
+	
+	
+	
+	
+	
+//=============//	
+//DoSolveFaucet
+//=============//
+ public override int DoSolveFaucet()
+ {
+
+  
+      //============//
+      //DailyGift
+      //=============//
+	  	
+	  //general menu time - Box1_blue/Box2_orange/Box3_green
+      var DailyGiftVar = GetSetting("DailyGift");
+      //==========================//	
+  
+      if(DailyGiftVar=="none")
+      {	
+       //don't do anything
+      }	
+	  
+	  
+      if(DailyGiftVar=="Box1_blue")
+      {	
+
+		//first go to main page "DailyGift" - to check	
+		GoToUrl("http://tomygame.com/index.php?view=account&ac=daily-gift&");
+	    Log("DailyGift: go to DailyGift page");
+				
+        Wait();
+
+        //general check
+	    var DailyGift_TextGetTomorrow = ElementByXPath("//center[starts-with(text(),'Get another chance tomorrow')]']");
+  
+  
+		// if the text not Visible - so go to page
+        if (!IsVisible(DailyGift_TextGetTomorrow)) 
+        {
+		// click on Box1_blue
+	    var Box1_blue = ElementByXPath("//*[@id='select1']");		
+		Log("DailyGift: Choose Box - Box1_blue");
+		Click(Box1_blue);
+		
+        Wait(3);
+		
+		var BoxApprove = ElementByXPath("//*[@id='selectedimg2']");	
+	    Log("DailyGift: Success - DailyGift");
+		Click(BoxApprove);
+        }
+		
+        Wait();
+		
+		//if all done - lets put Success Message with info
+		var SuccessMessageVar = ElementByXPath("//*[@id='wonmsg']/center/mark");
+        if (IsVisible(SuccessMessageVar))
+        {		
+		Log(SuccessMessageVar.Text);
+        }
+
+      } 
+	  
+	  
+
+
+      if(DailyGiftVar=="Box2_orange")
+      {	
+
+		//first go to main page "DailyGift" - to check	
+		GoToUrl("http://tomygame.com/index.php?view=account&ac=daily-gift&");
+	    Log("DailyGift: go to DailyGift page");
+				
+        Wait();
+
+        //general check
+	    var DailyGift_TextGetTomorrow = ElementByXPath("//center[starts-with(text(),'Get another chance tomorrow')]");
+
+		
+		// if the text not Visible - so go to page
+        if (!IsVisible(DailyGift_TextGetTomorrow)) 
+        {
+		// click on Box2_orange
+	    var Box2_orange = ElementByXPath("//*[@id='select2']");		
+		Log("DailyGift: Choose Box - Box2_orange");
+		Click(Box2_orange);
+		
+        Wait(3);
+		
+		var BoxApprove = ElementByXPath("//*[@id='selectedimg2']");	
+	    Log("DailyGift: Success - DailyGift");
+		Click(BoxApprove);
+        }
+		
+        Wait();
+		
+		//if all done - lets put Success Message with info
+		var SuccessMessageVar = ElementByXPath("//*[@id='wonmsg']/center/mark");
+        if (IsVisible(SuccessMessageVar))
+        {		
+		Log(SuccessMessageVar.Text);
+        }
+
+      } 
+	  
+
+      if(DailyGiftVar=="Box3_green")
+      {	
+
+		//first go to main page "DailyGift" - to check	
+		GoToUrl("http://tomygame.com/index.php?view=account&ac=daily-gift&");
+	    Log("DailyGift: go to DailyGift page");
+				
+        Wait();
+
+        //general check
+	    var DailyGift_TextGetTomorrow = ElementByXPath("//center[starts-with(text(),'Get another chance tomorrow')]");
+		
+		// if the text not Visible - so go to page
+        if (!IsVisible(DailyGift_TextGetTomorrow)) 
+        {
+		// click on Box3_green
+	    var Box3_green = ElementByXPath("//*[@id='select3']");		
+		Log("DailyGift: Choose Box - Box3_green");
+		Click(Box3_green);
+		
+        Wait(3);
+		
+		var BoxApprove = ElementByXPath("//*[@id='selectedimg2']");	
+	    Log("DailyGift: Success - DailyGift");
+		Click(BoxApprove);
+        }
+		
+        Wait();
+		
+		//if all done - lets put Success Message with info
+		var SuccessMessageVar = ElementByXPath("//*[@id='wonmsg']/center/mark");
+        if (IsVisible(SuccessMessageVar))
+        {		
+		Log(SuccessMessageVar.Text);
+        }
+
+      } 
+	  
+      //=============//	  
+	  
+
+	  
+	  
+     //============//
+    //CleanTheHome
+    //=============//
+    if (GetBoolSetting("CleanTheHome"))
+    { 
+
+		//first go to main page "Game" - to check	
+		GoToUrl("http://tomygame.com/index.php?view=account&ac=btc-profile&");
+	    Log("CleanTheHome: go to CleanTheHome page");
+		
+        Wait();
+		
+        //general check
+	    var CleanTheHomeText = ElementByXPath("//a[@href='index.php?view=account&ac=btc-profile&action=work&']");
+
+		// if Is Visible - Clean The Home
+        if (IsVisible(CleanTheHomeText)) 
+        {
+		//go to Clean The Home
+		GoToUrl("http://tomygame.com/index.php?view=account&ac=btc-profile&action=work&"); 
+		Log("CleanTheHome: Success - Clean The Home");
+        }
+		
+    } 
+	
+	  
+     //============//
+    //CollectFood
+    //=============//
+    if (GetBoolSetting("CollectFood"))
+    { 
+
+		//first go to Food main page - to check	
+		GoToUrl("http://tomygame.com/index.php?view=account&ac=foodstore&");
+	    Log("CollectFood: go to CollectFood page");
+		
+        Wait();
+		
+        //general check
+	    var FoodCheckText = ElementByXPath("//center[text()='You have no foods.']");
+
+        //general items check
+	    var item1Var = ElementByXPath("//a[@href='index.php?view=account&ac=foodeat&item=1&']");
+	    var item2Var = ElementByXPath("//a[@href='index.php?view=account&ac=foodeat&item=2&']");
+	    var item3Var = ElementByXPath("//a[@href='index.php?view=account&ac=foodeat&item=3&']");
+	    var item4Var = ElementByXPath("//a[@href='index.php?view=account&ac=foodeat&item=4&']");
+		
+		
+	  // if Is not Visible so take the food
+      if (!IsVisible(FoodCheckText)) 
+      {
+	
+		//if IsVisible go to food - item 1
+        if (IsVisible(item1Var)) 
+		{
+		GoToUrl("http://tomygame.com/index.php?view=account&ac=foodeat&item=1&"); 
+		Log("CollectFood: Success - collect food - item 1");
+		Wait(7);	
+		}
+		
+
+		//if IsVisible go to food - item 2		
+        if (IsVisible(item2Var)) 
+		{
+		GoToUrl("http://tomygame.com/index.php?view=account&ac=foodeat&item=2&"); 
+		Log("CollectFood: Success - collect food - item 2");
+		Wait(7);	
+		}
+
+		
+		//if IsVisible go to food - item 3
+        if (IsVisible(item3Var)) 
+		{
+		GoToUrl("http://tomygame.com/index.php?view=account&ac=foodeat&item=3&"); 
+		Log("CollectFood: Success - collect food - item 3");
+		Wait(7);	
+		}
+		
+		//if IsVisible go to food - item 4
+        if (IsVisible(item4Var)) 
+		{
+		GoToUrl("http://tomygame.com/index.php?view=account&ac=foodeat&item=4&"); 
+		Log("CollectFood: Success - collect food - item 4");
+		Wait(7);	
+		}
+
+		
+      }//end FoodCheckText
+		
+    } //end CollectFood
+	
+	
+  
+     //============//
+    //AutoWithdraw
+    //=============//
+    if (GetBoolSetting("AutoWithdraw"))
+    { 
+
+		//first go to Withdraw main page - to check	
+		GoToUrl("http://tomygame.com/index.php?view=account&ac=btc-withdraw&");
+	    Log("AutoWithdraw: go to AutoWithdraw page");
+		
+        Wait();
+		
+        //general check
+	    var AutoWithdrawText = ElementByXPath("//b[starts-with(text(),'5,000')]");
+
+        if (IsVisible(AutoWithdrawText))
+        {
+		//go to Withdraw through "faucethub"
+		GoToUrl("http://tomygame.com/index.php?view=account&ac=btc-withdrawh&"); //not the same link - in the end there is "h"
+		Log("AutoWithdraw: Success - Auto Withdraw");
+        }
+		
+    } 
+	
+	
+	
+		
+     //============//
+    //FaucetCollect
+    //=============//
+
+    if (GetBoolSetting("FaucetCollect"))
+    { 
+
+		//first go to main page - Game
+        GoToUrl("http://tomygame.com/index.php?view=account&ac=btc-profile&");
+	    Log("FaucetCollect: go to FaucetCollect page");
+	
+        Wait();		
+
+		
+		//if the colect balance not 0 - we return after 60 min
+        var BalanceVar = ElementByXPath("//div[@id='Hint1']"); 
+	
+        int balance;
+        int.TryParse(BalanceVar.Text, out balance);
+
+      if (balance > 3)     // ( <=0 - it mean Less and = 0 )  ( ==50 - it mean = 50 )  ( >50 <50 - it Above or less from 50 ) //
+      {
+		
+        //go to Collect page
+        GoToUrl("http://tomygame.com/index.php?view=account&ac=btc-colect");	
+	    Log("Collect: go to Collect page");
+		
+        Wait();
+		
+		//wait for bar loading
+        DateTime t1 = DateTime.Now.AddMinutes(1);
+        while (!IsVisible(ElementByXPath("//aa[@id='loadingtext']//a[contains(@href,'index.php?view=account')]")))
+        {
+			
+            Wait();
+			Log("Collect: wait for bar loading");
+			
+            if (DateTime.Now > t1)
+            {
+                break;
+            }
+        }
+		
+
+		//click on "Let's Get it now" - href
+        var but = ElementByXPath("//aa[@id='loadingtext']//a[contains(@href,'index.php?view=account')]");
+		Log("Collect: click on 'Lets Get it now' - href");
+        string url_ = but.GetAttribute("href");
+        GoToUrl(url_);
+		
+        Wait();		
+	
+		//solve captcha code - 1
+        var captcha_code = ElementByXPath("//h1[contains(text(),'code is')]");		
+        if (IsVisible(captcha_code))	
+        {
+		Log("Collect: solve captcha code - 1");
+        SetText(ElementByXPath("//input[@name='captcha2']"), captcha_code.Text.Split(':')[1].Replace(" ",""));
+        }
+
+        Wait();
+			
+		//click on ButtonEnd
+        var ButtonEnd=ElementByXPath("//input[@value=\"I'm Human - Enter Captcha\"]");
+        if (IsVisible(ButtonEnd))
+        {
+		Log("Collect: click on ButtonEnd");
+        Click(ButtonEnd);
+        }
+		
+        Wait(2);	
+		
+		//if all done - lets put Success Message with info
+		var SuccessMessageVar = ElementByXPath("//h1[@font color='#4d2600']");
+        if (IsVisible(SuccessMessageVar))
+        {		
+		Log(SuccessMessageVar.Text);
+        }
+			
+		return 15*60;	
+            
+      }//end if balance > 3
+	
+	
+
+      if (balance == 0)     // ( <=0 - it mean Less and = 0 )  ( ==50 - it mean = 50 )  ( >50 <50 - it Above or less from 50 ) //
+      {
+       return 60*60;
+	  }
+
+
+    } //end FaucetCollect
+
+	
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoSolveCaptcha();
+ }
+ 
+//=============//	
+//DoSolveFaucet
+//=============//
+ 
+ 
+ 
+ 
+ 
+ 
+
+    /// <summary>
+    /// This method will get called after the DoSolveFaucet is completed and returned it was a success.
+    /// For example you can wait for a processing popup to go away until actual faucet claim result is on the page.
+    /// </summary>
+    public override int AfterSolveFaucet()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterSolveFaucet();
+    }
+
+    /// <summary>
+    /// This method gets called in the end after the BeforeSolveFaucet/DoSolveFaucet and AfterSolveFaucet methods were done.
+    /// The base.CheckFaucetResult will try to find a visible element on the page using the XPath from SuccessXPath and FailXPath (see the Start method)
+    /// These properties should contain XPath expressions to find certain elements on the page.
+    /// For example if it finds one of the elements from the SuccessXPath, and it is visible, then it will flag the claim attempt as a success.
+    /// Or if it finds one of the elements from the FailXPath, and it is visible, then it will flag the claim attempt as a failure.
+    /// </summary>
+    public override int CheckFaucetResult()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.CheckFaucetResult();
+    }
+}

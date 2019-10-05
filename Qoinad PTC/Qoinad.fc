@@ -1,0 +1,659 @@
+﻿
+//==================//
+//new update & Features by: AviramDaya 1/9/2018 19:00PM
+//fix login
+//fix FaucetClaim
+//add Wallet & Pin
+//add auto Withdraw
+//==================//
+
+
+using System;
+using System.Drawing;
+using System.IO;
+using FaucetCollector.Script;
+using OpenQA.Selenium;
+using OpenQA.Selenium.Interactions;
+
+public class Qocoinad : FaucetScript
+{
+    /// <summary>
+    /// List of Settings that will be shown in the bot when selecting this Faucet in the bot.
+    /// You can get the value the user entered with the methods: GetSetting("[Name of the FaucetSetting]"), GetBoolSetting and GetDateTimeSetting
+    /// You can also create a new setting value using SetSetting("[Name you want to use]", "value")
+    /// </summary>
+    public override FaucetSettings Settings
+    {
+        get
+        {
+            return new FaucetSettings("http://www.qoinad.com/user")
+            {
+               new FaucetSetting(){Name="User",Display="Email",Type=EditorType.TextBox,Required=true},
+               new FaucetSetting(){Name="Pass",Display="Password",Type=EditorType.Password,Required=true},
+
+               new FaucetSetting(){Name="YourWallet",Display="Your Wallet",Type=EditorType.TextBox,Default="none"},	
+               new FaucetSetting(){Name="YourSecretPin",Display="Your Secret Pin",Type=EditorType.TextBox,Default="none"},		
+               new FaucetSetting() { Name = "AutoWithdraw", Display = "AutoWithdraw - When you reach 23000 Satoshi", Type = EditorType.CheckBox, Default = true},	
+			   new FaucetSetting(){Name="Delete",Display="Delete Cookies",Type=EditorType.CheckBox,Default=true},
+               new FaucetSetting() { Name = "FaucetClaim", Display = "FaucetClaim", Type = EditorType.CheckBox, Default = true},	
+				
+
+                //insert user settings here
+                //new FaucetSetting { 
+                //    Name = "Name of your setting", 
+                //    Display = "Display shown in Faucet Collector", 
+                //    Type = EditorType.TextBox | EditorType.Password | EditorType.CheckBox | EditorType.Wallet | EditorType.Numeric | EditorType.ComboBox | EditorType.CheckComboBox, 
+                //    Required = true | false, 
+                //    Default = "Optionally a default value" | true | false | null.
+                //    Items = new List<string> { "item1", "item2" } (only valid for ComboBox or CheckComboBox)
+                //} 
+            };
+        }
+    }
+
+	
+	
+    /// <summary>
+    /// This method gets called when the faucet is enabled and the GO button is clicked
+    /// </summary>
+    public override void Start()
+    {
+        //Title that shows in the browser. Is used to identify and close popup windows
+        Title = "qoinad.com|Qoinad";
+        N = 0;
+        //After we did try to claim on the faucet we search for these elements to determine if it was a success or a fail
+        SuccessXPath = "//*[text()='']";
+        FailXPath = "//*[text()='']";
+		
+        TimerIsCountingUp = true;
+		
+        //Let Faucet Collector start up everything
+        base.Start();
+    }
+	
+	
+
+    /// <summary>
+    /// This is the first method to run after the browser is opened and the first page is loaded.
+    /// </summary>
+    public override int DoInit()
+    {
+
+	if (GetBoolSetting("Delete"))
+    {
+	 Driver.Manage().Cookies.DeleteAllCookies();
+	 Driver.Navigate().Refresh();	
+	}
+        //Let Faucet Collector continue.
+        return base.DoInit();
+    }
+
+	
+	
+	
+
+	
+	
+    public override bool IsLoggedIn()
+    {
+
+        //Driver.Manage().Cookies.DeleteAllCookies();
+        return ElementByXPath("//a[@href='/logout.aspx']") != null;
+    }
+	
+
+	
+
+	
+    /// <summary>
+    /// This method gets called if IsLoggedIn returned false, right before the DoLogin method is called.
+    /// </summary>
+    public override int BeforeLogin()
+    {
+        
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeLogin();
+    }
+	
+	
+
+    /// <summary>
+    /// This method gets called after BeforeLogin, but only if IsLoggedIn returned false.
+    /// It can be used to actually login the user/enter wallet details in the faucet
+    /// </summary>
+    /// <returns></returns>
+    private bool GotoiFimNot(string url)
+    {
+        if (!Driver.Url.Contains(url))
+        {
+            GoToUrl(url);
+            return true;
+        }
+        return false;
+    }
+	
+	
+	
+	
+//=======//
+//DoLogin//	
+//=======//
+ public override int DoLogin()
+ {
+	 
+	 //login logout cahck
+	 var LoginStart =ElementByXPath("//a[@href='/login.aspx']"); //LOG IN
+     var LogoutButton =ElementByXPath("//a[@href='/logout.aspx']"); //LOGOUT
+		
+		
+	 if (IsVisible(LogoutButton))
+	 {
+        GoToUrl("https://www.qoinad.com/user/default.aspx");
+     }
+	 
+	 
+	 if (IsVisible(LoginStart))
+	 { 
+ 
+        GoToUrl("https://www.qoinad.com/login.aspx");
+
+        Wait();
+		
+        var user_Box = ElementByXPath("//input[@id='ctl00_MainContentPlaceHolder_ctl00_Username']");
+        SetText(user_Box, GetSetting("User"));
+		
+        Wait(2);
+		
+        var pass_Box = ElementByXPath("//input[@id='ctl00_MainContentPlaceHolder_ctl00_Password']");
+        SetText(pass_Box, GetPassword("Pass"));
+		
+        Wait(2);
+		
+        var button = ElementByXPath("//input[@id='ctl00_MainContentPlaceHolder_ctl00_LoginButton']");
+        Click(button);
+		
+        Wait(4);
+		
+		//close popup	
+        var ClosePopUp = ElementByXPath("//*[@id='welcomeModal']/div/div/div[1]/button/span");
+		if (IsVisible(ClosePopUp))
+	    {
+        Click(ClosePopUp);
+        }
+		
+	 }
+		
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoLogin();
+ }
+//=======//
+//DoLogin//	
+//=======//
+
+
+
+
+
+
+//=======//
+//AfterLogin//	
+//=======//
+
+ public override int AfterLogin()
+ {
+
+        //==================//
+        //update Wallet & pin
+        //==================//
+        if (GetSetting("YourWallet") != "none" && GetSetting("YourSecretPin") != "none")
+        {
+            //go to page
+            Log("Wallet & pin: go to page");
+            GoToUrl("https://www.qoinad.com/user/settings.aspx?ref=payment");
+
+            Wait();
+
+            //set wallet
+            var WalletVar = ElementByXPath("//input[@id='ctl00_PageMainContent_BtcAddressTextBox']");
+            Log("Wallet & pin: set Wallet");
+            SetText(WalletVar, GetSetting("YourWallet"));
+
+            Wait(2);
+
+            //set pin
+            var PinVar = ElementByXPath("//input[@id='ctl00_PageMainContent_CurrentPIN2']");
+            Log("Wallet & pin: set pin");
+            SetText(PinVar, GetSetting("YourSecretPin"));
+
+            Wait(2);
+
+            //save button
+            var SaveButton = ElementByXPath("//input[@id='ctl00_PageMainContent_ChangeSettingsButton2']");
+            Log("Wallet & pin: Click on SaveButton");
+            Click(SaveButton);
+            n_w = false;
+            Wait(2);
+        }
+        else
+        {
+            if (GetBoolSetting("AutoWithdraw"))
+            {
+                n_w = true;
+                Log("You need set your wallet and pin to withdraw your coins");
+            }
+        }
+	   
+       return base.AfterLogin();
+ }
+   static bool n_w;
+
+//=======//
+//AfterLogin//	
+//=======//
+
+
+
+
+
+    /// <summary>
+    /// This method gets called after the login methods are successful, so we are logged into the faucet.
+    /// If the faucet is not yet ready to claim you should return a TimeStamp value to return how long it takes before the Faucet claim can be done.
+    /// This is used to pause the script while the faucet its timer runs out.
+    /// Return the number of seconds the bot should wait.
+    /// </summary>
+    public override int GetFaucetWaitTime()
+    {
+		
+        GotoiFimNot("http://www.qoinad.com/user/earn/ads.aspx");
+        var ads = ElementsByXPath("//div[contains(@class,'AboxActive Ad')]");
+        
+        if (ads.Count > n)
+        {
+            return 0;
+
+        }
+        else
+        {
+            n = 0;
+            return GetWaitSetting();
+        }
+
+        //let Faucet Collector continue.
+        return base.GetFaucetWaitTime();
+    }
+
+	
+	
+    /// <summary>
+    /// This method is called right before a captcha will be solved. 
+    /// If you call SolveCaptcha() in other methods it will start this flow and tries to solve the captcha on the page.
+    /// </summary>
+    public override int BeforeSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeSolveCaptcha();
+    }
+
+    /// <summary>
+    /// This method gets called after BeforeSolveCaptcha and it does the actual captcha solving
+    /// It will automatically try to see if there is a SolveMedia captcha active or a reCAPTCHA active. 
+    /// If it finds either one it will then use the selected method on the Captcha tab of FaucetCollector to solve the Captcha.
+    /// </summary>
+    public override int DoSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoSolveCaptcha();
+    }
+
+    /// <summary>
+    /// This method will get called after DoSolveCaptcha returned it was a success.
+    /// </summary>
+    /// <returns></returns>
+    public override int AfterSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterSolveCaptcha();
+    }
+
+    /// <summary>
+    /// This method is called right before we attempt to claim on the faucet. So we are logged in and good to go.
+    /// Next methods that will be called are DoSolveFaucet, AfterSolveFaucet and CheckFaucetResult.
+    /// </summary>
+    public override int BeforeSolveFaucet()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeSolveCaptcha();
+    }
+
+
+
+
+    public Bitmap ChangeImageSize(Bitmap pImg, int pWidth, int pHeigth)
+    {
+
+        //Creating new bitmap
+
+        Bitmap vBitmap = new Bitmap(pWidth, pHeigth);
+
+        using (Graphics vGraphics = Graphics.FromImage((Image)vBitmap))
+
+        {
+
+            //Specifi interpolation
+
+            vGraphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
+
+            //Draw
+
+            vGraphics.DrawImage(pImg, 0, 0, pWidth, pHeigth);
+
+        }
+
+        //return image
+
+        return vBitmap;
+
+    }
+    int n = 0;
+    int N;
+    public override int DoSolveFaucet()
+ {
+ 
+ 
+     //===========//
+     //AutoWithdraw
+     //===========// 
+	 
+    if (GetBoolSetting("AutoWithdraw") && !n_w)
+    {  
+ 
+      //first go to home page to cahck
+
+	   Log("AutoWithdraw: go to home page to cahck");		
+       GoToUrl("https://www.qoinad.com/user/default.aspx"); 
+		   
+       Wait(); 
+		
+      //if the colect balance above > 0.00023000
+      var BalanceVar = ElementByXPath("//*[@id='ctl00_PageMainContent_MainBalanceContainer']/div/div[2]/p");
+      int balance;
+      int.TryParse(BalanceVar.Text, out balance);
+
+	  
+      if (balance < 0.00023000)         //  ( <=0 - it mean Less and = 0 )  ( ==50 - it mean = 50 )  ( >50 <50 - it Above or less from 50 ) //
+      {
+         // do not do nutting
+      }
+           	
+		
+		
+      if (balance > 0.00023000)         //  ( <=0 - it mean Less and = 0 )  ( ==50 - it mean = 50 )  ( >50 <50 - it Above or less from 50 ) //
+      {
+         //do all stuff
+		
+		Log("AutoWithdraw: go to page");		
+       GoToUrl("https://www.qoinad.com/user/settings.aspx?ref=payment"); 
+		
+	   //SetAmount
+       var SetAmount = ElementByXPath("//input[@id='ctl00_PageMainContent_WithdrawCryptocurrencyAmountTextBox']");
+	   Log("AutoWithdraw: SetAmount");		
+       SetText(SetAmount, "0.00023000");
+
+       Wait(2);		
+		
+	   //set pin
+       var Pin2Var = ElementByXPath("//input[@id='ctl00_PageMainContent_CryptoPINTextBox']");
+	   Log("AutoWithdraw: set pin");		
+       SetText(Pin2Var, GetSetting("YourSecretPin"));
+		
+       Wait(2);
+
+	   //Withdraw button
+       var WithdrawButton = ElementByXPath("//input[@id='ctl00_PageMainContent_WithdrawCryptocurrencyButton']");
+	   Log("AutoWithdraw: Click on WithdrawButton");		
+       Click(WithdrawButton);
+	   
+      }	
+	  
+    }
+
+
+
+        //===========//
+        //FaucetClaim
+        //===========//
+    
+     if (GetBoolSetting("FaucetClaim"))
+     {  	
+
+        GoToUrl("http://www.qoinad.com/user/earn/ads.aspx");
+
+		
+        var ads = ElementsByXPath("//div[contains(@class,'AboxActive Ad')]");
+       
+            int NAds = ads.Count;
+        while (ads.Count > n)
+        {
+                if (IsVisible(ads[n]))
+                {
+                    CheckForPopupsEnabled = false;
+
+                    Wait();
+
+                    Click(ads[n], false);
+
+                    Wait(3);
+
+                    Driver.SwitchTo().Window(Driver.WindowHandles[1]);
+
+                    Wait(3);
+
+                    var Vbutton = FindElement(By.XPath("//input[@id='WatchAdButton']"));
+                    if (Vbutton != null)
+                    {
+                        Click(Vbutton, false);
+                        Wait();
+                        try
+                        {
+                            Driver.SwitchTo().Window(Driver.WindowHandles[1]);
+                            DateTime t1 = DateTime.Now.AddSeconds(75);
+                            while (!IsVisible(ElementByXPath("//div[@id='CaptchaPanel']")))
+                            {
+                                Wait();
+                                if (DateTime.Now > t1)
+                                {
+                                    break;
+                                }
+                            }
+                            Wait();
+                            //p[@class='visualCaptcha-explanation']//strong
+                            bool captcha_solved = false;
+                            while (!captcha_solved)
+                            {
+                                var name_ = ElementByXPath("//p[@class='visualCaptcha-explanation']//strong");
+                                captcha_solved = Solve_VisualCaptcha(name_.Text);
+                                Wait();
+                                if (!captcha_solved)
+                                {
+                                    var refresh = ElementByXPath("//div[@class='visualCaptcha-refresh-button']");
+                                    Click(refresh);
+                                    Wait(2, 3);
+                                }
+                            }
+                            Wait();
+                            var Credit = ElementByXPath("//input[@id='CreditAfterCaptcha']");
+                            Click(Credit);
+
+                            Wait(2, 3);
+                            Driver.SwitchTo().Window(Driver.WindowHandles[0]);
+                        }
+                        catch (Exception)
+                        {
+                            CheckForPopupsEnabled = true;
+                        }
+                    }
+
+                    CheckForPopupsEnabled = true;
+                    CheckForPopups();
+                    Wait();
+
+
+
+                    if (!GotoiFimNot("http://www.qoinad.com/user/earn/ads.aspx"))
+                    {
+                        Driver.Navigate().Refresh();
+                    }
+                    Wait(2, 3);
+                    ads = ElementsByXPath("//div[contains(@class,'AboxActive Ad')]");
+                }
+                else
+                {
+                    n++;
+                    ads = ElementsByXPath("//div[contains(@class,'AboxActive Ad')]");
+                }
+                if (ads.Count == NAds)
+                {
+                    n++;
+                    
+                    NAds = ads.Count;
+                }
+        }
+		
+     }
+     return GetWaitSetting();
+	 
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoSolveFaucet();
+ }
+	
+	
+	
+	
+	
+	
+    private bool Solve_VisualCaptcha(string name)
+    {
+        Wait();
+        var dir = AssetDir("Other");
+        dir += "\\Images_qoinad\\" + name + ".png";
+        try
+        {
+
+            Stream d = new FileStream(dir, FileMode.Open);
+            Bitmap img_c = new Bitmap(Image.FromStream(d));
+            d.Close();
+
+            int[] pixels = new int[5];
+            for (int i = 0; i < 4; i++)
+            {
+
+                var element = ElementByXPath("//img[@id='visualCaptcha-img-" + i.ToString() + "']");
+
+                Bitmap img_to_c = TakeScreenshot(Base.Captcha.CaptchaService.Manual, element);
+             
+
+
+                pixels[i] = CompareImage(img_c, img_to_c);
+            }
+            Wait();
+            int solution = -1;
+            int pixel_m = 0;
+
+            for (int i = 0; i < 4; i++)
+            {
+                if (i == 0)
+                {
+                    pixel_m = pixels[i];
+                    solution = i;
+                }
+                if (pixels[i] < pixel_m)
+                {
+                    pixel_m = pixels[i];
+                    solution = i;
+                }
+            }
+
+            var solution_xpath = ElementByXPath("//img[@id='visualCaptcha-img-" + solution.ToString() + "']");
+            if (IsVisible(solution_xpath))
+            {
+                Click(solution_xpath);
+                Wait();
+            }
+        }
+        catch (Exception ex)
+        {
+
+            return false;
+        }
+
+        return true;
+    }
+	
+	
+	
+    private int CompareImage(Bitmap image1, Bitmap image2)
+    {
+        int cont = 0;
+        for (int i = 0; i < image1.Height; i++)
+        {
+            for (int j = 0; j < image1.Width; j++)
+            {
+                if (image1.GetPixel(j, i) != image2.GetPixel(j, i))
+                {
+
+                    cont++;
+
+                }
+            }
+        }
+
+        return cont;
+
+
+    }
+    private Bitmap GetElementScreenShort(IWebDriver driver, IWebElement element)
+    {
+        Actions actions = new Actions(driver);
+        actions.MoveToElement(element);
+        actions.Perform();
+        Screenshot sc = ((ITakesScreenshot)driver).GetScreenshot();
+        var img = Image.FromStream(new MemoryStream(sc.AsByteArray)) as Bitmap;
+        var x = ExecuteScript("let coords = arguments[0].getBoundingClientRect();return coords.left;", element);
+        var y = ExecuteScript("let coords = arguments[0].getBoundingClientRect();return coords.top;", element);
+        int x2 = Convert.ToInt32(x);
+        int y2 = Convert.ToInt32(y);
+        var width = ExecuteScript("let coords = arguments[0].getBoundingClientRect();return coords.width;", element);
+        var height = ExecuteScript("let coords = arguments[0].getBoundingClientRect();return coords.height;", element);
+        int width2 = Convert.ToInt32(width);
+        int height2 = Convert.ToInt32(height);
+
+
+
+        img = img.Clone(new Rectangle(x2, y2, width2, height2), img.PixelFormat);
+
+
+        return img;
+    }
+    /// <summary>
+    /// This method will get called after the DoSolveFaucet is completed and returned it was a success.
+    /// For example you can wait for a processing popup to go away until actual faucet claim result is on the page.
+    /// </summary>
+    public override int AfterSolveFaucet()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterSolveFaucet();
+    }
+
+    /// <summary>
+    /// This method gets called in the end after the BeforeSolveFaucet/DoSolveFaucet and AfterSolveFaucet methods were done.
+    /// The base.CheckFaucetResult will try to find a visible element on the page using the XPath from SuccessXPath and FailXPath (see the Start method)
+    /// These properties should contain XPath expressions to find certain elements on the page.
+    /// For example if it finds one of the elements from the SuccessXPath, and it is visible, then it will flag the claim attempt as a success.
+    /// Or if it finds one of the elements from the FailXPath, and it is visible, then it will flag the claim attempt as a failure.
+    /// </summary>
+    public override int CheckFaucetResult()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.CheckFaucetResult();
+    }
+}

@@ -1,0 +1,1669 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.Drawing.Imaging;
+using System.IO;
+using System.Runtime.InteropServices;
+using FaucetCollector.Script;
+using OpenQA.Selenium;
+using OpenQA.Selenium.Interactions;
+
+public class Shive_win : FaucetScript
+{
+   
+    /// <summary>
+    /// List of Settings that will be shown in the bot when selecting this Faucet in the bot.
+    /// You can get the value the user entered with the methods: GetSetting("[Name of the FaucetSetting]"), GetBoolSetting and GetDateTimeSetting
+    /// You can also create a new setting value using SetSetting("[Name you want to use]", "value")
+    /// </summary>
+    public override FaucetSettings Settings
+    {
+        get
+        {
+            return new FaucetSettings("http://www.shibe.win/faucet/")
+            {
+                new FaucetSetting(){Name="User",Display="Wallet Address",Type=EditorType.TextBox,Required=true},
+                new FaucetSetting(){Name="UseSolvemedia",Display="Use Solvemedia",Type=EditorType.CheckBox,Default=true },
+                new FaucetSetting(){Name="DoShortLink",Display="DoShortLink",Type=EditorType.CheckBox,Default=false},
+             
+                //insert user settings here
+                //new FaucetSetting { 
+                //    Name = "Name of your setting", 
+                //    Display = "Display shown in Faucet Collector", 
+                //    Type = EditorType.TextBox | EditorType.Password | EditorType.CheckBox | EditorType.Wallet | EditorType.Numeric | EditorType.ComboBox | EditorType.CheckComboBox, 
+                //    Required = true | false, 
+                //    Default = "Optionally a default value" | true | false | null.
+                //    Items = new List<string> { "item1", "item2" } (only valid for ComboBox or CheckComboBox)
+                //} 
+            };
+        }
+    }
+
+    /// <summary>
+    /// This method gets called when the faucet is enabled and the GO button is clicked
+    /// </summary>
+    public override void Start()
+    {
+        //Title that shows in the browser. Is used to identify and close popup windows
+        Title = "Shibe";
+
+        //After we did try to claim on the faucet we search for these elements to determine if it was a success or a fail
+        SuccessXPath = "//div[@class='alert alert-success']|//h2[contains(text(),'Results')]";
+        FailXPath = "//div[@class='alert alert-failed']";
+
+
+
+
+        //Let Faucet Collector start up everything
+        base.Start();
+    }
+
+    /// <summary>
+    /// This is the first method to run after the browser is opened and the first page is loaded.
+    /// </summary>
+    public override int DoInit()
+    {
+        cs = false;
+        //Let Faucet Collector continue.
+        return base.DoInit();
+    }
+
+    /// <summary>
+    /// This method gets called after the Start method, here you need to return if we are logged in or not.
+    /// If you return false then it will call the BeforeLogin, Login and AfterLogin methods so you can login.
+    /// After those Login methods are called it will call this IsLoggedIn method again to see if the login did succeed.
+    /// If you return true Faucet Collector will store all cookies so it will probably be already logged in on the next attempt.
+    /// </summary>
+    public override bool IsLoggedIn()
+    {
+        //In here we can check for the presence of an element that is only present when you are logged in.
+        //In this case we check for en element with the class "loggedIn"
+        return ElementByXPath("//input[@placeholder='Your DOGE wallet (FaucetHub.io)...']")==null;
+    }
+
+    /// <summary>
+    /// This method gets called if IsLoggedIn returned false, right before the DoLogin method is called.
+    /// </summary>
+    public override int BeforeLogin()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeLogin();
+    }
+
+    /// <summary>
+    /// This method gets called after BeforeLogin, but only if IsLoggedIn returned false.
+    /// It can be used to actually login the user/enter wallet details in the faucet
+    /// </summary>
+    /// <returns></returns>
+    public override int DoLogin()
+    {
+        if (!SetText_2XPath("//input[@placeholder='Your DOGE wallet (FaucetHub.io)...']", "/html[1]/body[1]/div[2]/div[2]/div[1]/form[1]/div[1]/div[2]/input[1]", GetSetting("User")))
+        {
+            return Fail("Box to set user/email isn't visible");
+        }
+        Wait();
+        Click_2XPath("//button[@type='submit']", "/html[1]/body[1]/div[2]/div[2]/div[1]/form[1]/div[1]/div[3]/div[1]/button[1]");
+        Wait();
+        return base.DoLogin();
+    }
+
+    private bool SetText_2XPath(string Relative_Xpath, string Absolute_XPath, string TextToset)
+    {
+        var ToSet = ElementByXPath(Relative_Xpath);
+        if (!IsVisible(ToSet))
+        {
+            var ToSet_2 = ElementByXPath(Absolute_XPath);
+            if (!IsVisible(ToSet_2))
+            {
+                return false;
+            }
+            else
+            {
+                SetText(ToSet_2, TextToset);
+            }
+        }
+        else
+        {
+            SetText(ToSet, TextToset);
+        }
+        return true;
+
+    }
+    private bool Click_2XPath(string Relative_Xpath, string Absolute_XPath)
+    {
+        var ToClick = ElementByXPath(Relative_Xpath);
+        if (!IsVisible(ToClick))
+        {
+            var ToClick2 = ElementByXPath(Absolute_XPath);
+            if (!IsVisible(ToClick2))
+            {
+                return false;
+            }
+            else
+            {
+                Click(ToClick2);
+            }
+        }
+        else
+        {
+            Click(ToClick);
+        }
+        return true;
+    }
+
+    /// <summary>
+    /// This method gets called after the DoLogin method.
+    /// </summary>
+    public override int AfterLogin()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterLogin();
+    }
+
+    /// <summary>
+    /// This method gets called after the login methods are successful, so we are logged into the faucet.
+    /// If the faucet is not yet ready to claim you should return a TimeStamp value to return how long it takes before the Faucet claim can be done.
+    /// This is used to pause the script while the faucet its timer runs out.
+    /// Return the number of seconds the bot should wait.
+    /// </summary>
+    public override int GetFaucetWaitTime()
+    {
+        if (cs)
+        {
+            cs = false;
+            return 5;
+        }
+        //let Faucet Collector continue.
+        return base.GetFaucetWaitTime();
+    }
+
+    /// <summary>
+    /// This method is called right before a captcha will be solved. 
+    /// If you call SolveCaptcha() in other methods it will start this flow and tries to solve the captcha on the page.
+    /// </summary>
+    public override int BeforeSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeSolveCaptcha();
+    }
+
+    /// <summary>
+    /// This method gets called after BeforeSolveCaptcha and it does the actual captcha solving
+    /// It will automatically try to see if there is a SolveMedia captcha active or a reCAPTCHA active. 
+    /// If it finds either one it will then use the selected method on the Captcha tab of FaucetCollector to solve the Captcha.
+    /// </summary>
+    public override int DoSolveCaptcha()
+    {
+        if (Driver.Url.Contains("shibe.win"))
+        {
+            if (GetBoolSetting("UseSolvemedia"))
+            {
+                var solvem = ElementByXPath("//a[contains(text(),'SolveMedia')]");
+                if (IsVisible(solvem))
+                {
+                    Click(solvem);
+                }
+
+            }
+            else
+            {
+                var captchame = ElementByXPath("//a[contains(text(),'CaptchMe')]");
+                if (IsVisible(captchame))
+                {
+                    Click(captchame);
+                }
+
+            }
+            Wait();
+            if (IsVisible(ElementByXPath("//div[@id='captchmeslider']")))
+            {
+
+                var slider = ElementByXPath("//div[@id='captchmeslider']");
+                Actions move = new Actions(Driver).DragAndDropToOffset(slider, 200, 0);
+                move.Perform();
+                Wait(6);
+
+            }
+            else
+            {
+                if (!IsVisible(ElementByXPath("//div[@id='adcopy-puzzle-image']")))
+                {
+                    var solvem = ElementByXPath("//a[contains(text(),'SolveMedia')]");
+                    if (IsVisible(solvem))
+                    {
+                        Click(solvem);
+                    }
+                }
+            }
+        }
+        Wait(3);
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoSolveCaptcha();
+    }
+
+    /// <summary>
+    /// This method will get called after DoSolveCaptcha returned it was a success.
+    /// </summary>
+    /// <returns></returns>
+    public override int AfterSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterSolveCaptcha();
+    }
+
+    /// <summary>
+    /// This method is called right before we attempt to claim on the faucet. So we are logged in and good to go.
+    /// Next methods that will be called are DoSolveFaucet, AfterSolveFaucet and CheckFaucetResult.
+    /// </summary>
+    public override int BeforeSolveFaucet()
+    {
+
+        if (!Driver.Url.Contains("http://www.shibe.win/faucet/"))
+        {
+            GoToUrl("http://www.shibe.win/faucet/");
+        }
+        if (GetBoolSetting("DoShortLink"))
+        {
+            var ButtonShort = ElementByXPath("//div[@class='btn btn-warning btn-fill' and contains(@onclick,'/faucet/link')]");
+            if (IsVisible(ButtonShort))
+            {
+                Click(ButtonShort);
+                Wait();
+                doShortLink("shibe.win");
+                Wait();
+            }
+        }
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeSolveCaptcha();
+    }
+
+    /// <summary>
+    /// This method gets called after the BeforeSolveFaucet. You can do the actual claiming of the faucet in here.
+    /// </summary>
+    /// <returns></returns>
+    /// 
+    bool cs;
+    public override int DoSolveFaucet()
+    {
+        if (!Driver.Url.Contains("http://www.shibe.win/faucet/"))
+        {
+            GoToUrl("http://www.shibe.win/faucet/");
+        }
+        var result = DoSolveCaptcha();
+        if (result > 0)
+        {
+            return Fail("Fail Solving captcha");
+        }
+        Wait(1);
+        ExecuteScript("var a=document.getElementsByClassName('btn btn-success btn-lg btn-fill');a[0].outerHTML=a[0].outerHTML.replace('disabled=\"\"','');");
+        Wait();
+        if (!Click_2XPath("//button[@type='submit']", "/html[1]/body[1]/div[2]/div[3]/div[1]/div[1]/div[2]/div[2]/button[1]"))
+        {
+            return Fail("Button submit isn't visible");
+        }
+        Wait(2,3);
+        bool solved = false;
+        if (ElementByXPath("//form[@method='post']") != null)
+        {
+            solved=SolveImage();
+        }
+        if (solved)
+        {
+            Wait(3, 4);
+            ExecuteScript("var a=document.getElementsByClassName('btn btn-success btn-lg btn-fill');a[0].outerHTML=a[0].outerHTML.replace('disabled=\"\"','');");
+            var SubmitAntiBotButton = ElementByXPath("//button[@type='submit']");
+            if (!IsVisible(SubmitAntiBotButton))
+            {
+                return Fail("Submit Anti Bot button Not found");
+            }
+            Click(SubmitAntiBotButton);
+        }
+        Wait();
+        if (IsVisible(ElementByXPath("//div[@class='alert alert-success']")) || IsVisible(ElementByXPath("//h2[contains(text(),'Results')]")))
+        {
+            if(IsVisible(ElementByXPath("//h2[contains(text(),'Results')]")) && !IsVisible(ElementByXPath("//div[@class='alert alert-success']")))
+            {
+                Log("Claim has been succeded but not payout detected it's probably that the faucet doesn't have balancec Waiting one hour");
+            }
+            cs = true;
+        }
+
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoSolveFaucet();
+    }
+
+    public bool SolveImage()
+    {
+        Wait(1);
+        bool IsSolved = false;
+        if (IsVisible(ElementByXPath("//img[@class='img-thumbnail']")))
+        {
+          
+            
+            int[] Results = new int[3];
+            Results = SetResults();
+            bool enc = false;
+            for(int i = 0; i < 3; i++)
+            {
+                if (Results[i] == -1)
+                {
+                    enc = true;
+                }
+            }
+            if (!enc)
+            {
+                var ImgClicks = ElementsByXPath("//img[@class='secret img-thumbnail']");
+                for (int i = 0; i < Results.Length; i++)
+                {
+                    Click(ImgClicks[Results[i]]);
+                    Wait();
+                }
+                IsSolved = true;
+            }
+            else
+            {
+                IsSolved = false;
+            }
+        }
+        else
+        {
+            Log("AntiBot Captcha Doesn't found");
+        }
+
+        return IsSolved;
+    }
+    public int[] SetResults()
+    {
+        int[] results = new int[3];
+        try
+        {
+           
+            var PrincipalImg = ElementByXPath("//img[@class='img-thumbnail']");
+
+            //string src_principal = PrincipalImg.GetAttribute("src");
+            //Bitmap Principal = Base64ToImage(src_principal);
+            Bitmap Principal = TakeScreenshot(Base.Captcha.CaptchaService.Manual, PrincipalImg);
+            Principal = Principal.Clone(new Rectangle(5, 5, 400, 120), Principal.PixelFormat);
+            //Principal.Save("HOLA.png");
+
+            if ((Principal.Width != 0 && Principal.Height != 0))
+            {
+                if (Principal.Width != 400 && Principal.Height != 120)
+                {
+
+                    Principal = ResizeImage(Principal, new Size(400, 120), false);
+                }
+
+                List<Bitmap> PrincipalIcons_ = CutPrincipalImage(Principal);
+
+                List<MyImage> PrincipalIcons = new List<MyImage>();
+                for (int i = 0; i < PrincipalIcons_.Count; i++)
+                {
+                    PrincipalIcons.Add(new MyImage(PrincipalIcons_[i]));
+
+                }
+
+                var OtherIcons = ElementsByXPath("//img[@class='secret img-thumbnail']");
+                List<MyImage> SecondaryIcons = new List<MyImage>();
+                Bitmap Secundary;
+                for (int i = 0; i < OtherIcons.Count; i++)
+                {
+                    //string src = OtherIcons[i].GetAttribute("src");
+                    //Secundary = Base64ToImage(src);
+                    Secundary = TakeScreenshot(Base.Captcha.CaptchaService.Manual, OtherIcons[i]);
+                    SecondaryIcons.Add(new MyImage(Secundary));
+                    //SecondaryIcons.Add(Base64ToImage(src));
+                }
+
+                List<ImgCompare> PrincipalElementsScore = new List<ImgCompare>();
+                for (int i = 0; i < PrincipalIcons.Count; i++)
+                {
+                    PrincipalElementsScore.Add(new ImgCompare());
+                    for (int j = 0; j < SecondaryIcons.Count; j++)
+                    {
+                        PrincipalElementsScore[i].AddNewScore(GetSimilarPoint(PrincipalIcons[i], SecondaryIcons[j]));
+
+                    }
+                    PrincipalElementsScore[i].CalculatePosition();
+
+                }
+
+                bool[] FinishedPrincipal = new bool[PrincipalElementsScore.Count];
+                bool[] SecundaryUsed = new bool[SecondaryIcons.Count];
+                for (int i = 0; i < PrincipalElementsScore.Count; i++)
+                {
+                    FinishedPrincipal[i] = false;
+                }
+                for (int i = 0; i < SecondaryIcons.Count; i++)
+                {
+                    SecundaryUsed[i] = false;
+                }
+
+                for (int i = 0; i < PrincipalElementsScore.Count; i++)
+                {
+
+                    bool repeat = false;
+                    int number = 0;
+                    do
+                    {
+                        repeat = false;
+                        int selection = number;
+                        bool IsSelected = false;
+
+                        while (!IsSelected)
+                        {
+                            if (SecundaryUsed[PrincipalElementsScore[i].GetSpecificPosition(selection)])
+                            {
+                                selection++;
+                            }
+                            else
+                            {
+                                IsSelected = true;
+                            }
+
+                        }
+                        int s = PrincipalElementsScore[i].GetSpecificPosition(selection);
+                        //Log(s.ToString());
+                        for (int j = i + 1; j < PrincipalElementsScore.Count; j++)
+                        {
+
+                            if (!FinishedPrincipal[j])
+                            {
+
+                                for (int k = 0; k <= selection; k++)
+                                {
+
+                                    if ((PrincipalElementsScore[j].GetSpecificPosition(k) == s) && (PrincipalElementsScore[i].GetSpecificScore(selection) < PrincipalElementsScore[j].GetSpecificScore(k)))
+                                    {
+                                        repeat = true;
+
+                                    }
+                                }
+                            }
+
+                        }
+                        if (repeat)
+                        {
+                            number++;
+                        }
+                        else
+                        {
+                            SecundaryUsed[PrincipalElementsScore[i].GetSpecificPosition(selection)] = true;
+                            FinishedPrincipal[i] = true;
+                            results[i] = s;
+                        }
+
+                    } while (repeat);
+                }
+
+            }
+            else
+            {
+                Log("Problem Cuting the image of the captcha");
+            }
+        }
+        catch (Exception)
+        {
+            for(int i = 0; i < 3; i++)
+            {
+                results[i] = -1;
+            }
+            Log("Problem has detected solving antibot captcha");
+        }
+
+        return results;
+    }
+    private List<Bitmap> CutPrincipalImage(Bitmap Img)
+    {
+        List<Bitmap> Cuted = new List<Bitmap>();
+       
+            Img = Img.Clone(new Rectangle(new Point(0, 75), new Size(400, 45)), Img.PixelFormat);
+
+
+        //Img.Save("SAVED.png");
+       int counter = 0;
+        for(int i = 0; i <= 280; i+=140)
+        {
+            Cuted.Add(Img.Clone(new Rectangle(i, 0, 120, 45), Img.PixelFormat));
+           
+            if (IsAvailableParcialCut(Cuted[counter]))
+            {
+                Cuted[counter] = Img.Clone(new Rectangle(0, 3, Img.Width, 40),Img.PixelFormat);
+             
+            }
+            
+           else if (IsAvailableCutInLowPart(Cuted[0]))
+            {
+               
+                Cuted[counter] = Img.Clone(new Rectangle(0, 0, Img.Width, 40), Img.PixelFormat);
+
+            }
+           
+            else
+            {
+                //Log("3");
+                Cuted[counter] = Img.Clone(new Rectangle(0, 5, Img.Width, 40), Img.PixelFormat);
+                //Log("1_");
+            }
+            counter++;
+        }
+        //Log("1");
+        //Log("Finished cutting");
+
+        return Cuted;
+    }
+
+    private bool IsAvailableParcialCut(Bitmap Img)
+    {
+        bool EnableCut = false;
+        if(Img.Width!=120 || Img.Height != 45)
+        {
+            Img = ResizeImage(Img, new Size(120, 45), false);
+        }
+        if (Img.Width == 120 && Img.Height == 45)
+        {
+            Bitmap HighImagePart = Img.Clone(new Rectangle(0, 0, 120, 3), Img.PixelFormat);
+            Bitmap LowhImagePart = Img.Clone(new Rectangle(0, 43, 120, 2), Img.PixelFormat);
+            if(!ContainsColorDifferentOfWhite(HighImagePart) && !ContainsColorDifferentOfWhite(LowhImagePart))
+            {
+                EnableCut = true;
+
+            }
+
+        }
+        else
+        {
+            Log("Error: The image doesn't have correct dimentions");
+        }
+
+        return EnableCut;
+    }
+    private bool IsAvailableCutInLowPart(Bitmap Img)
+    {
+        bool EnableCut = false;
+        if (Img.Width != 120 || Img.Height != 45)
+        {
+            Img = ResizeImage(Img, new Size(120, 45), false);
+        }
+        if (Img.Width==120 && Img.Height == 45)
+        {
+            Bitmap HighImagePart = Img.Clone(new Rectangle(0, 0, 120, 5),Img.PixelFormat);
+            if (ContainsColorDifferentOfWhite(HighImagePart))
+            {
+                EnableCut = true;
+            }
+        }
+        else
+        {
+            Log("Error: The image doesn't have correct dimentions");
+        }
+
+        return EnableCut;
+    }
+    private bool ContainsColorDifferentOfWhite(Bitmap ToExtract)
+    {
+        bool OtherColor = false;
+        byte[] byteImage = BitmapToByteArray(ToExtract);
+        
+      
+        for (int i = 0; i < byteImage.Length - 3; i += 3)
+        {
+            Color ColorCmp = Color.FromArgb(byteImage[i + 2], byteImage[i + 1], byteImage[i]);
+            if (!Comp_argb(ColorCmp, Color.White, 41)){
+
+                OtherColor = true;
+            }
+          
+        }
+
+        return OtherColor;
+    }
+
+    private Bitmap Base64ToImage(string base64String)
+    {
+        if (base64String.Contains("data:image/jpeg;base64,"))
+        {
+            base64String = base64String.Replace("data:image/jpeg;base64,", "");
+
+            //data:image/jpeg;base64,
+        }
+        // Convert base 64 string to byte[]
+        byte[] imageBytes = Convert.FromBase64String(base64String);
+        // Convert byte[] to Image
+        using (var ms = new MemoryStream(imageBytes, 0, imageBytes.Length))
+        {
+            Bitmap image = Image.FromStream(ms, true) as Bitmap;
+            return image;
+        }
+    }
+
+    private int GetSimilarPoint(MyImage Img1, MyImage Img2)
+    {
+        int Similar_P = 0;
+        bool High=false;
+        if (Img1.GetListColors().Count > Img2.GetListColors().Count)
+        {
+            High = true;
+        }
+        int tread = 5;
+       
+        if (High)
+        {
+            for(int i = 0; i < Img1.GetListColors().Count; i++)
+            {
+                bool Color_enc = false;
+                for(int j = 0; j < Img2.GetListColors().Count; j++)
+                {
+                    if (Comp_argb(Img1.GetListColors()[i].GetColor(), Img2.GetListColors()[j].GetColor(), 2))
+                    {
+                        Color_enc = true;
+                        Similar_P += 2;
+                        if((Img1.GetListColors()[i].GetCount()- Img2.GetListColors()[j].GetCount()<=tread) || (Img2.GetListColors()[j].GetCount() - Img1.GetListColors()[i].GetCount() <= tread))
+                        {
+                            Similar_P++;
+                        }
+                        break;
+
+                    }
+                }
+                if (!Color_enc)
+                {
+                    Similar_P--;
+                }
+            }
+
+        }
+        else
+        {
+            for (int j = 0; j < Img2.GetListColors().Count; j++)
+            {
+                bool Color_enc = false;
+                for (int i = 0; i < Img1.GetListColors().Count; i++)
+                {
+
+                    if (Comp_argb(Img1.GetListColors()[i].GetColor(), Img2.GetListColors()[j].GetColor(), 1))
+                    {
+                        Color_enc = true;
+                        Similar_P += 2;
+                        if ((Img1.GetListColors()[i].GetCount() - Img2.GetListColors()[j].GetCount() <= tread) || (Img2.GetListColors()[j].GetCount() - Img1.GetListColors()[i].GetCount() <= tread))
+                        {
+                            Similar_P++;
+                        }
+                        break;
+
+                    }
+                }
+                if (!Color_enc)
+                {
+                    Similar_P--;
+                    Similar_P--;
+                }
+            }
+
+        }
+
+
+        int ToAdValue = Img1.GetPixelsWithColor() - Img2.GetPixelsWithColor();
+        if (ToAdValue < 0)
+        {
+            ToAdValue *= -1;
+        }
+        int Toad = 410 - ToAdValue;
+
+        //Log(Similar_P.ToString());
+
+        return Similar_P;
+    }
+
+    
+    private bool Comp_argb(Color fr, Color source, double threshold)
+    {
+        int r = fr.R - source.R;
+        int g = fr.G - source.G;
+        int b = fr.B - source.B;
+       
+        if (r * r + g * g + b * b > threshold * threshold)
+        {
+            return false;
+        }
+        else
+        {
+            return true;
+        }
+    }
+    public static byte[] BitmapToByteArray(Bitmap bitmap)
+    {
+        BitmapData bmpdata = null;
+        try
+        {
+            bmpdata = bitmap.LockBits(new Rectangle(0, 0, bitmap.Width, bitmap.Height), ImageLockMode.ReadWrite, bitmap.PixelFormat);
+            int numbytes = Math.Abs(bmpdata.Stride) * bitmap.Height;
+            byte[] bytedata = new byte[numbytes];
+            IntPtr ptr = bmpdata.Scan0;
+
+            Marshal.Copy(ptr, bytedata, 0, numbytes);
+
+            return bytedata;
+        }
+        finally
+        {
+            if (bmpdata != null)
+                bitmap.UnlockBits(bmpdata);
+        }
+
+    }
+    /// <summary>
+    /// This method will get called after the DoSolveFaucet is completed and returned it was a success.
+    /// For example you can wait for a processing popup to go away until actual faucet claim result is on the page.
+    /// </summary>
+    public override int AfterSolveFaucet()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterSolveFaucet();
+    }
+
+    /// <summary>
+    /// This method gets called in the end after the BeforeSolveFaucet/DoSolveFaucet and AfterSolveFaucet methods were done.
+    /// The base.CheckFaucetResult will try to find a visible element on the page using the XPath from SuccessXPath and FailXPath (see the Start method)
+    /// These properties should contain XPath expressions to find certain elements on the page.
+    /// For example if it finds one of the elements from the SuccessXPath, and it is visible, then it will flag the claim attempt as a success.
+    /// Or if it finds one of the elements from the FailXPath, and it is visible, then it will flag the claim attempt as a failure.
+    /// </summary>
+    public override int CheckFaucetResult()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.CheckFaucetResult();
+    }
+    public bool doShortLink(string url)
+    {
+        // VERSION 2.4.2 Last updated 19/10/2018 
+
+        bool iscorrect = true;
+        DateTime t1;
+        int cont = 0;
+        bool bypassed = false;
+        Wait(4);
+        string url_a = Driver.Url;
+
+        do
+        {
+            Title += "|" + Driver.Title;
+            Wait();
+            try
+            {
+                int cont2 = 0;
+                while (true)
+                {
+                    Driver.SwitchTo().Frame(cont2);
+                    var b_deny = ElementById("B1");
+                    if (IsVisible(b_deny))
+                    {
+                        Click(b_deny);
+                        Wait(1);
+                    }
+
+                    cont2++;
+                    Driver.SwitchTo().DefaultContent();
+                }
+            }
+            catch (Exception)
+            {
+                Driver.SwitchTo().DefaultContent();
+            }
+            Wait();
+            if (Driver.Url.Contains("dwindly.io"))
+            {
+                Wait();
+                var but = Driver.FindElement(By.Id("btd1"));
+                Click(but);
+                Wait(12);
+                var but2 = Driver.FindElement(By.Id("btd"));
+
+                Click(but);
+
+            }
+           
+            else if (Driver.Url.Contains("faucetcrypto.com/faucet/short/"))
+            {
+
+                while (IsVisible(ElementByXPath("//a[@class='btn btn-accent btn-block disabled waves-effect waves-light']")) && !IsVisible(ElementByXPath("//a[@class='btn btn-accent btn-block waves-effect waves-light']")))
+                {
+                    Wait();
+                }
+                Wait();
+                var button = ElementByXPath("//a[@class='btn btn-accent btn-block waves-effect waves-light']");
+                Click(button);
+            }
+            else if (Driver.Url.Contains("http://ouo.io"))
+            {
+                Wait();
+                DoSolveCaptcha();
+                string g_key = Context.CaptchaResult.Result;
+                var elem = ElementByXPath("//span[@class='desc']//a");
+                Click(elem);
+                Wait();
+                var g_area = ElementByXPath("//textarea[@id='g-recaptcha-response']");
+                SetText(g_area, g_key);
+                Wait();
+                var button____ = ElementByXPath("//input[@value='Submit']");
+                Click(button____);
+                Wait(2);
+                DateTime twait = DateTime.Now.AddSeconds(16);
+                while (!IsVisible(ElementByXPath("//button[@id='btn-main']")))
+                {
+                    Wait();
+                    if (DateTime.Now > twait)
+                    {
+                        break;
+                    }
+                }
+                var button_fouo = ElementByXPath("//button[@id='btn-main']");
+                if (IsVisible(button_fouo))
+                {
+                    Click(button_fouo);
+                }
+                Wait();
+            }
+            else if (Driver.Url.Contains("linkshrink.net"))
+            {
+                Wait();
+                var button = ElementByXPath("//a[@id='btd']");
+                if (button != null)
+                {
+                    while (!button.Enabled)
+                    {
+                        Wait();
+                    }
+
+                    Click(button, false);
+                    Wait(3, 4);
+                    CheckForPopups();
+                }
+            }
+            else if (Driver.Url.Contains("zap.in"))
+            {
+                ExecuteScript("var v = document.getElementsByClassName('btn btn-primary'); v[0].click();");
+                var result = SolveCaptcha();
+
+                Wait(5);
+                ExecuteScript("var v = document.getElementsByClassName('btn btn-primary'); v[1].click();");
+
+
+            }
+            else
+            {
+
+                bool clicked = false;
+                Wait();
+                var button = ElementById("invisibleCaptchaShortlink");
+                if (IsVisible(button))
+                {
+                    var img = ElementById("adcopy-outer-captchaShortlink");
+                    var text = ElementById("adcopy_response-captchaShortlink");
+                    if (img != null && text != null)
+                    {
+                        var result = DoSolveImageCaptcha(img, text);
+                    }
+                    else
+                    {
+                        var result = SolveCaptcha();
+                        try
+                        {
+                            ExecuteScript("try{window.grecaptcha.getResponse = function(nr) { return '" + Context.CaptchaResult.Result + "'; }}catch(Exception){};");
+                        }
+                        catch (Exception)
+                        {
+
+                        }
+                    }
+                    Wait(2, 3);
+                    button = ElementById("invisibleCaptchaShortlink");
+                    if (button.Enabled == true)
+                    {
+                        button = ElementById("invisibleCaptchaShortlink");
+                        Click(button);
+                        clicked = true;
+                        Wait();
+                    }
+                    else
+                    {
+                        ExecuteScript("var but=document.getElementById(\"invisibleCaptchaShortlink\");but.outerHTML=but.outerHTML.replace('disabled=\"disabled\"','');");
+                        Wait(3);
+                        button = ElementById("invisibleCaptchaShortlink");
+                        Click(button);
+                        clicked = true;
+
+
+                    }
+                }
+                else
+                {
+                    var button_2 = Driver.FindElements(By.TagName("button"));
+                    foreach (var _button_2 in button_2)
+                    {
+                        if (_button_2.Text.ToLower().Contains("continue"))
+                        {
+                            if (_button_2.Enabled == true)
+                            {
+                                Click(_button_2);
+                                clicked = true;
+                                Wait();
+                                break;
+                            }
+                            else
+                            {
+                                ExecuteScript("var but=document.getElementsByTagName('button');for(i=0;i<but.length;i++){if(but[i].outerHTML.search('continue')!=-1){but[i].outerHTML=but[i].outerHTML.replace('disabled=\"disabled\"','');break;}}");
+                                Wait(3);
+                                Click(_button_2);
+                                clicked = true;
+                                break;
+                            }
+                        }
+                    }
+
+                }
+                if (!clicked)
+                {
+                    var button__ = ElementByXPath("//button[@id='invisibleCaptchaShortlink']");
+                    var form = ElementByXPath("//form[@id='link-view']");
+                    if (button__ != null && !IsVisible(button__) && form != null && ElementByXPath("//iframe[contains(@src,'google.com/recaptcha')]") != null)
+                    {
+                        DoSolveCaptcha();
+                        Wait();
+                        ExecuteScript("var but=document.getElementById('invisibleCaptchaShortlink');but.outerHTML='';var form=document.getElementById('link-view');form.submit();");
+                        Wait();
+                        clicked = true;
+                    }
+                }
+                if (!clicked)
+                {
+                    if (ElementByXPath("//div[@id='loading']") != null && ElementByXPath("//div[@id='loadingdone']") != null && ElementByXPath("//input[@value='Skip Ad']") != null)
+                    {
+                        DateTime T_w = DateTime.Now.AddSeconds(16);
+                        while (IsVisible(ElementByXPath("//input[@value='Skip Ad']")) && !IsVisible(ElementByXPath("//input[@value='Skip Ad']")))
+                        {
+
+                            Wait();
+                            if (DateTime.Now > T_w)
+                            {
+                                break;
+                            }
+                        }
+                        var button_skip = ElementByXPath("//input[@value='Skip Ad']");
+                        if (button_skip != null)
+                        {
+                            Click(button_skip);
+                            clicked = true;
+                        }
+
+                        Wait(3);
+                    }
+                }
+                if (!clicked)
+                {
+                    if (IsVisible(ElementByXPath("//img[@src='http://cdn.ay.gy/static/image/logo.png']")) && IsVisible(ElementByXPath("//a[@style='color:#FFFFFF;']")))
+                    {
+                        Wait(6);
+                        var but = ElementByXPath("//a[@style='color:#FFFFFF;']");
+                        if (IsVisible(but))
+                        {
+                            Click(but);
+                            Wait();
+
+                            clicked = true;
+                        }
+
+                    }
+                }
+                if (!clicked)
+                {
+                    var but = ElementById("btn1");
+                    if (IsVisible(but))
+                    {
+                        Click(but);
+                        Wait();
+                        var img = ElementById("adcopy-outer-captchaShortlink");
+                        var text = ElementById("adcopy_response-captchaShortlink");
+                        if (img != null && text != null)
+                        {
+                            var result = DoSolveImageCaptcha(img, text);
+                        }
+                        else
+                        {
+                            var result = SolveCaptcha();
+                            try
+                            {
+                                ExecuteScript("try{window.grecaptcha.getResponse = function(nr) { return '" + Context.CaptchaResult.Result + "'; }}catch(Exception){};");
+                            }
+                            catch (Exception)
+                            {
+
+                            }
+                        }
+                        Wait();
+                        var but1 = ElementByXPath("//a[@class='btn btn-primary']");
+                        Wait();
+                        Click(but1);
+                        var button_p = ElementByXPath("//button[@id='btn2']");
+                        t1 = DateTime.Now.AddMinutes(1);
+                        while (!button_p.Enabled)
+                        {
+                            button_p = ElementByXPath("//button[@id='btn2']");
+                            Wait();
+                            if (DateTime.Now > t1)
+                            {
+                                break;
+                            }
+                        }
+                        Click(button_p);
+                        clicked = true;
+                        Wait();
+
+                    }
+
+                }
+                if (!clicked)
+                {
+                    Wait();
+                    if (IsVisible(ElementByXPath("//div[@id='pause']")) || IsVisible(ElementById("btd1")))
+                    {
+
+
+                        var but = ElementById("btd1");
+                        t1 = DateTime.Now.AddMinutes(1);
+                        while (!IsVisible(but))
+                        {
+                            Wait();
+                            but = ElementById("btd1");
+                            if (DateTime.Now > t1)
+                            {
+                                break;
+                            }
+                        }
+
+                        Click(but);
+                        clicked = true;
+
+                    }
+                }
+                if (!clicked)
+                {
+                    var but_p = ElementByXPath("//div[@class='panel-body']//button[@type='button']");
+                    if (IsVisible(but_p))
+                    {
+                        Click(but_p);
+                        Wait();
+                        DoSolveCaptcha();
+                        Wait();
+                        var verify_but = ElementByXPath("//button[contains(text(),'Verify')]");
+                        if (IsVisible(verify_but))
+                        {
+                            Click(verify_but);
+                        }
+                        Wait();
+                        clicked = true;
+                    }
+                }
+                if (!clicked)
+                {
+                    if (IsVisible(ElementByXPath("//span[@id='timer']")) || IsVisible(ElementByXPath("//span[@id='skip_button']")))
+                    {
+                        DateTime Wait_s = DateTime.Now.AddSeconds(20);
+                        while (IsVisible(ElementByXPath("//span[@id='timer']")))
+                        {
+
+                            Wait();
+                            if (DateTime.Now > Wait_s)
+                            {
+                                break;
+                            }
+                        }
+                        Wait();
+                        var but_skip = ElementByXPath("//span[@id='skip_button']");
+                        Click(but_skip);
+                        clicked = true;
+                        Wait();
+                    }
+                }
+                if (!clicked)
+                {
+                    if (IsVisible(ElementByXPath("//div[@id='LinkDetails']//button[@type='button' and @class='btn btn-primary btn-lg']")))
+                    {
+                        Wait();
+                        DoSolveCaptcha();
+                        Wait();
+                        ExecuteScript("recaptchaCompleted();");
+                        Wait();
+                        var button_click = ElementByXPath("//div[@id='LinkDetails']//button[@type='button']");
+                        if (IsVisible(button_click))
+                        {
+                            Click(button_click);
+                            clicked = true;
+                        }
+
+                    }
+
+                }
+                if (!clicked)
+                {
+                    if (ElementByXPath("//*[contains(@src,'google.com/recaptcha')]") != null && ElementByXPath("//button[@type='submit' and @class='hidden']")!=null)
+                    {
+
+                        DoSolveCaptcha();
+                        Wait(2, 3);
+
+                        var button_ = ElementByXPath("//button[@type='submit' and @class='hidden']");
+                        Click(button_);
+                        Wait();
+                        clicked = true;
+                    }
+                }
+                if (!clicked)
+                {
+                    if (ElementByXPath("//*[contains(@src,'google.com/recaptcha')]") != null)
+                    {
+
+                        DoSolveCaptcha();
+                        Wait(2, 3);
+
+                        ExecuteScript("try{___grecaptcha_cfg.clients[0].aa.l.callback('" + Context.CaptchaResult.Result + "');}catch(Exception){___grecaptcha_cfg.clients[0].KR.K.callback('" + Context.CaptchaResult.Result + "');}");
+                        Wait();
+                        clicked = true;
+                    }
+
+
+                }
+                if (!clicked)
+                {
+                    if (IsVisible(ElementByXPath("//input[@class='btn btn-primary']")))
+                    {
+                        Wait();
+                        var but = ElementByXPath("//input[@class='btn btn-primary']");
+                        Click(but);
+                        Wait(2, 3);
+                        var elem_wait = ElementByXPath("//div[@class='row']//div[@class='row']//div[@class='fh5co-intro animate-box fadeInUp animated-fast']");
+                        var t__ = DateTime.Now.AddSeconds(30);
+                        while (IsVisible(elem_wait))
+                        {
+                            Wait();
+                            if (DateTime.Now > t__)
+                            {
+                                break;
+                            }
+                            elem_wait = ElementByXPath("//div[@class='row']//div[@class='row']//div[@class='fh5co-intro animate-box fadeInUp animated-fast']");
+
+                        }
+                        Wait();
+                        var captcha_solvemedia_short = ElementByXPath("//img[@id='adcopy-puzzle-image-image-captchaShortlink']");
+                        if (IsVisible(captcha_solvemedia_short))
+                        {
+                            DoSolveImageCaptcha(captcha_solvemedia_short, ElementByXPath("//input[@id='adcopy_response-captchaShortlink']"));
+
+                        }
+                        else
+                        {
+                            DoSolveCaptcha();
+                        }
+                        Wait();
+                        var button__S = ElementByXPath("//button[@id='invisibleCaptchaShortlink']");
+                        if (IsVisible(button__S))
+                        {
+                            Click(button__S);
+                            clicked = true;
+                        }
+                        Wait();
+
+                    }
+                }
+
+
+                ///// CLICK FIRST BUTTON FINISHED
+                if (clicked)
+                {
+                    bool clicked_2 = false;
+                    var button_skip = ElementByXPath("//a[@class='btn btn-success btn-lg get-link']");
+                    if (IsVisible(ElementByXPath("//a[@class='btn btn-success btn-lg get-link disabled']")) || IsVisible(ElementByXPath("//a[@class='btn btn-success btn-lg get-link']")))
+                    {
+                        t1 = DateTime.Now.AddMinutes(1);
+                        while (button_skip == null)
+                        {
+                            Wait();
+                            button_skip = ElementByXPath("//a[@class='btn btn-success btn-lg get-link']");
+                            if (DateTime.Now > t1)
+                            {
+                                break;
+                            }
+                        }
+                        Click(button_skip);
+                        clicked_2 = true;
+                    }
+
+                    if (!clicked_2)
+                    {
+                        if (IsVisible(ElementByXPath("//div[@class='skip-ad']")) || IsVisible(ElementByXPath("//a[@class='btn']")))
+                        {
+                            var button_skip_a = ElementByXPath("//a[@class='btn']");
+                            t1 = DateTime.Now.AddMinutes(1);
+                            while (button_skip_a == null)
+                            {
+                                Wait();
+                                button_skip_a = ElementByXPath("//a[@class='btn']");
+                                if (DateTime.Now > t1)
+                                {
+                                    break;
+                                }
+                            }
+                            Click(button_skip_a);
+                            clicked_2 = true;
+                        }
+
+                    }
+                    if (!clicked_2)
+                    {
+                        if (IsVisible(ElementByXPath("//a[@class='btn btn-success get-link disabled']")) || IsVisible(ElementByXPath("//a[@class='btn btn-success get-link']")))
+                        {
+                            var button_skip_a = ElementByXPath("//a[@class='btn btn-success get-link']");
+                            t1 = DateTime.Now.AddMinutes(1);
+                            while (button_skip_a == null)
+                            {
+                                Wait();
+                                button_skip_a = ElementByXPath("//a[@class='btn btn-success get-link']");
+                                if (DateTime.Now > t1)
+                                {
+                                    break;
+                                }
+                            }
+                            Click(button_skip_a);
+                            clicked_2 = true;
+                        }
+                    }
+                    if (!clicked_2)
+                    {
+                        if (IsVisible(ElementByXPath("//a[@class='btn btn-primary btn-goo get-link disabled']")) || IsVisible(ElementByXPath("//a[@class='btn btn-primary btn-goo get-link']")))
+                        {
+                            var button_skip_a = ElementByXPath("//a[@cla//a[@class='btn btn-success btn-lg get-link disabled']ss='btn btn-primary btn-goo get-link']");
+                            t1 = DateTime.Now;
+                            while (!IsVisible(button_skip_a))
+                            {
+                                Wait();
+                                button_skip_a = ElementByXPath("//a[@class='btn btn-primary btn-goo get-link']");
+                                if (DateTime.Now > t1)
+                                {
+                                    break;
+                                }
+                            }
+                            try
+                            {
+                                button_skip_a = ElementByXPath("//a[@class='btn btn-primary btn-goo get-link']");
+                                string url___ = button_skip_a.GetAttribute("data-href");
+                                if (url___ != null)
+                                {
+                                    Driver.Navigate().GoToUrl(url___);
+                                    Wait();
+                                }
+                                else
+                                {
+                                    Click(button_skip_a, false);
+                                    try
+                                    {
+                                        Driver.SwitchTo().Alert().Accept();
+                                    }
+                                    catch (Exception)
+                                    {
+
+                                    }
+                                }
+
+
+                            }
+                            catch (Exception)
+                            {
+                                Click(button_skip_a, false);
+                                try
+                                {
+                                    Driver.SwitchTo().Alert().Accept();
+                                }
+                                catch (Exception)
+                                {
+
+                                }
+
+                            }
+                            clicked_2 = true;
+                        }
+                    }
+                    if (!clicked_2)
+                    {
+                        if (ElementByXPath("//a[@id='btn2']") != null)
+                        {
+                            var button_skip_a = ElementByXPath("//a[@id='btn2']");
+                            t1 = DateTime.Now.AddMinutes(1);
+                            while (!button_skip_a.Enabled)
+                            {
+                                Wait();
+                                button_skip_a = ElementByXPath("//a[@id='btn2']");
+                                if (DateTime.Now > t1)
+                                {
+                                    break;
+                                }
+                            }
+                            Click(button_skip_a);
+                            clicked_2 = true;
+                        }
+                    }
+                    if (!clicked_2)
+                    {
+                        if (IsVisible(ElementByXPath("//a[@class='getlinkbtn get-link disabled']")) || IsVisible(ElementByXPath("/a[@class='getlinkbtn get-link']")))
+                        {
+                            var button_skip_a = ElementByXPath("/a[@class='getlinkbtn get-link']");
+                            while (button_skip_a == null)
+                            {
+                                Wait();
+                                button_skip_a = ElementByXPath("/a[@class='getlinkbtn get-link']");
+                            }
+                            Click(button_skip_a);
+                            clicked_2 = true;
+
+                        }
+                    }
+                    if (!clicked_2)
+                    {
+                        if (IsVisible(ElementByXPath("//a[@class='btn btn-material get-link disabled']")) || IsVisible(ElementByXPath("//a[@class='btn btn-material get-link']")))
+                        {
+                            DateTime breaks = DateTime.Now.AddSeconds(30);
+                            while (IsVisible(ElementByXPath("//a[@class='btn btn-material get-link disabled']")) && !IsVisible(ElementByXPath("//a[@class='btn btn-material get-link']")))
+                            {
+
+                                Wait();
+                                if (DateTime.Now > breaks)
+                                {
+                                    break;
+                                }
+                            }
+                            Wait(2, 3);
+                            var but_Click = ElementByXPath("//a[@class='btn btn-material get-link']");
+                            if (IsVisible(but_Click))
+                            {
+                                Click(but_Click);
+                            }
+                            clicked_2 = true;
+                        }
+
+
+                    }
+
+                }
+            }
+            try
+            {
+                Driver.SwitchTo().Alert().Accept();
+            }
+            catch (Exception)
+            {
+
+            }
+
+            if (Driver.Url.Contains(url))//a[@class='btn btn-success btn-lg get-link']
+            {
+                bypassed = true;
+
+                Wait(3, 4);
+            }
+            else
+            {
+                bypassed = false;
+                if (Driver.Url.Contains(url_a))
+                {
+                    Driver.Navigate().Refresh();
+
+                }
+                else
+                {
+                    GoToUrl(url_a);
+                }
+
+            }
+            if (cont >= 3)
+            {
+                if (Driver.Url.Contains(url))
+                {
+                    iscorrect = true;
+                }
+                else
+                {
+                    iscorrect = false;
+                }
+
+                break;
+            }
+            cont++;
+
+        } while (!bypassed);
+        if (!iscorrect)
+        {
+            Log("It is likely that the shortened link that the script just tried to jump is not in this function, please send an email to scripts@faucetcollector.com with this information the url of the shortlink is: " + url_a.ToString());
+        }
+        return iscorrect;
+
+
+    }
+}
+
+public class MyColor
+{
+    private Color ColorImage;
+    private int ColorCount;
+
+    public MyColor(Color ColorImg,int ColorC)
+    {
+        ColorImage = ColorImg;
+        ColorCount = ColorC;
+    }
+
+    public Color GetColor()
+    {
+        
+        return ColorImage;
+    }
+
+    public int GetCount()
+    {
+
+        return ColorCount;
+    }
+
+    public void SetColorCount(int ColorCount)
+    {
+
+        this.ColorCount = ColorCount;
+    }
+    
+}
+
+    public class MyImage
+    {
+        private Bitmap Img;
+        private List<MyColor> ColorImg;
+        private int PixelsWithColor;
+
+        public Bitmap GetBitmap()
+        {
+            return Img;
+        }
+        public List<MyColor> GetListColors()
+        {
+            return ColorImg;
+
+        }
+        public int GetPixelsWithColor()
+        {
+
+            return PixelsWithColor;
+        }
+       private MyImage(Bitmap Img, List<MyColor> ColorImg, int PixelsWithColor)
+        {
+            this.Img = Img;
+            this.ColorImg = ColorImg;
+            this.PixelsWithColor = PixelsWithColor;
+        }
+     public MyImage(Bitmap Img)
+     {
+        this.Img = Img;
+        SetAtributeColor_(Img);
+
+      }
+        public void SetColorImg(List<MyColor> ColorImg)
+        {
+            this.ColorImg = ColorImg;
+        }
+        public void SetPixelsWithColor(int PixelsWithColor)
+        {
+            this.PixelsWithColor = PixelsWithColor;
+        }
+        private void SetAtributeColor_(Bitmap ToExtract)
+        {
+            byte[] byteImage = BitmapToByteArray(ToExtract);
+            List<MyColor> ColorImage_ = new List<MyColor>();
+            int PixelsWithColor = 0;
+            for (int i = 0; i < byteImage.Length - 3; i += 3)
+            {
+                Color ColorCmp = Color.FromArgb(byteImage[i + 2], byteImage[i + 1], byteImage[i]);
+
+                int num_ = -1;
+                for (int j = 0; j < ColorImage_.Count && num_ == -1; j++)
+                {
+                    if (Comp_argb(ColorCmp, ColorImage_[j].GetColor(), 1))
+                    {
+                        num_ = j;
+
+                    }
+                }
+                if (num_ == -1)
+                {
+                    ColorImage_.Add(new MyColor(ColorCmp, 1));
+                    if (!Comp_argb(ColorCmp, Color.White, 31))
+                    {
+                        PixelsWithColor++;
+                    }
+
+                }
+                else
+                {
+                    ColorImage_[num_].SetColorCount(ColorImage_[num_].GetCount() + 1);
+                    if (!Comp_argb(ColorCmp, Color.White, 31))
+                    {
+                        PixelsWithColor++;
+                    }
+                }
+            }
+        ColorImg = ColorImage_;
+        this.PixelsWithColor = PixelsWithColor;
+            //MyImage Img = new MyImage(ToExtract, ColorImage_, PixelsWithColor);
+
+            //return Img;
+        }
+
+        private bool Comp_argb(Color fr, Color source, double threshold)
+        {
+            int r = fr.R - source.R;
+            int g = fr.G - source.G;
+            int b = fr.B - source.B;
+
+            if (r * r + g * g + b * b > threshold * threshold)
+            {
+                return false;
+            }
+            else
+            {
+                return true;
+            }
+        }
+        public static byte[] BitmapToByteArray(Bitmap bitmap)
+        {
+            BitmapData bmpdata = null;
+            try
+            {
+                bmpdata = bitmap.LockBits(new Rectangle(0, 0, bitmap.Width, bitmap.Height), ImageLockMode.ReadWrite, bitmap.PixelFormat);
+                int numbytes = Math.Abs(bmpdata.Stride) * bitmap.Height;
+                byte[] bytedata = new byte[numbytes];
+                IntPtr ptr = bmpdata.Scan0;
+
+                Marshal.Copy(ptr, bytedata, 0, numbytes);
+
+                return bytedata;
+            }
+            finally
+            {
+                if (bmpdata != null)
+                    bitmap.UnlockBits(bmpdata);
+            }
+
+        }
+
+    }
+class ImgCompare
+{
+    private List<int> ScorePercent;
+    private List<int> Position;
+    public ImgCompare()
+    {
+        ScorePercent = new List<int>();
+       Position = new List<int>();
+    }
+    public void AddNewScore(int Score,bool UpdatePosition=false)
+    {
+        ScorePercent.Add(Score);
+        if (UpdatePosition)
+        {
+            CalculatePosition();
+        }
+    }
+    public int GetSpecificPosition(int NPosition)
+    {
+        return Position[NPosition];
+    }
+    public int GetSpecificScore(int NScore)
+    {
+        if (NScore < ScorePercent.Count)
+        {
+            return ScorePercent[NScore];
+        }
+        return -1;
+    }
+    public List<int> GetList()
+    {
+        return ScorePercent;
+    }
+    public void CalculatePosition()
+    {
+    
+        if (ScorePercent.Count > 0)
+        {
+            Position = new List<int>();
+            bool[] Used = new bool[ScorePercent.Count];
+            for(int i = 0; i < Used.Length; i++)
+            {
+                Used[i] = false;
+            }
+            for (int i = 0; i < ScorePercent.Count; i++)
+            {
+                int High = 0;
+                int option = 0;
+                for(int j = 0; j < ScorePercent.Count; j++)
+                {
+                    if (ScorePercent[j] > High && !Used[j])
+                    {
+                        High = ScorePercent[j];
+                        option = j;
+                       
+                        
+                    }
+                }
+                Used[option] = true;
+                Position.Add(option);
+            }
+        }
+    }
+
+}
+

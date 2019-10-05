@@ -1,0 +1,2123 @@
+
+//==================//
+//script Written by: ••AviramDayan•• 05/12/2018 06:00AM 
+//Last Update: 01/10/2019 04:00PM - Version 48
+//==================//
+
+using System;
+using FaucetCollector.Script;
+using System.Text.RegularExpressions;
+using OpenQA.Selenium;
+using OpenQA.Selenium.Interactions;
+//css_inc RecaptchaUtilities
+
+
+public class discordapp_ : FaucetScript
+{
+    /// <summary>
+    /// List of Settings that will be shown in the bot when selecting this Faucet in the bot.
+    /// You can get the value the user entered with the methods: GetSetting("[Name of the FaucetSetting]"), GetBoolSetting and GetDateTimeSetting
+    /// You can also create a new setting value using SetSetting("[Name you want to use]", "value")
+    /// </summary>
+    public override FaucetSettings Settings
+    {
+        get
+        {
+            return new FaucetSettings("http://discordapp.com/")
+            {
+                new FaucetSetting(){Name="Email",Display="Email - Discordapp Login",Type=EditorType.TextBox,Required=true},
+                new FaucetSetting(){Name="Pass",Display="Password - Discordapp Login",Type=EditorType.Password,Required=true},
+                			
+				//new FaucetSetting(){Name="DeleteCookies",Display="Delete Cookies - Sometimes solves problems (in login) if you have (Recommended)",Type=EditorType.CheckBox,Default=false},
+				new FaucetSetting(){Name="ALLIN_Success",Display="ALLIN_Success - if ON - it will Skip on all 'Discordtip Main Bot Vote' + 'AirDrops' Tasks & will check same as Success - If you've already done them + If you don't want to repeat the all your actions (under) ",Type=EditorType.CheckBox,Default=false},
+				new FaucetSetting(){Name="All_AirDrop_Success",Display="All_AirDrop_Success - if ON - it will Skip on all 'AirDrops' Tasks & check same as Success",Type=EditorType.CheckBox,Default=false},
+                new FaucetSetting(){Name="ProtectionSetEnglishLanguage",Display="ProtectionSetEnglishLanguage - On/off",Type=EditorType.CheckBox,Default=true},	
+				
+				new FaucetSetting(){Name="Discordtip_Main_ID",Display="Discordtip Bot | Main - Vote and Claim between 100 to 500 satoshi - every 12 hours' ",Default="617037497574359050",Type=EditorType.TextBox,Required=true},
+                new FaucetSetting(){Name="Discordtip_Main_OnOff",Display="Discordtip Bot | Main - On/off",Type=EditorType.CheckBox,Default=true},		
+				new FaucetSetting(){Name="Menu_Bot_Currency",Display="Discordtip Bot | Main - Menu Bot Currency - Select Favorite Currency (correctly available only 'BTC')",Type=EditorType.ComboBox,Default="btc",Items=new System.Collections.Generic.List<string>{"btc","bch","btg","dash","dgb","doge","eos","eth","ethos","ltc","omg","wax","xzc","zec"}},
+
+                new FaucetSetting(){Name="Discordtip_FaucetCollector_OnOff",Display="FaucetCollector - AirDrop - OnOff",Type=EditorType.CheckBox,Default=true},		
+			    /*
+                new FaucetSetting(){Name="Discordtip_LaccsFaucet_DOGE_OnOff",Display="LaccsFaucet DOGE - AirDrop - On/off",Type=EditorType.CheckBox,Default=true},		
+                new FaucetSetting(){Name="Discordtip_LaccsFaucet_DOGE_AutoWithdraw",Display="AutoWithdraw DOGE - On/off",Type=EditorType.CheckBox,Default=false},		
+				new FaucetSetting(){Name="Discordtip_LaccsFaucet_DOGE_AmountToWithdraw",Display="AmountToWithdraw DOGE - for my opinion i set default from 100 doge Equal to 5095 satoshi",Default="100",Type=EditorType.TextBox,Required=false},
+				new FaucetSetting(){Name="Discordtip_LaccsFaucet_DOGE_WalletAddress",Display="WalletAddress DOGE",Type=EditorType.TextBox,Required=false},
+                */
+                new FaucetSetting(){Name="Discordtip_LaccsFaucet_BTC_OnOff",Display="LaccsFaucet BTC - AirDrop - On/off",Type=EditorType.CheckBox,Default=true},	
+                new FaucetSetting(){Name="LaccsFaucet_BTC_Average",Display="LaccsFaucet BTC - Average - On/off - if ON type !avon | if OFF type !avoff ",Type=EditorType.CheckBox,Default=true},	
+                new FaucetSetting(){Name="Discordtip_LaccsFaucet_BTC_AutoWithdraw",Display="AutoWithdraw BTC - On/off",Type=EditorType.CheckBox,Default=false},		
+				new FaucetSetting(){Name="Discordtip_LaccsFaucet_BTC_AmountToWithdraw",Display="AmountToWithdraw BTC - for my opinion i set default from 0.10 mbtc Equal to 10000 satoshi (Because of a high withdrawal fee)",Default="0.10",Type=EditorType.TextBox,Required=false},
+				new FaucetSetting(){Name="Discordtip_LaccsFaucet_BTC_WalletAddress",Display="WalletAddress BTC",Type=EditorType.TextBox,Required=false},
+			    /*
+                new FaucetSetting(){Name="Discordtip_LaccsFaucet_LTC_OnOff",Display="LaccsFaucet LTC - AirDrop - On/off",Type=EditorType.CheckBox,Default=true},		
+                new FaucetSetting(){Name="Discordtip_LaccsFaucet_LTC_AutoWithdraw",Display="AutoWithdraw LTC - On/off",Type=EditorType.CheckBox,Default=false},		
+				new FaucetSetting(){Name="Discordtip_LaccsFaucet_LTC_AmountToWithdraw",Display="AmountToWithdraw LTC - for my opinion i set default from 0.02 mLTC Equal to 2715 satoshi ",Default="0.02",Type=EditorType.TextBox,Required=false},
+				new FaucetSetting(){Name="Discordtip_LaccsFaucet_LTC_WalletAddress",Display="WalletAddress LTC",Type=EditorType.TextBox,Required=false},
+                */
+				//new FaucetSetting(){Name="Input_Custom_Bot_ID_Setting",Display="Enter Custom bot ID (option)",Default="Enter Custom Bot ID",Type=EditorType.TextBox,Required=false},
+                //new FaucetSetting(){Name="Custom_Bot_ID_OnOff",Display="Custom bot ID - On/off (in default is off)",Type=EditorType.CheckBox,Default=false},
+				
+                //new FaucetSetting(){Name="WalletAddress",Display="Wallet Address (option)",Type=EditorType.TextBox,Required=false},
+
+
+                //insert user settings here
+                //new FaucetSetting { 
+                //    Name = "Name of your setting", 
+                //    Display = "Display shown in Faucet Collector", 
+                //    Type = EditorType.TextBox | EditorType.Password | EditorType.CheckBox | EditorType.Wallet | EditorType.Numeric | EditorType.ComboBox | EditorType.CheckComboBox, 
+                //    Required = true | false, 
+                //    Default = "Optionally a default value" | true | false | null.
+                //    Items = new List<string> { "item1", "item2" } (only valid for ComboBox or CheckComboBox)
+                //} 
+            };
+        }
+    }
+
+	
+	
+	
+    //My ServerNameID
+    string ServerNameID_String = "tip.cc#7731";
+    //==========//
+
+
+
+	
+	
+//============================================================//
+//the number of "successes" in the script - when are finished  
+//============================================================//
+    public override void Start()
+    {
+        ad = false;
+       
+        //Title all in
+        Title = "Discord | Discordtip | Won.pe | TopSite | Dwindly | #reaction-claim"; 
+
+		SuccessXPath = "//*"; //div[@class='reaction-1ELvT8'] //img[contains(@src,'/assets/612f3fc9dedfd368820b55c4cf259c07.svg')] 
+        FailXPath = "//*"; //*[text()='']
+
+        //Let Faucet Collector start up everything
+        base.Start();
+    }
+//============================================================//
+//the number of "successes" in the script - when are finished  
+//============================================================//
+
+
+
+ bool ad; //custom bool
+
+	
+
+//========//
+//DoInit
+//========//	
+    public override int DoInit()
+    {
+		Title = "Discord";
+
+		
+		//if it's Checked
+       if (GetBoolSetting("DeleteCookies"))
+       {
+		//Delete Cookies
+		 Log("DeleteCookies - Checked");
+         Driver.Manage().Cookies.DeleteAllCookies();
+       } 
+
+
+       //=============//
+       //ALLIN-Success
+       //=============//
+       if (GetBoolSetting("ALLIN_Success"))
+       {
+		Log("ALLIN_Success");  
+		CheckFaucetResult(); //skip all actions - and call to --> CheckFaucetResult - to make sure That FC mark as "Payout" before
+        ad = true;    // if i do true - it report as succeed // only one time no multi and also required -> return GetWaitSetting();
+	   } 
+	   
+       if (!GetBoolSetting("ALLIN_Success") )
+	   {		  
+        //Log(""); 	  	   
+	   }
+       //=============//
+	   
+   
+        //Let Faucet Collector continue.
+        return base.DoInit();
+    }
+//========//
+//DoInit
+//========//	
+
+	
+	
+	
+	
+//==================//
+//save Login Cookies 
+//==================//
+    public override bool IsLoggedIn()
+    {
+        // return ElementByXPath("//a[@href='/activity']") != null;       // <<< there is more tag name in multi languages (so it's not good)
+        return ElementByXPath("//div[@class='container-3baos1']") != null;  //Unique 1 - container in the bottom of the profile photo of a user
+
+        //return base.IsLoggedIn();
+    }
+//==================//
+//save Login Cookies 
+//==================//
+	
+	
+	
+	
+//=============//
+//BeforeLogin 
+//=============//
+ public override int BeforeLogin()
+ {
+ 
+ 	 //var checks login or exit
+     var ExitButton = ElementByXPath("//div[@class='container-3baos1']");  //Unique 1 - container in the bottom of the profile photo of a user
+	 
+	 //if i already Login - go to "bonus"	 
+	 if (IsVisible(ExitButton))
+	 {		 
+      ADFunction_String_URL(); //call to ADFunction_String_URL
+      Wait();
+	  CheckCloudFlare(); //call to CheckCloudFlare Function
+	 }	
+	 
+   //This faucet has nothing to do here. We will let Faucet Collector handle it.
+   return base.BeforeLogin();
+ }
+//=============//
+//BeforeLogin 
+//=============//
+
+
+
+    //=============//
+    //start DoLogin
+    //=============//
+    public override int DoLogin()
+    {
+				 
+        //var checks login or exit
+        var ExitButton = ElementByXPath("//div[@class='container-3baos1']");  //Unique 1 - container in the bottom of the profile photo of a user
+
+        //if i NOT Login - go to Login Page
+        if (!IsVisible(ExitButton))
+        {
+            //go to normal login
+            GoToUrl("https://discordapp.com/login");
+
+            var box_user = ElementByXPath("//input[@type='email']");
+            SetText(box_user, GetSetting("Email"));
+
+            var box_pass = ElementByXPath("//input[@type='password']");
+            SetText(box_pass, GetPassword("Pass"));
+
+            Wait(1);
+
+            var ButtonLog = ElementByXPath("//button[@type='submit']");
+            Click(ButtonLog);
+
+        }
+		
+        Wait(3);
+
+		
+        if (ElementByXPath("//div[@class='g-recaptcha']") != null)
+        {
+            //SolveCaptcha if apper
+            int result = DoSolveCaptcha();
+            if (result > 0)
+            {
+                return Fail("Fail solving recaptcha");
+            }
+            RecaptchaUtility utility = new RecaptchaUtility(this);
+            utility.DoSolve();
+			
+            Wait(3);
+			
+            var Button_2_Log = ElementByXPath("//button[@type='submit']");
+            Click(Button_2_Log);
+			
+            Wait(3);
+        }
+
+		
+            Wait();
+
+        //This faucet has nothing to do here.    
+        return base.DoLogin();
+    }
+    //=============//
+    //start DoLogin
+    //=============//
+
+
+
+
+
+
+    //==========//
+    //AfterLogin
+    //=========//
+    public override int AfterLogin()
+ {
+          //Wait();
+         //Driver.Navigate().Refresh();
+
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterLogin();
+ }
+//==========//
+//AfterLogin
+//=========//
+	
+	
+	
+
+	
+//=============//
+//GetFaucetWaitTime
+//=============//
+    public override int GetFaucetWaitTime()
+    {
+	   
+        if (ad)
+        {
+        Driver.Close();  // Close specific chrome window
+        Driver.Quit();  // also Close the console app, that was used to kick off the chrome window
+        Driver.Dispose();  // Close the chromedriver.exe
+		ad=false; //solve the problem in start - after he return to script again
+        return GetWaitSetting();	
+        }
+		
+        //let Faucet Collector continue.
+        return base.GetFaucetWaitTime();
+    }
+//=============//
+//GetFaucetWaitTime
+//=============//
+	
+	
+	
+	
+
+    public override int BeforeSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeSolveCaptcha();
+    }
+
+
+    public override int DoSolveCaptcha()
+    {
+
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoSolveCaptcha();
+    }
+
+
+    public override int AfterSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterSolveCaptcha();
+    }
+	
+
+    public override int BeforeSolveFaucet()
+    {
+
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeSolveCaptcha();
+    }
+	
+	
+	
+
+
+//=============//
+//DoSolveFaucet
+//=============//
+    public override int DoSolveFaucet()
+    {
+	
+        //================//
+        //ProtectionSetEnglishLanguage//
+        //================//
+        if (GetBoolSetting("ProtectionSetEnglishLanguage"))
+        {	
+		 Log("ProtectionSetEnglishLanguage"); 
+	     
+		 Title = "Discord";	
+		 GoToUrl("https://discordapp.com/activity");
+		 Wait();	
+		 Wait(5);
+		 
+		 var ActivityWord_EnglishLanguages = ElementByXPath("//div[@class='name-uJV0GL' and contains(text(),'Activity')]"); 
+         
+		 if (IsVisible(ActivityWord_EnglishLanguages)) // if "Activity" in  English languages visible 
+         {	
+		    Log("ActivityWord_EnglishLanguages - visible - already set - no need to do nothing");
+		 }
+		 
+         if (!IsVisible(ActivityWord_EnglishLanguages)) // if "Activity" in  English languages not visible - so only then do stuff
+         {	 
+		    Log("ActivityWord_EnglishLanguages - Not set we do stuff");
+			
+            var AccountGearSettings = ElementByXPath("//button[3]/div[@class='contents-18-Yxp']");
+            if (IsVisible(AccountGearSettings))
+            {
+		      Click(AccountGearSettings); 
+		      Log("AccountGearSettings"); 
+		    }
+		 
+	        Wait();
+	        Wait(2); 
+		 
+            var LanguageTab = ElementByXPath("//div[@class='side-8zPYf6']/div[18]");
+            if (IsVisible(LanguageTab))
+            {
+		      Click(LanguageTab); 
+		      Log("LanguageTab"); 
+		    }
+		 
+	        Wait();
+	        Wait(2); 
+		 
+            var English_US_Language = ElementByXPath("//div/h3[contains(text(),'US')]");
+            if (IsVisible(English_US_Language))
+            {
+		      Click(English_US_Language); 
+		      Log("English_US_Language"); 
+		    }
+		 
+	        Wait();
+	        Wait(2); 
+         } //end ActivityWord_EnglishLanguages
+			
+ 
+        } //end ProtectionSetEnglishLanguage
+        //================//
+		
+	
+	
+        //================//
+        //Discordtip_Main//
+        //================//
+        if (GetBoolSetting("Discordtip_Main_OnOff"))
+        {
+	
+            Title = "Discordtip";
+            ADFunction_String_URL(); //call to Discordtip main 
+            Wait();
+	        CheckCloudFlare(); //call to CheckCloudFlare Function
+            Wait(3);
+
+            var discordbotsLogin = ElementByXPath("//a[@href='/login']");
+            var discordbotsLogout = ElementByXPath("//a[@href='/logout']");
+
+
+            if (IsVisible(discordbotsLogout))
+            {
+
+            }
+
+            if (IsVisible(discordbotsLogin))
+            {
+
+                Click(discordbotsLogin);
+                Wait(3);
+            }
+
+
+            var AuthorizeButton = ElementByXPath("//button/div[contains(text(),'Authorize')]");   //("//button[@class='primary'] [text()='Authorize']")
+
+            if (IsVisible(AuthorizeButton))
+            {
+                Click(AuthorizeButton);
+                Log("AfterLogin: Click AuthorizeButton");
+            }
+
+            if (!IsVisible(AuthorizeButton))
+            {
+                Log("AfterLogin: Success - We Already Login with Authorize");
+            }
+
+
+            //vote button
+            var VoteButton = ElementByXPath("//span[@id='votingvoted']");
+            if (IsVisible(VoteButton))
+            {
+                Click(VoteButton);
+            }
+
+            Wait(2, 3);
+
+            var LogAccessButton = ElementByXPath("//strong[contains(text(),'Login')]");
+
+            if (IsVisible(LogAccessButton))
+            {
+                Click(LogAccessButton);
+                Log("AfterLogin: Click LogAccessButton");
+            }
+            Wait(1);
+            var Autorizate = ElementByXPath("//button/div[contains(text(),'Authorize')]");  //("//button[contains(@class,'primary')]")
+            if (IsVisible(Autorizate))
+            {
+                Click(Autorizate);
+            }
+
+
+            Wait(2);
+
+
+            //vote button
+            var Vote2Button = ElementByXPath("//span[@id='votingvoted']");
+            Click(Vote2Button);
+            Wait(3);
+
+            var ThanksMessage = ElementByXPath("//div[@id='reminder']/p[text()='Thanks for voting!']");
+            var AlreadyVoted = ElementByXPath("//span[@id='votingvoted'] [text()='You already voted for this bot. Try again in 12 hours.']");
+
+            if (IsVisible(ThanksMessage))
+            {
+				
+                Log("FaucetClaim:" + ThanksMessage.Text);				
+				
+				if (GetBoolSetting("All_AirDrop_Success"))
+				{
+		         Log(" ThanksMessage - All_AirDrop_Success ");  
+		    	 CheckFaucetResult(); //skip all actions - and call to --> CheckFaucetResult - to make sure That FC mark as "Payout" before
+                 Driver.Close();  // Close specific chrome window
+                 Driver.Quit();  // also Close the console app, that was used to kick off the chrome window
+                 Driver.Dispose();  // Close the chromedriver.exe
+                 return GetWaitSetting();		 
+				}
+				
+                if (!GetBoolSetting("Discordtip_FaucetCollector_OnOff") && !GetBoolSetting("Discordtip_LaccsFaucet_DOGE_OnOff") && !GetBoolSetting("Discordtip_LaccsFaucet_BTC_OnOff") && !GetBoolSetting("Discordtip_LaccsFaucet_LTC_OnOff"))
+                {
+				/*
+                   Driver.Close();  // Close specific chrome window
+                   Driver.Quit();  // also Close the console app, that was used to kick off the chrome window
+                   Driver.Dispose();  // Close the chromedriver.exe
+                   return GetWaitSetting();
+				 */
+
+		         Log(" 'ThanksMessage' - appear && the all AirDrop from Discordtip are disabled ");  
+		         CheckFaucetResult(); //skip all actions - and call to --> CheckFaucetResult - to make sure That FC mark as "Payout" before
+                }
+
+            }
+
+            if (IsVisible(AlreadyVoted))
+            {
+                Log("FaucetClaim: Already Voted");
+				
+				if (GetBoolSetting("All_AirDrop_Success"))
+				{
+		         Log("AlreadyVoted - All_AirDrop_Success ");  
+		    	 CheckFaucetResult(); //skip all actions - and call to --> CheckFaucetResult - to make sure That FC mark as "Payout" before
+                 Driver.Close();  // Close specific chrome window
+                 Driver.Quit();  // also Close the console app, that was used to kick off the chrome window
+                 Driver.Dispose();  // Close the chromedriver.exe
+                 return GetWaitSetting();	
+				}
+				
+                if (!GetBoolSetting("Discordtip_FaucetCollector_OnOff") && !GetBoolSetting("Discordtip_LaccsFaucet_DOGE_OnOff") && !GetBoolSetting("Discordtip_LaccsFaucet_BTC_OnOff") && !GetBoolSetting("Discordtip_LaccsFaucet_LTC_OnOff"))
+                {
+				/*
+                   Driver.Close();  // Close specific chrome window
+                   Driver.Quit();  // also Close the console app, that was used to kick off the chrome window
+                   Driver.Dispose();  // Close the chromedriver.exe
+                   return GetWaitSetting();
+				*/
+				
+		         Log(" 'AlreadyVoted' - appear && the all AirDrop from Discordtip are disabled ");  
+		    	 CheckFaucetResult(); //skip all actions - and call to --> CheckFaucetResult - to make sure That FC mark as "Payout" before			
+                }
+             
+            }
+
+
+        } //end FaucetClaim
+
+
+		
+
+        //=========================//
+        //Discordtip_FaucetCollector//
+        //=========================//
+        if (GetBoolSetting("Discordtip_FaucetCollector_OnOff"))
+        {
+ 
+		//first go to server
+	    Title = "Discord";	
+		GoToUrl("https://discord.gg/eCc6G3h");
+		Wait();	
+		Wait(5);		
+
+        Driver.Navigate().Refresh();
+		Wait();	
+		
+        var NitroGamesVAR = ElementByXPath("//div[@class='contents-18-Yxp' and contains(text(),'Cancel')]");
+	    if (IsVisible(NitroGamesVAR))
+        {
+		Log("NitroGamesVAR apper - Cancel this "); 	
+        Click(NitroGamesVAR);
+        }
+		
+		Wait(5);	
+		
+	    var inviteServer1Button = ElementByXPath("//button[@type='button']/div"); //[text()='Accept Invite']
+	    var ContinueToDiscordServer1Button = ElementByXPath("//button[@class='marginTop40-i-78cZ button-3k0cO7 button-38aScr lookFilled-1Gx00P colorBrand-3pXr91 sizeLarge-1vSeWK fullWidth-1orjjo grow-q77ONN']/div[text()='Continue to Discord']"); 
+
+	    if (IsVisible(inviteServer1Button))
+        {
+		Log("Discordtip_FaucetCollector: join to first server - FaucetCollector "); 	
+        Click(inviteServer1Button);
+        }
+		
+	    if (IsVisible(ContinueToDiscordServer1Button))
+        {
+		Log("Discordtip_FaucetCollector: Continue To Discord Server"); 	
+        Click(ContinueToDiscordServer1Button);
+        }
+		
+		
+        while (true)
+        {
+		
+		Wait();
+        Wait(5);
+        Title = "#giveaways";		
+        GoToUrl("https://discordapp.com/channels/406508543034916865/566695331295920138");
+		Log("Discordtip_FaucetCollector: go to to claim in channel  | FaucetCollector "); 	
+		Wait();
+		Wait(6);
+        
+		Reaction_Function(); //call to Reaction_Function
+		
+        var ReactionButton_Full_After_Check = ElementByXPath("//div[@class='reaction-1ELvT8 reactionMe-23mbRf'] //img[contains(@src,'/assets/612f3fc9dedfd368820b55c4cf259c07.svg')]");
+	    if (IsVisible(ReactionButton_Full_After_Check))
+        {
+		Log("Discordtip_FaucetCollector: Click On Reaction - done"); 				
+		}
+
+        break; //after break the while
+
+        } // end while - true
+		
+        Wait();
+        Wait(3);
+
+     }	 //end Discordtip_FaucetCollector_OnOff
+
+	 
+		
+	/*	
+        //===============================//
+		//LaccsFaucet_DOGE_AutoWithdraw
+        //==============================//
+        if (GetBoolSetting("Discordtip_LaccsFaucet_DOGE_AutoWithdraw"))
+        {
+			Title = "Discord";	
+            GoToUrl("https://discordapp.com/activity");
+            Wait();
+            Driver.Navigate().Refresh();
+            Wait();
+            Driver.Navigate().Refresh();
+			Wait();
+			Wait(5);
+            var SearchBarMainVar = ElementByXPath("//input[@placeholder='Find or start a conversation'] | //div[1]/div/div/input");
+            Click(SearchBarMainVar);
+            Wait();
+            var SearchBar2Var = ElementByXPath("//input[@class='input-2VB9rf'] | //div[3]/div/div/input");		
+            SetText(SearchBar2Var,ServerNameID_String); // set ServerNameID_String
+            Wait();
+			
+	        // click - Enter Keyboard
+            var ElementToEnter = ElementByClass("input-2VB9rf");
+	        if (IsVisible(ElementToEnter))
+            {
+            Actions BuilderAct = new Actions(Driver);
+            BuilderAct.MoveToElement(ElementToEnter).Build().Perform(); 
+            Wait(3);
+            BuilderAct.SendKeys(Keys.Enter).Build().Perform(); 
+			}
+	        //==============//
+			
+            Wait();
+			
+	        //inputDiscordMessageVar
+			var inputDiscordMessageVar = ElementByXPath("//textarea[@placeholder='Message @Discordtip'] | //form/div/div/div/textarea");       
+			SetText(inputDiscordMessageVar,"!balance doge"); // BalanceToCheck - balance doge
+			
+            Wait(2);
+        
+	        // click - Enter Keyboard
+            var Element2ToEnter = ElementByXPath("//textarea[@placeholder='Message @Discordtip'] | //form/div/div/div/textarea"); 
+	        if (IsVisible(Element2ToEnter))
+            {
+			Log("enter massage active - !balance doge");
+            Actions Builder2Act = new Actions(Driver);
+            Builder2Act.MoveToElement(Element2ToEnter).Build().Perform(); 
+            Wait(3);
+            Builder2Act.SendKeys(Keys.Enter).Build().Perform(); 
+			}
+	        //==============//
+	
+            Wait(4);
+
+			 
+             //var ElementVAR = ElementsByXPath("//div/strong[2][contains(text(),'Ð')]"); 
+   
+             //if (ElementVAR.Count>0) //&& BalanceINT > MyAmount
+             //{
+			 //var LastElement= ElementVAR[ElementVAR.Count - 1]; // HERE IS YOUR LastElement ELEMENT
+				
+             //Withdraw DOGE		
+   			 var inputDiscord2MessageVar = ElementByXPath("//textarea[@placeholder='Message @Discordtip'] | //form/div/div/div/textarea");       
+		     SetText(inputDiscord2MessageVar,"!withdraw " + GetSetting("Discordtip_LaccsFaucet_DOGE_WalletAddress") + " " + GetSetting("Discordtip_LaccsFaucet_DOGE_AmountToWithdraw") + " doge");
+
+             //}
+			 
+
+            Wait();
+			
+	        // click - Enter Keyboard
+            var Element3ToEnter = ElementByXPath("//textarea[@placeholder='Message @Discordtip'] | //form/div/div/div/textarea"); 
+	        if (IsVisible(Element3ToEnter))
+            {
+			Log("enter massage active - !withdraw");
+            Actions Builder3Act = new Actions(Driver);
+            Builder3Act.MoveToElement(Element3ToEnter).Build().Perform(); 
+            Wait(3);
+            Builder3Act.SendKeys(Keys.Enter).Build().Perform(); 
+			}
+	        //==============//
+			
+		
+			//confirm            
+			var Element4ToEnter = ElementByXPath("//textarea[@placeholder='Message @Discordtip'] | //form/div/div/div/textarea"); 
+            var confirm = ElementByXPath ("//div[42]/div[1]/div[1]/h2/time[contains(text(),'Today')]");
+	        if (IsVisible(confirm))
+            {
+            SetText(Element4ToEnter,"yes");
+		    Wait(2);
+			
+	        // click - Enter Keyboard
+			Log("enter massage active - yes");
+            Actions Builder4Act = new Actions(Driver);
+            Builder4Act.MoveToElement(Element4ToEnter).Build().Perform(); 
+            Wait(3);
+            Builder4Act.SendKeys(Keys.Enter).Build().Perform(); 
+            }// end confirm
+
+
+	    }// end LaccsFaucet_DOGE_AutoWithdraw
+        //==============================//
+	*/	
+
+
+        //=========================//
+        //Discordtip_LaccsFaucet_DOGE//
+        //=========================//
+        if (GetBoolSetting("Discordtip_LaccsFaucet_DOGE_OnOff"))
+        {
+ 
+		//first go to server
+	    Title = "Discord";	
+		GoToUrl("https://discord.gg/sGfRd3x");
+		Wait();	
+		Wait(5);		
+
+        Driver.Navigate().Refresh();
+		Wait();	
+		
+        var NitroGamesVAR = ElementByXPath("//div[@class='contents-18-Yxp' and contains(text(),'Cancel')]");
+	    if (IsVisible(NitroGamesVAR))
+        {
+		Log("NitroGamesVAR apper - Cancel this "); 	
+        Click(NitroGamesVAR);
+        }
+		
+		Wait(5);	
+		
+	    var inviteServer1Button = ElementByXPath("//button[@type='button']/div"); //[text()='Accept Invite']
+	    var ContinueToDiscordServer1Button = ElementByXPath("//button[@class='marginTop40-i-78cZ button-3k0cO7 button-38aScr lookFilled-1Gx00P colorBrand-3pXr91 sizeLarge-1vSeWK fullWidth-1orjjo grow-q77ONN']/div[text()='Continue to Discord']"); 
+
+	    if (IsVisible(inviteServer1Button))
+        {
+		Log("Discordtip_LaccsFaucet: join to first server - LaccsProduction "); 	
+        Click(inviteServer1Button);
+        }
+		
+	    if (IsVisible(ContinueToDiscordServer1Button))
+        {
+		Log("Discordtip_LaccsFaucet: Continue To Discord Server"); 	
+        Click(ContinueToDiscordServer1Button);
+        }
+		
+		
+        while (true)
+        {
+
+		GoToUrl("https://www.laccsprod.com/"); //go to first web		
+        Wait();
+
+		//=====//    
+		//TOP //
+		//=====//	
+
+        //Title = "Won.pe";
+        Title = "TopSite";
+		GoToUrl("https://bre.is/WPN7B8xr"); //go to Top https://won.pe/TopSite2
+		Log("WonPe TOP"); 
+        Wait();
+        Wait(3);
+		
+        var WonPe_ButtonRobot = ElementByXPath("//*[@id='robot_button'] | //div[contains(text(),'robot')]"); //WonPe - robot button
+	    if (IsVisible(WonPe_ButtonRobot))
+        {
+		Log("WonPe_ButtonRobot - TOP"); 	
+        Click(WonPe_ButtonRobot);
+        }
+		
+		Wait();
+        Wait(3);		
+
+        Notifications_Function(); //call if it apper
+
+        var WonPe_SkipButton = ElementByXPath("//*[@id='skip_button']"); //WonPe - wait for - Continue 
+
+		//if the start button not visible - in the first page
+        while (!IsVisible(WonPe_SkipButton)) 
+        {
+        Wait();
+        }
+
+        if (IsVisible(WonPe_SkipButton))	
+		{			
+	    //Title = "LinkShrink";
+	    Click(WonPe_SkipButton);
+        Wait(1);	
+		Title = "LinkShrink";	    
+		Click(WonPe_SkipButton);
+        }	
+		
+		Wait();		
+		Wait(4);
+
+		CheckForPopupsEnabled = true;
+        CheckForPopups();
+
+        Notifications_Function(); //call if it apper
+
+        var LinkShrink_GetLink = ElementByXPath("//div[@id='skip' and @style='display: none;']"); //LinkShrink - wait for - GetLink
+
+		//if the start button not visible - in the first page
+        while (IsVisible(LinkShrink_GetLink)) 
+        { 
+	
+         Wait();
+
+        }// end while	
+		
+		
+		if (!IsVisible(LinkShrink_GetLink))	
+		{	    
+	    Title = "TopSite";	        
+		Log("LinkShrink - Click SKIP Continue");
+		var LinkShrink_SkipButton = ElementByXPath("//a[@id='btd' and contains(text(),'Continue')]");   //div[@id='skip']
+	    Click(LinkShrink_SkipButton); 
+		}	
+		
+		Wait();		
+		Wait(4);
+		
+		CheckForPopupsEnabled = false;
+        Driver.Navigate().Refresh();
+		//=========//
+
+
+		//=================//    
+		//LaccsFaucetDoge //
+		//===============//	
+		
+        Title = "Won.pe";
+		GoToUrl("http://won.pe/LaccsFaucetDOGE2"); //go to DOGE
+		Log("WonPe - Discordtip_LaccsFaucet_DOGE"); 
+        Wait();
+        Wait(3);
+		
+        var WonPe_ButtonRobot_DOGE = ElementByXPath("//*[@id='robot_button'] | //div[contains(text(),'robot')]"); //WonPe - robot button
+	    if (IsVisible(WonPe_ButtonRobot_DOGE))
+        {
+		Log("Discordtip_LaccsFaucet_DOGE: WonPe_ButtonRobot_DOGE"); 	
+        Click(WonPe_ButtonRobot_DOGE);
+        }
+		
+		Wait();
+        Wait(3);		
+
+        Notifications_Function(); //call if it apper
+
+        var WonPe_SkipButton_DOGE = ElementByXPath("//*[@id='skip_button']"); //WonPe - wait for - Continue 
+
+		//if the start button not visible - in the first page
+        while (!IsVisible(WonPe_SkipButton_DOGE)) 
+        {
+        Wait();
+        }
+
+        if (IsVisible(WonPe_SkipButton_DOGE))	
+		{			
+	    //Title = "LinkShrink";
+	    Click(WonPe_SkipButton_DOGE);
+		Wait(1);	
+		Title = "LinkShrink";	
+		Click(WonPe_SkipButton_DOGE);
+        }	
+		
+		Wait();		
+		Wait(4);
+
+		CheckForPopupsEnabled = true;
+        CheckForPopups();
+
+        Notifications_Function(); //call if it apper
+      
+        var LinkShrink_2_GetLink = ElementByXPath("//div[@id='skip' and @style='display: none;']"); //LinkShrink - wait for - GetLink
+
+		//if the start button not visible - in the first page
+        while (IsVisible(LinkShrink_2_GetLink)) 
+        { 
+	
+         Wait();
+	
+        }// end while
+
+		if (!IsVisible(LinkShrink_2_GetLink))	
+		{	
+	    Title = "DOGE";	
+		Log("LinkShrink - Click SKIP Continue");
+		var LinkShrink_SkipButton = ElementByXPath("//a[@id='btd' and contains(text(),'Continue')]");   //div[@id='skip']
+	    Click(LinkShrink_SkipButton);
+        }		
+
+		Wait();		
+		Wait(4);
+
+		CheckForPopupsEnabled = false;
+        Driver.Navigate().Refresh();
+
+		//=========//
+
+
+        //now go to server DOGE - to claim
+        Wait();
+		Title = "Discord";	
+        CheckForPopupsEnabled = true;
+        CheckForPopups();
+        CheckForPopupsEnabled = false;
+        Driver.Navigate().Refresh();		
+		 
+	    var inviteServer2Button = ElementByXPath("//button[@type='button']/div"); //[text()='Accept Invite']
+	    if (IsVisible(inviteServer2Button))
+        {
+        Click(inviteServer2Button);
+		Log("Discordtip_LaccsFaucet_DOGE: join to second server | LaccsFaucet - Doge "); 	        
+		}
+		
+		Wait();
+        Wait(5);
+        Title = "#reaction-claim";		
+        GoToUrl("https://discordapp.com/channels/513793195814158346/548173204792016897");
+		Log("Discordtip_LaccsFaucet_DOGE: go to to claim in channel  | LaccsFaucet - Doge "); 	
+		Wait();
+		Wait(6);
+        
+		Reaction_Function(); //call to Reaction_Function
+		
+        var ReactionButton_Full_After_Check = ElementByXPath("//div[@class='reaction-1ELvT8 reactionMe-23mbRf'] //img[contains(@src,'/assets/612f3fc9dedfd368820b55c4cf259c07.svg')]");
+	    if (IsVisible(ReactionButton_Full_After_Check))
+        {
+		Log("Discordtip_LaccsFaucet_DOGE: Click On Reaction - done"); 				
+		}
+
+        break; //after break the while
+
+        } // end while - true
+        Wait();
+        Wait(3);
+
+     }	 //end Discordtip_LaccsFaucet_DOGE_OnOff
+
+
+
+        //===============================//
+		//LaccsFaucet_BTC_AutoWithdraw
+        //==============================//
+        if (GetBoolSetting("Discordtip_LaccsFaucet_BTC_AutoWithdraw"))
+        {
+			Title = "Discord";	
+            GoToUrl("https://discordapp.com/activity");
+            Wait();
+            Driver.Navigate().Refresh();
+            Wait();
+            Driver.Navigate().Refresh();
+			Wait();
+			Wait(5);
+            var SearchBarMainVar = ElementByXPath("//input[@placeholder='Find or start a conversation'] | //div[1]/div/div/input");
+            Click(SearchBarMainVar);
+            Wait();
+            var SearchBar2Var = ElementByXPath("//input[@class='input-2VB9rf'] | //div[3]/div/div/input");		
+            SetText(SearchBar2Var,ServerNameID_String); // set text & find @Discordtip#2087
+            Wait();
+			
+	        // click - Enter Keyboard
+            var ElementToEnter = ElementByClass("input-2VB9rf");
+	        if (IsVisible(ElementToEnter))
+            {
+            Actions BuilderAct = new Actions(Driver);
+            BuilderAct.MoveToElement(ElementToEnter).Build().Perform(); 
+            Wait(3);
+            BuilderAct.SendKeys(Keys.Enter).Build().Perform(); 
+			}
+	        //==============//
+			
+            Wait();
+			
+	        //inputDiscordMessageVar
+			var inputDiscordMessageVar = ElementByXPath("//textarea[@placeholder='Message @Discordtip'] | //form/div/div/div/textarea");       
+			SetText(inputDiscordMessageVar,"$bal btc"); // BalanceToCheck - balance mbtc
+			
+            Wait(2);
+        
+	        // click - Enter Keyboard
+            var Element2ToEnter = ElementByXPath("//textarea[@placeholder='Message @Discordtip'] | //form/div/div/div/textarea"); 
+	        if (IsVisible(Element2ToEnter))
+            {
+			Log("enter massage active - $bal btc");
+            Actions Builder2Act = new Actions(Driver);
+            Builder2Act.MoveToElement(Element2ToEnter).Build().Perform(); 
+            Wait(3);
+            Builder2Act.SendKeys(Keys.Enter).Build().Perform(); 
+			}
+	        //==============//
+	
+            Wait(4);
+
+             /*
+             var BalanceNUMBER = ElementByXPath("//div/strong[2][contains(text(),'.') ]"); //contains 0 number
+             string balanceSTRING = BalanceNUMBER.Text.Split('.')[1]; //I focus only on [1] 22.50 22=[0] 50=[1] //for example i have in html '22.50' - i Split between the dot "." - if i set [0] I focus only on the array number "22" - if i set [1] I focus only on the array number "50"
+             int BalanceINT = Convert.ToInt32(balanceSTRING);
+			
+             int MyAmount;
+             Int32.TryParse(GetSetting("Discordtip_LaccsFaucet_BTC_AmountToWithdraw"), out MyAmount);
+			 */
+			 
+             //var ElementVAR = ElementsByXPath("//div/strong[2][contains(text(),'mBTC')]"); 
+   
+             //if (ElementVAR.Count>0) //&& BalanceINT > MyAmount
+             //{
+			 //var LastElement= ElementVAR[ElementVAR.Count - 1]; // HERE IS YOUR LastElement ELEMENT
+				
+             //Withdraw BTC		
+   			 var inputDiscord2MessageVar = ElementByXPath("//textarea[@placeholder='Message @Discordtip'] | //form/div/div/div/textarea");       
+		     SetText(inputDiscord2MessageVar,"$withdraw " + GetSetting("Discordtip_LaccsFaucet_BTC_WalletAddress") + " " + GetSetting("Discordtip_LaccsFaucet_BTC_AmountToWithdraw") + " mbtc");
+
+             //}
+			 
+             /*
+             else  // ElementVAR.Count > 0 && BalanceINT > MyAmount && !IsVisible(ElementVAR[0])
+             {
+
+			 Log("btc- info not visible");   // + ElementVAR.Text
+		 
+             }
+			 */
+			 
+            Wait();
+			
+	        // click - Enter Keyboard
+            var Element3ToEnter = ElementByXPath("//textarea[@placeholder='Message @Discordtip'] | //form/div/div/div/textarea"); 
+	        if (IsVisible(Element3ToEnter))
+            {
+			Log("enter massage active - !withdraw");
+            Actions Builder3Act = new Actions(Driver);
+            Builder3Act.MoveToElement(Element3ToEnter).Build().Perform(); 
+            Wait(3);
+            Builder3Act.SendKeys(Keys.Enter).Build().Perform(); 
+			}
+	        //==============//
+			
+		
+			//confirm            
+			var Element4ToEnter = ElementByXPath("//textarea[@placeholder='Message @Discordtip'] | //form/div/div/div/textarea"); 
+            var confirm = ElementByXPath ("//div[42]/div[1]/div[1]/h2/time[contains(text(),'Today')]");
+	        if (IsVisible(confirm))
+            {
+            SetText(Element4ToEnter,"yes");
+		    Wait(2);
+			
+	        // click - Enter Keyboard
+			Log("enter massage active - yes");
+            Actions Builder4Act = new Actions(Driver);
+            Builder4Act.MoveToElement(Element4ToEnter).Build().Perform(); 
+            Wait(3);
+            Builder4Act.SendKeys(Keys.Enter).Build().Perform(); 
+            }// end confirm
+
+
+	    }// end LaccsFaucet_BTC_AutoWithdraw
+        //==============================//
+
+
+
+        //=========================//
+        //Discordtip_LaccsFaucet_BTC//
+        //=========================//
+        if (GetBoolSetting("Discordtip_LaccsFaucet_BTC_OnOff"))
+        {
+ 
+		//first go to server
+	    Title = "Discord";	
+		GoToUrl("https://discord.gg/52zUZaM");
+		Wait();	
+		Wait(5);		
+
+        var InviteInvalidVAR = ElementByXPath("//div[contains(text(),'Invite Invalid')] | //div[contains(text(),'Invalid')]");
+	    if (IsVisible(InviteInvalidVAR))
+        {
+		Log("Error - Invite Invalid apper - we return after FC time"); 	
+        //return GetWaitSetting();
+        }
+
+        Driver.Navigate().Refresh();
+		Wait();	
+		
+        var NitroGamesVAR = ElementByXPath("//div[@class='contents-18-Yxp' and contains(text(),'Cancel')]");
+	    if (IsVisible(NitroGamesVAR))
+        {
+		Log("NitroGamesVAR apper - Cancel this "); 	
+        Click(NitroGamesVAR);
+        }
+		
+		Wait(5);	
+		
+		
+				
+	    var inviteServer1Button = ElementByXPath("//button[@type='button']/div"); //[text()='Accept Invite']
+	    var ContinueToDiscordServer1Button = ElementByXPath("//button[@class='marginTop40-i-78cZ button-3k0cO7 button-38aScr lookFilled-1Gx00P colorBrand-3pXr91 sizeLarge-1vSeWK fullWidth-1orjjo grow-q77ONN']/div[text()='Continue to Discord']"); 
+
+	    if (IsVisible(inviteServer1Button))
+        {
+		Log("Discordtip_LaccsFaucet: join to first server - LaccsProduction "); 	
+        Click(inviteServer1Button);
+        }
+		
+	    if (IsVisible(ContinueToDiscordServer1Button))
+        {
+		Log("Discordtip_LaccsFaucet: Continue To Discord Server"); 	
+        Click(ContinueToDiscordServer1Button);
+        }
+		
+		
+        while (true)
+        {
+
+		//GoToUrl("https://www.laccsprod.com/"); //go to first web		
+        Wait();
+
+		//=====//    
+		//TOP //
+		//=====//	
+
+        //Title = "Won.pe";
+        //Title = "TopSite";
+		GoToUrl("http://bit.ly/TopSite-AD"); //go to Top https://won.pe/TopSite2
+		Log("WonPe TOP"); 
+        Wait();
+        Wait(17);
+		
+        var WonPe_ButtonRobot = ElementByXPath("//*[@id='robot_button'] | //div[contains(text(),'robot')]"); //WonPe - robot button
+	    if (IsVisible(WonPe_ButtonRobot))
+        {
+		Log("WonPe_ButtonRobot - TOP"); 	
+        Click(WonPe_ButtonRobot);
+        }
+		
+        /*		
+		Wait();
+        Wait(3);	
+
+        Notifications_Function(); //call if it apper
+
+        var WonPe_SkipButton = ElementByXPath("//*[@id='skip_button']"); //WonPe - wait for - Continue 
+		//if the start button not visible - in the first page
+        while (!IsVisible(WonPe_SkipButton)) 
+        {
+        Wait();
+        }
+
+        if (IsVisible(WonPe_SkipButton))	
+		{			
+	    //Title = "LinkShrink";
+	    Click(WonPe_SkipButton);
+        Wait(1);	
+		Title = "LinkShrink";	    
+		Click(WonPe_SkipButton);
+        }	
+
+		
+		Wait();		
+		Wait(4);
+
+		CheckForPopupsEnabled = true;
+        CheckForPopups();
+
+        Notifications_Function(); //call if it apper
+
+        var LinkShrink_GetLink = ElementByXPath("//div[@id='skip' and @style='display: none;']"); //LinkShrink - wait for - GetLink
+
+		//if the start button not visible - in the first page
+        while (IsVisible(LinkShrink_GetLink)) 
+        { 
+	
+         Wait();
+
+        }// end while	
+
+		if (!IsVisible(LinkShrink_GetLink))	
+		{	    
+	    Title = "TopSite";	
+		Log("LinkShrink - Click SKIP Continue");
+		var LinkShrink_SkipButton = ElementByXPath("//a[@id='btd' and contains(text(),'Continue')]");   //div[@id='skip']
+	    Click(LinkShrink_SkipButton);
+        }	
+		
+		Wait();		
+		Wait(4);
+		
+		CheckForPopupsEnabled = false;
+        Driver.Navigate().Refresh();
+		//=========//
+
+
+		//=================//    
+		//LaccsFaucetBTC //
+		//===============//	
+		
+        Title = "Won.pe";
+		GoToUrl("https://won.pe/LaccsFaucetBTC2"); //go to BTC
+		Log("WonPe - Discordtip_LaccsFaucet_BTC"); 
+        Wait();
+        Wait(3);
+		
+        var WonPe_ButtonRobot_BTC = ElementByXPath("//*[@id='robot_button'] | //div[contains(text(),'robot')]"); //WonPe - robot button
+	    if (IsVisible(WonPe_ButtonRobot_BTC))
+        {
+		Log("Discordtip_LaccsFaucet_BTC: WonPe_ButtonRobot_BTC"); 	
+        Click(WonPe_ButtonRobot_BTC);
+        }
+		
+		Wait();
+        Wait(3);		
+
+        Notifications_Function(); //call if it apper
+
+        var WonPe_SkipButton_BTC = ElementByXPath("//*[@id='skip_button']"); //WonPe - wait for - Continue 
+
+		//if the start button not visible - in the first page
+        while (!IsVisible(WonPe_SkipButton_BTC)) 
+        {
+        Wait();
+        }
+
+        if (IsVisible(WonPe_SkipButton_BTC))	
+		{			
+	    //Title = "LinkShrink";
+	    Click(WonPe_SkipButton_BTC);
+		Wait(1);	
+		Title = "LinkShrink";	
+		Click(WonPe_SkipButton_BTC);
+        }	
+		
+		Wait();		
+		Wait(4);
+
+		CheckForPopupsEnabled = true;
+        CheckForPopups();
+
+        Notifications_Function(); //call if it apper
+
+        var LinkShrink_2_GetLink = ElementByXPath("//div[@id='skip' and @style='display: none;']"); //LinkShrink - wait for - GetLink
+
+		//if the start button not visible - in the first page
+        while (IsVisible(LinkShrink_2_GetLink)) 
+        { 
+	
+         Wait();
+	
+        }// end while
+
+		if (!IsVisible(LinkShrink_2_GetLink))	
+		{	
+	    Title = "BTC";	
+		Log("LinkShrink - Click SKIP Continue");
+		var LinkShrink_SkipButton = ElementByXPath("//a[@id='btd' and contains(text(),'Continue')]");   //div[@id='skip']
+	    Click(LinkShrink_SkipButton);
+        }		
+
+		Wait();		
+		Wait(4);
+
+		CheckForPopupsEnabled = false;
+        Driver.Navigate().Refresh();
+
+		//=========//
+        */	
+
+        //now go to server BTC - to claim
+        Wait();
+		Title = "Discord";	
+        CheckForPopupsEnabled = true;
+        CheckForPopups();
+        CheckForPopupsEnabled = false;
+        Driver.Navigate().Refresh();		
+        //Driver.SwitchTo().Window(Driver.WindowHandles[0]);
+        //Driver.Close();	
+		 
+	    var inviteServer2Button = ElementByXPath("//button[@type='button']/div"); //[text()='Accept Invite']
+	    if (IsVisible(inviteServer2Button))
+        {
+        Click(inviteServer2Button);
+		Log("Discordtip_LaccsFaucet_BTC: join to second server | LaccsFaucet - BTC "); 	        
+		}
+		
+		Wait();
+        Wait(5);
+        Title = "#commands";		
+        GoToUrl("https://discordapp.com/channels/529052821614493698/621344688393289728");
+		Log("Discordtip_LaccsFaucet_BTC: go to to claim in channel  | LaccsFaucet - BTC "); 	
+		Wait();
+		Wait(6);
+		
+        //TextCommand            
+        var TextCommand = ElementByXPath ("//textarea[contains(@placeholder,'Message')] | //textarea[@class='textAreaEnabledNoAttach-1WxUwj textArea-2Spzkt textArea-2Spzkt scrollbarGhostHairline-1mSOM1 scrollbar-3dvm_9']");
+	        
+        if (IsVisible(TextCommand))
+        {
+			
+		  if (GetBoolSetting("LaccsFaucet_BTC_Average"))
+          {
+            SetText(TextCommand,"!avon");
+            Enter_Laccs_Function(); //call to Enter_Laccs_Function
+		  }
+		  if (!GetBoolSetting("LaccsFaucet_BTC_Average"))
+          {
+            SetText(TextCommand,"!avoff"); 
+            Enter_Laccs_Function(); //call to Enter_Laccs_Function
+		  }		  
+		  
+            SetText(TextCommand,"!claim");
+		    Wait(2);
+            Enter_Laccs_Function(); //call to Enter_Laccs_Function
+			
+        } //end TextCommand visible
+			
+	    if (!IsVisible(TextCommand)) 
+        {
+		 Log("Error - Invite Invalid apper - we return after FC time"); 	
+         return GetWaitSetting();	
+        } //end TextCommand NOT visible
+	
+	
+		/*
+		Reaction_Function(); //call to Reaction_Function
+		
+        var ReactionButton_Full_After_Check = ElementByXPath("//div[@class='reaction-1ELvT8 reactionMe-23mbRf'] //img[contains(@src,'/assets/612f3fc9dedfd368820b55c4cf259c07.svg')]");
+	    if (IsVisible(ReactionButton_Full_After_Check))
+        {
+		Log("Discordtip_LaccsFaucet_BTC: Click On Reaction - done"); 			
+		}
+		*/
+		
+		
+		break; //after break the while
+
+        }// end while - true
+		
+        Wait();
+        Wait(3);
+
+     }	 //end Discordtip_LaccsFaucet_BTC_OnOff
+
+ 
+
+
+        //===============================//
+		//LaccsFaucet_LTC_AutoWithdraw
+        //==============================//
+        if (GetBoolSetting("Discordtip_LaccsFaucet_LTC_AutoWithdraw"))
+        {
+			Title = "Discord";	
+            GoToUrl("https://discordapp.com/activity");
+            Wait();
+            Driver.Navigate().Refresh();
+            Wait();
+            Driver.Navigate().Refresh();
+			Wait();
+			Wait(5);
+            var SearchBarMainVar = ElementByXPath("//input[@placeholder='Find or start a conversation'] | //div[1]/div/div/input");
+            Click(SearchBarMainVar);
+            Wait();
+            var SearchBar2Var = ElementByXPath("//input[@class='input-2VB9rf'] | //div[3]/div/div/input");		
+            SetText(SearchBar2Var,ServerNameID_String); // set text & find @Discordtip#2087
+            Wait();
+			
+	        // click - Enter Keyboard
+            var ElementToEnter = ElementByClass("input-2VB9rf");
+	        if (IsVisible(ElementToEnter))
+            {
+            Actions BuilderAct = new Actions(Driver);
+            BuilderAct.MoveToElement(ElementToEnter).Build().Perform(); 
+            Wait(3);
+            BuilderAct.SendKeys(Keys.Enter).Build().Perform(); 
+			}
+	        //==============//
+			
+            Wait();
+			
+	        //inputDiscordMessageVar
+			var inputDiscordMessageVar = ElementByXPath("//textarea[@placeholder='Message @Discordtip'] | //form/div/div/div/textarea");       
+			SetText(inputDiscordMessageVar,"!balance ltc"); // BalanceToCheck - balance mltc
+			
+            Wait(2);
+        
+	        // click - Enter Keyboard
+            var Element2ToEnter = ElementByXPath("//textarea[@placeholder='Message @Discordtip'] | //form/div/div/div/textarea"); 
+	        if (IsVisible(Element2ToEnter))
+            {
+			Log("enter massage active - !balance ltc");
+            Actions Builder2Act = new Actions(Driver);
+            Builder2Act.MoveToElement(Element2ToEnter).Build().Perform(); 
+            Wait(3);
+            Builder2Act.SendKeys(Keys.Enter).Build().Perform(); 
+			}
+	        //==============//
+	
+            Wait(4);
+
+             /*
+             var BalanceNUMBER = ElementByXPath("//div/strong[2][contains(text(),'.') ]"); //contains 0 number
+             string balanceSTRING = BalanceNUMBER.Text.Split('.')[1]; //I focus only on [1] 22.50 22=[0] 50=[1] //for example i have in html '22.50' - i Split between the dot "." - if i set [0] I focus only on the array number "22" - if i set [1] I focus only on the array number "50"
+             int BalanceINT = Convert.ToInt32(balanceSTRING);
+			
+             int MyAmount;
+             Int32.TryParse(GetSetting("Discordtip_LaccsFaucet_LTC_AmountToWithdraw"), out MyAmount);
+			 */
+			 
+             //var ElementVAR = ElementsByXPath("//div/strong[2][contains(text(),'mltc')]"); 
+   
+             //if (ElementVAR.Count>0) //&& BalanceINT > MyAmount
+             //{
+			 //var LastElement= ElementVAR[ElementVAR.Count - 1]; // HERE IS YOUR LastElement ELEMENT
+				
+             //Withdraw LTC		
+   			 var inputDiscord2MessageVar = ElementByXPath("//textarea[@placeholder='Message @Discordtip'] | //form/div/div/div/textarea");       
+		     SetText(inputDiscord2MessageVar,"!withdraw " + GetSetting("Discordtip_LaccsFaucet_LTC_WalletAddress") + " " + GetSetting("Discordtip_LaccsFaucet_LTC_AmountToWithdraw") + " mltc");
+
+             //}
+			 
+             /*
+             else  // ElementVAR.Count > 0 && BalanceINT > MyAmount && !IsVisible(ElementVAR[0])
+             {
+
+			 Log("ltc- info not visible");   // + ElementVAR.Text
+		 
+             }
+			 */
+			 
+            Wait();
+			
+	        // click - Enter Keyboard
+            var Element3ToEnter = ElementByXPath("//textarea[@placeholder='Message @Discordtip'] | //form/div/div/div/textarea"); 
+	        if (IsVisible(Element3ToEnter))
+            {
+			Log("enter massage active - !withdraw");
+            Actions Builder3Act = new Actions(Driver);
+            Builder3Act.MoveToElement(Element3ToEnter).Build().Perform(); 
+            Wait(3);
+            Builder3Act.SendKeys(Keys.Enter).Build().Perform(); 
+			}
+	        //==============//
+			
+		
+			//confirm            
+			var Element4ToEnter = ElementByXPath("//textarea[@placeholder='Message @Discordtip'] | //form/div/div/div/textarea"); 
+            var confirm = ElementByXPath ("//div[42]/div[1]/div[1]/h2/time[contains(text(),'Today')]");
+	        if (IsVisible(confirm))
+            {
+            SetText(Element4ToEnter,"yes");
+		    Wait(2);
+			
+	        // click - Enter Keyboard
+			Log("enter massage active - yes");
+            Actions Builder4Act = new Actions(Driver);
+            Builder4Act.MoveToElement(Element4ToEnter).Build().Perform(); 
+            Wait(3);
+            Builder4Act.SendKeys(Keys.Enter).Build().Perform(); 
+            }// end confirm
+
+
+	    }// end LaccsFaucet_LTC_AutoWithdraw
+        //==============================//
+		
+
+
+        //=========================//
+        //Discordtip_LaccsFaucet_LTC//
+        //=========================//
+        if (GetBoolSetting("Discordtip_LaccsFaucet_LTC_OnOff"))
+        {
+		
+		//first go to server
+	    Title = "Discord";	
+		GoToUrl("https://discord.gg/sGfRd3x");
+		Wait();	
+		Wait(5);		
+
+        Driver.Navigate().Refresh();
+		Wait();	
+		
+        var NitroGamesVAR = ElementByXPath("//div[@class='contents-18-Yxp' and contains(text(),'Cancel')]");
+	    if (IsVisible(NitroGamesVAR))
+        {
+		Log("NitroGamesVAR apper - Cancel this "); 	
+        Click(NitroGamesVAR);
+        }
+		
+		Wait(5);	
+		
+	    var inviteServer1Button = ElementByXPath("//button[@type='button']/div"); //[text()='Accept Invite']
+	    var ContinueToDiscordServer1Button = ElementByXPath("//button[@class='marginTop40-i-78cZ button-3k0cO7 button-38aScr lookFilled-1Gx00P colorBrand-3pXr91 sizeLarge-1vSeWK fullWidth-1orjjo grow-q77ONN']/div[text()='Continue to Discord']"); 
+
+	    if (IsVisible(inviteServer1Button))
+        {
+		Log("Discordtip_LaccsFaucet: join to first server - LaccsProduction "); 	
+        Click(inviteServer1Button);
+        }
+		
+	    if (IsVisible(ContinueToDiscordServer1Button))
+        {
+		Log("Discordtip_LaccsFaucet: Continue To Discord Server"); 	
+        Click(ContinueToDiscordServer1Button);
+        }
+		
+		
+        while (true)
+        {
+
+		GoToUrl("https://www.laccsprod.com/"); //go to first web		
+        Wait();
+
+		//=====//    
+		//TOP //
+		//=====//	
+
+        //Title = "Won.pe";
+        Title = "TopSite";
+		GoToUrl("https://bre.is/WPN7B8xr"); //go to Top https://won.pe/TopSite2
+		Log("WonPe TOP"); 
+        Wait();
+        Wait(3);
+		
+        var WonPe_ButtonRobot = ElementByXPath("//*[@id='robot_button'] | //div[contains(text(),'robot')]"); //WonPe - robot button
+	    if (IsVisible(WonPe_ButtonRobot))
+        {
+		Log("WonPe_ButtonRobot - TOP"); 	
+        Click(WonPe_ButtonRobot);
+        }
+		
+		Wait();
+        Wait(3);		
+
+        Notifications_Function(); //call if it apper
+
+        var WonPe_SkipButton = ElementByXPath("//*[@id='skip_button']"); //WonPe - wait for - Continue 
+
+		//if the start button not visible - in the first page
+        while (!IsVisible(WonPe_SkipButton)) 
+        {
+        Wait();
+        }
+
+        if (IsVisible(WonPe_SkipButton))	
+		{			
+	    //Title = "LinkShrink";
+	    Click(WonPe_SkipButton);
+        Wait(1);	
+		Title = "LinkShrink";	    
+		Click(WonPe_SkipButton);
+        }	
+		
+		Wait();		
+		Wait(4);
+
+		CheckForPopupsEnabled = true;
+        CheckForPopups();
+
+        Notifications_Function(); //call if it apper
+     
+        var LinkShrink_GetLink = ElementByXPath("//div[@id='skip' and @style='display: none;']"); //LinkShrink - wait for - GetLink
+
+		//if the start button not visible - in the first page
+        while (IsVisible(LinkShrink_GetLink)) 
+        { 
+	
+         Wait();
+
+        }// end while	
+
+		if (!IsVisible(LinkShrink_GetLink))	
+		{	    
+	    Title = "TopSite";	
+		Log("LinkShrink - Click SKIP Continue");
+		var LinkShrink_SkipButton = ElementByXPath("//a[@id='btd' and contains(text(),'Continue')]");   //div[@id='skip']
+	    Click(LinkShrink_SkipButton);
+        }	
+		
+		Wait();		
+		Wait(4);
+		
+		CheckForPopupsEnabled = false;
+        Driver.Navigate().Refresh();
+		//=========//
+
+
+		//=================//    
+		//LaccsFaucetLTC //
+		//===============//	
+		
+        Title = "Won.pe";
+		GoToUrl("https://won.pe/LaccsFaucetLTC2"); //go to LTC
+		Log("WonPe - Discordtip_LaccsFaucet_LTC"); 
+        Wait();
+        Wait(3);
+		
+        var WonPe_ButtonRobot_LTC = ElementByXPath("//*[@id='robot_button'] | //div[contains(text(),'robot')]"); //WonPe - robot button
+	    if (IsVisible(WonPe_ButtonRobot_LTC))
+        {
+		Log("Discordtip_LaccsFaucet_LTC: WonPe_ButtonRobot_LTC"); 	
+        Click(WonPe_ButtonRobot_LTC);
+        }
+		
+		Wait();
+        Wait(3);		
+
+        Notifications_Function(); //call if it apper
+
+        var WonPe_SkipButton_LTC = ElementByXPath("//*[@id='skip_button']"); //WonPe - wait for - Continue 
+
+		//if the start button not visible - in the first page
+        while (!IsVisible(WonPe_SkipButton_LTC)) 
+        {
+        Wait();
+        }
+
+        if (IsVisible(WonPe_SkipButton_LTC))	
+		{			
+	    //Title = "LinkShrink";
+	    Click(WonPe_SkipButton_LTC);
+		Wait(1);	
+		Title = "LinkShrink";	
+		Click(WonPe_SkipButton_LTC);
+        }	
+		
+		Wait();		
+		Wait(4);
+
+		CheckForPopupsEnabled = true;
+        CheckForPopups();
+
+        Notifications_Function(); //call if it apper
+    
+        var LinkShrink_2_GetLink = ElementByXPath("//div[@id='skip' and @style='display: none;']"); //LinkShrink - wait for - GetLink
+
+		//if the start button not visible - in the first page
+        while (IsVisible(LinkShrink_2_GetLink)) 
+        { 
+	
+         Wait();
+
+        }// end while
+
+		if (!IsVisible(LinkShrink_2_GetLink))	
+		{	
+	    Title = "LTC";	
+		Log("LinkShrink - Click SKIP Continue");
+		var LinkShrink_SkipButton = ElementByXPath("//a[@id='btd' and contains(text(),'Continue')]");   //div[@id='skip']
+	    Click(LinkShrink_SkipButton);
+        }		
+
+		Wait();		
+		Wait(4);
+
+		CheckForPopupsEnabled = false;
+        Driver.Navigate().Refresh();
+
+		//=========//
+
+
+        //now go to server LTC - to claim
+        Wait();
+		Title = "Discord";	
+        CheckForPopupsEnabled = true;
+        CheckForPopups();
+        CheckForPopupsEnabled = false;
+        Driver.Navigate().Refresh();		
+        //Driver.SwitchTo().Window(Driver.WindowHandles[0]);
+        //Driver.Close();	
+		 
+	    var inviteServer2Button = ElementByXPath("//button[@type='button']/div"); //[text()='Accept Invite']
+	    if (IsVisible(inviteServer2Button))
+        {
+        Click(inviteServer2Button);
+		Log("Discordtip_LaccsFaucet_LTC: join to second server | LaccsFaucet - LTC "); 	        
+		}
+		
+		Wait();
+        Wait(5);
+        Title = "#reaction-claim";			
+        GoToUrl("https://discordapp.com/channels/552600601586827274/552600801642807308");
+		Log("Discordtip_LaccsFaucet_LTC: go to to claim in channel  | LaccsFaucet - LTC "); 	
+		Wait();
+		Wait(6);
+	
+		Reaction_Function(); //call to Reaction_Function
+		
+        var ReactionButton_Full_After_Check = ElementByXPath("//div[@class='reaction-1ELvT8 reactionMe-23mbRf'] //img[contains(@src,'/assets/612f3fc9dedfd368820b55c4cf259c07.svg')]");
+	    if (IsVisible(ReactionButton_Full_After_Check))
+        {
+		Log("Discordtip_LaccsFaucet_LTC: Click On Reaction - done"); 			
+		}
+		
+		break; //after break the while
+
+        }// end while - true
+        Wait();
+        Wait(3);
+
+		 
+     }	 //end Discordtip_LaccsFaucet_LTC_OnOff
+
+
+		ad = true;    // if i do true - it report as succeed // only one time no multi and also required -> return GetWaitSetting();	
+
+
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoSolveFaucet();
+ }
+ 
+//============//
+//DoSolveFaucet
+//============//
+
+
+	
+	
+	
+    public override int AfterSolveFaucet()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterSolveFaucet();
+    }
+
+
+
+    /// <summary>
+    /// This method gets called in the end after the BeforeSolveFaucet/DoSolveFaucet and AfterSolveFaucet methods were done.
+    /// The base.CheckFaucetResult will try to find a visible element on the page using the XPath from SuccessXPath and FailXPath (see the Start method)
+    /// These properties should contain XPath expressions to find certain elements on the page.
+    /// For example if it finds one of the elements from the SuccessXPath, and it is visible, then it will flag the claim attempt as a success.
+    /// Or if it finds one of the elements from the FailXPath, and it is visible, then it will flag the claim attempt as a failure.
+    /// </summary>
+    public override int CheckFaucetResult()
+    {
+
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.CheckFaucetResult();
+    }
+
+
+      //=================//
+      //Enter_Laccs_Function
+      //=================//	
+      public void Enter_Laccs_Function()
+      {
+         var TextCommand = ElementByXPath ("//textarea[contains(@placeholder,'Message')] | //textarea[@class='textAreaEnabledNoAttach-1WxUwj textArea-2Spzkt textArea-2Spzkt scrollbarGhostHairline-1mSOM1 scrollbar-3dvm_9']");
+	     //Enter Keyboard
+         Log("TextCommand");
+         Actions Builder4Act = new Actions(Driver);
+         Builder4Act.MoveToElement(TextCommand).Build().Perform(); 
+         Wait(3);
+         Builder4Act.SendKeys(Keys.Enter).Build().Perform(); 
+      }
+      //=================//	
+	  
+	  
+	
+  //=================//
+  //CheckCloudFlare Function
+  //=================//	
+ public void CheckCloudFlare()
+    {
+        int Count = 0;
+        while (IsVisible(ElementByXPath("//h1[@data-translate='challenge_headline']")) && Count<5)
+        { 
+            int result = DoSolveCaptcha();
+            if (result > 0)
+            {
+                Count++;
+                continue;
+            }
+
+
+            RecaptchaUtility BypassRecaptcha = new RecaptchaUtility(this);
+            BypassRecaptcha.DoSolve();
+            Wait(2);
+            Count++;
+        }
+    }
+  //=================//
+  
+  
+	
+	
+  //=================//
+  //Dwindly_Protection_Function
+  //=================//
+  private bool Dwindly_Protection_Function()
+  {
+	  
+        //Dwindly_Protection//		
+		var Dwindly_Protection = ElementByXPath("//*[@id='pause']/div[contains(text(),'wait')]"); //if the 5 sec stuck click on the span text
+        var SecToWait = DateTime.Now.AddSeconds(50);
+        
+        var Dwindly_GetLink = ElementByXPath("//*[@id='btd']"); //Dwindly - wait for - GetLink
+
+		//if the start button not visible - in the first page
+        while (!IsVisible(Dwindly_GetLink) && IsVisible(Dwindly_Protection)) 
+        { 
+	
+         Wait();
+
+        //Dwindly_Protection//	  
+        if (DateTime.Now > SecToWait) //if the time above 20 sec 
+        {
+	  	Log("Dwindly_Protection - we here"); 
+        Click(Dwindly_Protection); 
+		Driver.Navigate().Refresh();
+        }	
+	
+        }// end while
+
+	
+    return true;
+  } //end Dwindly_Protection_Function
+
+  //====================//
+  
+  
+  
+  //=================//
+  //Reaction_Function
+  //=================//
+  private bool Reaction_Function()
+  {
+
+		  var InputTextToCheckBefore = ElementByXPath("//div/textarea[@placeholder='You do not have permission to send messages in this channel.']"); 
+		  if (IsVisible(InputTextToCheckBefore)) //if the input NOT Lock - only then set text	
+          {
+		   //do not do anything
+           Log("You do not have permission to send messages in this channel.");		   
+		  } 
+		  
+          var Reaction_General_apper = ElementByXPath("//span[@class='embedTitle-3OXDkz']");
+          var ReactionButton_Full = ElementByXPath("//div[@class='reaction-1ELvT8 reactionMe-23mbRf'] //img[contains(@src,'/assets/612f3fc9dedfd368820b55c4cf259c07.svg')]");
+          var ReactionButton_Clean = ElementByXPath("//div[@class='reaction-1ELvT8'] //img[contains(@src,'/assets/612f3fc9dedfd368820b55c4cf259c07.svg')]");
+		  
+          if (!IsVisible(Reaction_General_apper)) //if not apper at all
+          {
+		   //do not do anything
+           Log("Reaction - airdrop not exist right now");
+          }  
+		  
+          if (IsVisible(Reaction_General_apper) && IsVisible(ReactionButton_Full) )
+          {
+		   //do not do anything
+           Log("ReactionButton_Full - you already claim");
+          }  
+		  
+          if (IsVisible(Reaction_General_apper) && IsVisible(ReactionButton_Clean) )
+          {
+           Log("ReactionButton_Clean - click");
+		   Wait(3);
+		   Click(ReactionButton_Clean);
+		   Wait();
+          }
+  
+        return true;
+  } //end Reaction_Function
+
+  //====================//
+  
+  
+  //====================//
+  //Notifications_Function
+  //====================//
+  private bool Notifications_Function()
+  {
+        var RingNotifications = ElementByXPath("//img[@alt='ring']");
+
+        if (IsVisible(RingNotifications))
+        {
+			
+     	   Wait();
+			
+           var iframeMainTag = ElementByXPath("//iframe[contains(@style,'z-index: 2147483647;')]"); //first need to dive - into the main tag <iframe>
+		   Driver.SwitchTo().Frame(iframeMainTag); //after active & switch to "iframe"
+		  
+     	   Wait();
+		   
+           //click to allow notifications
+           var AdFlyPushNotificationsButton = ElementByXPath("//button[contains(text(),'Allow')]");
+	       Click(AdFlyPushNotificationsButton);
+		   Log("NF - click Allow");
+  
+     	   Wait();
+
+           Driver.SwitchTo().DefaultContent(); //go back to default content in <html>
+		   
+	    }
+        return true;
+  } //end Notifications_Function
+
+  //====================//
+  
+  
+	
+  //====================//
+  //ADFunction_String_URL
+  //====================//
+  private bool ADFunction_String_URL()
+  {
+			
+        string Channel_Base_Url_String = "https://discordbots.org/bot/";
+		
+		//Menu ID - DiscordBotsTip ID
+        var Discordtip_Main_ID_Var = GetSetting("Discordtip_Main_ID");
+		string Discordtip_Main_ID_String = Discordtip_Main_ID_Var;
+		
+		//Custom_Bot_ID
+        var Input_Custom_Bot_ID_Var = GetSetting("Input_Custom_Bot_ID_Setting");
+		string Input_Custom_Bot_ID_String = Input_Custom_Bot_ID_Var;
+		
+        string Channel_End_Url_String = "/vote?currency=";
+		
+		var Menu_Bot_Currency_Var =	GetSetting("Menu_Bot_Currency");	 
+		string Menu_Bot_Currency_string = Menu_Bot_Currency_Var;	
+	    
+		//get all strings - DiscordBotsTip ID
+		string Channel_ID_AllUrl_MainString = Channel_Base_Url_String + Discordtip_Main_ID_String + Channel_End_Url_String + Menu_Bot_Currency_string;
+
+		//get all strings - Custom_Bot_ID
+		string Custom_Bot_ID_AllUrl_MainString = Channel_Base_Url_String + Input_Custom_Bot_ID_String + Channel_End_Url_String + Menu_Bot_Currency_string;
+
+		
+		//===============//
+		//DiscordBotsTip ID
+		//===============//
+        if(Menu_Bot_Currency_Var=="btc" && GetBoolSetting("Discordtip_Main_OnOff"))  
+        {	
+        GoToUrl(Channel_ID_AllUrl_MainString);
+        Log("go to string url - btc");
+        }
+		
+        if(Menu_Bot_Currency_Var=="bch" && GetBoolSetting("Discordtip_Main_OnOff"))
+        {	
+        GoToUrl(Channel_ID_AllUrl_MainString);
+        Log("go to string url - bch");
+        }
+		
+        if(Menu_Bot_Currency_Var=="btg" && GetBoolSetting("Discordtip_Main_OnOff"))
+        {	
+        GoToUrl(Channel_ID_AllUrl_MainString);
+        Log("go to string url - btg");
+        }
+		
+        if(Menu_Bot_Currency_Var=="dash" && GetBoolSetting("Discordtip_Main_OnOff"))
+        {	
+        GoToUrl(Channel_ID_AllUrl_MainString);
+        Log("go to string url - dash");
+        }
+		
+        if(Menu_Bot_Currency_Var=="dgb" && GetBoolSetting("Discordtip_Main_OnOff"))
+        {	
+        GoToUrl(Channel_ID_AllUrl_MainString);
+        Log("go to string url - dgb");
+        }
+		
+        if(Menu_Bot_Currency_Var=="eos" && GetBoolSetting("Discordtip_Main_OnOff"))
+        {	
+        GoToUrl(Channel_ID_AllUrl_MainString);
+        Log("go to string url - eos");
+        }
+		
+        if(Menu_Bot_Currency_Var=="eth" && GetBoolSetting("Discordtip_Main_OnOff"))
+        {	
+        GoToUrl(Channel_ID_AllUrl_MainString);
+        Log("go to string url - eth");
+        }
+		
+        if(Menu_Bot_Currency_Var=="ethos" && GetBoolSetting("Discordtip_Main_OnOff"))
+        {	
+        GoToUrl(Channel_ID_AllUrl_MainString);
+        Log("go to string url - ethos");
+        }
+		
+        if(Menu_Bot_Currency_Var=="ltc" && GetBoolSetting("Discordtip_Main_OnOff"))
+        {	
+        GoToUrl(Channel_ID_AllUrl_MainString);
+        Log("go to string url - ltc");
+        }
+		
+        if(Menu_Bot_Currency_Var=="omg" && GetBoolSetting("Discordtip_Main_OnOff"))
+        {	
+        GoToUrl(Channel_ID_AllUrl_MainString);
+        Log("go to string url - omg");
+        }
+		
+        if(Menu_Bot_Currency_Var=="wax" && GetBoolSetting("Discordtip_Main_OnOff"))
+        {	
+        GoToUrl(Channel_ID_AllUrl_MainString);
+        Log("go to string url - wax");
+        }
+		
+        if(Menu_Bot_Currency_Var=="xzc" && GetBoolSetting("Discordtip_Main_OnOff"))
+        {	
+        GoToUrl(Channel_ID_AllUrl_MainString);
+        Log("go to string url - xzc");
+        }
+		
+        if(Menu_Bot_Currency_Var=="zec" && GetBoolSetting("Discordtip_Main_OnOff"))
+        {	
+        GoToUrl(Channel_ID_AllUrl_MainString);
+        Log("go to string url - zec");
+        }
+		//===============//
+
+		
+		
+		//===============//
+		//Custom_Bot_ID
+		//===============//
+        if(Menu_Bot_Currency_Var=="btc" && GetBoolSetting("Custom_Bot_ID_OnOff")) 
+        {	
+        GoToUrl(Custom_Bot_ID_AllUrl_MainString);
+        Log("go to string url - Custom_Bot_ID  - btc");
+        }
+		
+        if(Menu_Bot_Currency_Var=="bch" && GetBoolSetting("Custom_Bot_ID_OnOff")) 
+        {	
+        GoToUrl(Custom_Bot_ID_AllUrl_MainString);
+        Log("go to string url - Custom_Bot_ID  - bch");
+        }
+		
+        if(Menu_Bot_Currency_Var=="btg" && GetBoolSetting("Custom_Bot_ID_OnOff")) 
+        {	
+        GoToUrl(Custom_Bot_ID_AllUrl_MainString);
+        Log("go to string url - Custom_Bot_ID  - btg");
+        }
+		
+        if(Menu_Bot_Currency_Var=="dash" && GetBoolSetting("Custom_Bot_ID_OnOff")) 
+        {	
+        GoToUrl(Custom_Bot_ID_AllUrl_MainString);
+        Log("go to string url - Custom_Bot_ID  - dash");
+        }
+		
+        if(Menu_Bot_Currency_Var=="dgb" && GetBoolSetting("Custom_Bot_ID_OnOff")) 
+        {	
+        GoToUrl(Custom_Bot_ID_AllUrl_MainString);
+        Log("go to string url - Custom_Bot_ID  - dgb");
+        }
+		
+        if(Menu_Bot_Currency_Var=="eos" && GetBoolSetting("Custom_Bot_ID_OnOff")) 
+        {	
+        GoToUrl(Custom_Bot_ID_AllUrl_MainString);
+        Log("go to string url - Custom_Bot_ID  - eos");
+        }
+		
+        if(Menu_Bot_Currency_Var=="eth" && GetBoolSetting("Custom_Bot_ID_OnOff")) 
+        {	
+        GoToUrl(Custom_Bot_ID_AllUrl_MainString);
+        Log("go to string url - Custom_Bot_ID  - eth");
+        }
+		
+        if(Menu_Bot_Currency_Var=="ethos" && GetBoolSetting("Custom_Bot_ID_OnOff")) 
+        {	
+        GoToUrl(Custom_Bot_ID_AllUrl_MainString);
+        Log("go to string url - Custom_Bot_ID  - ethos");
+        }
+		
+        if(Menu_Bot_Currency_Var=="ltc" && GetBoolSetting("Custom_Bot_ID_OnOff")) 
+        {	
+        GoToUrl(Custom_Bot_ID_AllUrl_MainString);
+        Log("go to string url - Custom_Bot_ID  - ltc");
+        }
+		
+        if(Menu_Bot_Currency_Var=="omg" && GetBoolSetting("Custom_Bot_ID_OnOff")) 
+        {	
+        GoToUrl(Custom_Bot_ID_AllUrl_MainString);
+        Log("go to string url - Custom_Bot_ID  - omg");
+        }
+		
+        if(Menu_Bot_Currency_Var=="wax" && GetBoolSetting("Custom_Bot_ID_OnOff")) 
+        {	
+        GoToUrl(Custom_Bot_ID_AllUrl_MainString);
+        Log("go to string url - Custom_Bot_ID  - wax");
+        }
+		
+        if(Menu_Bot_Currency_Var=="xzc" && GetBoolSetting("Custom_Bot_ID_OnOff")) 
+        {	
+        GoToUrl(Custom_Bot_ID_AllUrl_MainString);
+        Log("go to string url - Custom_Bot_ID  - xzc");
+        }
+		
+        if(Menu_Bot_Currency_Var=="zec" && GetBoolSetting("Custom_Bot_ID_OnOff")) 
+        {	
+        GoToUrl(Custom_Bot_ID_AllUrl_MainString);
+        Log("go to string url - Custom_Bot_ID  - zec");
+        }
+		//===============//
+		
+		
+        return true;
+  } //end ADFunction_String_URL
+
+  //====================//
+
+
+
+
+
+} //public class discordapp

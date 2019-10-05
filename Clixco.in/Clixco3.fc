@@ -1,0 +1,705 @@
+﻿
+//css_ref ImageProcessing.dll
+//css_ref ProcessingImagesUsingLockBits.dll
+using System;
+using System.Collections.Generic;
+using System.Drawing;
+using FaucetCollector.Script;
+
+public class ClixcoIn : FaucetScript
+{
+    /// <summary>
+    /// List of Settings that will be shown in the bot when selecting this Faucet in the bot.
+    /// You can get the value the user entered with the methods: GetSetting("[Name of the FaucetSetting]"), GetBoolSetting and GetDateTimeSetting
+    /// You can also create a new setting value using SetSetting("[Name you want to use]", "value")
+    /// </summary>
+    public override FaucetSettings Settings
+    {
+        get
+        {
+            return new FaucetSettings("http://www.clixco.in/")
+            {
+                new FaucetSetting(){Name="User",Display="Username",Type=EditorType.TextBox,Required=true},
+                new FaucetSetting(){Name="Pass",Display="Password",Type=EditorType.Password,Required=true},
+                new FaucetSetting(){Name="img",Display="UseImageCaptcha",Type=EditorType.CheckBox,Default=true},
+				
+                new FaucetSetting(){Name="AutoWithdraw",Display="AutoWithdraw - when you have 40000 satoshi",Type=EditorType.CheckBox,Default=true},
+				
+                new FaucetSetting(){Name="SurfAds_Normal",Display="SurfAds Normal",Type=EditorType.CheckBox,Default=true},				
+                new FaucetSetting(){Name="SurfActiveWindow",Display="Surf in active window",Type=EditorType.CheckBox,Default=true},
+                new FaucetSetting(){Name="AutoSurf",Display="AutoSurf",Type=EditorType.CheckBox,Default=true},
+				
+                //insert user settings here
+                //new FaucetSetting { 
+                //    Name = "Name of your setting", 
+                //    Display = "Display shown in Faucet Collector", 
+                //    Type = EditorType.TextBox | EditorType.Password | EditorType.CheckBox | EditorType.Wallet | EditorType.Numeric | EditorType.ComboBox | EditorType.CheckComboBox, 
+                //    Required = true | false, 
+                //    Default = "Optionally a default value" | true | false | null.
+                //    Items = new List<string> { "item1", "item2" } (only valid for ComboBox or CheckComboBox)
+                //} 
+            };
+        }
+    }
+	
+
+//============================================================//
+//the number of "successes" in the script - when are finished  
+//============================================================//
+    public override void Start()
+    {
+        //Title that shows in the browser. Is used to identify and close popup windows
+        Title = "Login|second|Verification|Surf|Clixcoin"; 
+
+        //After we did try to claim on the faucet we search for these elements to determine if it was a success or a fail
+        SuccessXPath = "//span[@class='m-widget24__stats m--font-brand']//span[@class='convertable-balance _satoshi']";
+        FailXPath = "//*[text()='']";
+
+        //Let Faucet Collector start up everything
+        base.Start();
+    }
+//============================================================//
+//the number of "successes" in the script - when are finished  
+//============================================================//
+
+
+
+
+    /// <summary>
+    /// This is the first method to run after the browser is opened and the first page is loaded.
+    /// </summary>
+    public override int DoInit()
+    {
+        cs = false;
+		Wait(1);
+      
+        //Let Faucet Collector continue.
+        return base.DoInit();
+    }
+
+	
+	
+	
+//==================//
+//save Login Cookies 
+//==================//	
+    public override bool IsLoggedIn()
+    {
+        //In here we can check for the presence of an element that is only present when you are logged in.
+        //In this case we check for en element with the class "loggedIn"
+       bool Check= ElementByXPath("//a[@href='http://www.clixco.in/auth/logout']") != null;
+        if (!Check)
+        {
+            Driver.Manage().Cookies.DeleteAllCookies();
+            Driver.Navigate().Refresh();
+            Wait(1);
+        }
+        return Check;
+    }
+
+//==================//
+//save Login Cookies 
+//==================//	
+
+	
+	
+
+    public override int BeforeLogin()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeLogin();
+    }
+	
+	
+	
+
+
+//=========//
+//DoLogin 
+//=========//	
+ public override int DoLogin()
+ {
+
+
+        //var checks login or exit
+
+
+
+        //if i already Login - go to "bonus"	 
+
+
+
+        //if i NOT Login - go to Login Page
+
+
+        if (!Driver.Url.Contains("http://www.clixco.in/auth")){ GoToUrl("http://www.clixco.in/auth"); } else { Driver.Navigate().Refresh(); }
+		
+        Wait(3,4);
+		
+        //Refresh page
+		
+		
+        var email_box =ElementByXPath("//input[@name='email']");
+        if (!IsVisible(email_box))
+        {
+            return Fail("Email box is not visible");
+        }
+        SetText(email_box, GetSetting("user"));
+        Log("set email");
+		
+        Wait(2);
+		
+        var pass_box = ElementByXPath("//input[@placeholder='Password']");
+        if (!IsVisible(pass_box))
+        {
+            return Fail("Password box is not visible");
+        }
+        SetText(pass_box, GetPassword("Pass"));
+        Log("set password");
+		
+        Wait(3);
+		
+		//UseImageCaptcha
+        var changer = ElementByXPath("//select[@id='captcha-change-handler']");
+        if (IsVisible(changer))
+        {
+            if (GetBoolSetting("img"))
+            {
+                SelectOptionByValue(changer, "2");
+
+                Wait(2);
+
+                var result = DoSolveImageCaptcha(ElementByXPath("//img[starts-with(@src,'http://www.clixco.in/captcha')]"), ElementByXPath("//input[@type='text']"));
+                if (result > 0)
+                {
+                    return result;
+                }
+
+            }
+        }
+	
+        Wait();
+		
+		//cick on ButtonLog
+        var ButtonLog = ElementByXPath("//button[@id='m_login_signin_submit']");
+        if (!IsVisible(ButtonLog)) { return Fail("Button login is not visible"); }
+        Click(ButtonLog);	
+        Log("cick on ButtonLog");
+	
+        Wait();
+		
+	    var CheckText =ElementByXPath("//*[@id='image-captcha-container']/div/div[2]/small/strong"); //Login page CheckText
+	    if (IsVisible(CheckText))
+	    {
+        Log(CheckText.Text);
+        GoToUrl("http://www.clixco.in/");
+	    }
+		
+		
+	  //end login
+	 
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoLogin();
+ }
+//=========//
+//DoLogin 
+//=========//	
+ 
+ 
+ 
+ 
+    /// <summary>
+    /// This method gets called after the DoLogin method.
+    /// </summary>
+    public override int AfterLogin()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterLogin();
+    }
+
+
+
+	
+ private static bool cs;
+ 
+ //================//
+ //GetFaucetWaitTime
+ //================//
+ public override int GetFaucetWaitTime()
+ {
+	
+        GoToUrl("http://www.clixco.in/earn/surf-ads");
+        
+        Wait();
+        if (IsVisible(ElementByXPath("//a[@class='btn btn-success btn-lg bot-check-handler']")))
+        {
+            return 0;
+        }
+		
+        return 3600;
+	
+	
+		//let Faucet Collector continue.
+        return base.GetFaucetWaitTime();
+       
+ }
+ //================//
+ //GetFaucetWaitTime
+ //================//
+ 
+ 
+
+ 
+    public override int BeforeSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeSolveCaptcha();
+    }
+
+
+    public override int DoSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoSolveCaptcha();
+    }
+
+    public override int AfterSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterSolveCaptcha();
+    }
+
+	
+
+	
+ //================//
+ //BeforeSolveFaucet
+ //================//
+    public override int BeforeSolveFaucet()
+    {
+		
+
+	
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeSolveCaptcha();
+    }
+ //================//
+ //BeforeSolveFaucet
+ //================//
+ 
+ 
+ 
+	
+	
+
+ //================//
+ //DoSolveFaucet
+ //================//
+ public override int DoSolveFaucet()
+ {
+	
+	//===============//
+	//SurfAds_Normal//
+	//==============//
+		
+    if (GetBoolSetting("AutoWithdraw"))
+    {
+		
+        GoToUrl("http://www.clixco.in/dashboard");
+		Log ("AutoWithdraw: check");
+
+	    Wait(5);
+		
+       //if the colect balance not 0 - we return after 60 min
+        var BalanceVar = ElementByXPath("//div[1]/div/div/span[2]/span");
+        int balance;
+        int.TryParse(BalanceVar.GetAttribute("data-amount"), out balance);  //<<< different way - .GetAttribute("value") - if we don't find the value of text, so find and put the element that founded on html
+        
+        if (balance > 40000)
+        {         
+	     GoToUrl("http://www.clixco.in/withdrawals/create");
+	     Log("AutoWithdraw: successes you have 40000");
+	     Wait(5);
+        }
+
+        if (balance < 40000) 
+        {
+	     Log("AutoWithdraw: Not enough, try next time");
+	    //do not do anything
+        }
+		
+    } 
+	//==============//
+	
+	
+	
+	//===============//
+	//SurfAds_Normal//
+	//==============//
+		
+    if (GetBoolSetting("SurfAds_Normal"))
+    {
+
+      cs = false;
+      GoToUrl("http://www.clixco.in/earn/surf-ads");
+	  Wait(3);
+	
+	
+      var SurfAds_AlertText = ElementByXPath("//div[starts-with(text(),'There')]");
+	
+	
+	  //if is visible
+      if (IsVisible(SurfAds_AlertText))
+      {
+        Log ("SurfAds_Normal: We watched all ads,try next time ");
+	    //do not do anything	
+	  }
+		
+		
+	  //if is not visible
+      if (!IsVisible(SurfAds_AlertText))
+      {
+
+        do
+        {
+            if (!Driver.Url.Contains("http://www.clixco.in/earn/surf-ads"))
+            {
+                GoToUrl("http://www.clixco.in/earn/surf-ads");
+            }
+            Wait();
+            var button_ad = ElementByXPath("//a[@class='btn btn-success btn-lg bot-check-handler']");
+            if (IsVisible(button_ad))
+            {
+                int time;
+                try
+                {
+                    var getTime = ElementByXPath("//div[@id='ad-details']//child::strong");
+                    string getTime_S = getTime.Text.ToLower().Replace("seconds", "").Replace(" ", "");
+                    time = Convert.ToInt32(getTime_S);
+                }
+                catch (Exception)
+                {
+                    time = 60;
+                }
+                        CheckForPopupsEnabled = false;
+                        Click(button_ad, false);
+                
+                Driver.SwitchTo().Window(Driver.WindowHandles[0]);
+                Wait(time);
+                        DateTime t1 = DateTime.Now.AddSeconds(20);
+                        var button_verify = ElementByXPath("//a[@class='btn btn-primary btn-lg view-verify-handler']");
+                        while (!IsVisible(button_verify))
+                        {
+                            Wait();
+                            if (DateTime.Now > t1)
+                            {
+                                break;
+                            }
+                            button_verify = ElementByXPath("//a[@class='btn btn-primary btn-lg view-verify-handler']");
+                        }
+                CheckForPopups();
+             
+                button_verify = ElementByXPath("//a[@class='btn btn-primary btn-lg view-verify-handler']");
+               
+                if (IsVisible(button_verify))
+                {
+                            if (!SolveCaptchaImage())
+                            {
+                                SoveCaptchaImageNew();
+                            }
+                            Wait();
+                    Click(button_verify);
+                }
+                else if(IsVisible(ElementByXPath("//h4[contains(text(),'Snap! You closed the advertisement too soon')]")))
+                {
+                            Driver.Navigate().Refresh();
+                            Wait(1);
+
+                }
+                Wait(1);
+            }
+            else
+            {
+                cs = true;
+                break;
+            }
+        } while (!cs);
+		
+		
+      } // end SurfAds_AlertText is not visible
+		
+ } // SurfAds_Normal
+	//==============//
+
+	
+	
+		
+  //=================//
+  //SurfActiveWindow//
+  //=================//
+  if (GetBoolSetting("SurfActiveWindow"))
+  {
+
+      GoToUrl("http://www.clixco.in/earn/active-window-ads");
+
+      Wait();
+	
+      var ActiveWindowAds_AlertText = ElementByXPath("//h3[text()='You have viewed all ads for now. Please visit this page after a while, new ads will be available.']");
+	  
+	  //if is visible
+      if (IsVisible(ActiveWindowAds_AlertText))
+      {		
+        Log ("SurfActiveWindow: We watched all ads,try next time ");
+	    //do not do anything	
+	  }
+		
+		
+	  //if is not visible
+      if (!IsVisible(ActiveWindowAds_AlertText))
+      {
+	
+            try 
+			{ 
+			
+            GoToUrl("http://www.clixco.in/earn/active-window-ads");
+
+            Wait();
+			
+            var Ads = ElementsByXPath("//div[@class='m-portlet m-portlet--mobile']//div[contains(@data-url,'/ad-viewer/')]");
+                while (Ads.Count > 0)
+                {
+                    Wait(1);
+                    CheckForPopupsEnabled = false;
+                    Click(Ads[0], false);
+                    Driver.SwitchTo().Window(Driver.WindowHandles[1]);
+                    Wait();
+                    DateTime t1 = DateTime.Now.AddSeconds(60);
+                    while (IsVisible(ElementByXPath("//div[@id='ad-loading-view']")))
+                    {
+                        Wait();
+                        if (DateTime.Now > t1)
+                        {
+                            break;
+                        }
+                    }
+                    Wait(1);
+                    var clock = ElementByXPath("//span[@id='_clock']");
+                    while (IsVisible(clock)) {
+                        Wait();
+                        if (DateTime.Now > t1)
+                        {
+                            break;
+                        }
+                        clock = ElementByXPath("//span[@id='_clock']");
+
+                    }
+                        if (!SolveCaptchaImage())
+                        {
+                            SoveCaptchaImageNew();
+                        }
+
+                        Wait();
+                    CheckForPopupsEnabled = true;
+                    CheckForPopups();
+                    Driver.SwitchTo().Window(Driver.WindowHandles[0]);
+
+                    Ads = ElementsByXPath("//div[@class='m-portlet m-portlet--mobile']//div[contains(@data-url,'/ad-viewer/')]");
+                        
+
+                }
+                
+            }
+            catch (Exception)
+            {
+                CheckForPopupsEnabled = true;
+                CheckForPopups();
+            }
+			
+      } // end ActiveWindowAds_AlertText not visible
+	  
+  } // end SurfActiveWindow
+  
+ //=================//
+		
+		
+	
+		
+  //========//
+  //AutoSurf//
+  //========//
+  if (GetBoolSetting("AutoSurf"))
+  {
+	  
+      GoToUrl("http://www.clixco.in/earn/auto-surf");
+
+      Wait();
+	
+      var AutoSurfAds_AlertText = ElementByXPath("//div[starts-with(text(),'There')]");
+	  
+	  //if is visible
+      if (IsVisible(AutoSurfAds_AlertText))
+      {
+		Log ("AutoSurf: we return after 36 min ");
+	    return 36*60;
+	  }
+		
+		
+	  //if is not visible
+      if (!IsVisible(AutoSurfAds_AlertText))
+      {
+				GoToUrl("http://www.clixco.in/earn/auto-surf");
+				
+                var ButtonStart = ElementByXPath("//a[@class='btn btn-primary btn-lg']");
+                if (IsVisible(ButtonStart))
+                {
+                    try
+                    {
+                        CheckForPopupsEnabled = false;
+                        Click(ButtonStart, false);
+                        Wait();
+                        Driver.SwitchTo().Window(Driver.WindowHandles[1]);
+                        DateTime t1 = DateTime.Now.AddSeconds(180);
+                        while (IsVisible(ElementByXPath("//div[@id='ad-loading-view']")) || IsVisible(ElementByXPath("//span[@id='_clock']")))
+                        {
+                            Wait();
+                            if (t1 < DateTime.Now)
+                            {
+                                break;
+                            }
+
+                        }
+                        CheckForPopupsEnabled = true;
+                        CheckForPopups();
+                        Driver.SwitchTo().Window(Driver.WindowHandles[0]);
+                        Wait();
+                    }
+                    catch (Exception)
+                    {
+                        CheckForPopupsEnabled = true;
+                        CheckForPopups();
+                    }
+
+                }
+				
+      }  // end AutoSurfAds_AlertText not visible
+            
+  } // end SurfActiveWindow
+  //========//
+
+
+
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoSolveFaucet();
+    }
+ //================//
+ //DoSolveFaucet
+ //================//
+ 
+	
+	bool SolveCaptchaImage()
+    {
+
+        bool IsSolved = false;
+        try
+        {
+      
+            ImageProcessing.UsingColors.DifferentImageFinder Finder = new ImageProcessing.UsingColors.DifferentImageFinder();
+            var Captchas = ElementsByXPath("//img[contains(@src,'custom-captcha')]");
+            for (int i = 0; i < Captchas.Count; i++)
+            {
+                Finder.AddNewImage(new ImageProcessing.UsingColors.MyImage(TakeScreenshot(Base.Captcha.CaptchaService.None, Captchas[i])));
+            }
+           
+            int s = Finder.GetListPosition()[0];
+     
+            Click(Captchas[s]);
+        
+            IsSolved = true;
+        }
+        catch (Exception)
+        {
+         
+        }
+        Wait(1);
+        return IsSolved;
+    }
+    bool SoveCaptchaImageNew()
+    {
+      
+        bool IsSolved = false;
+        try
+        {
+            var captchas_handler = ElementsByXPath("//a[@class='custom-captcha-handler']");
+            List<string> aux = new List<string>();
+            for(int i = 0; i < captchas_handler.Count; i++)
+            {
+                aux.Add(captchas_handler[i].GetAttribute("data-name"));
+            }
+            bool[] AuxBool = new bool[3];
+            int Solution = 0;
+            int ContFalse = 0;
+            for(int i = 1; i < aux.Count; i++)
+            {
+                if (aux[0] == aux[i])
+                {
+                    AuxBool[i-1] = true;
+                }
+                else
+                {
+                    AuxBool[i-1] = false;
+                    ContFalse++;
+                }
+            }
+            if (ContFalse ==1)
+            {
+                for(int i = 0; i < AuxBool.Length; i++)
+                {
+                    if (!AuxBool[i])
+                    {
+                        Solution = i + 1;
+                    }
+                }
+            }
+            var Captchas = ElementsByXPath("//img[contains(@src,'custom-captcha')]");
+            Click(Captchas[Solution]);
+            Wait(1);
+            IsSolved = true;
+
+        }
+        catch (Exception)
+        {
+           
+        }
+        Wait(1);
+        return IsSolved;
+    }
+	
+
+    /// <summary>
+    /// This method will get called after the DoSolveFaucet is completed and returned it was a success.
+    /// For example you can wait for a processing popup to go away until actual faucet claim result is on the page.
+    /// </summary>
+    public override int AfterSolveFaucet()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterSolveFaucet();
+    }
+
+	
+	
+	
+    /// <summary>
+    /// This method gets called in the end after the BeforeSolveFaucet/DoSolveFaucet and AfterSolveFaucet methods were done.
+    /// The base.CheckFaucetResult will try to find a visible element on the page using the XPath from SuccessXPath and FailXPath (see the Start method)
+    /// These properties should contain XPath expressions to find certain elements on the page.
+    /// For example if it finds one of the elements from the SuccessXPath, and it is visible, then it will flag the claim attempt as a success.
+    /// Or if it finds one of the elements from the FailXPath, and it is visible, then it will flag the claim attempt as a failure.
+    /// </summary>
+    public override int CheckFaucetResult()
+    {
+        GoToUrl("http://www.clixco.in/dashboard");
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.CheckFaucetResult();
+    }
+	
+}

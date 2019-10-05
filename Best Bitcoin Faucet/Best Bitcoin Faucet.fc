@@ -1,0 +1,183 @@
+﻿using System;
+using System.Threading.Tasks;
+using FaucetCollector.Script;
+
+public class bestbitcoinfaucetcript : FaucetScript
+{
+    
+    public override FaucetSettings Settings
+    {
+        get
+        {
+            return new FaucetSettings("https://www.thebestbitcoinfaucet.com/")
+            {
+                 new FaucetSetting {
+                    Name = "BTC",
+                    Display = "FaucetHub linked BTC wallet address",
+                    Type = EditorType.Wallet,
+                    Required = true,
+                    Default = null
+                }
+            };
+        }
+    }
+
+    
+    public override void Start()
+    {
+        
+        Title = "The Best Bitcoin Faucet|";
+
+        SuccessXPath = "//P[@align='left']";
+        FailXPath = "//div[contains(@class,'alert-error')]";
+
+        //Let Faucet Collector start up everything
+        base.Start();
+    }
+
+    
+    public override bool IsLoggedIn()
+    {
+        
+        
+        return IsVisible(ElementByXPath("//INPUT[@type='submit'][@value='Logout']"));
+    }
+
+    
+    public override int BeforeLogin()
+    {
+       
+
+        return base.BeforeLogin();
+    }
+
+   
+    public override int DoLogin()
+    {
+       
+        var addressInput = ElementByXPath("//INPUT[@placeholder='Please enter your Bitcoin wallet address']");
+        if (addressInput == null)
+        {
+            
+            return Fail("BTC address input not found.");
+        }
+
+        Wait(5);
+        SetText(addressInput, GetSetting("BTC"));
+
+        
+        var enterButton = ElementByXPath("//INPUT[@type='submit']");
+        if (!IsVisible(enterButton))
+        {
+            
+            return Fail("enter button not found.");
+        }
+
+        
+        Click(enterButton);
+
+        
+        return base.DoLogin();
+    }
+
+   
+    public override int AfterLogin()
+    {
+        
+        return base.AfterLogin();
+    }
+
+   
+    public override int GetFaucetWaitTime()
+    {
+
+
+        return 0;
+    }
+   
+    public override int BeforeSolveCaptcha()
+    {
+        
+        return base.BeforeSolveCaptcha();
+    }
+
+   
+     public override int DoSolveCaptcha()
+    {
+       
+        return base.DoSolveCaptcha();
+    }
+
+
+    
+    public override int AfterSolveCaptcha()
+    {
+        
+        return base.AfterSolveCaptcha();
+    }
+
+   
+    public override int BeforeSolveFaucet()
+    {
+        var solvecaptchaButton = ElementByXPath("//INPUT[@type='submit'][@value='Solve the captcha']");
+        if (IsVisible(solvecaptchaButton))
+      {
+
+            var result = SolveCaptcha();
+            if (result > 0)
+            {
+            
+               return result;
+            }   
+     
+           Click(solvecaptchaButton);
+      }
+
+        return base.BeforeSolveFaucet();
+    }
+
+  
+    public override int DoSolveFaucet()
+    {
+        var disabledClaimButton = ElementByXPath("//*[@id='claimbutton'][@ type='submit']");
+        if (IsVisible(disabledClaimButton))
+        {
+          Wait(55);  
+      
+        }
+        var claimbutton = ElementByXPath("//INPUT[@id='claimbutton']");
+        if (!IsVisible(claimbutton))
+        {
+            
+            return Fail("claimbutton not found or not visible.");
+        }
+
+                
+        Click(claimbutton);
+
+        
+        return base.DoSolveFaucet();
+    }
+
+    
+    public override int AfterSolveFaucet()
+    {
+        
+        return base.AfterSolveFaucet();
+    }
+
+    
+    public override int CheckFaucetResult()
+    {
+       
+        var result = base.CheckFaucetResult();
+
+        if (IsSuccess)
+        {
+            result = GetWaitSetting();
+            Reload = true;  
+        }
+
+        return result;
+    }
+}

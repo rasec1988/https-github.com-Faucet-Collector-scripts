@@ -1,0 +1,597 @@
+﻿
+//==================//
+//script Written by: ••AviramDayan•• 22/07/2019 10:00AM - Version 1
+//Last Update: 27/09/2019 01:00AM - Version 12
+//==================//
+
+using System;
+using FaucetCollector.Script;
+using OpenQA.Selenium;
+using OpenQA.Selenium.Interactions;
+//css_inc recaptchaUtilities
+
+public class lootbits : FaucetScript
+{
+    /// <summary>
+    /// List of Settings that will be shown in the bot when selecting this Faucet in the bot.
+    /// You can get the value the user entered with the methods: GetSetting("[Name of the FaucetSetting]"), GetBoolSetting and GetDateTimeSetting
+    /// You can also create a new setting value using SetSetting("[Name you want to use]", "value")
+    /// </summary>
+    public override FaucetSettings Settings
+    {
+        get
+        {
+			
+            return new FaucetSettings("https://lootbits.io/")
+            {
+                new FaucetSetting(){Name="Email",Display="Email or UserName",Type=EditorType.TextBox,Required=true},
+                new FaucetSetting(){Name="Password",Display="Password",Type=EditorType.Password,Required=true},
+                new FaucetSetting() { Name = "FaucetClaim", Display = "FaucetClaim - ON/OFF", Type = EditorType.CheckBox, Default = true},
+                new FaucetSetting() { Name = "DailyBonus", Display = "DailyBonus - ON/OFF", Type = EditorType.CheckBox, Default = true},
+                new FaucetSetting(){Name="StoreCookies",Display="StoreCookies - ON/OFF (also In delete browser data - i recommended to choose - default (delete after every run) Otherwise the script will not work properly)",Type=EditorType.CheckBox,Default=false },
+				
+            };
+        }
+    }
+
+	
+//============================================================//
+//the number of "successes" in the script - when are finished  
+//============================================================//
+    public override void Start()
+    {
+        ad = false;
+       
+        //Title that shows in the browser. Is used to identify and close popup windows
+        Title = "Lootbits.io";
+
+		SuccessXPath = "//*";  //*[@id='']
+        FailXPath = "//*"; //*[@id='']
+	
+        //TimerIsCountingUp = true;
+		
+        //StoreCookies
+        if (GetBoolSetting("StoreCookies"))            
+        {
+         StoreCookies = true;  //on
+        }
+		
+        if (!GetBoolSetting("StoreCookies"))            
+        {
+         StoreCookies = false; //off
+        }	
+		
+        //Let Faucet Collector start up everything
+        base.Start();
+    }
+//============================================================//
+//the number of "successes" in the script - when are finished  
+//============================================================//
+
+	
+    bool ad; //custom bool
+
+
+    public override int DoInit()
+    {
+
+        //Let Faucet Collector continue.
+        return base.DoInit();
+    }
+
+	
+//==================//
+//save Login Cookies 
+//==================//
+    public override bool IsLoggedIn()
+    {
+	    //save Login Cookies - Check if the "Logout" exist
+        return ElementByXPath("//a[@href='logout.php'] | //a[contains(text(),'Logout') ]")  != null;
+	 
+        //return base.IsLoggedIn();
+    }
+//==================//
+//save Login Cookies 
+//==================//	
+
+
+
+
+//=============//
+//BeforeLogin
+//=============//
+    public override int BeforeLogin()
+    {
+		
+
+     GoToUrl("https://lootbits.io/dashboard.php");
+
+
+		
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeLogin();
+    }
+//=============//
+//BeforeLogin
+//=============//
+
+	
+
+
+	
+//========//
+//DoLogin
+//========//
+    public override int DoLogin()
+    {
+	
+      var ExitButton = ElementByXPath("//a[@href='logout.php'] | //a[contains(text(),'Logout') ") ;
+
+	
+	 //if i NOT Login - go to Login Page
+	 if (!IsVisible(ExitButton))
+	 {
+		GoToUrl("https://lootbits.io/login.php");
+		Wait();		
+		Wait(2);
+	
+        var box_user = ElementByXPath("//input[@name='username']");
+        SetText(box_user, GetSetting("Email"));
+		
+		Wait(2);
+		
+        var box_pass = ElementByXPath("//input[@name='password']");
+        SetText(box_pass, GetPassword("Password"));
+		
+		Wait(2);	
+		
+        var ButtonLog = ElementByXPath("//button[@value='login'] | //input[contains(@value,'Start')]");
+        Click(ButtonLog);	
+		
+		Wait(2);
+	
+        //SolveCaptcha if apper
+	    /*
+        var result = DoSolveCaptcha();
+        if (result > 0)
+        {
+            return Fail("Fail solving captcha");
+        }
+		*/
+		
+		Wait();
+		
+		/*
+        if (Driver.Url.Contains("https://lootbits.io/dashboard"))   //if driver NOT Contains - GoToUrl
+        {
+            GoToUrl("https://lootbits.io/");
+        }		
+		
+		Wait();
+		*/
+		
+        /*		
+        var Error_Message = ElementByXPath ("//div[@id='add_err']/div/div[@class='message' and contains(text(),'fille' | 'captcha' ) ]");
+        if (IsVisible(Error_Message))
+        {
+            Log("Error_Message - Appear - we return after 1 min ");
+            return 1*60; //we return after 1 min
+        }
+        */		
+
+
+	 } // end ExitButton
+
+        
+       return base.DoLogin();
+    }
+//========//
+//DoLogin
+//========//
+ 
+
+
+
+//========//
+//AfterLogin
+//========//
+ public override int AfterLogin()
+ {
+ 
+  
+    //we are good to continue
+    return base.AfterLogin();
+
+ }
+//========//
+//AfterLogin
+//========//
+
+
+	
+
+//================//
+//GetFaucetWaitTime
+//================//
+    public override int GetFaucetWaitTime()
+    {
+
+        if (ad)
+        {
+		
+		    ad=false;
+		 
+            //=======//
+	        //Timer
+	        //=======//
+            var ClaimButton_2_Checking = ElementByXPath("//button[@id='claimbtndisabled' and contains(text(),'Generating')]");
+            if(IsVisible(ClaimButton_2_Checking)) //if the ClaimButton **NOT Visible** - only then call to do stuff - and return to exict time
+            {
+				
+            var MinuteVAR = ElementByXPath("//span[@id='countdown_time']");				
+            if(IsVisible(MinuteVAR))
+            {
+	        Log("MinuteVAR");  	
+
+            int min_INT, sec_INT;
+            min_INT = Convert.ToInt32(MinuteVAR.Text.Trim().Split(':')[0])*60;
+            sec_INT = Convert.ToInt32(MinuteVAR.Text.Trim().Split(':')[1]);
+			
+            Driver.Close();  // Close specific chrome window
+            Driver.Quit();  // also Close the console app, that was used to kick off the chrome window
+            Driver.Dispose();  // Close the chromedriver.exe
+		    //return GetWaitSetting();
+			return min_INT + sec_INT;
+	        }// end MinuteVAR	
+			
+		    }// end ClaimButton_2_Checking - Visible
+            //=======//			
+        }
+		
+
+		//let Faucet Collector continue.
+        return base.GetFaucetWaitTime();
+    }
+//================//
+//GetFaucetWaitTime
+//================//
+
+
+
+    public override int BeforeSolveCaptcha()
+    {
+ 
+        //Return we are ready to proceed
+        return base.BeforeSolveFaucet();
+    }
+
+	
+    public override int DoSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoSolveCaptcha();
+    }
+
+	
+    public override int AfterSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterSolveCaptcha();
+    }
+
+	
+    public override int BeforeSolveFaucet()
+    {
+        //Return we can continue
+        return base.BeforeSolveFaucet();
+    }
+  
+	
+	
+//==============//
+//DoSolveFaucet
+//==============//
+ public override int DoSolveFaucet()
+  {
+
+	
+	    //==============//
+		//DailyBonus//
+		//==============//
+        if (GetBoolSetting("DailyBonus"))
+        {
+			Log("DailyBonus here");
+            GoToUrl("https://lootbits.io/daily.php");
+            Wait();
+            Wait(2);
+			
+            var Daily_NOTvisible_Question = ElementByXPath("//div[@class='box-body text-center']/br[3] | //div[@class='box-body text-center']/br[3 and contains(text(),'back tomorrow') ]");
+            if(!IsVisible(Daily_NOTvisible_Question)) //if the text of "back tomorrow" not visible - do stuff and calick on the Questions
+            {
+			Log("DailyBonus_Button available");				
+
+            var visible_1_Question = ElementByXPath ("//div[@class='box-body text-center']/a[1] ");
+            var visible_2_Question = ElementByXPath ("//div[@class='box-body text-center']/a[2] ");
+            int RandomButton = Random(0, 1);
+ 
+            var ButtonToClick = ( RandomButton == 0 && IsVisible(visible_1_Question)) ? visible_1_Question : IsVisible(visible_2_Question) ? visible_2_Question : null;
+      
+            if (ButtonToClick!=null)
+            {
+              Click(ButtonToClick);
+              Wait(3);
+            }
+
+		    }// end Daily_NOTvisible_Question
+	
+        }// end DailyBonus
+		//==============//
+
+
+
+
+		//==============//
+		//TargetTask//
+		//==============//
+		
+		 GoToUrl("https://lootbits.io/?daily=217347&secret=538U1XXPY8");
+		 Wait();		
+		 Wait(3);
+
+         var SuccessTarget = ElementByXPath("//div[@class='box-body' and contains(text(),'registered' | 'target' | 'Thank you' ) ] ");
+
+         if(IsVisible(SuccessTarget))
+         {
+		    Log("TargetTask NOT here"); 
+			Wait(2);
+			
+			var INFO = ElementByXPath("//div[@class='box-body']");		
+		    Log(INFO.Text);	
+		 }	 
+		 
+         if(!IsVisible(SuccessTarget))
+         {
+		    Log("TargetTask Available");	
+	
+            var Button_Activate_Checking = ElementByXPath("//a[@id='activatebtn' and contains(@style,'display: none;') ] ") ;	
+            if(!IsVisible(Button_Activate_Checking))  //if its not - display: none - do stuff
+            {
+            Title = "Lootbits.io";
+            var Button_1_Activate = ElementByXPath("//a[@id='activatebtn']") ;
+		    Click(Button_1_Activate);
+			Log("Button_1_Activate");	
+		    //ExecuteScript("enableTarget();");	
+		    }	
+		
+		    Wait();		
+		    Wait(2);
+		
+            if(!IsVisible(Button_Activate_Checking))   //if its not - display: none - do stuff
+            {
+		    Title = "Lootbits.io";
+            var Button_2_Activate = ElementByXPath("//a[@id='activatebtn']") ;
+		    Click(Button_2_Activate);
+			Log("Button_2_Activate");	
+			//ExecuteScript("enableTarget();");
+		    }	
+		
+		    Wait();		
+		    Wait(2);
+				
+            var Button_Click = ElementByXPath("//button[@id='unlockbtn' and contains(@style,'display: inline-block;')] ");	
+            if(IsVisible(Button_Click)) 
+            {
+		    Title = "Lootbits.io";	
+		    Click(Button_Click);	
+			Log("Button_Click ");	
+			//ExecuteScript("enableTarget();");	
+		    }	
+        
+		 } //  end TargetTask Available		  
+
+		//==============//		
+		
+
+		
+		//==============//
+		//FaucetClaim//
+		//==============//
+        if (GetBoolSetting("FaucetClaim"))
+        {
+		    GoToUrl("https://lootbits.io/dashboard.php");	
+		    Wait();		
+		    Wait(2);			
+			Log("FaucetClaim here");
+
+            //=======//
+	        //Timer
+	        //=======//
+            var ClaimButton_2_Checking = ElementByXPath("//button[@id='claimbtndisabled' and contains(text(),'Generating')]");
+            if(IsVisible(ClaimButton_2_Checking)) //if the ClaimButton **NOT Visible** - only then call to do stuff - and return to exict time
+            {
+				
+            var MinuteVAR = ElementByXPath("//span[@id='countdown_time']");				
+            if(IsVisible(MinuteVAR))
+            {
+	        Log("MinuteVAR");  	
+
+            int min_INT, sec_INT;
+            min_INT = Convert.ToInt32(MinuteVAR.Text.Trim().Split(':')[0])*60;
+            sec_INT = Convert.ToInt32(MinuteVAR.Text.Trim().Split(':')[1]);
+			
+            Driver.Close();  // Close specific chrome window
+            Driver.Quit();  // also Close the console app, that was used to kick off the chrome window
+            Driver.Dispose();  // Close the chromedriver.exe
+		    //return GetWaitSetting();
+			return min_INT + sec_INT;
+	        }// end MinuteVAR	
+			
+		    }// end ClaimButton_2_Checking - Visible
+            //=======//		
+
+            BonusBetween_Function(); //before if apper try to call to BonusBetween_Function
+            Wait();
+            Wait(3);
+			          
+            var ClaimButtonChecking = ElementByXPath("//button[@id='claimbtndisabled' and contains(text(),'Generating')]");           
+			if(!IsVisible(ClaimButtonChecking))
+            {
+			Title = "Lootbits.io";
+	        Log("ClaimButtonChecking - Visible");						
+            var ClaimButton = ElementByXPath("//a[@id='claimbtn' and contains(text(),'Take')] | //a[@id='claimbtn' and contains(text(),'Claim bonus')] | //a[@id='claimbtn'] ");
+            Click(ClaimButton);	
+            Wait(1);		
+			Log("Click on ClaimButton");
+            Wait();
+            Driver.Navigate().Refresh(); //Refresh page	
+            Wait(3);			
+			}// ClaimButtonChecking		
+	
+		    
+			//if the start button apper
+            while (true)
+            {
+
+            var SpinButton = ElementByXPath("//div[@class='lootbox'] | //div[@id='boxdrop' and @class='boxdropper'] ");
+            if(IsVisible(SpinButton))
+            {
+	         Title = "Lootbits.io";
+		     Click(SpinButton);
+			 Log("Click on SpinButton");
+			}//end SpinButton
+
+		      //if the start button not visible
+              while (IsVisible(ElementByXPath ("//div[@class='lootbox lootbox-open'] | //div[@id='boxdrop' and not (@class) ] ") )) //("//div[@class='whilespinning']")
+              {		
+		        Wait(3);
+                Driver.Navigate().Refresh(); //Refresh page				
+                //Wait(); //so Wait until the button visible
+			    Log("Wait for SpinButton");
+
+                while (IsVisible(ElementByXPath ("//span[@id='lootbits' and starts-with(text(),'0')] | //span[@id='picks' and starts-with(text(),'0')] ") )) //(starts-with - is good | no need to put - and contains(text(),'0') )
+                {	
+			       Log("spins 0 break");				
+                   //break; //if the count of "spins" is 0	
+				   //ClaimSuccess(); //Marks the claim as a success
+                   Driver.Close();  // Close specific chrome window
+                   Driver.Quit();  // also Close the console app, that was used to kick off the chrome window
+                   Driver.Dispose();  // Close the chromedriver.exe
+                   return 1*60;    				   
+			    }	
+					    
+                BonusBetween_Function(); //call to Bonuss
+
+              } //end while (IsVisible	
+				
+            } //end while (true)
+				
+        } //end FaucetClaim
+		
+		
+		ad = true;    // if i do true - it report as succeed // only one time no multi and also required -> return GetWaitSetting();	
+        //return GetWaitSetting();	
+
+
+        //We are good to continue
+        return base.DoSolveFaucet();
+ }
+//==============//
+//DoSolveFaucet
+//==============///
+	
+	
+	
+	
+	
+//==============//
+//AfterSolveFaucet
+//==============//
+  public override int AfterSolveFaucet()
+  {
+
+   //This faucet has nothing to do here. We will let Faucet Collector handle it.
+   return base.AfterSolveFaucet();
+   
+  }
+	
+//==============//
+//AfterSolveFaucet
+//==============//
+
+
+
+    /// <summary>
+    /// This method gets called in the end after the BeforeSolveFaucet/DoSolveFaucet and AfterSolveFaucet methods were done.
+    /// The base.CheckFaucetResult will try to find a visible element on the page using the XPath from SuccessXPath and FailXPath (see the Start method)
+    /// These properties should contain XPath expressions to find certain elements on the page.
+    /// For example if it finds one of the elements from the SuccessXPath, and it is visible, then it will flag the claim attempt as a success.
+    /// Or if it finds one of the elements from the FailXPath, and it is visible, then it will flag the claim attempt as a failure.
+    /// </summary>
+    public override int CheckFaucetResult()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.CheckFaucetResult();
+    }
+	
+	
+			 //====================//	
+	         //BonusBetween_Function
+			 //====================//
+             public void BonusBetween_Function()
+             {
+				 
+                //ChestBonus - click random between all vars - 1 to 3
+	            var ChestBonus = ElementByXPath("//div[@id='chestext' and contains(text(),'chest')]") ;
+                if(IsVisible(ChestBonus))
+                {
+			      Log("ChestBonus");					
+                  var Chest_1_Box = ElementByXPath("//*[@id='allchests']/div[1]/a[@onclick='openChest(1)']/img");
+                  var Chest_2_Box = ElementByXPath("//*[@id='allchests']/div[2]/a[@onclick='openChest(2)']/img");			
+                  var Chest_3_Box = ElementByXPath("//*[@id='allchests']/div[3]/a[@onclick='openChest(3)']/img");	
+                  int RandomButton = Random(0, 2);
+ 
+                  var ButtonToClick = ( RandomButton == 0 && IsVisible(Chest_1_Box)) ? Chest_1_Box : RandomButton == 1 && IsVisible(Chest_2_Box) ? Chest_2_Box : IsVisible(Chest_3_Box) ? Chest_3_Box : null;
+      
+                  if (ButtonToClick!=null)
+                  {
+                    Title = "Lootbits.io";
+                    Click(ButtonToClick);
+                    Wait(3);
+                    Title = "Lootbits.io";
+                    Click(ButtonToClick);
+                    Wait(3);
+                  }
+		
+                }//end ChestBonus	
+				
+				
+                //GuessColorBonus - click random between all vars - 1 to 2
+	            var GuessColorBonus = ElementByXPath("//div[@id='redblacktext' and contains(text(),'Guess')]") ;
+                if(IsVisible(GuessColorBonus))
+                {
+			      Log("GuessColorBonus");					
+                  var GuessColor_1_Box = ElementByXPath("//button[@id='open-red']");
+                  var GuessColor_2_Box = ElementByXPath("//button[@id='open-black']");				
+                  int RandomButton = Random(0, 1);
+ 
+                  var ButtonToClick = ( RandomButton == 0 && IsVisible(GuessColor_1_Box)) ? GuessColor_1_Box : IsVisible(GuessColor_2_Box) ? GuessColor_2_Box : null;
+      
+                  if (ButtonToClick!=null)
+                  {
+                    Title = "Lootbits.io";
+                    Click(ButtonToClick);
+                    Wait(3);
+                    Title = "Lootbits.io";
+                    Click(ButtonToClick);
+                    Wait(3);
+                  }
+		
+                }//end GuessColorBonus	
+				
+				
+             }//end BonusBetween_Function
+			 //====================//
+
+	
+} //end public class
+

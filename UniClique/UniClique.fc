@@ -1,0 +1,504 @@
+using FaucetCollector.Script;
+using OpenQA.Selenium;
+using OpenQA.Selenium.Interactions;
+using System;
+using System.Drawing;
+using System.IO;
+
+public class UniClique : FaucetScript
+{
+    /// <summary>
+    /// List of Settings that will be shown in the bot when selecting this Faucet in the bot.
+    /// You can get the value the user entered with the methods: GetSetting("[Name of the FaucetSetting]"), GetBoolSetting and GetDateTimeSetting
+    /// You can also create a new setting value using SetSetting("[Name you want to use]", "value")
+    /// </summary>
+    public override FaucetSettings Settings
+    {
+        get
+        {
+            return new FaucetSettings("http://www.uniclique.info/")
+            {
+                new FaucetSetting(){Name="User",Display="Username",Type=EditorType.TextBox,Required=true},
+                new FaucetSetting(){Name="Pass",Display="Password",Type=EditorType.Password,Required=true},
+                new FaucetSetting(){Name="Security",Display="Security Answer",Type=EditorType.TextBox,Required=true},
+                //insert user settings here
+                //new FaucetSetting { 
+                //    Name = "Name of your setting", 
+                //    Display = "Display shown in Faucet Collector", 
+                //    Type = EditorType.TextBox | EditorType.Password | EditorType.CheckBox | EditorType.Wallet | EditorType.Numeric | EditorType.ComboBox | EditorType.CheckComboBox, 
+                //    Required = true | false, 
+                //    Default = "Optionally a default value" | true | false | null.
+                //    Items = new List<string> { "item1", "item2" } (only valid for ComboBox or CheckComboBox)
+                //} 
+            };
+        }
+    }
+
+    /// <summary>
+    /// This method gets called when the faucet is enabled and the GO button is clicked
+    /// </summary>
+    public override void Start()
+    {
+        //Title that shows in the browser. Is used to identify and close popup windows
+        Title = "UniClique|Just a moment...";
+
+        //After we did try to claim on the faucet we search for these elements to determine if it was a success or a fail
+        SuccessXPath = "//strong[contains(text(),'$')]";
+        FailXPath = "//div[@class='']";
+
+        //Let Faucet Collector start up everything
+        base.Start();
+    }
+
+    /// <summary>
+    /// This is the first method to run after the browser is opened and the first page is loaded.
+    /// </summary>
+    public override int DoInit()
+    {
+        Driver.Manage().Cookies.DeleteAllCookies();
+        Click(ElementByXPath("//a[@class='login']"));
+        //Let Faucet Collector continue.
+        return base.DoInit();
+    }
+
+    /// <summary>
+    /// This method gets called after the Start method, here you need to return if we are logged in or not.
+    /// If you return false then it will call the BeforeLogin, Login and AfterLogin methods so you can login.
+    /// After those Login methods are called it will call this IsLoggedIn method again to see if the login did succeed.
+    /// If you return true Faucet Collector will store all cookies so it will probably be already logged in on the next attempt.
+    /// </summary>
+    public override bool IsLoggedIn()
+    {
+        //In here we can check for the presence of an element that is only present when you are logged in.
+        //In this case we check for en element with the class "loggedIn"
+        return ElementByXPath(".//*[contains(@href, 'index.php?view=logout')]") != null;
+    }
+
+    /// <summary>
+    /// This method gets called if IsLoggedIn returned false, right before the DoLogin method is called.
+    /// </summary>
+    public override int BeforeLogin()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeLogin();
+    }
+
+    /// <summary>
+    /// This method gets called after BeforeLogin, but only if IsLoggedIn returned false.
+    /// It can be used to actually login the user/enter wallet details in the faucet
+    /// </summary>
+    /// <returns></returns>
+    public override int DoLogin()
+    {
+        Click(ElementByXPath("//a[@class='login']"));
+        IWebElement LoginBox = ElementByXPath("//input[@name='username']");
+        if (!IsVisible(LoginBox))
+        {
+            return Fail("Login box not visible");
+        }
+        SetText(LoginBox, GetSetting("User"));
+        IWebElement PassBox = ElementByXPath("//input[@name='password']");
+        if (!IsVisible(PassBox))
+        {
+            return Fail("Password box not visible");
+        }
+        SetText(PassBox, GetPassword("Pass"));
+        Wait(2, 3);
+        int result = DoSolveCaptcha();
+        if (result > 0)
+        {
+            return Fail("Problem with captcha");
+        }
+        IWebElement agree = ElementByXPath("//input[@value='Login']");
+        if (agree == null)
+        {
+            //We couldn't find it. Register it as a fail so it can reload the page and try again in 10-15 seconds.
+            return Fail("Login button not found.");
+        }
+        Click(agree);
+        Wait(5);
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoLogin();
+    }
+
+    /// <summary>
+    /// This method gets called after the DoLogin method.
+    /// </summary>
+    public override int AfterLogin()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        IWebElement security = ElementByXPath("//input[@id='security_answer']");
+        IWebElement bagin = ElementByXPath("//a[contains(text(),'Click to open your account')]");
+        if (IsVisible(security))
+        {
+            SetText(security, GetSetting("Security"));
+            IWebElement Send = ElementByXPath("//input[@value='Send']");
+            if (IsVisible(Send))
+            {
+                Click(Send);
+            }
+
+        }
+
+
+        DateTime t2 = DateTime.Now.AddSeconds(50);
+        while (!IsVisible(bagin))
+        {
+            Wait();
+            bagin = ElementByXPath("//a[contains(text(),'Click to open your account')]");
+            if (DateTime.Now > t2)
+            {
+                break;
+            }
+        }
+        if (IsVisible(bagin))
+        {
+            Click(bagin);
+        }
+        return base.AfterLogin();
+    }
+
+    /// <summary>
+    /// This method gets called after the login methods are successful, so we are logged into the faucet.
+    /// If the faucet is not yet ready to claim you should return a TimeStamp value to return how long it takes before the Faucet claim can be done.
+    /// This is used to pause the script while the faucet its timer runs out.
+    /// Return the number of seconds the bot should wait.
+    /// </summary>
+    public override int GetFaucetWaitTime()
+    {
+        GoToUrl("http://www.uniclique.info/index.php?view=ads");
+        Wait(3, 4);
+        int Tries = 0;
+
+        IWebElement access = ElementByXPath("//input[@value='Give me access']");
+        while (IsVisible(access) && Tries <= 4)
+        {
+            int result = DoSolveCaptcha();
+            if (result > 0)
+            {
+                return Fail("Problem with captcha");
+            }
+            Click(access);
+            Wait();
+            access = ElementByXPath("//input[@value='Give me access']");
+            Tries++;
+        }
+
+        Wait(3);
+        System.Collections.Generic.List<IWebElement> Ads = ElementsByXPath("//div[@class='ad-block  ' and contains(@onclick,'window')]");
+        Ads.AddRange(ElementsByXPath("//div[@class='ad-block  ']//span[contains(@onclick,'window') and not(contains(@style, 'display:none'))]"));
+        int count_ads = Ads.Count;
+        foreach (IWebElement ad in Ads)
+        {
+            if (ad.Text.Contains("DO NOT CLICK") || ad.Text.Contains("BOT CHECK") || !IsVisible(ad))
+            {
+                count_ads--;
+            }
+
+
+        }
+        if (count_ads > 0)
+        {
+            return 0;
+        }
+        return 7200;
+        //let Faucet Collector continue.
+
+    }
+
+    /// <summary>
+    /// This method is called right before a captcha will be solved. 
+    /// If you call SolveCaptcha() in other methods it will start this flow and tries to solve the captcha on the page.
+    /// </summary>
+    public override int BeforeSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeSolveCaptcha();
+    }
+
+    /// <summary>
+    /// This method gets called after BeforeSolveCaptcha and it does the actual captcha solving
+    /// It will automatically try to see if there is a SolveMedia captcha active or a reCAPTCHA active. 
+    /// If it finds either one it will then use the selected method on the Captcha tab of FaucetCollector to solve the Captcha.
+    /// </summary>
+    public override int DoSolveCaptcha()
+    {
+
+
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoSolveCaptcha();
+    }
+
+    /// <summary>
+    /// This method will get called after DoSolveCaptcha returned it was a success.
+    /// </summary>
+    /// <returns></returns>
+    public override int AfterSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterSolveCaptcha();
+    }
+
+    /// <summary>
+    /// This method is called right before we attempt to claim on the faucet. So we are logged in and good to go.
+    /// Next methods that will be called are DoSolveFaucet, AfterSolveFaucet and CheckFaucetResult.
+    /// </summary>
+    public override int BeforeSolveFaucet()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeSolveFaucet();
+    }
+
+    /// <summary>
+    /// This method gets called after the BeforeSolveFaucet. You can do the actual claiming of the faucet in here.
+    /// </summary>
+    /// <returns></returns>
+	private static bool cs;
+    public override int DoSolveFaucet()
+    {
+        cs = false;
+        int n = 0;
+        GoToUrl("http://www.uniclique.info/index.php?view=ads");
+        Wait();
+        int Tries = 0;
+        IWebElement access = ElementByXPath("//input[@value='Give me access']");
+        while (IsVisible(access) && Tries <= 4)
+        {
+            int result = DoSolveCaptcha();
+            if (result > 0)
+            {
+                return Fail("Problem with captcha");
+            }
+            Click(access);
+            Wait();
+            access = ElementByXPath("//input[@value='Give me access']");
+            Tries++;
+        }
+
+        Wait(3);
+        System.Collections.Generic.List<IWebElement> Ads = ElementsByXPath("//div[@class='ad-block  ' and contains(@onclick,'window')]");
+        Ads.AddRange(ElementsByXPath("//div[@class='ad-block  ']//span[contains(@onclick,'window') and not(contains(@style, 'display:none'))]"));
+        Log(Ads.Count + " Standard ads detected");
+        while (Ads.Count > n)
+        {
+            if (Ads[n].Text.Contains("DO NOT CLICK") || Ads[n].Text.Contains("BOT CHECK") || !IsVisible(Ads[n]))
+            {
+                n++;
+            }
+            try
+            {
+                CheckForPopupsEnabled = false;
+                Click(Ads[n], false);
+                Driver.SwitchTo().Window(Driver.WindowHandles[1]);
+                Wait(5);
+                IWebElement verify = ElementByXPath("//input[@value='Continue']");
+                IWebElement countdown = ElementByXPath("//div[@id='progress']");
+                IWebElement tozero = ElementByXPath("//img[@src='modules.php?m=surfer&show=captcha']");
+                if (IsVisible(verify))
+                {
+                    int result = DoSolveCaptcha();
+                    if (result > 0)
+                    {
+                        return Fail("Problem with captcha");
+                    }
+                    Click(verify);
+                }
+                Wait(3);
+                DateTime t2 = DateTime.Now.AddSeconds(20);
+                while (IsVisible(ElementByXPath("//div[@class='adwait']")))
+                {
+                    Wait();
+                    if (DateTime.Now > t2)
+                    {
+                        break;
+                    }
+                }
+                Wait();
+                countdown = ElementByXPath("//div[@id='progress']");
+                tozero = ElementByXPath("//img[@src='modules.php?m=surfer&show=captcha']");
+                DateTime t1 = DateTime.Now.AddSeconds(100);
+                IWebElement errorbox = ElementByXPath("//div[@class='errorbox']");
+                if (IsVisible(errorbox))
+                {
+                    Driver.SwitchTo().Window(Driver.WindowHandles[0]);
+                    CheckForPopupsEnabled = true;
+                    CheckForPopups();
+                    CheckForPopupsEnabled = false;
+                    Driver.Navigate().Refresh();
+                }
+                if (IsVisible(ElementByXPath("//div[@class='bannerInner']")))
+                {
+                    Driver.SwitchTo().Window(Driver.WindowHandles[0]);
+                    CheckForPopupsEnabled = true;
+                    CheckForPopups();
+                    CheckForPopupsEnabled = false;
+                    Driver.Navigate().Refresh();
+                }
+                while (IsVisible(countdown) && !IsVisible(tozero))
+                {
+                    Wait();
+                    countdown = ElementByXPath("//div[@id='progress']");
+                    tozero = ElementByXPath("//img[@src='modules.php?m=surfer&show=captcha']");
+                    if (DateTime.Now > t1)
+                    {
+                        break;
+                    }
+                }
+                if (IsVisible(tozero))
+                {
+                    Solve_Image();
+                }
+                CheckForPopupsEnabled = true;
+                CheckForPopups();
+                Driver.SwitchTo().Window(Driver.WindowHandles[0]);
+                Wait();
+                GoToUrl("http://www.uniclique.info/index.php?view=ads");
+                Ads = ElementsByXPath("//div[@class='ad-block  ' and contains(@onclick,'window')]");
+                Ads.AddRange(ElementsByXPath("//div[@class='ad-block  ']//span[contains(@onclick,'window') and not(contains(@style, 'display:none'))]"));
+            }
+            catch (Exception)
+            {
+                n++;
+                CheckForPopupsEnabled = true;
+                CheckForPopups();
+                Driver.SwitchTo().Window(Driver.WindowHandles[0]);
+                Driver.Navigate().Refresh();
+                Wait();
+            }
+        }
+        return GetWaitSetting();
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+
+    }
+
+    /// <summary>
+    /// This method will get called after the DoSolveFaucet is completed and returned it was a success.
+    /// For example you can wait for a processing popup to go away until actual faucet claim result is on the page.
+    /// </summary>
+    public override int AfterSolveFaucet()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterSolveFaucet();
+    }
+
+    public bool Solve_Image()
+    {
+        bool IsSolved = false;
+        try
+        {
+            IWebElement capt = ElementByXPath("//img[@src='modules.php?m=surfer&show=captcha']");
+            Bitmap captcha = GetElementScreenShort(Driver, capt, "8");
+            Bitmap[] icons = new Bitmap[6];
+            icons[0] = captcha.Clone(new Rectangle(0, 0, 50, 50), captcha.PixelFormat);
+            icons[1] = captcha.Clone(new Rectangle(50, 0, 50, 50), captcha.PixelFormat);
+            icons[2] = captcha.Clone(new Rectangle(100, 0, 50, 50), captcha.PixelFormat);
+            icons[3] = captcha.Clone(new Rectangle(150, 0, 50, 50), captcha.PixelFormat);
+            icons[4] = captcha.Clone(new Rectangle(200, 0, 50, 50), captcha.PixelFormat);
+            icons[5] = captcha.Clone(new Rectangle(250, 0, 50, 50), captcha.PixelFormat);
+            int solution = -1;
+            int[] pixels = new int[5];
+            int count = 0;
+            int sum = 0;
+            for (int i = 0; i < 5; i++)
+            {
+                pixels[i] = Different_pixels(icons[0], icons[i + 1]);
+            }
+            for (int i = 1; i < 5; i++)
+            {
+                if (pixels[i] > 0)
+                {
+                    solution = i + 1;
+                    sum++;
+                }
+                if (pixels[i] == 0)
+                {
+                    count++;
+                }
+            }
+            if (count == 4)
+            {
+                solution = 1;
+            }
+            if (sum == 4)
+            {
+                solution = 0;
+            }
+            //Log("Count pixels");
+            Wait(1);
+            if (solution != -1)
+            {
+                Driver.SwitchTo().DefaultContent();
+                Wait(1);
+                System.Collections.Generic.List<IWebElement> el = ElementsByXPath("//area[contains(@onclick,'endprogress')]");
+                Click(el[solution]);
+
+                IsSolved = true;
+                Wait();
+            }
+        }
+        catch (Exception ex)
+        {
+            IsSolved = false;
+            Log(ex.ToString());
+        }
+        return IsSolved;
+    }
+
+    private int Different_pixels(Bitmap image1, Bitmap image2)
+    {
+        int cont = 0;
+        for (int i = 0; i < image1.Width; i++)
+        {
+            for (int j = 0; j < image1.Height; j++)
+            {
+
+                if (image1.GetPixel(i, j) != image2.GetPixel(i, j))
+                {
+                    cont++;
+                }
+            }
+        }
+
+        return cont;
+    }
+    /// <summary>
+    /// This method gets called in the end after the BeforeSolveFaucet/DoSolveFaucet and AfterSolveFaucet methods were done.
+    /// The base.CheckFaucetResult will try to find a visible element on the page using the XPath from SuccessXPath and FailXPath (see the Start method)
+    /// These properties should contain XPath expressions to find certain elements on the page.
+    /// For example if it finds one of the elements from the SuccessXPath, and it is visible, then it will flag the claim attempt as a success.
+    /// Or if it finds one of the elements from the FailXPath, and it is visible, then it will flag the claim attempt as a failure.
+    /// </summary>
+    public override int CheckFaucetResult()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        GoToUrl("http://www.uniclique.info/?view=account");
+        return base.CheckFaucetResult();
+    }
+
+    private Bitmap GetElementScreenShort(IWebDriver driver, IWebElement element, string name)
+    {
+        Actions actions = new Actions(driver);
+        actions.MoveToElement(element);
+        actions.Perform();
+        Screenshot sc = ((ITakesScreenshot)driver).GetScreenshot();
+        Bitmap img = Image.FromStream(new MemoryStream(sc.AsByteArray)) as Bitmap;
+        object x = ExecuteScript("let coords = arguments[0].getBoundingClientRect();return coords.left;", element);
+        object y = ExecuteScript("let coords = arguments[0].getBoundingClientRect();return coords.top;", element);
+        int x2 = Convert.ToInt32(x);
+        int y2 = Convert.ToInt32(y);
+        object width = ExecuteScript("let coords = arguments[0].getBoundingClientRect();return coords.width;", element);
+        object height = ExecuteScript("let coords = arguments[0].getBoundingClientRect();return coords.height;", element);
+        int width2 = Convert.ToInt32(width);
+        int height2 = Convert.ToInt32(height);
+
+        if (Convert.ToInt32(name) != 4)
+        {
+            img = img.Clone(new Rectangle(x2, y2, width2, height2), img.PixelFormat);
+        }
+        else
+        {
+            img = img.Clone(new Rectangle(x2, y2, width2, height2), img.PixelFormat);
+        }
+        return img;
+    }
+}

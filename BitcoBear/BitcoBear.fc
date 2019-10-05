@@ -1,0 +1,786 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Drawing;
+using FaucetCollector.Script;
+using OpenQA.Selenium;
+
+public class PurseFaucet_Script : FaucetScript
+{
+    /// <summary>
+    /// List of Settings that will be shown in the bot when selecting this Faucet in the bot.
+    /// You can get the value the user entered with the methods: GetSetting("[Name of the FaucetSetting]"), GetBoolSetting and GetDateTimeSetting
+    /// You can also create a new setting value using SetSetting("[Name you want to use]", "value")
+    /// </summary>
+    public override FaucetSettings Settings
+    {
+        get
+        {
+            return new FaucetSettings("http://bitcobear.com/")
+            {
+                new FaucetSetting(){Name="User",Display="Wallet Address",Type=EditorType.TextBox,Required=true},
+                new FaucetSetting(){Name="UseSolvemedia",Display="UseSolvemedia",Type=EditorType.CheckBox,Default=true},
+                new FaucetSetting(){Name="FT",Display="Faucet:",Type=EditorType.ComboBox,Items=new List<string>{"Faucet 1","Faucet 2"},Default="Faucet 1"},
+              
+                //insert user settings here
+                //new FaucetSetting { 
+                //    Name = "Name of your setting", 
+                //    Display = "Display shown in Faucet Collector", 
+                //    Type = EditorType.TextBox | EditorType.Password | EditorType.CheckBox | EditorType.Wallet | EditorType.Numeric | EditorType.ComboBox | EditorType.CheckComboBox, 
+                //    Required = true | false, 
+                //    Default = "Optionally a default value" | true | false | null.
+                //    Items = new List<string> { "item1", "item2" } (only valid for ComboBox or CheckComboBox)
+                //} 
+            };
+        }
+    }
+
+    /// <summary>
+    /// This method gets called when the faucet is enabled and the GO button is clicked
+    /// </summary>
+    public override void Start()
+    {
+        //Title that shows in the browser. Is used to identify and close popup windows
+        Title = "BitcoBear";
+
+        //After we did try to claim on the faucet we search for these elements to determine if it was a success or a fail
+        SuccessXPath = "//div[@class='message-success']";
+        FailXPath = "//div[@class='message-error']";
+
+
+
+
+        //Let Faucet Collector start up everything
+        base.Start();
+    }
+
+    /// <summary>
+    /// This is the first method to run after the browser is opened and the first page is loaded.
+    /// </summary>
+    public override int DoInit()
+    {
+        if (GetSetting("FT")=="Faucet 1")
+        {
+            if (!Driver.Url.Contains("http://bitcobear.com/"))
+            {
+                GoToUrl("http://bitcobear.com/");
+            }
+        }
+        else
+        {
+            if (!Driver.Url.Contains("http://bitcobear.com/?faucet=2"))
+            {
+                GoToUrl("http://bitcobear.com/?faucet=2");
+            }
+        }
+        //Let Faucet Collector continue.
+        return base.DoInit();
+    }
+
+    /// <summary>
+    /// This method gets called after the Start method, here you need to return if we are logged in or not.
+    /// If you return false then it will call the BeforeLogin, Login and AfterLogin methods so you can login.
+    /// After those Login methods are called it will call this IsLoggedIn method again to see if the login did succeed.
+    /// If you return true Faucet Collector will store all cookies so it will probably be already logged in on the next attempt.
+    /// </summary>
+    public override bool IsLoggedIn()
+    {
+        //In here we can check for the presence of an element that is only present when you are logged in.
+        //In this case we check for en element with the class "loggedIn"
+        return ElementByXPath("//a[contains(text(),'Logout')]") != null;
+    }
+
+    /// <summary>
+    /// This method gets called if IsLoggedIn returned false, right before the DoLogin method is called.
+    /// </summary>
+    public override int BeforeLogin()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeLogin();
+    }
+
+    /// <summary>
+    /// This method gets called after BeforeLogin, but only if IsLoggedIn returned false.
+    /// It can be used to actually login the user/enter wallet details in the faucet
+    /// </summary>
+    /// <returns></returns>
+    public override int DoLogin()
+    {
+        if (!SetText_2XPath("//input[@placeholder='Your Bitcoin Address']", "/html[1]/body[1]/div[1]/div[1]/div[1]/div[1]/div[3]/div[4]/table[1]/tbody[1]/tr[1]/td[2]/div[1]/form[1]/input[1]", GetSetting("User")))
+        {
+            return Fail("Box to set Wallet isn't visible");
+        }
+        Wait();
+      
+        if (!Click_2XPath("//input[@value='Log In']", "/html[1]/body[1]/div[1]/div[1]/div[1]/div[1]/div[3]/div[4]/table[1]/tbody[1]/tr[1]/td[2]/div[1]/form[1]/input[2]"))
+        {
+            return Fail("Fail to click Button login");
+        }
+        Wait();
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoLogin();
+    }
+    private bool SetText_2XPath(string Relative_Xpath, string Absolute_XPath, string TextToset)
+    {
+        var ToSet = ElementByXPath(Relative_Xpath);
+        if (!IsVisible(ToSet))
+        {
+            var ToSet_2 = ElementByXPath(Absolute_XPath);
+            if (!IsVisible(ToSet_2))
+            {
+                return false;
+            }
+            else
+            {
+                SetText(ToSet_2, TextToset);
+            }
+        }
+        else
+        {
+            SetText(ToSet, TextToset);
+        }
+        return true;
+
+    }
+    private bool Click_2XPath(string Relative_Xpath, string Absolute_XPath)
+    {
+        var ToClick = ElementByXPath(Relative_Xpath);
+        if (!IsVisible(ToClick))
+        {
+            var ToClick2 = ElementByXPath(Absolute_XPath);
+            if (!IsVisible(ToClick2))
+            {
+                return false;
+            }
+            else
+            {
+                Click(ToClick2);
+            }
+        }
+        else
+        {
+            Click(ToClick);
+        }
+        return true;
+    }
+
+    /// <summary>
+    /// This method gets called after the DoLogin method.
+    /// </summary>
+    public override int AfterLogin()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterLogin();
+    }
+
+    /// <summary>
+    /// This method gets called after the login methods are successful, so we are logged into the faucet.
+    /// If the faucet is not yet ready to claim you should return a TimeStamp value to return how long it takes before the Faucet claim can be done.
+    /// This is used to pause the script while the faucet its timer runs out.
+    /// Return the number of seconds the bot should wait.
+    /// </summary>
+    public override int GetFaucetWaitTime()
+    {
+
+        var timer = ElementByXPath("//div[@id='cont_timer']");
+        if (IsVisible(timer))
+        {
+            return 60;
+        }
+        //let Faucet Collector continue.
+        return base.GetFaucetWaitTime();
+    }
+    private bool SolveCaptchaImg()
+    {
+        try
+        {
+            var captcha = ElementByXPath("//p[@id='task']");
+            string capt = captcha.Text.Replace("Select coins in the following order:", "");
+            string[] capt_ = new string[4];
+            capt_ = capt.Split(',');
+            int[] capt_result = new int[4];
+            //Log(capt);
+            //for (int i = 0; i < 4; i++)
+            //{
+            //    Log(capt_[i].ToString());
+            //}
+            for (int i = 0; i < 4; i++)
+            {
+                capt_result[i] = -1;
+            }
+            string[] possible_results = new string[4];
+            possible_results[0] = "green";
+            possible_results[1] = "red";
+            possible_results[2] = "blue";
+            possible_results[3] = "orange";
+            int cont_XPath = 0;
+            for (int i = 0; i < 4; i++)
+            {
+                bool enc = false;
+
+                if (capt_[i].Contains("o") && capt_[i].Contains("r") && capt_[i].Contains("a") && capt_[i].Contains("n") && capt_[i].Contains("g") && capt_[i].Contains("e"))
+                {
+                    enc = true;
+                    capt_result[i] = 3;
+                }
+                else if (capt_[i].Contains("g") && capt_[i].Contains("r") && capt_[i].Contains("e") && capt_[i].Contains("n"))
+                {
+                    enc = true;
+                    capt_result[i] = 0;
+                }
+                else if (capt_[i].Contains("b") && capt_[i].Contains("l") && capt_[i].Contains("u") && capt_[i].Contains("e"))
+                {
+                    enc = true;
+                    capt_result[i] = 2;
+                }
+
+                else if (capt_[i].Contains("r") && capt_[i].Contains("e") && capt_[i].Contains("d"))
+                {
+                    enc = true;
+                    capt_result[i] = 1;
+                }
+                if (!enc)
+                {
+                    var el = ElementsByXPath("//p[@id='task']//*[contains(@style,'background:') or contains(@src,'captcha')]");
+                    if (el.Count > cont_XPath)
+                    {
+                        try
+                        {
+                            string style = el[cont_XPath].GetAttribute("style");
+                            //Log(style);
+                            if (!string.IsNullOrWhiteSpace(style))
+                            {
+                                //BLUE
+                                if (style.Contains("#3625de") || style.Contains("rgb(54, 37, 222)"))
+                                {
+                                    capt_result[i] = 2;
+                                }
+                                else if (style.Contains("#1700f8") || style.Contains("rgb(23, 0, 248)"))
+                                {
+                                    capt_result[i] = 2;
+                                }
+                                else if (style.Contains("#2589de") || style.Contains("rgb(37, 137, 222)"))
+                                {
+                                    capt_result[i] = 2;
+                                }
+                                else if (style.Contains("#4725de") || style.Contains("rgb(71, 37, 222)"))
+                                {
+                                    capt_result[i] = 2;
+                                }
+                                //GREEN
+                                else if (style.Contains("#0a6c18") || style.Contains("rgb(10, 108, 24)"))
+                                {
+                                    capt_result[i] = 0;
+                                }
+                                else if (style.Contains("#40cc54") || style.Contains("rgb(64, 204, 84)"))
+                                {
+                                    capt_result[i] = 0;
+                                }
+                                else if (style.Contains("#1dba33") || style.Contains("rgb(29, 186, 51)"))
+                                {
+                                    capt_result[i] = 0;
+
+                                }
+                                else if (style.Contains("#029b17") || style.Contains("rgb(2, 155, 23)"))
+                                {
+                                    capt_result[i] = 0;
+                                }
+                                //RED
+                                else if (style.Contains("#ea112b") || style.Contains("rgb(234, 17, 43)"))
+                                {
+                                    capt_result[i] = 1;
+                                }
+                                else if (style.Contains("#de3427") || style.Contains("rgb(222, 52, 39)"))
+                                {
+                                    capt_result[i] = 1;
+                                }
+                                else if (style.Contains("#af0418") || style.Contains("rgb(175, 4, 24)"))
+                                {
+                                    capt_result[i] = 1;
+                                }
+                                else if (style.Contains("#b91609") || style.Contains("rgb(185, 22, 9)"))
+                                {
+                                    capt_result[i] = 1;
+                                }
+                                //ORANGE
+                                else if (style.Contains("#f89e00") || style.Contains("rgb(248, 158, 0)"))
+                                {
+                                    capt_result[i] = 3;
+                                }
+                                else if (style.Contains("#ef9b24") || style.Contains("rgb(239, 155, 36)"))
+                                {
+                                    capt_result[i] = 3;
+                                }
+                                else if (style.Contains("#FFA500") || style.Contains("rgb(255, 165, 0)"))
+                                {
+                                    capt_result[i] = 3;
+                                }
+                                else if (style.Contains("#fd990a") || style.Contains("rgb(253, 153, 10)"))
+                                {
+                                    capt_result[i] = 3;
+                                }
+
+                            }
+                            else
+                            {
+                                string src = el[cont_XPath].GetAttribute("src");
+                                //Log(el[cont_XPath].GetAttribute("src"));
+                                if (src.Contains("_2.png"))
+                                {
+                                    capt_result[i] = 1;
+                                }
+                                else if (src.Contains("_3.png"))
+                                {
+                                    capt_result[i] = 1;
+                                }
+                                else if (src.Contains("_4.png"))
+                                {
+                                    capt_result[i] = 1;
+                                }
+                                else if (src.Contains("_5.png"))
+                                {
+                                    capt_result[i] = 1;
+                                }
+                                else if (src.Contains("_6.png"))
+                                {
+                                    capt_result[i] = 2;
+                                }
+                                else if (src.Contains("_7.png"))
+                                {
+                                    capt_result[i] = 0;
+                                }
+                                else if (src.Contains("_8.png"))
+                                {
+                                    capt_result[i] = 0;
+                                }
+                                else if (src.Contains("_9.png"))
+                                {
+                                    capt_result[i] = 2;
+                                }
+                                else if (src.Contains("_10.png"))
+                                {
+                                    capt_result[i] = 3;
+                                }
+                                else if (src.Contains("_11.png"))
+                                {
+                                    capt_result[i] = 3;
+                                }
+                                else if (src.Contains("_12.png"))
+                                {
+                                    capt_result[i] = 2;
+
+                                }
+                                else if (src.Contains("_13.png"))
+                                {
+                                    capt_result[i] = 3;
+                                }
+                                else if (src.Contains("_14.png"))
+                                {
+                                    capt_result[i] = 2;
+                                }
+                                else if (src.Contains("_15.png"))
+                                {
+                                    capt_result[i] = 0;
+                                }
+                                else if (src.Contains("_19.png"))
+                                {
+                                    capt_result[i] = 0;
+                                }
+                                else if (src.Contains("_20.png"))
+                                {
+                                    capt_result[i] = 3;
+                                }
+
+                            }
+
+                        }
+                        catch (Exception)
+                        {
+                            string src = el[cont_XPath].GetAttribute("src");
+                            //Log(el[cont_XPath].GetAttribute("src"));
+                            if (src.Contains("_2.png"))
+                            {
+                                capt_result[i] = 1;
+                            }
+                            else if (src.Contains("_3.png"))
+                            {
+                                capt_result[i] = 1;
+                            }
+                            else if (src.Contains("_4.png"))
+                            {
+                                capt_result[i] = 1;
+                            }
+                            else if (src.Contains("_5.png"))
+                            {
+                                capt_result[i] = 1;
+                            }
+                            else if (src.Contains("_6.png"))
+                            {
+                                capt_result[i] = 2;
+                            }
+                            else if (src.Contains("_7.png"))
+                            {
+                                capt_result[i] = 0;
+                            }
+                            else if (src.Contains("_8.png"))
+                            {
+                                capt_result[i] = 0;
+                            }
+                            else if (src.Contains("_9.png"))
+                            {
+                                capt_result[i] = 2;
+                            }
+                            else if (src.Contains("_10.png"))
+                            {
+                                capt_result[i] = 3;
+                            }
+                            else if (src.Contains("_11.png"))
+                            {
+                                capt_result[i] = 3;
+                            }
+                            else if (src.Contains("_12.png"))
+                            {
+                                capt_result[i] = 2;
+
+                            }
+                            else if (src.Contains("_13.png"))
+                            {
+                                capt_result[i] = 3;
+                            }
+                            else if (src.Contains("_14.png"))
+                            {
+                                capt_result[i] = 2;
+                            }
+                            else if (src.Contains("_15.png"))
+                            {
+                                capt_result[i] = 0;
+                            }
+                            else if (src.Contains("_19.png"))
+                            {
+                                capt_result[i] = 0;
+                            }
+                            else if (src.Contains("_20.png"))
+                            {
+                                capt_result[i] = 3;
+                            }
+                        }
+                        cont_XPath++;
+                    }
+                }
+
+            }
+            int cont = 0;
+            var buttons_img = ElementsByXPath("//form[@id='coin_form']//input[@type='button']");
+            int[] cap_color = new int[4];
+            if (buttons_img.Count >= 4)
+            {
+                for (int i = 0; i < 4; i++)
+                {
+                    //Log(buttons_img[i].GetAttribute("id"));
+                    if (buttons_img[i].GetAttribute("id") == "d")
+                    {
+                        cap_color[i] = 0;
+                    }
+                    else if (buttons_img[i].GetAttribute("id") == "c")
+                    {
+                        cap_color[i] = 1;
+                    }
+                    else if (buttons_img[i].GetAttribute("id") == "b")
+                    {
+                        cap_color[i] = 2;
+                    }
+                    else if (buttons_img[i].GetAttribute("id") == "a")
+                    {
+                        cap_color[i] = 3;
+                    }
+                }
+                for (int i = 0; i < 4; i++)
+                {
+                    if (capt_result[i] == -1)
+                    {
+                        bool completed = false;
+                        int cont__ = 0;
+                        while (!completed)
+                        {
+                            bool enc = false;
+                            for (int j = 0; i < 4; j++)
+                            {
+                                if (capt_result[j] == cont__)
+                                {
+                                    enc = true;
+
+                                }
+
+                            }
+                            if (!enc)
+                            {
+                                completed = true;
+                                capt_result[i] = cont__;
+                            }
+                            if (cont__ >= 4)
+                            {
+                                completed = true;
+                            }
+                            cont__++;
+                        }
+                    }
+                }
+                //for (int i = 0; i < 4; i++)
+                //{
+
+                //    if (cap_color[i] == 0)
+                //    {
+                //        Log("green");
+                //    }
+                //    else if (cap_color[i] == 1)
+                //    {
+                //        Log("Red");
+                //    }
+                //    else if (cap_color[i] == 2)
+                //    {
+                //        Log("Blue");
+                //    }
+                //    else if (cap_color[i] == 3)
+                //    {
+                //        Log("Orange");
+                //    }
+
+                //    if (capt_result[i] == 0)
+                //    {
+                //        Log("green");
+                //    }
+                //    else if (capt_result[i] == 1)
+                //    {
+                //        Log("Red");
+                //    }
+                //    else if (capt_result[i] == 2)
+                //    {
+                //        Log("Blue");
+                //    }
+                //    else if (capt_result[i] == 3)
+                //    {
+                //        Log("Orange");
+                //    }
+                //}
+
+                for (int i = 0; i < 4; i++)
+                {
+                    for (int j = 0; j < 4; j++)
+                    {
+                        if (capt_result[i] == cap_color[j])
+                       {
+                        //    if (cap_color[j] == 0)
+                        //    {
+                        //        Log("Green");
+                        //    }
+                        //    else if (cap_color[j] == 1)
+                        //    {
+                        //        Log("Red");
+                        //    }
+                        //    else if (cap_color[j] == 2)
+                        //    {
+                        //        Log("blue");
+                        //    }
+                        //    else if (cap_color[j] == 3)
+                        //    {
+                        //        Log("orange");
+                        //    }
+                            var el = ElementsByXPath("//form[@id='coin_form']//input[@type='button']");
+                            Click(el[j]);
+                            Wait(1);
+                            cont++;
+                        }
+                    }
+                }
+
+            }
+
+            if (cont > 3)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+        catch (Exception)
+        {
+            return false;
+        }
+
+          
+    }
+    private bool contains_Color(Bitmap bmp, Color color)
+    {
+        bool result = false;
+        for(int i = 0; i < bmp.Width && !result; i++)
+        {
+            for(int j = 0; j < bmp.Height && !result; j++)
+            {
+                if (Same_Color(bmp.GetPixel(i, j), color, 21))
+                {
+                    result = true;
+                    break;
+                }
+            }
+        }
+
+
+        return result;
+    }
+    public bool Same_Color(Color _1, Color _2, double th)
+    {
+        bool IsSame = false;
+        var R_1 = _1.R;
+        var R_2 = _2.R;
+        var G_1 = _1.G;
+        var G_2 = _2.G;
+        var B_1 = _1.B;
+        var B_2 = _2.B;
+
+        int rt = R_1 - R_2;
+        int gt = G_1 - G_2;
+        int bt = B_1 - B_2;
+
+        if (rt * rt + gt * gt + bt * bt > th * th)
+        {
+            return false;
+        }
+        else
+        {
+            return true;
+        }
+
+
+        return IsSame;
+    }
+    /// <summary>
+    /// This method is called right before a captcha will be solved. 
+    /// If you call SolveCaptcha() in other methods it will start this flow and tries to solve the captcha on the page.
+    /// </summary>
+    public override int BeforeSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeSolveCaptcha();
+    }
+
+    /// <summary>
+    /// This method gets called after BeforeSolveCaptcha and it does the actual captcha solving
+    /// It will automatically try to see if there is a SolveMedia captcha active or a reCAPTCHA active. 
+    /// If it finds either one it will then use the selected method on the Captcha tab of FaucetCollector to solve the Captcha.
+    /// </summary>
+    public override int DoSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoSolveCaptcha();
+    }
+
+    /// <summary>
+    /// This method will get called after DoSolveCaptcha returned it was a success.
+    /// </summary>
+    /// <returns></returns>
+    public override int AfterSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterSolveCaptcha();
+    }
+
+    /// <summary>
+    /// This method is called right before we attempt to claim on the faucet. So we are logged in and good to go.
+    /// Next methods that will be called are DoSolveFaucet, AfterSolveFaucet and CheckFaucetResult.
+    /// </summary>
+    public override int BeforeSolveFaucet()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeSolveCaptcha();
+    }
+
+    /// <summary>
+    /// This method gets called after the BeforeSolveFaucet. You can do the actual claiming of the faucet in here.
+    /// </summary>
+    /// <returns></returns>
+    public override int DoSolveFaucet()
+    {
+        Wait();
+        int cont = 0;
+        var button = ElementByXPath("//div[@id='reward']//label[text()='Claim Reward']");
+        while (!IsVisible(button))
+        {
+            var el = ElementByXPath("//p[@id='task']");
+            string text = el.Text;
+            bool r=SolveCaptchaImg();
+            //Log(r.ToString());
+            cont++;
+            Wait(4);
+            button = ElementByXPath("//div[@id='reward']//label[text()='Claim Reward']");
+            el = ElementByXPath("//p[@id='task']");
+            DateTime t1 = DateTime.Now.AddSeconds(20);
+            while (!IsVisible(button) && text == el.Text)
+            {
+                button = ElementByXPath("//div[@id='reward']//label[text()='Claim Reward']");
+                el = ElementByXPath("//p[@id='task']");
+                Wait(1);
+                if (DateTime.Now > t1)
+                {
+                    Driver.Navigate().Refresh();
+                    Wait(4);
+                    break;
+                }
+            }
+        }
+        button = ElementByXPath("//div[@id='reward']//label[text()='Claim Reward']");
+
+        Click(button);
+        Wait(2);
+        if (GetBoolSetting("UseSolvemedia"))
+        {
+            var select = ElementByXPath("//select[@id='payment_text']");
+            SelectOptionByValue(select, "solvemedia");
+        }
+        else
+        {
+            var select = ElementByXPath("//select[@id='payment_text']");
+            SelectOptionByValue(select, "recaptcha");
+           
+        }
+        Wait(2);
+        var result = DoSolveCaptcha();
+        if (result > 0)
+        {
+            return Fail("Fail Solve Captcha");
+
+        }
+        var button_Claim = ElementByXPath("//input[@value='Get Satoshi']");
+        if (!IsVisible(button_Claim))
+        {
+            return Fail("Button claim isn't visible");
+        }
+        Click(button_Claim);
+        Wait();
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoSolveFaucet();
+    }
+
+    /// <summary>
+    /// This method will get called after the DoSolveFaucet is completed and returned it was a success.
+    /// For example you can wait for a processing popup to go away until actual faucet claim result is on the page.
+    /// </summary>
+    public override int AfterSolveFaucet()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterSolveFaucet();
+    }
+
+    /// <summary>
+    /// This method gets called in the end after the BeforeSolveFaucet/DoSolveFaucet and AfterSolveFaucet methods were done.
+    /// The base.CheckFaucetResult will try to find a visible element on the page using the XPath from SuccessXPath and FailXPath (see the Start method)
+    /// These properties should contain XPath expressions to find certain elements on the page.
+    /// For example if it finds one of the elements from the SuccessXPath, and it is visible, then it will flag the claim attempt as a success.
+    /// Or if it finds one of the elements from the FailXPath, and it is visible, then it will flag the claim attempt as a failure.
+    /// </summary>
+    public override int CheckFaucetResult()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.CheckFaucetResult();
+    }
+}

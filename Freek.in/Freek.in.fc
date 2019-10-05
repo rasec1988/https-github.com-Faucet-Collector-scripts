@@ -1,0 +1,490 @@
+﻿using System;
+using FaucetCollector.Script;
+using System.Drawing;
+using OpenQA.Selenium;
+using System.IO;
+using OpenQA.Selenium.Interactions;
+//css_inc ShortLinkUtilities
+namespace Project1
+{
+    class FreekinScript :FaucetScript
+    {
+        public override FaucetSettings Settings
+        {
+            get
+            {
+                return new FaucetSettings("http://freek.in/")
+            {
+                //We have a setting to get the email address used for the coinpot account
+                new FaucetSetting() { Name = "Dodg_Wallet", Display = "FaucetHub Dodge Wallet", Type = EditorType.TextBox, Required = true },
+                //Option to use SolveMedia or reCAPTCHA
+               // new FaucetSetting() { Name = "UseSolveMedia", Display = "Use SolveMedia", Type = EditorType.CheckBox, Default = true }
+               new FaucetSetting(){Name="AutoW",Display="Min Amount to Auto withdraw (Format: [Integet].[Decimal])( if you want to desactivate enter 0) ",Type=EditorType.TextBox,Default="0.5" }
+            };
+            }
+        }
+        
+        public override void Start()
+        {
+            //Title that shows in the browser. Is used to close popups
+            Title = "Free dogecoin Faucet|dogecoin";
+
+            //After we did try to claim on the faucet we search for these elements to determine if it was a success or a fail
+            SuccessXPath = "//div[@class='wc_success col-sm-12']";
+            //< div class="wc_success col-sm-12">You got paid an amount of 12312879 DOGE Added to Your Balance.</div>
+            FailXPath = "//div[@class='col-sm-12 wc_alert wc_font']";
+
+           
+          
+            //Let Faucet Collector start up everything
+            base.Start();
+            
+        }
+        public override bool IsLoggedIn()
+        {
+            //If there is an element that has the class "SignedInPaymentAddress" then we are logged in - that element is only present when you are logged in.
+            try
+            {
+                bool enc = false;
+                var log = Driver.FindElements(By.TagName("button"));
+                foreach(var log_ in log)
+                {
+                    if (log_.Text == "LOGOUT")
+                    {
+                        enc = true;
+                    }
+                }
+                if (enc == false)
+                {
+                    return false;
+                }
+                else
+                {
+                    return true;
+                }
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+           
+        }
+        public override int BeforeLogin()
+        {
+            //This faucet has nothing to do here. We will let Faucet Collector handle it.
+            return base.BeforeLogin();
+        }
+        public override int DoLogin()
+        {
+            if (Driver.Url != "https://freek.in/")
+            {
+                GoToUrl("https://freek.in/");
+            }
+            
+            Wait(5);
+            
+            var CoinAdress = ElementByName("coinaddress");
+            
+            if (!IsVisible(CoinAdress))
+            {
+                return Fail("Signin Addres not found");
+            }
+            SetText(CoinAdress, GetSetting("Dodg_Wallet"));
+
+            var result = DoSolveImageCaptcha(ElementByXPath("//img[@src='../captcha/ct.php']"), ElementByXPath("//input[@placeholder='Enter Captcha']"));
+            if (result > 0)
+            {
+                return Fail("Fail solve captcha");
+            }
+            var button_l = ElementByXPath("//input[@value='CLAIM DOGECOIN']");
+            if (!IsVisible(button_l))
+            {
+                return Fail("Fail login");
+            }
+
+            Wait();
+            Click(button_l);
+            
+            
+            
+            return base.DoLogin();
+        }
+        public override int AfterLogin()
+        {
+            //Check if the login doesn't show an error message.
+            var failedLogin = ElementByXPath("//div[@col-sm-12 wc_alert wc_font']");
+            if (IsVisible(failedLogin))
+            {
+                if (failedLogin.Text.Contains("Coin address invalid"))
+                {
+                    //Invalid email address entered. Log and disable this faucet.
+                    Log("Please enter a correct faucethub dodgecoin address");
+                    Disable();
+                }
+
+                return Fail("Login failed: " + failedLogin.Text);
+            }
+
+           
+            //we are good to continue
+            return base.AfterLogin();
+        }
+        public override int GetFaucetWaitTime()
+        {
+           
+            
+            try
+            {
+                GoToUrl("http://freek.in/captcha/");
+                Wait();
+                var time = ElementById("divCounter");
+
+                if (time != null)
+                {
+                    return 60;
+                }
+                
+                else
+                {
+                    return 0;
+                }
+            }
+            catch (Exception)
+            {
+                return 0;
+            }
+           
+            
+            
+        }
+        public override int BeforeSolveCaptcha()
+        {
+            
+           
+
+            //Return we are ready to proceed
+            return base.BeforeSolveCaptcha();
+        }
+        public override int DoSolveCaptcha()
+        {
+            
+            //This faucet has nothing to do here. We will let Faucet Collector handle it.
+            return base.DoSolveCaptcha();
+        }
+
+        /// <summary>
+        /// This method will get called after DoSolveCaptcha returned it was a success.
+        /// </summary>
+        /// <returns></returns>
+        public override int AfterSolveCaptcha()
+        {
+            
+            //This faucet has nothing to do here. We will let Faucet Collector handle it.
+            return base.AfterSolveCaptcha();
+        }
+        public override int BeforeSolveFaucet()
+        {
+
+           double ToWithdraw;
+            try { ToWithdraw = Convert.ToDouble(GetSetting("AutoW")); }
+            catch (Exception) { ToWithdraw = 0; Log("You need to put a valid number to withdraw using the format: [Integer].[Decimal]"); }
+            var balance = ElementByXPath("//div[@class='wc_stattxt' and contains(text(),'Account Balance')]");
+            double Balance;
+            try
+            {
+                 Balance = Convert.ToDouble(balance.Text.Replace("Account Balance", "").Trim().Split(' ')[0]);
+            }
+            catch (Exception)
+            {
+                Balance = 0;
+                Log("Something is wrong getting the balance");
+            }
+
+            if (ToWithdraw >0.5 && Balance>0.5 && Balance>=ToWithdraw)
+                {
+                    GoToUrl("http://freek.in/withdraw/");
+
+                var Icons = ElementsByXPath("//*[@class='captcha-image']");
+                DateTime t1 = DateTime.Now.AddSeconds(25);
+                while (Icons.Count == 0 && !IsVisible(Icons[0]))
+                {
+                    Wait();
+                    Icons = ElementsByXPath("//*[@class='captcha-image']");
+                    if (DateTime.Now > t1)
+                    {
+                        break;
+                    }
+                }
+                Wait(2,3);
+
+
+                bool NotWrong = true;
+                                        
+                        int solution = getIconCaptchaSol();
+                if (solution == -1)
+                {
+                   Log("Something is wrong solving icon captcha, Cannot withdraw");
+                    NotWrong = false;
+                }
+                      
+                        solution--;
+
+
+                try
+                {
+                    ExecuteScript("var a=document.getElementsByClassName('captcha-image');var element =a[0];element.addEventListener('mouseover', function() {console.log('Event triggered');});var event = new MouseEvent('mouseover', {'view': window,'bubbles': true,'cancelable': true});element.dispatchEvent(event);a[" + solution + "].click();");
+                }
+                catch (Exception)
+                {
+                    Log("Something is wrong solving icon captcha, Cannot withdraw");
+                    NotWrong = false;
+                }
+                if (NotWrong)
+                {
+                    Wait(4);
+                    var but = ElementByXPath("//button[@id='hide']");
+                    if (IsVisible(but)) {
+                        Click(but);
+                            }
+                }
+                         
+     
+                }
+          
+            return base.BeforeSolveFaucet();
+        }
+    
+        public override int DoSolveFaucet()
+        {
+            int num = 0;
+            bool encd = false;
+            do
+            {
+                encd = false;
+
+                GoToUrl("http://freek.in/captcha/");
+
+                var Icons = ElementsByXPath("//*[@class='captcha-image']");
+                DateTime t1 = DateTime.Now.AddSeconds(25);
+                while(Icons.Count==0 && !IsVisible(Icons[0]))
+                {
+                    Wait();
+                    Icons = ElementsByXPath("//*[@class='captcha-image']");
+                    if (DateTime.Now > t1)
+                    {
+                        break;
+                    }
+                }
+                Wait(2, 3);
+                int solution = getIconCaptchaSol();
+                if (solution == -1)
+                {
+                    return Fail("There is a problem with icon captcha");
+                }
+                solution--;
+                try
+                {
+                    ExecuteScript("var a=document.getElementsByClassName('captcha-image');var element =a[0];element.addEventListener('mouseover', function() {console.log('Event triggered');});var event = new MouseEvent('mouseover', {'view': window,'bubbles': true,'cancelable': true});element.dispatchEvent(event);a[" + solution + "].click();");
+                }
+                catch (Exception)
+                {
+                    return Fail("Fail Solve icon captcha");
+                }
+				Wait();
+                try
+                {
+                    Driver.Manage().Timeouts().PageLoad = TimeSpan.FromSeconds(25);
+                    Wait(5);
+                    
+                    var button = ElementByXPath("//button[@type='submit']");
+                    if (IsVisible(button))
+                    {
+                        Click(button);
+                    }
+                    Wait(2, 3);
+
+                }
+                catch (Exception)
+                {
+
+                }
+                if (num >= 3)
+                {
+                    break;
+                }
+                num++;
+                if (IsVisible(ElementByXPath("//button[@type='submit']")))
+                {
+                    if (ElementByXPath("//button[@type='submit']").Text.ToLower().Contains("dogecoin"))
+                    {
+
+                        encd = true;
+                    }
+                }
+                else
+                {
+                    encd = false;
+                }
+            } while (encd == true);
+            try
+            {
+                ShortLinkBypasser bypasser = new ShortLinkBypasser(this);
+                bool salt = bypasser.DoShortLink(4);
+                if (!salt) { Log("Failed solving captcha"); }else{CheckFaucetResult();return GetWaitSetting();}
+            }
+            catch (Exception)
+            {
+
+            }
+            
+          
+       
+
+                //We are good to continue
+                return base.DoSolveFaucet();
+        }
+      
+        public override int AfterSolveFaucet()
+        {
+            
+            //This faucet has nothing to do here. We will let Faucet Collector handle it.
+            return base.AfterSolveFaucet();
+        }
+        public override int CheckFaucetResult()
+        {
+            //This faucet has nothing to do here. We will let Faucet Collector handle it.
+           
+            return base.CheckFaucetResult();
+        }
+
+
+       
+        private Bitmap GetElementScreenShort(IWebDriver driver, IWebElement element)
+        {
+            Actions actions = new Actions(driver);
+            actions.MoveToElement(element);
+            actions.Perform();
+            Screenshot sc = ((ITakesScreenshot)driver).GetScreenshot();
+            var img = Image.FromStream(new MemoryStream(sc.AsByteArray)) as Bitmap;
+            var x=ExecuteScript("let coords = arguments[0].getBoundingClientRect();return coords.left;", element);
+            var y= ExecuteScript("let coords = arguments[0].getBoundingClientRect();return coords.top;", element);
+            int x2 = Convert.ToInt32(x);
+            int y2 = Convert.ToInt32(y);
+            var width=ExecuteScript("let coords = arguments[0].getBoundingClientRect();return coords.width;", element);
+            var height= ExecuteScript("let coords = arguments[0].getBoundingClientRect();return coords.height;", element);
+            int width2 = Convert.ToInt32(width);
+            int height2 = Convert.ToInt32(height);
+          
+            
+            return img.Clone(new Rectangle(x2,y2,width2,height2), img.PixelFormat);
+        }
+        private int getIconCaptchaSol()
+        {
+            try
+            {
+                int sol = 0;
+
+
+
+                Bitmap[] icons = new Bitmap[5];
+
+
+
+
+                //var Icons = Driver.FindElements(By.ClassName("captcha-image"));
+                var Icons = ElementsByXPath("//*[@class='captcha-image']");
+
+                int cont = 0;
+
+                //   foreach (var icon in Icons)
+                //     {
+                foreach (var icon in Icons)
+                {
+
+                    icons[cont] = TakeScreenshot(Base.Captcha.CaptchaService.Manual, icon);
+                    cont++;
+
+                }
+
+
+                //   }
+                int one_two, one_three, one_four, one_five;
+
+                one_two = CompareImage(icons[0], icons[1]);
+                one_three = CompareImage(icons[0], icons[2]);
+                one_four = CompareImage(icons[0], icons[3]);
+                one_five = CompareImage(icons[0], icons[4]);
+
+
+
+                int m = one_two;
+                int one_one = (one_five + one_four + one_two + one_three) / 4;
+                if (one_one > 2200)
+                {
+                    sol = 1;
+                    return sol;
+                }
+                if (m < one_three)
+                {
+                    m = one_three;
+                }
+                if (m < one_four)
+                {
+                    m = one_four;
+                }
+                if (m < one_five)
+                {
+                    m = one_five;
+                }
+                if (m == one_two)
+                {
+                    sol = 2;
+                }
+                else if (m == one_three)
+                {
+                    sol = 3;
+                }
+                else if (m == one_four)
+                {
+                    sol = 4;
+                }
+                else if (m == one_five)
+                {
+                    sol = 5;
+                }
+
+                return sol;
+            }
+            catch (Exception)
+            {
+                return -1;
+            }
+            
+           
+        }
+        private int CompareImage(Bitmap image1,Bitmap image2) {
+            int cont = 0;
+            for(int i = 0; i < image1.Height;i++)
+            {
+                for( int j = 0; j < image1.Width; j++)
+                {
+                    if (image1.GetPixel(j, i) != image2.GetPixel(j, i))
+                    {
+
+                        cont++;
+                        
+                    }
+                }
+            }
+           
+            return cont;
+       
+           
+        }
+       
+     
+
+
+
+    }
+}

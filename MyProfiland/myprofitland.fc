@@ -1,0 +1,905 @@
+﻿
+//Aviram Edit
+
+using System;
+using System.Drawing;
+using System.IO;
+using FaucetCollector.Script;
+using OpenQA.Selenium;
+using OpenQA.Selenium.Interactions;
+using OpenQA.Selenium.Remote;
+using Base.Captcha;
+using System.Drawing.Drawing2D;
+
+public class Cointiply_ptcwall : FaucetScript
+{
+    public override FaucetSettings Settings
+    {
+        get
+        {
+            return new FaucetSettings("https://myprofitland.com/")
+            {
+                new FaucetSetting() { Name = "Email", Display = "Your Cointiply Email", Type = EditorType.TextBox, Required = true },
+                new FaucetSetting() { Name = "Password", Display = "Your Cointiply Password", Type = EditorType.Password, Required = true },
+                new FaucetSetting(){Name="Clix",Display="Claim ClixWall",Type=EditorType.CheckBox,Default=true},
+                new FaucetSetting(){Name="PTC",Display="Claim Ptcwall",Type=EditorType.CheckBox,Default=true},
+                new FaucetSetting(){Name="M",Display="Minutes to wait for try again claim",Type=EditorType.Numeric,Default=60},
+            };
+        }
+    }
+	
+	
+   
+    public override void Start()
+    {
+        Title = "my profit land beta";
+        ptc_wall = false;
+        clix = false;
+        cs = false;
+        cont_ = 0;
+        SuccessXPath = "//a[@class='md-button md-accent md-button-condensed md-theme-default']//span|//a[@class='md-button md-accent md-button-condensed md-theme-default']";
+        FailXPath = "//span[contains(@class, 'md-error') and not(@style)]";
+
+        base.Start();
+    }
+	
+	
+    public override int DoInit()
+    {
+        ptc_wall = false;
+        clix = false;
+        cs = false;
+        return base.DoInit();
+    }
+	
+	
+
+	
+    public override bool IsLoggedIn()
+    {
+	   //Aviram Changes 
+        return ElementByXPath("//i[@class='icon icon-logout']") != null; //[text()='Activity']
+
+        //If the earning-nav element is visible we are logged in
+    }
+
+	
+	
+	
+    public override int BeforeLogin()
+    {
+
+	   //Aviram Changes 
+
+ 	 //var checks login or exit
+     var ExitButton = ElementByXPath("//i[@class='icon icon-logout']");
+
+	 //if i already Login - go to "bonus"	 
+	 if (IsVisible(ExitButton))
+	 {
+	  GoToUrl("https://myprofitland.com/dashboard.php");
+	 }	
+
+        //let Faucet Collector continue.
+        return base.BeforeLogin();
+    }
+	
+	
+	
+
+    public override int DoLogin()
+    {
+		
+	   //Aviram Changes 
+     var ExitButton = ElementByXPath("//i[@class='icon icon-logout']");
+
+	 //if ExitButton not apper - go to "login"	 
+	 if (!IsVisible(ExitButton))
+	 {
+		 
+	    GoToUrl("https://myprofitland.com/");
+		
+        Wait();
+		 
+        var signInEmail = ElementByXPath("//input[@type='email']");
+        SetText(signInEmail, GetSetting("Email"));
+		
+        Wait(2);
+
+        var signInPassword = ElementByXPath("//input[@type='password']");
+        SetText(signInPassword, GetPassword("Password"));
+
+        Wait(2);
+		
+        var result = SolveCaptcha();
+        if (result > 0)
+        {
+            return Fail("Fail solve captcha");
+        }
+
+        var loginButton = ElementByXPath("//button[@type='submit']");
+        Click(loginButton);
+
+        Wait(2);
+
+	 }// end DoLogin
+		
+		
+        //Let Faucet Collector continue
+        return base.DoLogin();
+    }
+
+
+	
+    public override int AfterLogin()
+    {
+
+        return base.AfterLogin();
+    }
+
+	
+	
+	
+    public override int GetFaucetWaitTime()
+    {
+   
+        if(clix && ptc_wall)
+        {
+            int tt;
+            try
+            {
+                tt = GetIntSetting("M") * 60;
+            }
+            catch (Exception)
+            {
+                tt = 3600;
+            }
+            return tt;
+        }
+        if (cs)
+        {
+            return 3600;
+        }
+        return 0;
+    }
+
+	
+	
+	
+    public override int BeforeSolveCaptcha()
+    {
+       
+        //Let Faucet Collector continue
+        return base.BeforeSolveCaptcha();
+    }
+	
+
+    public override int DoSolveCaptcha()
+    {
+        //Let Faucet Collector continue. It will check for SolveMedia and reCAPTCHA.
+        return base.DoSolveCaptcha();
+    }
+
+    public override int AfterSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterSolveCaptcha();
+    }
+
+    public override int BeforeSolveFaucet()
+    {
+       
+
+        //Let Faucet Collector Continue.
+        return base.BeforeSolveFaucet();
+    }
+	
+	
+	
+	
+    static bool ptc_wall;
+    static bool clix;
+    static int cont_;
+    static bool cs;
+	
+	
+    public override int DoSolveFaucet()
+    {
+		       
+	   //Aviram Changes 
+
+		GoToUrl("https://myprofitland.com/");
+        var GoBackToGame = ElementByXPath("//div/a[text()='Go back to game.']");
+        Click(GoBackToGame);
+        Wait(5);
+
+        int error = 0;
+        int cont__ = 0;
+        if (GetBoolSetting("PTC"))
+        {
+            var PTC_Wall = ElementByXPath("//a[text()='GO']");
+            
+            
+            if (IsVisible(PTC_Wall))
+            {
+                int cont_ = 0;
+                try { 
+                    Click(PTC_Wall);
+                    Wait(1);
+                    //var PTC_Wall_link = ElementByXPath("//a[text()='PTCWall']");
+                    // if(IsVisible(PTC_Wall_link)) {
+                    //     Click(PTC_Wall_link, false);
+                    // } else {
+                    //     return Fail("button not found.");
+                    // }
+                    
+                    bool see = false;
+                    int  m_ad = 0;
+                    int count_nad = 0;
+                    var new_window = ElementByXPath("//a[text()='PTCWall']");
+                    CheckForPopupsEnabled = false;
+                    if (IsVisible(new_window))
+                    {
+                        Click(new_window,false);
+                        Wait();
+                    }
+                while (!ptc_wall)
+                {
+                        Driver.SwitchTo().Window(Driver.WindowHandles[1]);
+                        bool onerror = false;
+                    Wait(2, 3);
+                        
+                    //var iframe = ElementByXPath("//iframe[@class='margin-top-20 offer-frame']");
+                    //    if (iframe != null)
+                    //    {
+                            
+                            Wait();
+                            var switch_ptc = ElementByXPath("//a[@href='#wall-ptc' and not(@class='active')]");
+                            if (IsVisible(switch_ptc))
+                            {
+                                Click(switch_ptc);
+                                Wait();
+                            }
+                            var ads_ptcwall = ElementsByXPath("//span[contains(@onclick,'window.open')]");
+                        
+                            if (ads_ptcwall.Count > m_ad)
+                            {
+                                if (!see)
+                                {
+                                    Log("Ptc WAll have " + ads_ptcwall.Count.ToString() + " Ads avaible");
+                                    see = true;
+                                }
+                                CheckForPopupsEnabled = false;
+                                if (count_nad == 0)
+                                {
+                                    Click(ads_ptcwall[m_ad], false);
+                                }
+                                else
+                                {
+                                    ExecuteScript("var a=document.getElementsByClassName('btn-earn');a[" + m_ad.ToString() + "].children[0].click()");
+                                }
+                                Driver.SwitchTo().DefaultContent();
+                                Driver.SwitchTo().Window(Driver.WindowHandles[2]);
+                                Wait(2);
+                                DateTime t1 = DateTime.Now.AddSeconds(105);
+                                while (!IsVisible(ElementByXPath("//div[@id='vnumbers']")))
+                                {
+                                    Wait();
+                                    if (t1 < DateTime.Now)
+                                    {
+                                        break;
+                                    }
+                                    if (IsVisible(ElementByClass("errorbox")))
+                                    {
+                                    if (error > 2)
+                                    {
+                                        ptc_wall = true;
+                                        break;
+                                    }
+                                        if (count_nad == 0)
+                                        {
+                                        error++;
+                                            count_nad++;
+                                        }
+                                        else
+                                        {
+                                            cont__++;
+                                            if (cont__ > 4)
+                                            {
+                                                ptc_wall = true;
+                                                break;
+                                              
+                                            }
+                                            count_nad = 0;
+                                            m_ad++;
+                                        error++;
+                                        }
+                                        onerror = true;
+                                        break;
+                                    }
+                                    else
+                                    {
+                                    error = 0;
+                                        count_nad = 0;
+                                    }
+
+                                }
+                                if (!onerror)
+                                {
+                                    Wait(3);
+                                    solve_image_catpcha_ptcwall();
+                                }
+                                
+                                
+                                
+                                Wait(3);
+                                 Driver.Close();
+                            
+                            Driver.SwitchTo().Window(Driver.WindowHandles[1]);
+                         
+                            if (Driver.Url.Contains("ptcwall"))
+                            {
+                                Driver.Navigate().Refresh();
+                                Wait(5);
+                            }
+                            else
+                            {
+                                Driver.SwitchTo().Window(Driver.WindowHandles[0]);
+                                CheckForPopupsEnabled = true;
+                                CheckForPopups();
+                                if (Driver.Url.Contains("https://myprofitland.com"))
+                             {
+                                 Driver.Navigate().Refresh();
+                                }
+                                else
+                                {
+                                   
+                                    GoToUrl("https://myprofitland.com");
+                                }
+                                Wait(2);
+                                var PTC_Wall_ = ElementByXPath("//img[@src='/img/ptcwall-tile-500x500.png']");
+                                if (IsVisible(PTC_Wall_))
+                                {
+                                    Click(PTC_Wall_);
+                                    Wait(2, 3);
+                                }
+                                var new_window_ = ElementByXPath("//a[contains(text(),'click here to open it in a new window')]");
+                                CheckForPopupsEnabled = false;
+                                if (IsVisible(new_window_))
+                                {
+                                    Click(new_window_, false);
+                                    Wait();
+                                }
+                                CheckForPopupsEnabled = false;
+                                Wait(2,3);
+                            }
+                            //var iframe2 = ElementByXPath("//iframe[@class='margin-top-20 offer-frame']");
+                            //if (iframe2 == null || onerror)
+                            //{
+                            //    if (Driver.Url.Contains("https://myprofitland.com/offers"))
+                            //    {
+                            //        Driver.Navigate().Refresh();
+                            //    }
+                            //    else
+                            //    {
+                            //        GoToUrl("https://myprofitland.com/offers");
+                            //    }
+                            //    Wait(2);
+                            //    var PTC_Wall_ = ElementByXPath("//img[@src='/img/ptcwall-tile-500x500.png']");
+                            //    if (IsVisible(PTC_Wall_))
+                            //    {
+                            //        Click(PTC_Wall_);
+                            //        Wait(2, 3);
+                            //    }
+                            //}
+                        }
+                            else
+                            {
+                                ptc_wall = true;
+                            }
+
+                        //}
+                        //else
+                        //{
+                        //    Driver.SwitchTo().DefaultContent();
+                        //    var iframe2 = ElementByXPath("//iframe[@class='margin-top-20 offer-frame']");
+                        //    if (iframe2 == null)
+                        //    {
+                        //        if (Driver.Url.Contains("https://myprofitland.com/offers"))
+                        //        {
+                        //            Driver.Navigate().Refresh();
+                        //        }
+                        //        else
+                        //        {
+                        //            GoToUrl("https://myprofitland.com/offers");
+                        //        }
+                        //        Wait(2);
+                        //        var PTC_Wall_ = ElementByXPath("//img[@src='/img/ptcwall-tile-500x500.png']");
+                        //        if (IsVisible(PTC_Wall_))
+                        //        {
+                        //            Click(PTC_Wall_);
+                        //            Wait(2, 3);
+                        //        }
+
+                        //    }
+                        //}
+                     
+
+                     }
+
+                 }
+               catch (Exception ex) {
+
+                    if (cont_ >= 3)
+                    {
+                        ptc_wall = true;
+                    }
+                  
+                    cont_++;
+                    CheckForPopupsEnabled = true;
+                    CheckForPopups();
+                    Log(ex.ToString());
+
+                }
+                finally
+                {
+                    CheckForPopupsEnabled = true;
+                    CheckForPopups();
+
+                }
+
+            }
+
+            }
+        else
+        {
+            ptc_wall = true;
+        }
+
+        if (GetBoolSetting("Clix"))
+        {
+            if (Driver.Url.Contains("https://myprofitland.com/offers"))
+            {
+                Driver.Navigate().Refresh();
+            }
+            else
+            {
+                GoToUrl("https://myprofitland.com/offers");
+            }
+            Wait();
+            var ClixWall = ElementByXPath("//img[@src='/img/clixwall-tile-500x500.png']");
+            if (IsVisible(ClixWall))
+            {
+                Click(ClixWall);
+                Wait();
+            }
+            Wait();
+            bool see = false;
+            while (!clix)
+            {
+                var iframe = ElementByXPath("//iframe[@class='margin-top-20 offer-frame']");
+                Driver.SwitchTo().Frame(iframe);
+                Wait();
+                var switch_ptc = ElementByXPath("//a[contains(@class,'red item')]");
+                if (IsVisible(switch_ptc))
+                {
+                    Click(switch_ptc);
+                    Wait();
+                }
+                var Refresh = ElementByXPath("//a[@class='ui mini button']");
+                if (IsVisible(Refresh))
+                {
+                    Click(Refresh);
+                    Wait(2, 3);
+                }
+                var ads = ElementsByXPath("//div[@class='content']//a[@class='header']");
+                if (ads.Count > 0)
+                {
+                    if (!see)
+                    {
+                        Log("Clix have " + ads.Count.ToString() + " Ads avaible");
+                        see = true;
+                    }
+                    CheckForPopupsEnabled = false;
+                    Click(ads[0], false);
+                    Wait();
+                    Driver.SwitchTo().DefaultContent();
+                    Driver.SwitchTo().Window(Driver.WindowHandles[1]);
+                    solve_image_captcha_clix();
+                    int cont = 0;
+                    DateTime t1 = DateTime.Now.AddSeconds(90);
+                    Wait(45, 60);
+
+                    CheckForPopupsEnabled = true;
+                    Driver.SwitchTo().Window(Driver.WindowHandles[0]);
+                    CheckForPopups();
+                    Wait();
+                    var iframe2 = ElementByXPath("//iframe[@class='margin-top-20 offer-frame']");
+                    if (iframe2==null)
+                    {
+                        if (Driver.Url.Contains("https://myprofitland.com/offers"))
+                        {
+                            Driver.Navigate().Refresh();
+                        }
+                        else
+                        {
+                            GoToUrl("https://myprofitland.com/offers");
+                        }
+                        Wait(3);
+                        var ClixWall_ = ElementByXPath("//img[@src='/img/clixwall-tile-500x500.png']");
+                        if (IsVisible(ClixWall_))
+                        {
+                            Click(ClixWall_);
+                            Wait(2);
+                        }
+
+                    }
+                }
+                else
+                {
+                    clix = true;
+                }
+                
+            }
+        }
+        else
+        {
+            clix = true;
+        }
+
+        cs = true;
+        Driver.SwitchTo().DefaultContent();
+
+        //Let Faucet Collector continue its work
+        return base.DoSolveFaucet();
+    }
+    public bool solve_image_captcha_clix()
+    {
+        bool IsSolved = false;
+        try {
+            var principal_capt = ElementByXPath("//span[@id='txtmsg']//img");
+            string princ_c = principal_capt.GetAttribute("src");
+            Wait();
+            var capt_v = ElementsByXPath("//a[contains(@onclick,'capValidate(')]//img");
+            bool enc = false;
+            int solution = 0;
+            for(int i = 0; i < capt_v.Count; i++)
+            {
+                if (capt_v[i].GetAttribute("src") == princ_c)
+                {
+                    enc = true;
+                    solution = i;
+                    break;
+                }
+            }
+            var c = ElementsByXPath("//a[contains(@onclick,'capValidate(')]");
+            Click(c[solution]);
+            IsSolved = true;
+
+
+        }
+        catch (Exception)
+        {
+
+        }
+        return IsSolved;
+    }
+    public bool solve_image_catpcha_ptcwall()
+    {
+        bool IsSolved = false;
+        Bitmap[] icons = new Bitmap[6];
+       
+        try
+        {
+            Bitmap captcha;
+            Wait(2, 4);
+            try{
+                var capt = ElementByXPath("//img[contains(@src,'captcha')]");
+                if (!GetBoolSetting("JS"))
+                    
+                {
+           
+                    var captcha1 = GetElementScreenShort(Driver, capt, "4");
+     
+                    captcha = TakeScreenshot(CaptchaService.Manual, capt);
+         
+            
+                    if (captcha.Size.Width != 300 || captcha.Size.Height != 50)
+                    {
+                        captcha =ChangeImageSize(captcha,300, 50);
+                    }
+
+                  
+                }
+                else
+                {
+                    captcha = GetElementScreenShort_JS(Driver, capt, "4");
+                }
+                icons[0] = captcha.Clone(new Rectangle(0, 0, 50, 50), captcha.PixelFormat);
+                icons[1] = captcha.Clone(new Rectangle(50, 0, 50, 50), captcha.PixelFormat);
+                icons[2] = captcha.Clone(new Rectangle(100, 0, 50, 50), captcha.PixelFormat);
+                icons[3] = captcha.Clone(new Rectangle(150, 0, 50, 50), captcha.PixelFormat);
+                icons[4] = captcha.Clone(new Rectangle(200, 0, 50, 50), captcha.PixelFormat);
+                icons[5] = captcha.Clone(new Rectangle(250, 0, 50, 50), captcha.PixelFormat);
+          
+              
+            }
+            catch (Exception)
+            {
+            
+                var capt = ElementByXPath("//tr//td[@valign='middle'][2]");
+
+                captcha = TakeScreenshot(CaptchaService.Manual, capt);
+           
+
+                if (captcha.Size.Width != 302 || captcha.Size.Height != 52)
+                {
+                    captcha=ResizeImage(captcha, new Size(302, 52));
+                }
+
+               
+
+                icons[0] = captcha.Clone(new Rectangle(1, 1, 50, 50), captcha.PixelFormat);
+                icons[1] = captcha.Clone(new Rectangle(51, 1, 50, 50), captcha.PixelFormat);
+                icons[2] = captcha.Clone(new Rectangle(101, 1, 50, 50), captcha.PixelFormat);
+                icons[3] = captcha.Clone(new Rectangle(151, 1, 50, 50), captcha.PixelFormat);
+                icons[4] = captcha.Clone(new Rectangle(201, 1, 50, 50), captcha.PixelFormat);
+                icons[5] = captcha.Clone(new Rectangle(251, 1, 50, 50), captcha.PixelFormat);
+           
+            }
+
+            string asset_d = AssetDir("Other");
+            int result_ = -1;
+            asset_d += "\\Images Ptcwall\\";
+            bool enc = false;
+           
+            for (int i = 0; i < 6; i++)
+            {
+                for (int j = 1; j <= 10; j++)
+                {
+
+                    string dir = asset_d + j.ToString() + ".png";
+                    FileStream s = new FileStream(dir, FileMode.Open);
+                    Bitmap imgtocomp = new Bitmap(Image.FromStream(s));
+                    s.Close();
+                    bool result = CompareImage(icons[i], imgtocomp);
+                    if (result)
+                    {
+                        result_ = i;
+                        enc = true;
+                        break;
+
+                    }
+
+                }
+            }
+         
+            if (enc)
+            {
+
+                result_++;
+                ExecuteScript("endprogress(" + result_.ToString() + ");");
+                Wait();
+     
+                IsSolved = true;
+            }
+            else
+            {
+               IsSolved = Solve_image_Captcha_PtcWall_JS();
+            }
+
+        }
+        catch (Exception ex)
+        {
+
+            IsSolved = Solve_image_Captcha_PtcWall_JS();
+
+        }
+
+        return IsSolved;
+    }
+  bool Solve_image_Captcha_PtcWall_JS()
+    {
+        bool IsSolved = false;
+        Bitmap[] icons = new Bitmap[6];
+
+        try
+        {
+            Bitmap captcha;
+            Wait(2, 4);
+          
+                var capt = ElementByXPath("//img[contains(@src,'captcha')]");
+            
+               
+                    captcha = GetElementScreenShort_JS(Driver, capt, "4");
+               
+                icons[0] = captcha.Clone(new Rectangle(0, 0, 50, 50), captcha.PixelFormat);
+                icons[1] = captcha.Clone(new Rectangle(50, 0, 50, 50), captcha.PixelFormat);
+                icons[2] = captcha.Clone(new Rectangle(100, 0, 50, 50), captcha.PixelFormat);
+                icons[3] = captcha.Clone(new Rectangle(150, 0, 50, 50), captcha.PixelFormat);
+                icons[4] = captcha.Clone(new Rectangle(200, 0, 50, 50), captcha.PixelFormat);
+                icons[5] = captcha.Clone(new Rectangle(250, 0, 50, 50), captcha.PixelFormat);
+
+
+            
+           
+
+            string asset_d = AssetDir("Other");
+            int result_ = -1;
+            asset_d += "\\Images Ptcwall\\";
+            bool enc = false;
+
+            for (int i = 0; i < 6; i++)
+            {
+                for (int j = 1; j <= 10; j++)
+                {
+
+                    string dir = asset_d + j.ToString() + ".png";
+                    FileStream s = new FileStream(dir, FileMode.Open);
+                    Bitmap imgtocomp = new Bitmap(Image.FromStream(s));
+                    s.Close();
+                    bool result = CompareImage(icons[i], imgtocomp);
+                    if (result)
+                    {
+                        result_ = i;
+                        enc = true;
+                        break;
+
+                    }
+
+                }
+            }
+
+            if (enc)
+            {
+
+                result_++;
+                ExecuteScript("endprogress(" + result_.ToString() + ");");
+                Wait();
+
+                IsSolved = true;
+            }
+
+        }
+        catch (Exception ex)
+        {
+            Log(ex.ToString());
+            IsSolved = false;
+
+        }
+
+        return IsSolved;
+    }
+    public Bitmap ChangeImageSize(Bitmap pImg, int pWidth, int pHeigth)
+    {
+
+        //Creating new bitmap
+
+        Bitmap vBitmap = new Bitmap(pWidth, pHeigth);
+
+        using (Graphics vGraphics = Graphics.FromImage((Image)vBitmap))
+
+        {
+
+            //Specifi interpolation
+
+            vGraphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
+
+            //Draw
+
+            vGraphics.DrawImage(pImg, 0, 0, pWidth, pHeigth);
+
+        }
+
+        //return image
+
+        return vBitmap;
+
+    }
+    private Bitmap GetElementScreenShort_JS(IWebDriver driver, IWebElement element, string name)
+    {
+
+        var base64string = Driver.ExecuteScript(@"
+    var c = document.createElement('canvas');
+    var ctx = c.getContext('2d');
+    var img = arguments[0];
+    c.height=img.height;
+    c.width=img.width;
+    ctx.drawImage(img, 0, 0,img.width, img.height);
+    var base64String = c.toDataURL();
+    return base64String;
+    ", element) as string;
+        var base64 = base64string.Split(',')[base64string.Split(',').Length - 1];
+        var img = Base64ToImage(base64) as Bitmap;
+        return img;
+    }
+    private Bitmap GetElementScreenShort(IWebDriver driver, IWebElement element, string name)
+    {
+        Actions actions = new Actions(driver);
+        actions.MoveToElement(element);
+        actions.Perform();
+        Screenshot sc = ((ITakesScreenshot)driver).GetScreenshot();
+        var img = Image.FromStream(new MemoryStream(sc.AsByteArray)) as Bitmap;
+        var x = ExecuteScript("let coords = arguments[0].getBoundingClientRect();return coords.left;", element);
+        var y = ExecuteScript("let coords = arguments[0].getBoundingClientRect();return coords.top;", element);
+        int x2 = Convert.ToInt32(x);
+        int y2 = Convert.ToInt32(y);
+        var width = ExecuteScript("let coords = arguments[0].getBoundingClientRect();return coords.width;", element);
+        var height = ExecuteScript("let coords = arguments[0].getBoundingClientRect();return coords.height;", element);
+        int width2 = Convert.ToInt32(width);
+        int height2 = Convert.ToInt32(height);
+        img = img.Clone(new Rectangle(x2, y2, width2, height2), img.PixelFormat);
+        return img;
+    }
+
+
+    private bool CompareImage(Bitmap image1, Bitmap image2)
+    {
+
+        for (int i = 0; i < image1.Height; i++)
+        {
+            for (int j = 0; j < image1.Width; j++)
+            {
+                if (!SameColor(image1.GetPixel(j, i),image2.GetPixel(j, i),100))
+                {
+
+                    return false;
+
+                }
+            }
+        }
+       
+        return true;
+
+
+    }
+   private bool SameColor(Color c1,Color c2,double thre)
+    {
+        int r = c1.R - c2.R;
+        int g = c1.G - c2.G;
+        int b = c1.B - c2.B;
+        if (r * r + g * g + b * b > thre * thre)
+        {
+            return false;
+        }
+
+        return true;
+
+
+    }
+    /// <summary>
+    /// This method gets called in the end after the BeforeSolveFaucet/DoSolveFaucet and AfterSolveFaucet methods were done.
+    /// The base.CheckFaucetResult will try to find a visible element on the page using the XPath from SuccessXPath and FailXPath (see the Start method)
+    /// These properties should contain XPath expressions to find certain elements on the page.
+    /// For example if it finds one of the elements from the SuccessXPath, and it is visible, then it will flag the claim attempt as a success.
+    /// Or if it finds one of the elements from the FailXPath, and it is visible, then it will flag the claim attempt as a failure.
+    /// </summary>
+    public override int CheckFaucetResult()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.CheckFaucetResult();
+    }
+
+   
+    public Image Base64ToImage(string base64String)
+    {
+        // Convert base 64 string to byte[]
+        byte[] imageBytes = Convert.FromBase64String(base64String);
+        // Convert byte[] to Image
+        using (var ms = new MemoryStream(imageBytes, 0, imageBytes.Length))
+        {
+            Image image = Image.FromStream(ms, true);
+            return image;
+        }
+    }
+	
+	
+    public override int AfterSolveFaucet()
+    {
+        //Let Faucet Collector continue
+        return base.AfterSolveFaucet();
+    }
+
+
+
+}

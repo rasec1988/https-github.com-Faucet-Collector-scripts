@@ -1,0 +1,204 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+using FaucetCollector.Script;
+using OpenQA.Selenium;
+
+class FreeDgbScript : FaucetScript
+{
+
+
+    public override FaucetSettings Settings
+    {
+        get
+        {
+            return new FaucetSettings("https://freedgb.com")
+            {
+                new FaucetSetting(){Name="User",
+                    Display ="WalletAddress",
+                    Type =EditorType.TextBox,
+                    Required =true
+                },
+            
+              //new FaucetSetting
+              //{
+              //    Name="UseSolvemedia",
+              //    Type=EditorType.CheckBox,
+              //    Default=true,
+              //    Display="UseSolvemedia"
+              //}
+            };
+        }
+    }
+
+    public override void Start()
+    {
+
+        Title = "FreeDGB";
+
+
+        SuccessXPath = "//div[@class='alert alert-success']";
+        FailXPath = "//div[@class='alert alert-danger']";
+
+        base.Start();
+    }
+
+
+    public override int DoInit()
+    {
+
+        return base.DoInit();
+    }
+
+
+    public override bool IsLoggedIn()
+    {
+        // See if the element is visible;
+        return ElementByXPath("//input[@type='text']") ==null;
+    }
+
+
+    public override int BeforeLogin()
+    {
+
+        return base.BeforeLogin();
+    }
+
+
+    public override int DoLogin()
+    {
+        var UserBox = ElementByXPath("//input[@type='text']");
+        if (!IsVisible(UserBox))
+        {
+            return Fail("UserBox not found");
+        }
+        SetText(UserBox, GetSetting("User"));
+
+        var ButtonLogin = ElementByXPath("//input[@type='submit']");
+        if (!IsVisible(ButtonLogin))
+        {
+            return Fail("Button login not visible");
+
+        }
+        Click(ButtonLogin);
+
+        Wait();
+        var ErrorElement = ElementByXPath("//div[@class='alert alert-danger']");
+        if (IsVisible(ErrorElement))
+        {
+            Log(ErrorElement.Text);
+            if (ErrorElement.Text.ToLower().Contains("invalid username") || ErrorElement.Text.ToLower().Contains("invalid Password"))
+            {
+                Disable();
+                return Fail("You need to put correct credentials ");
+            }
+        }
+
+        return base.DoLogin();
+    }
+
+
+    public override int AfterLogin()
+    {
+
+        return base.AfterLogin();
+    }
+
+
+    public override int GetFaucetWaitTime()
+    {
+
+        var ElementTime = ElementByXPath("//div[@id='claim_again']");
+        if (IsVisible(ElementTime))
+        {   
+            // Make convertion;
+            int Min, seg;
+            var SplitedTime = ElementTime.Text.Split(' ')[4].Split(':');
+            if (SplitedTime.Length == 2)
+            {
+                int.TryParse(SplitedTime[0], out Min);
+                int.TryParse(SplitedTime[1], out seg);
+                Min *= 60;
+                return Min + seg;
+            }
+         
+        }
+        Log("Timer is not visible, Trying to claim");
+
+        return base.GetFaucetWaitTime();
+    }
+
+
+    public override int BeforeSolveCaptcha()
+    {
+
+        return base.BeforeSolveCaptcha();
+    }
+
+    public override int DoSolveCaptcha()
+    {
+
+        return base.DoSolveCaptcha();
+    }
+
+
+    public override int AfterSolveCaptcha()
+    {
+
+        return base.AfterSolveCaptcha();
+    }
+
+
+    public override int BeforeSolveFaucet()
+    {
+        
+
+        return base.BeforeSolveCaptcha();
+    }
+
+
+    public override int DoSolveFaucet()
+    {
+        var ButtonSubmitCaptcha = ElementByXPath("//input[@id='anti_bot_submit']");
+        if (IsVisible(ButtonSubmitCaptcha))
+        {
+            var result = DoSolveCaptcha();
+            if (result > 0)
+            {
+                return Fail("Error solving captcha");
+            }
+
+            Click(ButtonSubmitCaptcha);
+            Wait();
+
+        }
+        else {
+
+            return Fail("Button submit captcha not found ... , maybe there is already a claim");
+
+        }
+        
+
+       
+
+       
+        return DoSolveFaucet();
+    }
+
+
+    public override int AfterSolveFaucet()
+    {
+        return base.AfterSolveFaucet();
+    }
+
+
+    public override int CheckFaucetResult()
+    {
+        Reload = true;
+        return base.CheckFaucetResult();
+    }
+
+}

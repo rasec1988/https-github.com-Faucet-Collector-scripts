@@ -1,0 +1,182 @@
+﻿using System;
+using System.Threading.Tasks;
+using FaucetCollector.Script;
+
+public class GetFreeCoinDGBscript : FaucetScript
+{
+    
+    public override FaucetSettings Settings
+    {
+        get
+        {
+            return new FaucetSettings("https://getfree.co.in/digibyte/")
+            {
+                 new FaucetSetting {
+                    Name = "DGB",
+                    Display = "FaucetHub linked DGB wallet address",
+                    Type = EditorType.Wallet,
+                    Required = true,
+                    Default = null
+                }
+            };
+        }
+    }
+
+    
+    public override void Start()
+    {
+        
+        Title = "get free coin|getfree.co.in|DGB";
+
+        SuccessXPath = "//div[contains(@class,'alert-success')]";
+        FailXPath = "//div[contains(@class,'alert-danger')]";
+
+        //Let Faucet Collector start up everything
+        base.Start();
+    }
+
+    
+    public override bool IsLoggedIn()
+    {
+        
+        var walletInput = ElementByXPath("//input[@type='text' and @class='form-control']");
+        if (walletInput != null)
+        {
+            
+            var hasValue = !string.IsNullOrEmpty(walletInput.GetAttribute("value"));
+            if (hasValue)
+            {
+                return true;
+            }
+        }
+
+        
+      return true;
+    }
+
+    
+    public override int BeforeLogin()
+    {
+     
+
+        return base.BeforeLogin();
+    }
+
+   
+    public override int DoLogin()
+    {
+       
+       
+        return base.DoLogin();
+    }
+
+   
+    public override int AfterLogin()
+    {
+        
+        return base.AfterLogin();
+    }
+
+   
+    public override int GetFaucetWaitTime()
+    {
+        var waitElement = ElementByXPath("//p[@class='alert alert-info' and contains(text(),'minutes') and contains(text(),'wait')]");
+        if (!IsVisible(waitElement))
+        {
+            //no time remaining element, so we are good to go.
+            return 0;
+        }
+
+        var waitText = waitElement.Text.ToLower().Trim().Replace("you have to wait ", "").Replace(" minutes", "").Trim();
+        int minutes;
+        if (!int.TryParse(waitText, out minutes))
+        {
+            return 600;
+        }
+
+        
+        return minutes * 60;
+    }
+
+   
+    public override int BeforeSolveCaptcha()
+    {
+        
+        return base.BeforeSolveCaptcha();
+    }
+
+   
+     public override int DoSolveCaptcha()
+    {
+        
+       
+
+        
+        return base.DoSolveCaptcha();
+    }
+
+
+    
+    public override int AfterSolveCaptcha()
+    {
+        
+        return base.AfterSolveCaptcha();
+    }
+
+   
+    public override int BeforeSolveFaucet()
+    {
+        
+        return base.BeforeSolveFaucet();
+    }
+
+  
+    public override int DoSolveFaucet()
+    {
+        
+        var addressInput = ElementByXPath("//input[@type='text' and @class='form-control']");
+        if (addressInput == null)
+        {
+            
+            return Fail("DGB address input not found.");
+        }
+
+        
+        SetText(addressInput, GetSetting("DGB"));
+
+        var result=DoSolveCaptcha();
+		if(result>0){
+		
+		return Fail("Fail solving captcha");
+		}
+		Wait(1);
+		
+        var rewardButton =ElementByXPath("//input[@value='Get reward!']");
+        if (!IsVisible(rewardButton))
+        {
+            
+            return Fail("Get reward button not found.");
+        }
+
+        
+        Click(rewardButton);
+
+        
+        
+        return base.DoSolveFaucet();
+    }
+
+    
+    public override int AfterSolveFaucet()
+    {
+        
+        return base.AfterSolveFaucet();
+    }
+
+    
+    public override int CheckFaucetResult()
+    {
+       
+      return base.CheckFaucetResult();
+    }
+}

@@ -1,0 +1,216 @@
+﻿using System;
+using System.Threading.Tasks;
+using FaucetCollector.Script;
+
+public class GetFreeCoinXPMcript : FaucetScript
+{
+    
+    public override FaucetSettings Settings
+    {
+        get
+        {
+            return new FaucetSettings("http://getfree.co.in/primecoin/")
+            {
+                 new FaucetSetting {
+                    Name = "XPM",
+                    Display = "FaucetHub linked XPM wallet address",
+                    Type = EditorType.Wallet,
+                    Required = true,
+                    Default = null
+                }
+            };
+        }
+    }
+
+    
+    public override void Start()
+    {
+        
+        Title = "get free coin|getfree.co.in";
+
+        SuccessXPath = "//div[contains(@class,'alert-success')]";
+        FailXPath = "//div[contains(@class,'alert-danger')]";
+
+        //Let Faucet Collector start up everything
+        base.Start();
+    }
+
+    
+    public override bool IsLoggedIn()
+    {
+        
+        var walletInput = ElementByXPath("//input[@type='text' and @class='form-control']");
+        if (walletInput != null)
+        {
+            
+            var hasValue = !string.IsNullOrEmpty(walletInput.GetAttribute("value"));
+            if (hasValue)
+            {
+                return true;
+            }
+        }
+
+        
+        var waitElement = ElementByXPath("//p[contains(@class,'alert-info')]");
+        if (IsVisible(waitElement))
+        {
+            return true;
+        }
+
+        
+        var successElement = ElementByXPath("//div[contains(@class,'alert-success')]");
+        if (IsVisible(successElement))
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    
+    public override int BeforeLogin()
+    {
+       var sleep = CheckForPopups();
+         if (sleep > 0)
+          {
+           //Something went wrong.
+           return sleep;
+           }
+
+        return base.BeforeLogin();
+    }
+
+   
+    public override int DoLogin()
+    {
+       
+        var addressInput = ElementByXPath("//input[@type='text' and @class='form-control']");
+        if (addressInput == null)
+        {
+            
+            return Fail("XPM address input not found.");
+        }
+
+        
+        SetText(addressInput, GetSetting("XPM"));
+
+        
+        var rewardButton = ElementByClass("claim-button");
+        if (!IsVisible(rewardButton))
+        {
+            
+            return Fail("Get reward button not found.");
+        }
+
+        
+        Click(rewardButton);
+
+        
+        return base.DoLogin();
+    }
+
+   
+    public override int AfterLogin()
+    {
+        
+        return base.AfterLogin();
+    }
+
+   
+    public override int GetFaucetWaitTime()
+    {
+        var waitElement = ElementByXPath("//p[contains(@class,'alert-info')]");
+        if (!IsVisible(waitElement))
+        {
+            //no time remaining element, so we are good to go.
+            return 0;
+        }
+
+        var waitText = waitElement.Text.ToLower().Trim().Replace("you have to wait ", "").Replace(" minutes", "").Trim();
+        int minutes;
+        if (!int.TryParse(waitText, out minutes))
+        {
+            return Fail("Unable to get the remaining time from text '" + waitText + "'.");
+        }
+
+        
+        return minutes * 60;
+    }
+
+   
+    public override int BeforeSolveCaptcha()
+    {
+        
+        return base.BeforeSolveCaptcha();
+    }
+
+   
+    public override int DoSolveCaptcha()
+    {
+
+        
+        return base.DoSolveCaptcha();
+    }
+
+    
+    public override int AfterSolveCaptcha()
+    {
+        
+        return base.AfterSolveCaptcha();
+    }
+
+   
+    public override int BeforeSolveFaucet()
+    {
+        
+        return base.BeforeSolveFaucet();
+    }
+
+  
+    public override int DoSolveFaucet()
+    {
+        
+        var submitButton = ElementByClass("claim-button");
+        if (!IsVisible(submitButton))
+        {
+            
+            return Fail("Get reward button not found or not visible.");
+        }
+
+        
+        var result = SolveCaptcha();
+        if (result > 0)
+        {
+            
+            return result;
+        }
+
+        
+        Click(submitButton);
+
+        
+        return base.DoSolveFaucet();
+    }
+
+    
+    public override int AfterSolveFaucet()
+    {
+        
+        return base.AfterSolveFaucet();
+    }
+
+    
+    public override int CheckFaucetResult()
+    {
+       
+        var result = base.CheckFaucetResult();
+
+        if (IsSuccess)
+        {
+            
+            Reload = true;
+        }
+
+        return result;
+    }
+}

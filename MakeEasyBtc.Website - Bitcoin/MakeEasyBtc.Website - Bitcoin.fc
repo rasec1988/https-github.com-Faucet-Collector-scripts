@@ -1,0 +1,502 @@
+﻿
+
+//==================//
+//script Written by: ••AviramDayan•• 10/06/2019 16:00PM
+//Last Update: 20/07/2019 22:09PM - Version 4
+//==================//
+
+using System;
+using FaucetCollector.Script;
+using OpenQA.Selenium;
+using OpenQA.Selenium.Interactions;
+//css_inc RecaptchaUtilities
+//css_inc ShortLinkUtilities
+
+public class makeeasybtc : FaucetScript
+{
+    /// <summary>
+    /// List of Settings that will be shown in the bot when selecting this Faucet in the bot.
+    /// You can get the value the user entered with the methods: GetSetting("[Name of the FaucetSetting]"), GetBoolSetting and GetDateTimeSetting
+    /// You can also create a new setting value using SetSetting("[Name you want to use]", "value")
+    /// </summary>
+    public override FaucetSettings Settings
+    {
+        get
+        {
+			
+            return new FaucetSettings("http://makeeasybtc.website/")
+            {
+                new FaucetSetting(){Name="Address",Display="BTC Address",Type=EditorType.TextBox,Required=true},
+	            
+                //new FaucetSetting() { Name = "SolveMedia_ReCaptcha", Display = "SolveMedia (ON/Checked) ReCaptcha (OFF/UnChecked)", Type = EditorType.CheckBox, Default = true},   
+                new FaucetSetting() { Name = "FaucetClaim", Display = "FaucetClaim", Type = EditorType.CheckBox, Default = true},	
+				new FaucetSetting() { Name = "AutoDisableScript", Display = "AutoDisableScript - ON/OFF - if the owner without balance to pay", Type = EditorType.CheckBox, Default = false}, 				
+			    new FaucetSetting(){Name="StoreCookies",Display="StoreCookies - ON/OFF",Type=EditorType.CheckBox,Default=true },
+				
+				
+                //new FaucetSetting(){Name="Email",Display="Email",Type=EditorType.TextBox,Required=false},
+                //new FaucetSetting(){Name="Password",Display="Password",Type=EditorType.Password,Required=false},
+				
+ 
+				
+            };
+        }
+    }
+
+	
+//============================================================//
+//the number of "successes" in the script - when are finished  
+//============================================================//
+    public override void Start()
+    {
+        ad = false;
+       
+        //Title that shows in the browser. Is used to identify and close popup windows
+        Title = "Make easy BTC - Free BitCoin"; 
+
+		SuccessXPath = "//*";  //*[@id='']
+        FailXPath = "//*"; //*[@id='']
+	
+        //TimerIsCountingUp = true;
+
+        //StoreCookies
+        if (GetBoolSetting("StoreCookies"))            
+        {
+         StoreCookies = true;  //on
+        }
+		
+        if (!GetBoolSetting("StoreCookies"))            
+        {
+         StoreCookies = false; //off
+        }	
+		
+        //Let Faucet Collector start up everything
+        base.Start();
+    }
+//============================================================//
+//the number of "successes" in the script - when are finished  
+//============================================================//
+
+	
+	
+    bool ad; //custom bool
+
+
+
+    public override int DoInit()
+    {
+
+      //=======//
+	  //Protection
+	  //=======//
+      var ProtectionVAR = ElementByXPath("//div[1]/p[1 and contains (text(), 'Balance: N') ]  | //div[1]/p[1 and text()='Balance: 0 BTC'] ");
+				
+      if(IsVisible(ProtectionVAR))
+      {	  
+	        Log("ProtectionVAR - the faucet are empty");  
+			Driver.Close();  // Close specific chrome window
+            Driver.Quit();  // also Close the console app, that was used to kick off the chrome window
+            Driver.Dispose();  // Close the chromedriver.exe
+            return GetWaitSetting();  
+	  }
+	  //=======//
+
+ 
+         //=======//
+	     //Timer
+	     //=======//
+		 var CountDownTimer = ElementByXPath("//*[@id='CountDownTimer']"); 
+         if(IsVisible(CountDownTimer))
+         {	 
+           var TimerVAR = Time_Function();
+           if (TimerVAR > 0) 
+           {
+               return TimerVAR;
+           }
+         } //CountDownTimer
+	     //=======//
+
+			
+        //Let Faucet Collector continue.
+        return base.DoInit();
+    }
+
+
+
+//==================//
+//save Login Cookies 
+//==================//
+    public override bool IsLoggedIn()
+    {
+	    //save Login Cookies - Check if the "Logout" exist
+        return ElementByXPath("//input[@name='address' and @value] ") != null;
+	 
+        //return base.IsLoggedIn();
+    }
+//==================//
+//save Login Cookies 
+//==================//	
+
+
+
+
+//=============//
+//BeforeLogin
+//=============//
+    public override int BeforeLogin()
+    {
+
+        //if we already login go to here
+        GoToUrl("http://makeeasybtc.website/");
+
+		
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeLogin();
+    }
+//=============//
+//BeforeLogin
+//=============//
+
+	
+
+	
+//========//
+//DoLogin
+//========//
+    public override int DoLogin()
+    {
+
+
+      var ExitButton = ElementByXPath("//input[@name='address' and @value] ");
+	
+	 //if i NOT Login - go to Login Page
+	 //if (!IsVisible(ExitButton))
+	 //{
+	
+		GoToUrl("http://makeeasybtc.website/");
+		Log("Go to Login "); 
+
+		Wait();		
+		Wait(2);
+
+         //=======//
+	     //Timer
+	     //=======//
+		 var CountDownTimer = ElementByXPath("//*[@id='CountDownTimer']"); 
+         if(IsVisible(CountDownTimer))
+         {	 
+           var TimerVAR = Time_Function();
+           if (TimerVAR > 0) 
+           {
+               return TimerVAR;
+           }
+         } //CountDownTimer
+	     //=======//
+
+/*
+        if (GetBoolSetting("SolveMedia_ReCaptcha"))
+        {
+		Log("Go to SolveMedia");		
+		GoToUrl("http://makeeasybtc.website/?cc=SolveMedia");		
+        }
+
+        if (!GetBoolSetting("SolveMedia_ReCaptcha"))
+        {
+		Log("Go to ReCaptcha");
+		GoToUrl("http://makeeasybtc.website/?cc=reCaptcha");		
+        }
+*/
+		
+		Wait(2);
+
+
+	
+       //SolveCaptcha if apper
+        var result = DoSolveCaptcha();
+        if (result > 0)
+        {
+            return Fail("Fail solving captcha");
+        }
+		
+		Wait(2);
+		
+        var AddressVAR = ElementByXPath("//input[@class='form-control']");
+	    if (IsVisible(AddressVAR))
+	    { 
+        SetText(AddressVAR, GetSetting("Address"));
+		}
+	
+		Wait(2);
+
+
+        var ButtonFirst = ElementByXPath("//button[@id='embed-submit']");  //("//button[@id='embed-submit' and contains(text(),'Claim Free Bitcoin')]")
+	    if (IsVisible(ButtonFirst))
+	    { 
+        Click(ButtonFirst);
+        Log("ButtonFirst");
+		}
+
+		Wait();	
+		Wait(2);
+
+        var ButtonSec = ElementByXPath("//button[@class='btn btn-primary']");
+	    if (IsVisible(ButtonSec))
+	    { 
+        Click(ButtonSec);
+        Log("ButtonSec");
+		}
+
+        ShortLink_Function(); //call to ShortLink_Function
+
+
+		Wait(4);	
+
+        //Driver.Navigate().Refresh(); //RefrashPage
+
+		
+
+	 //} // end ExitButton
+
+        
+       return base.DoLogin();
+    }
+//========//
+//DoLogin
+//========//
+ 
+
+
+//========//
+//AfterLogin
+//========//
+ public override int AfterLogin()
+ {
+ 
+  
+    //we are good to continue
+    return base.AfterLogin();
+
+ }
+//========//
+//AfterLogin
+//========//
+
+
+	
+
+//================//
+//GetFaucetWaitTime
+//================//
+    public override int GetFaucetWaitTime()
+    {
+
+        if (ad)
+        {
+			
+		   ad=false;
+    
+         //=======//
+	     //Timer
+	     //=======//
+           var TimerVAR = Time_Function();
+           if (TimerVAR > 0) 
+           {
+               return TimerVAR;
+           }
+	     //=======//
+		   
+        }
+
+		//let Faucet Collector continue.
+        return base.GetFaucetWaitTime();
+    }
+//================//
+//GetFaucetWaitTime
+//================//
+
+
+
+    public override int BeforeSolveCaptcha()
+    {
+ 
+        //Return we are ready to proceed
+        return base.BeforeSolveFaucet();
+    }
+
+	
+    public override int DoSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoSolveCaptcha();
+    }
+
+	
+    public override int AfterSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterSolveCaptcha();
+    }
+
+	
+    public override int BeforeSolveFaucet()
+    {
+        //Return we can continue
+        return base.BeforeSolveFaucet();
+    }
+  
+	
+	
+//==============//
+//DoSolveFaucet
+//==============//
+ public override int DoSolveFaucet()
+  {
+
+        //================//
+		//FaucetClaim
+        //================//
+        if (GetBoolSetting("FaucetClaim"))
+        {
+          var AlertSuccess = ElementByXPath("//div[@class='alert alert-success']");			
+          if(IsVisible(AlertSuccess))
+          {	 
+		  Log(AlertSuccess.Text);	
+		  }	
+
+		  ad = true;    // if i do true - it report as succeed // only one time no multi and also required -> return GetWaitSetting();	
+		  
+        }
+        //================//
+
+
+        //================//
+		//AutoDisableScript
+        //================//
+        if (GetBoolSetting("AutoDisableScript"))
+        {
+          var ProtectionVAR = ElementByXPath("//div[@class='alert alert-danger' and contains(text(),'please try again' | 'insufficient funds to send' | 'disabled' ) ]");			
+          if(IsVisible(ProtectionVAR))
+          {	 
+		  Log("AutoDisableScript - No balance");
+          Disable();
+          return 1;
+		  }
+		  
+        }
+        //================//
+		  
+		Wait(10);	
+
+        //GoToUrl("http://makeeasybtc.website/");
+		
+        return GetWaitSetting();	
+	
+        //We are good to continue
+        return base.DoSolveFaucet();
+ }
+//==============//
+//DoSolveFaucet
+//==============///
+	
+	
+	
+	
+	
+//==============//
+//AfterSolveFaucet
+//==============//
+  public override int AfterSolveFaucet()
+  {
+
+   //This faucet has nothing to do here. We will let Faucet Collector handle it.
+   return base.AfterSolveFaucet();
+   
+  }
+	
+//==============//
+//AfterSolveFaucet
+//==============//
+
+
+
+    /// <summary>
+    /// This method gets called in the end after the BeforeSolveFaucet/DoSolveFaucet and AfterSolveFaucet methods were done.
+    /// The base.CheckFaucetResult will try to find a visible element on the page using the XPath from SuccessXPath and FailXPath (see the Start method)
+    /// These properties should contain XPath expressions to find certain elements on the page.
+    /// For example if it finds one of the elements from the SuccessXPath, and it is visible, then it will flag the claim attempt as a success.
+    /// Or if it finds one of the elements from the FailXPath, and it is visible, then it will flag the claim attempt as a failure.
+    /// </summary>
+    public override int CheckFaucetResult()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.CheckFaucetResult();
+    }
+	
+	
+	
+        //=================//
+		//ShortLink_Function
+        //=================//
+        public void ShortLink_Function()
+        {
+			
+        //call to ShortLink
+        ShortLinkBypasser bypasser = new ShortLinkBypasser(this);
+        bool ShorBool = bypasser.DoShortLink();
+        if (!ShorBool)
+        {
+            Log("Fail shortlink");
+        }
+
+        }//	ShortLink_Function
+        //=================//
+	
+
+
+        //=================//
+		//Time_Function
+        //=================//
+        public int Time_Function()
+        {
+	     Log("Time_Function"); 
+		 
+         //=======//
+	     //Timer
+	     //=======//
+		 var Time_Min_Checking_Exist = ElementByXPath("//p[2 and contains(text(),'3')] | //p[2 and contains(text(),'5')]");         
+		 var CountDownTimer = ElementByXPath("//*[@id='CountDownTimer']"); 
+		 
+         var MinVAR = ElementByXPath("//*[@id='CountDownTimer']/div/div[1]/span"); 
+         var SecVAR = ElementByXPath("//*[@id='CountDownTimer']/div/div[2]/span");
+        
+		 if(!IsVisible(CountDownTimer)) //not Visible
+         {
+	     Log("GetWaitSetting");  
+         Driver.Close();  // Close specific chrome window
+         Driver.Quit();  // also Close the console app, that was used to kick off the chrome window
+         Driver.Dispose();  // Close the chromedriver.exe
+		 return GetWaitSetting();
+	     }	
+			
+         if(IsVisible(CountDownTimer) && IsVisible(Time_Min_Checking_Exist) ) //Visible
+         {
+	     Log("CountDownTimer");  
+         int MinINT = Convert.ToInt32(MinVAR.Text)*60;
+         int SecINT = Convert.ToInt32(SecVAR.Text);
+				
+         Driver.Close();  // Close specific chrome window
+         Driver.Quit();  // also Close the console app, that was used to kick off the chrome window
+         Driver.Dispose();  // Close the chromedriver.exe
+		 //return GetWaitSetting();
+         return MinINT + SecINT;
+	     }
+         //=======//
+		 
+		 return 0; //continue
+		 
+        }//	Time_Function
+        //=================//	
+	
+	
+} //end public class
+

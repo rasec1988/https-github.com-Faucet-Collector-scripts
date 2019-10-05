@@ -1,0 +1,847 @@
+﻿
+//============================================//
+//script Written first by: cgerabit 28/01/2019
+//last update by: AviramDayan 23/09/2019 11:25AM - Version: 23
+//============================================//
+
+using System;
+using System.Drawing;
+using FaucetCollector.Script;
+using OpenQA.Selenium.Interactions;
+//css_inc RecaptchaUtilities
+//css_inc ShortLinkUtilities
+   
+public class LuckyBitsIoScript : FaucetScript
+{
+    /// <summary>
+    /// List of Settings that will be shown in the bot when selecting this Faucet in the bot.
+    /// You can get the value the user entered with the methods: GetSetting("[Name of the FaucetSetting]"), GetBoolSetting and GetDateTimeSetting
+    /// You can also create a new setting value using SetSetting("[Name you want to use]", "value")
+    /// </summary>
+    public override FaucetSettings Settings
+    {
+        get
+        {
+            return new FaucetSettings("https://luckybits.io/")
+            {
+                new FaucetSetting(){Name="User",Display="Email",Type=EditorType.TextBox,Required=true},
+                new FaucetSetting(){Name="Pass",Display="Password",Type=EditorType.Password,Required=true},
+                new FaucetSetting(){Name="UseSolvemedia",Display="UseSolvemedia ON - Recaptcha Off",Type=EditorType.CheckBox,Default=true},
+                new FaucetSetting() { Name = "FaucetClaim", Display = "FaucetClaim - ON/OFF", Type = EditorType.CheckBox, Default = true},	
+                new FaucetSetting(){Name="FaucetCoin",Display="FaucetCoin",Type=EditorType.ComboBox,Items=new System.Collections.Generic.List<string>{ "Bitcoin", "Ethereum","Litecoin","Dogecoin", "Zcash", "Dash","Blackcoin","Bitcoincash"},Default="Bitcoin"},
+                new FaucetSetting(){Name="TimeToClaim",Display="TimeToClaim",Type=EditorType.ComboBox,Items=new System.Collections.Generic.List<string>{"Select Reward","5","30","45","60"},Default="60" },
+                
+				new FaucetSetting() { Name = "AutoSetWallet", Display = "AutoSetWallet - ON/OFF", Type = EditorType.CheckBox, Default = true},	
+                
+				new FaucetSetting(){Name="Bitcoin_Address",Display="Bitcoin_Address",Type=EditorType.TextBox,Required=true},
+				new FaucetSetting(){Name="Dogecoin_Address",Display="Dogecoin_Address",Type=EditorType.TextBox,Required=true},
+				new FaucetSetting(){Name="Litecoin_Address",Display="Litecoin_Address",Type=EditorType.TextBox,Required=true},
+				new FaucetSetting(){Name="Tron_Address",Display="Tron_Address",Type=EditorType.TextBox,Required=true},
+
+				new FaucetSetting() { Name = "AutoFaucet", Display = "AutoFaucet - ON/OFF - keep the browser open to earn Dogecoin every 6 min", Type = EditorType.CheckBox, Default = true},	
+                new FaucetSetting() { Name = "AutoFaucet_TimeToWait", Display = "AutoFaucet_TimeToWait - ON/OFF", Type = EditorType.Numeric, Default = 6 },			
+
+                new FaucetSetting() { Name = "AffWithdraw", Display = "AffWithdraw", Type = EditorType.CheckBox, Default = true},				
+				new FaucetSetting() { Name = "ShortLink", Display = "ShortLink - ON/OFF", Type = EditorType.CheckBox, Default = false},	
+
+
+
+                //insert user settings here
+
+                //new FaucetSetting { 
+                //    Name = "Name of your setting", 
+                //    Display = "Display shown in Faucet Collector", 
+                //    Type = EditorType.TextBox | EditorType.Password | EditorType.CheckBox | EditorType.Wallet | EditorType.Numeric | EditorType.ComboBox | EditorType.CheckComboBox, 
+                //    Required = true | false, 
+                //    Default = "Optionally a default value" | true | false | null.
+                //    Items = new List<string> { "item1", "item2" } (only valid for ComboBox or CheckComboBox)
+                //} 
+            };
+        }
+    }
+
+    /// <summary>
+    /// This method gets called when the faucet is enabled and the GO button is clicked
+    /// </summary>
+    public override void Start()
+    {
+        //Title that shows in the browser. Is used to identify and close popup windows
+        Title = "LuckyBits.io";
+
+        //After we did try to claim on the faucet we search for these elements to determine if it was a success or a fail
+        SuccessXPath = "//div[@class='alert alert-success']";
+        FailXPath = "//div[@class='alert alert-danger']|//div[@class='alert alert-warning']";
+
+        //Let Faucet Collector start up everything
+        base.Start();
+    }
+
+    /// <summary>
+    /// This is the first method to run after the browser is opened and the first page is loaded.
+    /// </summary>
+    public override int DoInit()
+    {
+        //Let Faucet Collector continue.
+        return base.DoInit();
+    }
+
+    /// <summary>
+    /// This method gets called after the Start method, here you need to return if we are logged in or not.
+    /// If you return false then it will call the BeforeLogin, Login and AfterLogin methods so you can login.
+    /// After those Login methods are called it will call this IsLoggedIn method again to see if the login did succeed.
+    /// If you return true Faucet Collector will store all cookies so it will probably be already logged in on the next attempt.
+    /// </summary>
+    public override bool IsLoggedIn()
+    {
+        //In here we can check for the presence of an element that is only present when you are logged in.
+        //In this case we check for en element with the class "loggedIn"
+        return ElementByXPath("//a[@class='dropdown-item' and contains(text(),'Logout')]") != null;
+    }
+
+    /// <summary>
+    /// This method gets called if IsLoggedIn returned false, right before the DoLogin method is called.
+    /// </summary>
+    public override int BeforeLogin()
+    {
+
+        GoToUrl("https://luckybits.io/v2/faucet");
+		Wait();
+        Wait(1);
+
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeLogin();
+    }
+	
+
+
+    /// <summary>
+    /// This method gets called after BeforeLogin, but only if IsLoggedIn returned false.
+    /// It can be used to actually login the user/enter wallet details in the faucet
+    /// </summary>
+    /// <returns></returns>
+    public override int DoLogin()
+    {
+		
+		
+      var ExitButton = ElementByXPath("//a[@class='dropdown-item' and contains(text(),'Logout')]");
+      if (!IsVisible(ExitButton))
+      {
+        GoToUrl("https://luckybits.io/v2/login");
+		Wait();
+        Wait(1);
+	
+        var EmailBox = ElementByXPath("//input[@name='email']");
+        if (!IsVisible(EmailBox))
+        {
+            return Fail("Email box is not visible");
+                
+        }
+        SetText(EmailBox, GetSetting("User"));
+		
+        var PasswordBox = ElementByXPath("//input[@name='password']");
+        if (!IsVisible(PasswordBox))
+        {
+            return Fail("Password box is not visible");
+        }
+        SetText(PasswordBox, GetPassword("Pass"));
+		
+        var result = DoSolveCaptcha();
+        if (result > 0)
+        {
+            return Fail("Captcha Solving failed:");
+        }
+		
+        Wait(1);
+		
+        var ButtonLogin = ElementByXPath("//button[@type='submit']");
+        if (!IsVisible(ButtonLogin))
+        {
+            return Fail("Button login is not visible");
+        }
+        Click(ButtonLogin);
+		
+        var Warning = ElementByXPath("//div[@class='alert alert-warning']");
+        if (IsVisible(Warning))
+        {
+            Log(Warning.Text);
+			//return 1*60;
+        }
+
+      } //end ExitButton
+
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoLogin();
+    }
+
+
+
+    /// <summary>
+    /// This method gets called after the DoLogin method.
+    /// </summary>
+    public override int AfterLogin()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterLogin();
+    }
+
+    /// <summary>
+    /// This method gets called after the login methods are successful, so we are logged into the faucet.
+    /// If the faucet is not yet ready to claim you should return a TimeStamp value to return how long it takes before the Faucet claim can be done.
+    /// This is used to pause the script while the faucet its timer runs out.
+    /// Return the number of seconds the bot should wait.
+    /// </summary>
+    public override int GetFaucetWaitTime()
+    {
+		
+        GoToUrl("https://luckybits.io/v2/faucet");
+		Wait();
+        Wait(2);	
+		
+        if (IsVisible(ElementByXPath("//span[@class='kkcountdown-box']")))
+        {
+            try{
+                var Hour = ElementByXPath("//span[@class='kkc-godz']");
+                int Hour_ = Convert.ToInt32(Hour.Text.Trim())*3600;
+                var Minute = ElementByXPath("//span[@class='kkc-min']");
+                int Minute_= Convert.ToInt32(Minute.Text.Trim()) * 60;
+                var Seconds = ElementByXPath("//span[@class='kkc-sec']");
+                int Seconds_ = Convert.ToInt32(Seconds.Text.Trim());
+                return Hour_ + Seconds_ + Minute_;
+            }
+            catch (Exception)
+            {
+                return Convert.ToInt32(GetSetting("TimeToClaim"));
+            }
+        }
+
+		
+        //let Faucet Collector continue.
+        return base.GetFaucetWaitTime();
+    }
+
+    /// <summary>
+    /// This method is called right before a captcha will be solved. 
+    /// If you call SolveCaptcha() in other methods it will start this flow and tries to solve the captcha on the page.
+    /// </summary>
+    public override int BeforeSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeSolveCaptcha();
+    }
+
+
+
+    /// <summary>
+    /// This method gets called after BeforeSolveCaptcha and it does the actual captcha solving
+    /// It will automatically try to see if there is a SolveMedia captcha active or a reCAPTCHA active. 
+    /// If it finds either one it will then use the selected method on the Captcha tab of FaucetCollector to solve the Captcha.
+    /// </summary>
+    public override int DoSolveCaptcha()
+    {
+        var Select = ElementByXPath("//select[@name='captcha_type']");
+        if (IsVisible(Select)) {
+            if (GetBoolSetting("UseSolvemedia"))
+            {
+                SelectOptionByValue(Select, "solvemedia");
+                return base.DoSolveMediaCaptcha(ElementByXPath("//input[@id='adcopy_response']"));
+
+        }
+            else 
+			{
+                SelectOptionByValue(Select, "recaptcha");
+
+            }
+        }
+		
+        Wait(3);
+		
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoSolveCaptcha();
+    }
+
+
+
+    public override int AfterSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterSolveCaptcha();
+    }
+
+
+    public override int BeforeSolveFaucet()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeSolveCaptcha();
+    }
+
+
+
+
+
+//=============//
+//DoSolveFaucet//
+//=============//
+    public override int DoSolveFaucet()
+    {
+
+
+     //=============//
+     //AutoSetWallet
+     //=============// 
+     if (GetBoolSetting("AutoSetWallet"))
+     {
+	 
+		Log("AutoSetWallet");
+
+        GoToUrl("https://luckybits.io/v2/settings/wallets/faucethub");
+		Wait();
+        Wait(2);
+
+        var AllZero = ElementByXPath("//form/div[*]/div[2]/input[@id='amount' and @value='0']"); 
+		if (IsVisible(AllZero))
+        {
+		
+          var Bitcoin_Address_input = ElementByXPath("//input[@name='wallet_btc']"); 
+		  if (IsVisible(Bitcoin_Address_input))
+          {
+		  Log("Bitcoin_Address_input");
+          SetText(Bitcoin_Address_input, GetSetting("Bitcoin_Address"));
+          Wait(2);
+		  }
+
+          var Dogecoin_Address_input = ElementByXPath("//input[@name='wallet_doge']"); 
+		  if (IsVisible(Dogecoin_Address_input))
+          {
+		  Log("Dogecoin_Address_input");
+          SetText(Dogecoin_Address_input, GetSetting("Dogecoin_Address"));
+          Wait(2);
+		  }
+
+          var Litecoin_Address_input = ElementByXPath("//input[@name='wallet_ltc']"); 
+		  if (IsVisible(Litecoin_Address_input))
+          {
+		  Log("Litecoin_Address_input");
+          SetText(Litecoin_Address_input, GetSetting("Litecoin_Address"));
+          Wait(2);
+		  }
+
+          var Tron_Address_input = ElementByXPath("//input[@name='wallet_trx']"); 
+		  if (IsVisible(Tron_Address_input))
+          {
+		  Log("Tron_Address_input");
+          SetText(Tron_Address_input, GetSetting("Tron_Address"));
+          Wait(2);
+		  }
+		  
+		  //save
+          var SaveAddress = ElementByXPath("//input[@value='Save']"); 
+          Click(SaveAddress);
+          Wait(2);
+		  
+		} //end AllZero NOT visible 
+
+     } //end AutoSetWallet
+	 
+	 
+	 
+		
+     //=============//
+     //AffWithdraw
+     //=============// 
+     if (GetBoolSetting("AffWithdraw"))
+     {
+	 
+		Log("AffWithdraw");
+		
+        GoToUrl("https://luckybits.io/v2/settings/referral");
+		Wait();
+        Wait(2);
+		
+        var WithdrawAffButton = ElementByXPath("//span/a[contains(text(),'Withdraw')]"); 
+		if (!IsVisible(WithdrawAffButton))
+        {
+		Log("WithdrawAffButton");
+        Click(WithdrawAffButton);	
+        Wait();
+		}
+		
+		/*
+        Wait(2);
+
+        MenuCoins_Faunction(); //call
+        Wait(2);
+        var tron_w_VAR = ElementByXPath("//div[@class='dropdown-menu dropdown-menu-right show']/a[1]"); 
+        Click(tron_w_VAR);	
+        Wait(2);
+        //WithdrawEndButton_Faunction(); //call	
+		Log("WithdrawEndButton - tron");	
+        Wait(2);
+
+        MenuCoins_Faunction(); //call
+        Wait(2);
+        var hora_w_VAR = ElementByXPath("//div[@class='dropdown-menu dropdown-menu-right show']/a[2]"); 
+        Click(hora_w_VAR);	
+        Wait(2);
+        //WithdrawEndButton_Faunction(); //call	
+		Log("WithdrawEndButton - hora");	
+        Wait(2);
+
+        MenuCoins_Faunction(); //call
+        Wait(2);
+        var btc_w_VAR = ElementByXPath("//div[@class='dropdown-menu dropdown-menu-right show']/a[3]"); 
+        Click(btc_w_VAR);	
+        Wait(2);
+        //WithdrawEndButton_Faunction(); //call	
+		Log("WithdrawEndButton - btc");	
+        Wait(2);
+
+        MenuCoins_Faunction(); //call
+        Wait(2);
+        var eth_w_VAR = ElementByXPath("//div[@class='dropdown-menu dropdown-menu-right show']/a[4]"); 
+        Click(eth_w_VAR);	
+        Wait(2);
+        //WithdrawEndButton_Faunction(); //call	
+		Log("WithdrawEndButton - eth");	
+        Wait(2);
+
+        MenuCoins_Faunction(); //call
+        Wait(2);
+        var ltc_w_VAR = ElementByXPath("//div[@class='dropdown-menu dropdown-menu-right show']/a[5]"); 
+        Click(ltc_w_VAR);	
+        Wait(2);
+        //WithdrawEndButton_Faunction(); //call	
+		Log("WithdrawEndButton - ltc");	
+        Wait(2);		
+
+        MenuCoins_Faunction(); //call
+        Wait(2);
+        var doge_w_VAR = ElementByXPath("//div[@class='dropdown-menu dropdown-menu-right show']/a[6]"); 
+        Click(doge_w_VAR);	
+        Wait(2);
+        //WithdrawEndButton_Faunction(); //call	
+		Log("WithdrawEndButton - doge");	
+        Wait(2);		
+
+        MenuCoins_Faunction(); //call
+        Wait(2);
+        var zec_w_VAR = ElementByXPath("//div[@class='dropdown-menu dropdown-menu-right show']/a[7]"); 
+        Click(zec_w_VAR);	
+        Wait(2);
+        //WithdrawEndButton_Faunction(); //call	
+		Log("WithdrawEndButton - zec");	
+        Wait(2);		
+
+        MenuCoins_Faunction(); //call
+        Wait(2);
+        var dash_w_VAR = ElementByXPath("//div[@class='dropdown-menu dropdown-menu-right show']/a[8]"); 
+        Click(dash_w_VAR);	
+        Wait(2);
+        //WithdrawEndButton_Faunction(); //call	
+		Log("WithdrawEndButton - dash");	
+        Wait(2);		
+
+        MenuCoins_Faunction(); //call
+        Wait(2);
+        var blk_w_VAR = ElementByXPath("//div[@class='dropdown-menu dropdown-menu-right show']/a[9]"); 
+        Click(blk_w_VAR);	
+        Wait(2);
+        //WithdrawEndButton_Faunction(); //call	
+		Log("WithdrawEndButton - blk");	
+        Wait(2);		
+
+        MenuCoins_Faunction(); //call
+        Wait(2);
+        var bch_w_VAR = ElementByXPath("//div[@class='dropdown-menu dropdown-menu-right show']/a[10]"); 
+        Click(bch_w_VAR);	
+        Wait(2);
+        //WithdrawEndButton_Faunction(); //call	
+		Log("WithdrawEndButton - bch");	
+        Wait(2);		
+		*/
+		
+     }// end AffWithdraw
+     //=============//
+
+	 
+	 
+     //=============//
+     //FaucetClaim
+     //=============// 
+     if (GetBoolSetting("FaucetClaim"))
+     {
+	  Title = "LuckyBits.io";
+      Log("FaucetClaim");    
+	
+      GoToUrl("https://luckybits.io/v2/faucet");
+      Wait();
+      Wait(2);
+		
+      var AlertWarning = ElementByXPath("//div[@class='alert alert-warning']/strong[contains(text(),'INFO')]");
+      if (!IsVisible(AlertWarning)) //NOT visible do stuff
+      {	
+		
+        //solve Icon Captcha		
+        var Icons = ElementsByXPath("//*[@class='captcha-image']");
+        if (Icons.Count > 0)
+        {
+            DateTime t1 = DateTime.Now.AddSeconds(25);
+            while (Icons.Count == 0 && !IsVisible(Icons[0]))
+            {
+                Wait();
+                Icons = ElementsByXPath("//*[@class='captcha-image']");
+                if (DateTime.Now > t1)
+                {
+                    break;
+                }
+            }
+            Wait(2, 3);
+            int solution = GetIconCaptchaSol();
+            if (solution == -1)
+            {
+                return Fail("There is a problem with icon captcha");
+            }
+            solution--;
+            try
+            {
+                ExecuteScript("var a=document.getElementsByClassName('captcha-image');var element =a[0];element.addEventListener('mouseover', function() {console.log('Event triggered');});var event = new MouseEvent('mouseover', {'view': window,'bubbles': true,'cancelable': true});element.dispatchEvent(event);a[" + solution + "].click();");
+            }
+            catch (Exception)
+            {
+                return Fail("Fail Solve icon captcha");
+            }
+        }
+		
+        var result = DoSolveCaptcha();
+        if (result > 0)
+        {
+            return Fail("Fail solving captcha");
+        }
+        ExecuteScript("window.scrollTo(0, document.body.scrollHeight)");
+		
+        Wait(2);
+
+        var SelectTime = ElementByXPath("//select[@name='user_timer']");
+        if (IsVisible(SelectTime))
+		{	
+        var TimeVAR = GetSetting("TimeToClaim");
+        SelectOptionByValue(SelectTime, TimeVAR);
+		}
+		
+        Wait(2);
+		
+        var buttonClaim = ElementByXPath("//input[@name='faucetclaim']");  //input[@value='Claim'] | //input[@value='Get reward']
+        if (IsVisible(buttonClaim))
+        {
+         Click(buttonClaim);
+        }
+
+        Wait();
+
+      } //and AlertWarning NOT visible
+	  
+
+     }// end FaucetClaim
+     //=============//      
+
+
+
+     //=============//
+     //AutoFaucet
+     //=============// 
+     if (GetBoolSetting("AutoFaucet"))
+     {
+		Log("AutoFaucet");
+        GoToUrl("https://luckybits.io/v2/autofaucet");
+		Wait();
+        Wait(2);
+		
+        GoToUrl("https://luckybits.io/v2/autofaucet/start/doge/3");
+		Wait();
+        Wait(2);			
+
+        var TimeHere = ElementByXPath("//span[@id='timeleft']");
+        if (IsVisible(TimeHere)) //if time apper wait
+        {
+           Log("TimeHere"); 
+		   int MyCustomTimeINT;
+           MyCustomTimeINT = GetIntSetting("AutoFaucet_TimeToWait") * 60; 
+           Wait(MyCustomTimeINT);			
+        } // end NOT Visible
+			 
+
+        Wait(10);	
+        GoToUrl("https://luckybits.io/v2/faucet"); 
+		Wait();
+        Wait(2);	
+
+        //GoToUrl("https://luckybits.io/v2/autofaucet/?run");	
+		
+		/*
+		var SettingsTab = ElementByXPath("//li/a[contains(text(),'Settings')]"); 
+		Click(SettingsTab);
+        Wait(2);	
+		
+		var DogeCard = ElementByXPath("//a[@data-target='#collapse-doge']"); 
+		Click(DogeCard);
+        Wait(2);	
+		
+		var Doge_6_min = ElementByXPath("//a[contains(text(),'6 minutes')]");
+		Click(Doge_6_min);
+        Wait(2);	
+		*/
+
+	 } // end AutoFaucet
+
+
+	
+
+     //=============//
+     //ShortLink
+     //=============// 
+     if (GetBoolSetting("ShortLink"))
+     {
+	 
+		Log("ShortLink");
+		
+        GoToUrl("https://luckybits.io/v2/slwall");
+		Wait();
+        Wait(2);
+
+        var VisitModalAll = ElementByXPath("//div[1]/div/div[4]/div[2]/button[@data-target='#visitModal' ]") ;  
+        if (IsVisible(VisitModalAll))
+        {
+	    Click(VisitModalAll);
+		Wait();
+        Wait(2);	
+        var VisitShortlinkGeneral = ElementByXPath("//input[contains(@name,'shortlink')] | //input[contains(@value,'Shortlink')] ") ;  
+        Click(VisitShortlinkGeneral);	
+		Wait();
+        }
+
+ 
+        while (true)
+        {
+		  
+          var Page_1Until7_Steps = ElementByXPath("//input[@type='submit'] | //div[@class='confirmations' and contains(text(),'1/')] | //h1[contains(text(),'1/')] ");  
+          if (IsVisible(Page_1Until7_Steps))
+          {
+		   Log("Page_1Until7_Steps");
+		   
+           var ButtonStarcoins = ElementByXPath("//input[@type='submit']") ;		   
+           if (IsVisible(ButtonStarcoins))
+           {
+		    Title = "Please wait... | Great collection of sites";       
+
+			Wait(10); 
+			Click(ButtonStarcoins);
+			Wait(); 
+		   }
+		   
+           var ButtonNext = ElementByXPath("//button[@role='button'] | //button[@id='hidden_btn'] ");
+		   Click(ButtonNext);
+		   Wait();
+		   Wait(7);
+          }
+          
+          if (!IsVisible(ElementByXPath ("//input[@type='submit'] | //div[@class='confirmations' and contains(text(),'1/')] | //h1[contains(text(),'1/')] ") )) 
+          {		
+          break; //if the element not exist -  break
+          }	
+
+        }//end while (true)
+		
+        var CloseRedBackground = ElementByXPath("//div[@class='close']");  
+        if (IsVisible(CloseRedBackground))
+        {	
+	    Click(CloseRedBackground);
+		Wait();
+		Wait(2);
+		}
+		
+		ShortLink_Function(); //call to ShortLink_Function
+		Wait();
+		Wait(2);
+		   
+	 } // end ShortLink
+	
+		
+		
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoSolveFaucet();
+    }
+//===============//
+
+
+
+
+    public override int AfterSolveFaucet()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterSolveFaucet();
+    }
+
+
+
+
+    /// <summary>
+    /// This method gets called in the end after the BeforeSolveFaucet/DoSolveFaucet and AfterSolveFaucet methods were done.
+    /// The base.CheckFaucetResult will try to find a visible element on the page using the XPath from SuccessXPath and FailXPath (see the Start method)
+    /// These properties should contain XPath expressions to find certain elements on the page.
+    /// For example if it finds one of the elements from the SuccessXPath, and it is visible, then it will flag the claim attempt as a success.
+    /// Or if it finds one of the elements from the FailXPath, and it is visible, then it will flag the claim attempt as a failure.
+    /// </summary>
+    public override int CheckFaucetResult()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.CheckFaucetResult();
+    }
+	
+	
+	
+       //=============//
+       //MenuCoins_Faunction
+       //=============// 
+        public void MenuCoins_Faunction()
+        {
+        var MenuCoins = ElementByXPath("//a[@id='navbarDropdownMenuLink']/i[contains(text(),'wallet')]");   		
+        Click(MenuCoins);	
+		}// end MenuCoins_Faunction
+		//=============// 
+		
+		
+       //=============//
+       //WithdrawEndButton_Faunction
+       //=============// 
+        public void WithdrawEndButton_Faunction()
+        {
+        var WithdrawEndButton = ElementByXPath ("//div[@class='button' and contains(text(),'WITHDRAW') ]"); 
+        Click(WithdrawEndButton);	
+		}// end WithdrawEndButton_Faunction
+		//=============// 	
+
+
+        //=================//
+       //ShortLink_Function
+        //=================//
+        //in top of class
+        //css_inc ShortLinkUtilities   //set
+        
+
+        public void ShortLink_Function()
+        {
+
+        //call to ShortLink
+        ShortLinkBypasser bypasser = new ShortLinkBypasser(this);
+        bool ShorBool = bypasser.DoShortLink();
+        if (!ShorBool)
+        {
+            Log("Fail shortlink");
+        }
+
+        }//end ShortLink_Function
+        //=================//
+	
+	
+    private int GetIconCaptchaSol()
+    {
+        try
+        {
+            int sol = 0;
+
+            Bitmap[] icons = new Bitmap[5];
+
+            //var Icons = Driver.FindElements(By.ClassName("captcha-image"));
+            var Icons = ElementsByXPath("//*[@class='captcha-image']");
+
+            int cont = 0;
+
+            //   foreach (var icon in Icons)
+            //     {
+            foreach (var icon in Icons)
+            {
+
+                icons[cont] = TakeScreenshot(Base.Captcha.CaptchaService.Manual, icon);
+                cont++;
+
+            }
+
+
+            //   }
+            int one_two, one_three, one_four, one_five;
+
+            one_two = CompareImage(icons[0], icons[1]);
+            one_three = CompareImage(icons[0], icons[2]);
+            one_four = CompareImage(icons[0], icons[3]);
+            one_five = CompareImage(icons[0], icons[4]);
+
+
+
+            int m = one_two;
+            int one_one = (one_five + one_four + one_two + one_three) / 4;
+            if (one_one > 2200)
+            {
+                sol = 1;
+                return sol;
+            }
+            if (m < one_three)
+            {
+                m = one_three;
+            }
+            if (m < one_four)
+            {
+                m = one_four;
+            }
+            if (m < one_five)
+            {
+                m = one_five;
+            }
+            if (m == one_two)
+            {
+                sol = 2;
+            }
+            else if (m == one_three)
+            {
+                sol = 3;
+            }
+            else if (m == one_four)
+            {
+                sol = 4;
+            }
+            else if (m == one_five)
+            {
+                sol = 5;
+            }
+
+            return sol;
+        }
+        catch (Exception)
+        {
+            return -1;
+        }
+
+
+    }
+    private int CompareImage(Bitmap image1, Bitmap image2)
+    {
+        int cont = 0;
+        for (int i = 0; i < image1.Height; i++)
+        {
+            for (int j = 0; j < image1.Width; j++)
+            {
+                if (image1.GetPixel(j, i) != image2.GetPixel(j, i))
+                {
+
+                    cont++;
+
+                }
+            }
+        }
+
+        return cont;
+
+
+    }	
+	
+	
+	
+} //end class

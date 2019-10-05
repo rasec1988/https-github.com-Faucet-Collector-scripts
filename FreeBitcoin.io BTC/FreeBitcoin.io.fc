@@ -1,0 +1,548 @@
+﻿
+
+//============================================//
+//script Written first by: cgerabit
+//last update by: AviramDayan 08/07/2019 06:35AM - Version: 2
+//============================================//
+
+using System;
+using FaucetCollector.Script;
+using OpenQA.Selenium;
+using System.IO;
+using System.Globalization;
+//css_inc ShortLinkUtilities
+//css_inc RecaptchaUtilities
+
+
+public class FreebitcoinioScript : FaucetScript
+{
+    /// <summary>
+    /// List of Settings that will be shown in the bot when selecting this Faucet in the bot.
+    /// You can get the value the user entered with the methods: GetSetting("[Name of the FaucetSetting]"), GetBoolSetting and GetDateTimeSetting
+    /// You can also create a new setting value using SetSetting("[Name you want to use]", "value")
+    /// </summary>
+    public override FaucetSettings Settings
+    {
+        get
+        {
+            return new FaucetSettings("https://freebitcoin.io/")
+            {
+                new FaucetSetting() { Name = "Email", Display = "Email", Type = EditorType.TextBox, Required = true },
+                new FaucetSetting() { Name = "Password", Display = "Password", Type = EditorType.Password, Required = true },
+                new FaucetSetting(){Name="DoShortLink",Display="DoShortLink",Type=EditorType.CheckBox,Default=false},
+				
+                new FaucetSetting(){Name="FaucetClaim",Display="FaucetClaim - on/off",Type=EditorType.CheckBox,Default=true},	
+                new FaucetSetting(){Name="WalletAddress",Display="WalletAddress - only to remmber (Not required)",Type=EditorType.TextBox,Required=false},
+                new FaucetSetting(){Name="AutoSetWithdraw",Display="AutoSetWithdraw - on/off",Type=EditorType.CheckBox,Default=false},	
+                new FaucetSetting(){Name="AutoWithdraw",Display="AutoWithdraw - on/off",Type=EditorType.CheckBox,Default=false},	
+                new FaucetSetting() { Name = "LimiToWithdraw", Display = "LimiToWithdraw", Type = EditorType.Numeric, Default = 36},
+	
+				
+                //insert user settings here
+                //new FaucetSetting { 
+                //    Name = "Name of your setting", 
+                //    Display = "Display shown in Faucet Collector", 
+                //    Type = EditorType.TextBox | EditorType.Password | EditorType.CheckBox | EditorType.Wallet | EditorType.Numeric | EditorType.ComboBox | EditorType.CheckComboBox, 
+                //    Required = true | false, 
+                //    Default = "Optionally a default value" | true | false | null.
+                //    Items = new List<string> { "item1", "item2" } (only valid for ComboBox or CheckComboBox)
+                //} 
+            };
+        }
+    }
+
+	
+	
+	
+	
+	
+	
+//============================================================//
+//the number of "successes" in the script - when are finished  
+//============================================================//
+    public override void Start()
+    {
+		ad=false;
+		
+        //Title that shows in the browser. Is used to identify and close popup windows
+	    Title = "Free";
+		
+        //After we did try to claim on the faucet we search for these elements to determine if it was a success or a fail
+        SuccessXPath = "//div[@class='result' and contains(text(),'You have received')]";  //div[@id='btc-balance']
+        FailXPath = "//div[@class='result' and not(contains(text(),'You have received'))]"; //*[text()='']
+
+        //Let Faucet Collector start up everything
+        base.Start();
+    }
+//============================================================//
+//the number of "successes" in the script - when are finished  
+//============================================================//
+	
+	
+	
+	bool ad;
+	
+	
+	
+    public override int DoInit()
+    {
+	   
+        //Let Faucet Collector continue.
+        return base.DoInit();
+    }
+
+	
+	
+	
+//==================//
+//save Login Cookies 
+//==================//
+    public override bool IsLoggedIn()
+    {
+
+        //In this case we check for en element with the class "loggedIn"
+        return ElementByXPath("//div[@class='lucky-numbers']") != null;		
+		
+    }
+//==================//
+//save Login Cookies 
+//==================//
+	
+	
+	
+	
+	
+    /// <summary>
+    /// This method gets called if IsLoggedIn returned false, right before the DoLogin method is called.
+    /// </summary>
+    public override int BeforeLogin()
+    {
+		
+        GoToUrl("https://freebitcoin.io//free"); //go to faucet first
+		
+		
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeLogin();
+    }
+	
+	
+	
+	
+	
+
+	
+//=============//
+//start DoLogin
+//=============//
+    public override int DoLogin()
+    {
+			
+     var ExitButton = ElementByXPath("//div[@class='lucky-numbers']"); // if not visible - go to do login stuff
+     if (!IsVisible(ExitButton))
+     {
+
+        //Find the input field that holds the email address
+        var signInEmail = ElementByName("email");
+        if (signInEmail == null)
+        {
+            //We couldn't find it. Register it as a fail so it can reload the page and try again in 10-15 seconds.
+            return Fail("Signin email input not found.");
+        }
+
+        var signInPassword = ElementByName("password");
+        if (signInPassword == null)
+        {
+            //We couldn't find it. Register it as a fail so it can reload the page and try again in 10-15 seconds.
+            return Fail("Signin password input not found.");
+        }
+
+        //Email and password input found, update the value of the input with the email address and password the user entered in Faucet Collector
+        SetText(signInEmail, GetSetting("Email"));
+    
+		SetText(signInPassword, GetPassword("Password"));
+ 
+		
+        //Now we search for the login submit button
+        var loginButton = ElementByClass("login");
+        if (loginButton == null)
+        {
+            //We couldn't find it. Register it as a fail so it can reload the page and try again in 10-15 seconds.
+            return Fail("Login button not found.");
+        }
+
+        //solve the capthca on the login page.
+        //var result = SolveCaptcha();
+        //if (result > 0)
+        //{
+        //    return result;
+        //}
+
+        //RecaptchaUtility utility = new RecaptchaUtility(this);
+        //utility.DoSolve();
+        //Wait(1);
+
+        //We are ready to click the login button.
+        if (IsVisible(loginButton))
+        {
+            Click(loginButton);
+        }
+
+        Wait();
+        var Error = ElementByXPath("//div[@class='error']");
+        if (IsVisible(Error))
+        {
+            Log(Error.Text);
+        }
+		
+     }//end ExitButton
+	 
+	 
+        //This faucet has nothing to do here.    
+        return base.DoLogin();
+    }
+//=============//
+//start DoLogin
+//=============//
+	
+
+	
+	
+	
+	
+//==========//
+//AfterLogin
+//=========//
+ public override int AfterLogin()
+ {
+
+
+	 
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterLogin();
+ }
+//==========//
+//AfterLogin
+//=========//
+	
+	
+	
+
+	
+//=============//
+//GetFaucetWaitTime
+//=============//
+ public override int GetFaucetWaitTime()
+ {
+
+        if (!Driver.Url.Contains("https://freebitcoin.io//free"))
+        {
+            GoToUrl("https://freebitcoin.io//free");
+            Wait();
+        }
+        
+         var WaitTimerMin = ElementByXPath("//div[@class='minutes']/div[@class='digits']");
+        var WaitTimerSeg = ElementByXPath("//div[@class='seconds']//div[@class='digits']");
+         if (IsVisible(WaitTimerMin) && IsVisible(WaitTimerSeg))
+         {
+            return Convert.ToInt32(WaitTimerMin.Text) * 60 + Convert.ToInt32(WaitTimerSeg.Text);            
+
+         } // end WaitTimerText
+
+
+        Log("End wait time");
+   //let Faucet Collector continue.
+   return base.GetFaucetWaitTime();
+ }
+//=============//
+//GetFaucetWaitTime
+//=============//
+	
+	
+	
+	
+
+    public override int BeforeSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeSolveCaptcha();
+    }
+
+
+    public override int DoSolveCaptcha()
+    {
+
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoSolveCaptcha();
+    }
+
+
+    public override int AfterSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterSolveCaptcha();
+    }
+	
+	
+
+    public override int BeforeSolveFaucet()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeSolveCaptcha();
+    }
+	
+	
+	
+
+
+//=============//
+//DoSolveFaucet
+//=============//
+    public override int DoSolveFaucet()
+    {
+		
+        //=============//
+        //AutoSetWallet
+        //=============//
+        if (GetBoolSetting("AutoSetWithdraw") && !string.IsNullOrEmpty(GetSetting("WalletAddress")))
+        {			
+
+		   Log("AutoSetWithdraw");
+           GoToUrl("https://freebitcoin.io//settings");	
+		   Wait();
+		
+           var setwallet = ElementByXPath("//input[@class='form-control wallet-address']");
+            if (IsVisible(setwallet))
+            {
+                SetText(setwallet, GetSetting("WalletAddress"));
+               
+                var passwordvar = ElementByXPath("//div[1]/div[2]/div[2]/div/div/div[2]/input[@class='form-control password']");
+                if (IsVisible(passwordvar))
+                {
+                    SetText(passwordvar, GetPassword("Password"));
+              
+                    var ChangeWallet = ElementByXPath("//button[@class='main-button-2 change-wallet bg-2' and contains(text(),'Withdrawal')]");
+                    if (IsVisible(ChangeWallet))
+                    {
+                        Click(ChangeWallet);
+                        Wait();
+                    }
+                }
+            }		           	      
+		}
+        //=============//
+
+
+	 
+        //=============//
+        //AutoWithdraw
+        //=============//
+        if (GetBoolSetting("AutoWithdraw") && !string.IsNullOrEmpty(GetSetting("LimiToWithdraw")) && !string.IsNullOrEmpty(GetSetting("WalletAddress")))
+        {
+           
+          var BalanceVAR = ElementByXPath("//li[@class='navbar-coins bg-1']//a");
+            if (IsVisible(BalanceVAR))
+            {
+                double BalanceDOUBLE;
+                double.TryParse(BalanceVAR.Text.Split(' ')[0],NumberStyles.Any,CultureInfo.InvariantCulture, out BalanceDOUBLE); //decimals  0.1  1.1  2.2  etc
+
+                double MyAmount= GetIntSetting("LimiToWithdraw");
+         
+
+                if (BalanceDOUBLE > MyAmount) // the Default Limit to withdraw is 1000
+                {
+                    Log("AutoWithdraw - visible");
+                    var FirstWithdrawButton = ElementByXPath("//button[@class='withdraw-button bg-2']");
+                    if (IsVisible(FirstWithdrawButton))
+                    {
+                        Click(FirstWithdrawButton);
+                        Wait();
+                        var SetNumberVAR = ElementByXPath("//input[@placeholder='Enter Withdrawal Amount']");
+                        if (IsVisible(SetNumberVAR))
+                        {
+                            SetText(SetNumberVAR, BalanceDOUBLE.ToString());
+                          
+                            var SetWalletVAR = ElementByXPath("//input[@placeholder='Enter Withdrawal Address']");
+                            if (IsVisible(SetWalletVAR))
+                            {
+                                SetText(SetWalletVAR, GetSetting("WalletAddress"));
+                               
+                                var EndWalletVAR = ElementByXPath("//button[@class='main-button-2 main-button-blue withdraw-now bg-3']");
+                                if (IsVisible(EndWalletVAR))
+                                {
+                                    Click(EndWalletVAR);
+                                }
+                                Wait(1);
+                            }
+                        }
+                    }
+                }
+
+                //if (BalanceDOUBLE < MyAmount) // - 1000
+                //{
+                //    Log("AutoWithdraw - disabled");
+                //}
+            }
+            Wait(1);
+        }//end AutoWithdraw
+        //=============//	 
+	 		
+			
+		//===========//	
+        //FaucetClaim
+		//===========//
+        if (GetBoolSetting("FaucetClaim"))
+        {
+
+            if (!Driver.Url.Contains("https://freebitcoin.io//free"))
+            {
+                GoToUrl("https://freebitcoin.io//free");
+                Wait();
+            }
+
+            var ButtonClaim = ElementByXPath("//button[@class='main-button-2 roll-button bg-2']");
+            if (!IsVisible(ButtonClaim))
+            {
+                return Fail("Button claim not visible");
+            }
+            //var result = DoSolveCaptcha();
+            //if (result > 0)
+            //{
+            //    return Fail("Fail solving captcha");
+            //}
+            Click(ButtonClaim);
+            Wait();
+        
+				
+        }//end FaucetClaim
+
+    //==============//
+
+	
+    //==============//
+    //DoShortLink
+    //==============//
+     if (GetBoolSetting("DoShortLink"))
+     {
+
+
+            Log("DoShortLink");
+            GoToUrl("https://freebitcoin.io//free-rolls");
+	        Wait();	  
+			
+            int N = CheckIfShortLinkIsAvailable();
+            if (N != -1)
+            {
+                Log("Shortlink N÷:" + N.ToString() + " Available");
+                var ShortLinks = ElementsByXPath("//a[contains(text(),'Link')]");
+                if (ShortLinks.Count > N)
+                {
+                    try
+                    {
+                        string Href = ShortLinks[N].GetAttribute("href");
+                        if (!string.IsNullOrEmpty(Href))
+                        {
+                            GoToUrl(Href);
+                        }
+                        else
+                        {
+                            CheckForPopupsEnabled = false;
+                            Click(ShortLinks[N], false);
+                            Driver.SwitchTo().Window(Driver.WindowHandles[1]);
+
+                        }
+                      
+                
+                        ShortLinkBypasser bypasser = new ShortLinkBypasser(this);
+                        Wait(2, 3);
+                        bool cs = bypasser.DoShortLink();
+                        if (cs)
+                        {
+                            SetSetting("Link" + N.ToString(), DateTime.Now);
+                            Log("ShortlinkSuccess");
+                        }
+                        else
+                        {
+                            Log("Fail Doing shortlink");
+                        }
+                    }// end try
+                    finally
+                    {
+
+                        CheckForPopups();
+                        Driver.SwitchTo().Window(Driver.WindowHandles[0]);
+                    }
+                }//end ShortLinks.Count > N
+            }//end N != -1
+            else
+            {
+                Log("No shortlinks avaible");
+            }
+ 
+	 }//DoShortLink
+    //==============//
+
+
+	
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoSolveFaucet();
+    }
+	
+	
+
+
+	
+	
+    public override int AfterSolveFaucet()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterSolveFaucet();
+    }
+	
+	
+	
+
+    /// <summary>
+    /// This method gets called in the end after the BeforeSolveFaucet/DoSolveFaucet and AfterSolveFaucet methods were done.
+    /// The base.CheckFaucetResult will try to find a visible element on the page using the XPath from SuccessXPath and FailXPath (see the Start method)
+    /// These properties should contain XPath expressions to find certain elements on the page.
+    /// For example if it finds one of the elements from the SuccessXPath, and it is visible, then it will flag the claim attempt as a success.
+    /// Or if it finds one of the elements from the FailXPath, and it is visible, then it will flag the claim attempt as a failure.
+    /// </summary>
+    public override int CheckFaucetResult()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.CheckFaucetResult();
+    }
+	
+	
+
+    public int CheckIfShortLinkIsAvailable()
+    {
+        var ShortLinks = ElementsByXPath("//a[contains(text(),'Link')]");
+        int NumberOf = -1;
+       for(int i = 0; i < ShortLinks.Count; i++)
+        {
+            string SettingLink = GetSetting("Link" + i.ToString());
+            DateTime LastUsed;
+           
+            if(!string.IsNullOrEmpty(SettingLink) && DateTime.TryParse(SettingLink,out LastUsed))
+            {
+                if (LastUsed.AddHours(24) < DateTime.Now)
+                {
+                    return i;
+                }
+
+            }
+            else
+            {
+                return i;
+            }
+           
+        }
+
+
+        return NumberOf;
+    }
+	
+	
+} //public class 

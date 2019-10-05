@@ -1,0 +1,675 @@
+﻿
+
+//==================//
+//script Written by: ••AviramDayan•• 26/06/2019 00:30PM - Version 1
+//Last Update: 07/08/2019 14:00AM - Version 7
+//==================//
+
+using System;
+using FaucetCollector.Script;
+using OpenQA.Selenium;
+using OpenQA.Selenium.Interactions;
+//css_inc recaptchaUtilities
+
+public class betacent : FaucetScript
+{
+    /// <summary>
+    /// List of Settings that will be shown in the bot when selecting this Faucet in the bot.
+    /// You can get the value the user entered with the methods: GetSetting("[Name of the FaucetSetting]"), GetBoolSetting and GetDateTimeSetting
+    /// You can also create a new setting value using SetSetting("[Name you want to use]", "value")
+    /// </summary>
+    public override FaucetSettings Settings
+    {
+        get
+        {
+			
+            return new FaucetSettings("https://beta.cent.co/")
+            {
+                new FaucetSetting(){Name="Email",Display="Email",Type=EditorType.TextBox,Required=false},				
+                new FaucetSetting(){Name="Password",Display="Password",Type=EditorType.Password,Required=false},
+				new FaucetSetting(){Name="Menu_Type",Display="Menu_Type - Select Favorite",Type=EditorType.ComboBox,Default="Vote",Items=new System.Collections.Generic.List<string>{"none","Comment1","Comment2","Comment3","Comment4","Vote"}},
+                new FaucetSetting(){Name="InputComment",Display="InputComment - Your custom comment",Type=EditorType.TextBox,Required=false},
+                new FaucetSetting() { Name = "UserCustomTime", Display = "UserCustomTime - Backup in the end - if there is more Raws", Type = EditorType.Numeric, Default = 1 },
+                //new FaucetSetting() { Name = "FaucetClaim", Display = "FaucetClaim", Type = EditorType.CheckBox, Default = true},	
+ 
+				
+            };
+        }
+    }
+
+	
+//============================================================//
+//the number of "successes" in the script - when are finished  
+//============================================================//
+    public override void Start()
+    {
+        ad = false;
+       
+        //Title that shows in the browser. Is used to identify and close popup windows
+        Title = "Cent | Auth";
+
+		SuccessXPath = "//*";  //*[@id='']
+        FailXPath = "//*"; //*[@id='']
+	
+        //TimerIsCountingUp = true;
+		
+        //Let Faucet Collector start up everything
+        base.Start();
+    }
+//============================================================//
+//the number of "successes" in the script - when are finished  
+//============================================================//
+
+	
+    bool ad; //custom bool
+
+
+    public override int DoInit()
+    {
+			
+
+		
+        //Let Faucet Collector continue.
+        return base.DoInit();
+    }
+
+	
+//==================//
+//save Login Cookies 
+//==================//
+    public override bool IsLoggedIn()
+    {
+	    //save Login Cookies - Check if the "Logout" exist
+        return ElementByXPath("//div[@style='display: block;']/a[@href='/auth/logout']") != null;
+	 
+        //return base.IsLoggedIn();
+    }
+//==================//
+//save Login Cookies 
+//==================//	
+
+
+
+
+//=============//
+//BeforeLogin
+//=============//
+    public override int BeforeLogin()
+    {
+		
+
+     GoToUrl("https://beta.cent.co");
+
+		
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeLogin();
+    }
+//=============//
+//BeforeLogin
+//=============//
+
+	
+
+
+	
+//========//
+//DoLogin
+//========//
+    public override int DoLogin()
+    {
+	
+      var ExitButton = ElementByXPath("//div[@style='display: block;']/a[@href='/auth/logout']");
+
+	
+	 //if i NOT Login - go to Login Page
+	 if (!IsVisible(ExitButton))
+	 {
+
+		GoToUrl("https://beta.cent.co/auth");
+		Wait();		
+		Wait(2);
+/*     
+        var StartOpenLogin = ElementByXPath("//div[@class='AuthPage___controls']/button[contains(text(),'Sign In')]");
+	    if (IsVisible(StartOpenLogin))
+	    { 
+        Click(StartOpenLogin);
+		}
+*/
+		Wait(2);
+		
+        var box_user = ElementByXPath("//div[2]/div/form/div/div[1]/input[@placeholder='email']");
+        SetText(box_user, GetSetting("Email"));
+		
+		Wait(2);
+		
+        var box_pass = ElementByXPath("//div[2]/div/form/div/div[2]/input[@placeholder='password']");
+        SetText(box_pass, GetPassword("Password"));
+		
+/*			
+		Wait(2);
+	
+       //SolveCaptcha if apper
+        var result = DoSolveCaptcha();
+        if (result > 0)
+        {
+            return Fail("Fail solving captcha");
+        }
+*/		
+		Wait(4);
+		
+        var ButtonLog = ElementByXPath("//div[2]/div/form/div/div[4]/button[2 and @class='sc-kAzzGY kBQagD']");
+        Click(ButtonLog);
+		
+		Wait(2);
+/*		
+        var Error_Message = ElementByXPath ("//div[@id='add_err']/div/div[@class='message' and contains(text(),'fille' | 'captcha' ) ]");
+        if (IsVisible(Error_Message))
+        {
+            Log("Error_Message - Appear - we return after 1 min ");
+            return 1*60; //we return after 1 min
+        }
+*/		
+		Wait();	
+
+        Title = "Auth";
+		
+		Wait();	
+
+	 } // end ExitButton
+
+        
+       return base.DoLogin();
+    }
+//========//
+//DoLogin
+//========//
+ 
+
+
+//========//
+//AfterLogin
+//========//
+ public override int AfterLogin()
+ {
+ 
+  
+    //we are good to continue
+    return base.AfterLogin();
+
+ }
+//========//
+//AfterLogin
+//========//
+
+
+	
+
+//================//
+//GetFaucetWaitTime
+//================//
+    public override int GetFaucetWaitTime()
+    {
+
+        if (ad)
+        {
+		    //Log("return ad");
+			ad=false;
+			Driver.Close();  // Close specific chrome window
+            Driver.Quit();  // also Close the console app, that was used to kick off the chrome window
+            Driver.Dispose();  // Close the chromedriver.exe
+            return GetWaitSetting();
+        }
+
+		//let Faucet Collector continue.
+        return base.GetFaucetWaitTime();
+    }
+//================//
+//GetFaucetWaitTime
+//================//
+
+
+
+    public override int BeforeSolveCaptcha()
+    {
+ 
+        //Return we are ready to proceed
+        return base.BeforeSolveFaucet();
+    }
+
+	
+    public override int DoSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoSolveCaptcha();
+    }
+
+	
+    public override int AfterSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterSolveCaptcha();
+    }
+
+	
+    public override int BeforeSolveFaucet()
+    {
+        //Return we can continue
+        return base.BeforeSolveFaucet();
+    }
+  
+	
+	
+//==============//
+//DoSolveFaucet
+//==============//
+ public override int DoSolveFaucet()
+  {
+
+        GoToUrl("https://beta.cent.co");
+        Wait();	
+        Wait(2);
+		
+        var ChangeToList = ElementByXPath("//div[@class='sc-gPEVay jwrcuI']/div[@class='list-img']");
+	    if (IsVisible(ChangeToList))
+	    {
+		Click(ChangeToList);
+		Log("ChangeToList");
+		}	 
+
+        Menu_Function(); //call
+
+		Wait();			  
+		Wait(2);
+		
+        Backup_Function(); //call
+
+		Wait();			  
+		Wait(2);
+		  		  
+		ad = true;    // if i do true - it report as succeed // only one time no multi and also required -> return GetWaitSetting();	
+        //return GetWaitSetting();	
+
+
+        //We are good to continue
+        return base.DoSolveFaucet();
+ }
+//==============//
+//DoSolveFaucet
+//==============///
+	
+	
+	
+	
+	
+//==============//
+//AfterSolveFaucet
+//==============//
+  public override int AfterSolveFaucet()
+  {
+
+   //This faucet has nothing to do here. We will let Faucet Collector handle it.
+   return base.AfterSolveFaucet();
+   
+  }
+	
+//==============//
+//AfterSolveFaucet
+//==============//
+
+
+
+    /// <summary>
+    /// This method gets called in the end after the BeforeSolveFaucet/DoSolveFaucet and AfterSolveFaucet methods were done.
+    /// The base.CheckFaucetResult will try to find a visible element on the page using the XPath from SuccessXPath and FailXPath (see the Start method)
+    /// These properties should contain XPath expressions to find certain elements on the page.
+    /// For example if it finds one of the elements from the SuccessXPath, and it is visible, then it will flag the claim attempt as a success.
+    /// Or if it finds one of the elements from the FailXPath, and it is visible, then it will flag the claim attempt as a failure.
+    /// </summary>
+    public override int CheckFaucetResult()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.CheckFaucetResult();
+    }
+	
+	
+	
+        //=================//
+       //SortButton_Function
+        //=================//
+        public void SortButton_Function()
+        {
+		
+          var SortButton = ElementByXPath("//button[contains(text(),'Sort for ETH') ]");
+	      if (IsVisible(SortButton))
+	      {
+		  Click(SortButton);
+		  Log("SortButton");		  
+		  }	  
+
+        }//end SortButton_Function
+        //=================// 
+	  
+
+
+
+        //=================//
+       //Vote_Function
+        //=================//
+        public int Vote_Function()
+        {
+
+	      SortButton_Function(); //call
+ 
+ 
+         //call to vote function - and do loop for "TagName"
+         for(var i=1; i<=60; i++)
+         {
+           VoteAction_Function(i);
+         }
+
+         return 0;
+		 
+        }//end Vote_Function
+        //=================// 
+
+
+        //=================//
+       //Choose_RawTab_Function
+        //=================//
+        public int Choose_RawTab_Function()
+        {
+  
+          Wait();	  
+          Wait(2);
+
+          var Raw_VAR = ElementsByXPath("//div[contains(@style,'600px')]/a[*]");
+          int N = 0;
+          if (Raw_VAR.Count>0)
+          {
+	        Click(Raw_VAR[0]); //if some raw visible - click on some tab
+	        Log("Function - Click on Raw_VAR");
+		  }
+		  	  
+		  var Nothing_Raw_VAR = ElementByXPath("//div[2 and contains(text(),'Nothing')]") ; 
+          if (Raw_VAR.Count<0 || IsVisible(Nothing_Raw_VAR)) //if some raw NOT visible OR if there is TEXT 'Nothing' return to user time
+          {
+			Log("Function  - no Raws - return to your time");
+            return GetWaitSetting();
+		  }
+
+            else
+            {
+                N++;
+            }
+
+          return 0;
+
+        }//end Choose_RawTab_Function
+        //=================// 
+
+
+
+        //=================//
+       //Backup_Function
+        //=================//
+        public int Backup_Function()
+        {
+			
+          GoToUrl("https://beta.cent.co");
+          Wait();	
+          Wait(2);
+
+          Menu_Function(); //call
+
+		  Wait();			  
+		  Wait(2);
+
+          var Raw_VAR = ElementsByXPath("//div[contains(@style,'600px')]/a[*]");
+          int N = 0;
+          if (Raw_VAR.Count>0)
+          {
+            int MyCustomTimeINT;
+            MyCustomTimeINT = GetIntSetting("UserCustomTime") * 60; 
+            return MyCustomTimeINT;
+	        Log("Function - Click on Raw_VAR");
+		  }
+		  
+		  var Nothing_Raw_VAR = ElementByXPath("//div[2 and contains(text(),'Nothing')]") ; 
+          if (Raw_VAR.Count<0 || IsVisible(Nothing_Raw_VAR)) //if some raw NOT visible OR if there is TEXT 'Nothing' return to user time
+          {
+			Log("Function  - no Raws - return to your time");
+            return GetWaitSetting();
+		  }
+
+          else
+          {
+              N++;
+          }
+
+          return 0;
+
+        }//end Backup_Function
+        //=================// 
+
+
+
+        //=================//
+       //Comment_Function
+        //=================//
+        public void Comment_Function()
+        {
+  
+          Wait();	  
+          Wait(2);
+	
+          var InputCommentVAR = ElementByXPath("//div[@class='markdown-body medium-editor-element' and contains(@role,'textbox')]");	
+	      if (IsVisible(InputCommentVAR))
+	      {	 
+          SetText(InputCommentVAR, GetSetting("InputComment"));
+		  Log("InputCommentVAR");
+	      } 
+		  
+          Wait();	  
+          Wait(2);
+
+          var BtnReplayComment = ElementByXPath("//div[2]/div/div/div[1]/div[2]/button") ;	
+	      if (IsVisible(BtnReplayComment))
+	      {	
+		      Click(BtnReplayComment);
+		      Log("click on Replay button");
+		  }	 
+
+
+        }//end Comment_Function
+        //=================// 
+	  
+	  
+       //================// 
+       //VoteAction_Function
+       //=================// 
+       public void VoteAction_Function (int number)
+       {
+          var CheckMark_icon = ElementByXPath("//div["+number.ToString()+"]/div[2]/div/div[1]/div/div[2]/i");    // ✓
+          if (!IsVisible(CheckMark_icon))
+          {    
+            
+            var Button_Arrow_Right = ElementByXPath("//div["+number.ToString()+"]/div[2]/div/div[1]/div/div[3]");  // >
+            var Button_Arrow_Left = ElementByXPath("//div[2]/div["+number.ToString()+"]/div[2]/div/div[1]/div/div[1]");  // <          
+            int Random_Button = Random(0, 1);
+
+            //var ButtonTo_Click = ( Random_Button == 0 && IsVisible(Button_Arrow_Left)) ? Button_Arrow_Left : IsVisible(Button_Arrow_Right) ? Button_Arrow_Right : null;
+             var ButtonTo_Click = ( Random_Button == 0 && IsVisible(Button_Arrow_Left)) ? Button_Arrow_Left : Random_Button == 1 && IsVisible(Button_Arrow_Right) ? Button_Arrow_Right : null;
+     
+            if (ButtonTo_Click!=null)
+            {
+              Click(ButtonTo_Click);
+              Log("ButtonTo_Click " + number.ToString());              
+              Wait(3);
+            }
+
+            var Down_Arrow = ElementByXPath("//div["+number.ToString()+"]/div[3]/div/div[2]");        
+            if (IsVisible(Down_Arrow))
+            {    
+              Click(Down_Arrow);
+              Log("Down_Arrow " + number.ToString());     
+              Wait(3);
+            }
+        
+          } //VoteAction_Function
+          //=====//
+       }
+
+
+
+        //=================//
+       //Menu_Function
+        //=================//
+        public int Menu_Function()
+        {
+		//===============//
+		//Menu_Type
+		//===============//
+		var Menu_Type_Var =	GetSetting("Menu_Type");	 
+
+		//none
+        if(Menu_Type_Var=="none")  
+        {	
+        Log("Menu_Type - none");
+        }
+		
+		//Comment1		
+        if(Menu_Type_Var=="Comment1")  
+        {	
+          Log("Menu_Type - Comment1");
+		  
+          var CommentTab = ElementByXPath("//div[1]/div/div/div/i"); 
+	      if (IsVisible(CommentTab))
+	      {
+		  Click(CommentTab);
+		  }	 
+		  
+		  Wait();			  
+		  Wait(2);		
+		  
+		  Choose_RawTab_Function(); //call 
+		  
+		  Wait();			  
+		  Wait(2);		
+		  
+          Comment_Function(); //call 
+		  
+        }
+		
+		//Comment2
+        if(Menu_Type_Var=="Comment2")  
+        {	
+          Log("Menu_Type - Comment2");
+		  
+          var CommentTab = ElementByXPath("//div[2]/div/div/div/i"); 
+	      if (IsVisible(CommentTab))
+	      {
+		  Click(CommentTab);
+		  }	 
+		  
+		  Wait();			  
+		  Wait(2);		
+		  
+		  Choose_RawTab_Function(); //call 
+		  
+		  Wait();			  
+		  Wait(2);		
+		  
+          Comment_Function(); //call 
+		  
+        }
+		
+		//Comment3				
+        if(Menu_Type_Var=="Comment3")  
+        {	
+          Log("Menu_Type - Comment3");
+		  
+          var CommentTab = ElementByXPath("//div[3]/div/div/div/i"); 
+	      if (IsVisible(CommentTab))
+	      {
+		  Click(CommentTab);
+		  }	 
+		  
+		  Wait();			  
+		  Wait(2);		
+		  
+		  Choose_RawTab_Function(); //call 
+		  
+		  Wait();			  
+		  Wait(2);		
+		  
+          Comment_Function(); //call 
+		  
+        }
+		
+		//Comment4		
+        if(Menu_Type_Var=="Comment4")  
+        {	
+          Log("Menu_Type - Comment4");
+		  
+          var CommentTab = ElementByXPath("//div[4]/div/div/div/i"); 
+	      if (IsVisible(CommentTab))
+	      {
+		  Click(CommentTab);
+		  }	 
+		  
+		  Wait();			  
+		  Wait(2);		
+		  
+		  Choose_RawTab_Function(); //call 
+		  
+		  Wait();			  
+		  Wait(2);		
+		  
+          Comment_Function(); //call 
+		  
+        }		
+		
+		//Vote
+        if(Menu_Type_Var=="Vote")  
+        {	
+	
+          Log("Menu_Type - Vote");
+		
+          var VoteTab = ElementByXPath("//div[5]/div/div/div/i"); 
+	      if (IsVisible(VoteTab))
+	      {
+		  Click(VoteTab);
+		  }	 
+		  
+		  Wait();			  
+		  Wait(2);
+		  
+		  Choose_RawTab_Function(); //call 
+		  
+		  Wait();			  
+		  Wait(2);
+
+		  var Nothing_Raw_VAR = ElementByXPath("//div[2 and contains(text(),'Nothing')]") ; 
+          if (IsVisible(Nothing_Raw_VAR)) //if 'Nothing' return to user time
+          {
+			Log("Nothing TEXT - return to your time");
+            return GetWaitSetting();
+		  }
+
+          if (!IsVisible(Nothing_Raw_VAR)) //if NOT
+          {	
+	      Log("Vote_Function");
+		  Vote_Function(); //call 
+		  }
+		
+        }
+		
+
+          return 0;
+
+        }//end Menu_Function
+        //=================// 
+	  
+	
+} //end public class
+

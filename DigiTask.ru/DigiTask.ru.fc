@@ -1,0 +1,177 @@
+﻿using System;
+using FaucetCollector.Script;
+
+public class digitaskruscript : FaucetScript
+{
+    
+    public override FaucetSettings Settings
+    {
+        get
+        {
+            return new FaucetSettings("https://digitask.ru/")
+            {
+                 new FaucetSetting {
+                    Name = "Doge",
+                    Display = "FaucetHub linked Doge wallet address",
+                    Type = EditorType.Wallet,
+                    Required = true,
+                    Default = null
+                },
+                //new FaucetSetting() { Name = "UseSolveMedia", Display = "Use SolveMedia", Type = EditorType.CheckBox, Default = true }
+
+            };
+        }
+    }
+
+    
+    public override void Start()
+    {
+        
+        Title = "Welcome to DigiTask|";
+        cs = false;
+        SuccessXPath = "//DIV[@class='alert alert-success']";
+        FailXPath = "//DIV[@class='alert alert-danger'][text()='Invalid captcha code']";
+
+        //Let Faucet Collector start up everything
+        base.Start();
+    }
+
+    
+    public override bool IsLoggedIn()
+    {
+
+       
+        return true;
+    }
+
+    
+    public override int BeforeLogin()
+    {
+       
+
+        return base.BeforeLogin();
+    }
+
+   
+    public override int DoLogin()
+    {
+       
+        return base.DoLogin();
+    }
+
+   
+    public override int AfterLogin()
+    {
+        
+        return base.AfterLogin();
+    }
+
+   
+    public override int GetFaucetWaitTime()
+    {
+        if (cs)
+        {
+            return 3;
+        }
+
+        return 0;
+    }
+   
+    public override int BeforeSolveCaptcha()
+    {
+
+        
+        return base.BeforeSolveCaptcha();
+    }
+
+   
+     public override int DoSolveCaptcha()
+    {
+        
+        return base.DoSolveCaptcha();
+    }
+
+    
+    public override int AfterSolveCaptcha()
+    {
+        
+        return base.AfterSolveCaptcha();
+    }
+
+   
+  
+    public override int BeforeSolveFaucet()
+    {
+        // FAUCET NOT HAVE MORE DOUBLE CAPTCHA
+        //var Faucet1Link = ElementByXPath("//A[@href='?cc=SolveMedia'][text()='SolveMedia']");
+        //var Faucet2Link = ElementByXPath("//A[@href='?cc=reCaptcha'][text()='reCaptcha']");
+
+        //if (GetBoolSetting("UseSolveMedia"))
+        //{
+
+        //    Click(Faucet1Link);
+        //}
+        //else
+        //{
+
+        //    Click(Faucet2Link);
+        //}
+
+
+        //Wait();
+
+        return base.BeforeSolveFaucet();
+    }
+    bool cs;
+  
+    public override int DoSolveFaucet()
+    {
+        var signInaddress = ElementByXPath("//input[@placeholder='Enter Your Dogecoin Address (FaucetHub)']");
+        if (signInaddress == null)
+        {
+            
+            return Fail("Signin address not found.");
+        }
+        SetText(signInaddress, GetSetting("Doge"));
+        var result = SolveCaptcha();
+        if (result > 0)
+        {
+
+            return result;
+        }
+        Wait();
+        var NextButton = ElementByXPath("//input[@value='Claim Reward']");
+        if (!IsVisible(NextButton))
+        {
+            
+            return Fail("Claim Button not visible.");
+        }
+         Click(NextButton);
+
+        cs = true;
+        
+        return base.DoSolveFaucet();
+    }
+
+    
+    public override int AfterSolveFaucet()
+    {
+        
+        return base.AfterSolveFaucet();
+    }
+
+    
+    public override int CheckFaucetResult()
+    {
+       
+        var result = base.CheckFaucetResult();
+
+        if (IsSuccess)
+        {
+           result = GetWaitSetting();
+            Reload = true;
+        }
+
+        return result;
+    }
+}

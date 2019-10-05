@@ -1,0 +1,213 @@
+﻿using System;
+using FaucetCollector.Script;
+
+
+public class faustyBTCScript : FaucetScript
+{
+    
+    public override FaucetSettings Settings
+    {
+        get
+        {
+            return new FaucetSettings("http://www.gobits.io/?cc=SolveMedia")
+            {
+                new FaucetSetting() {
+                    Name = "BTC",
+                    Display = "FaucetHub linked BTC wallet address",
+                    Type = EditorType.Wallet,
+                    Required = true,
+                    Default = null
+               },
+                new FaucetSetting()
+                {
+                    Name="UseSolvemedia",Display="UseSolvemedia",Type=EditorType.CheckBox,Default=true,
+                }
+            };
+        }
+    }
+
+    
+    public override void Start()
+    {
+        Title = "GoBits|";
+
+        SuccessXPath = "//div[contains(@class,'alert-success')]";
+        FailXPath = "//div[contains(@class,'alert-danger')]";
+
+        
+        base.Start();
+    }
+
+    
+    public override bool IsLoggedIn()
+    {
+        
+        var walletInput = ElementByXPath("//input[@type='text' and contains(@class, 'fname')]");
+        if (walletInput != null)
+        {
+            
+            var hasValue = !string.IsNullOrEmpty(walletInput.GetAttribute("value"));
+            if (hasValue)
+            {
+                return true;
+            }
+        }
+
+        
+        var waitElement = ElementByXPath("//p[contains(@class,'alertbox')]");
+        if (IsVisible(waitElement))
+        {
+            return true;
+        }
+
+        
+
+
+        return false;
+    }
+
+    
+    public override int BeforeLogin()
+    {
+        
+       
+        
+        return base.BeforeLogin(); ;
+    }
+
+   
+    public override int DoLogin()
+    {
+        
+        var signInaddress = ElementByXPath("//input[@type='text' and contains(@class, 'fname')]");
+        if (signInaddress == null)
+        {
+            
+            return Fail("Signin address not found.");
+        }
+
+        
+        SetText(signInaddress, GetSetting("BTC"));
+
+        
+        var loginButton = ElementByXPath("//a[@data-target='#myModal']");
+        if (loginButton == null)
+        {
+           
+            return Fail("Login button not found.");
+        }
+
+        
+        Click(loginButton);
+
+        
+        return base.DoLogin();
+    }
+
+    
+    public override int AfterLogin()
+    {
+        
+        return base.AfterLogin();
+    }
+
+    
+    public override int GetFaucetWaitTime()
+    {
+	   if(IsVisible(ElementByXPath("//p[@class='alert alert-info' and contains(text(),'You have to wait')]")))
+        {
+            var timer = ElementByXPath("//p[@class='alert alert-info' and contains(text(),'You have to wait')]");
+            string Time = timer.Text.Replace("You have to wait", "").Replace("minutes", "").Trim();
+            try
+            {
+                return Convert.ToInt32(Time)*60;
+            }
+            catch (Exception) {
+                return GetWaitSetting();
+            }
+        }
+        return 0;
+    }
+   
+    public override int BeforeSolveCaptcha()
+    {
+		
+
+        return base.BeforeSolveCaptcha();
+    }
+
+    
+    public override int DoSolveCaptcha()
+    {
+       
+     
+
+        return base.DoSolveCaptcha();
+    }
+
+    
+    public override int AfterSolveCaptcha()
+    {
+        
+        return base.AfterSolveCaptcha();
+    }
+
+    
+    public override int BeforeSolveFaucet()
+    {
+       
+
+        
+        return base.BeforeSolveFaucet();
+    }
+    
+    
+    public override int DoSolveFaucet()
+    {
+        
+        var submitButton = ElementByXPath("//input[@id='claim-button']");
+        if (!IsVisible(submitButton))
+        {
+            
+            return Fail("Submit button not found or not visible.");
+        }
+
+        
+        var result = DoSolveCaptcha();
+        if (result > 0)
+        {
+            
+            return result;
+        }
+
+        
+        Click(submitButton);
+
+        
+        return base.DoSolveFaucet();
+    }
+
+    
+    public override int AfterSolveFaucet()
+    {
+
+        return base.AfterSolveFaucet();
+    }
+
+   
+    public override int CheckFaucetResult()
+    {
+            var result = base.CheckFaucetResult();
+            if (IsSuccess)
+            {
+                
+                result = GetWaitSetting();
+
+                
+                Reload = true;
+            }
+
+            return result;
+       
+    }
+}

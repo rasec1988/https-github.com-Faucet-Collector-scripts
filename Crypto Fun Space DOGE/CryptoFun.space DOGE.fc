@@ -1,0 +1,193 @@
+﻿using System;
+using System.Threading.Tasks;
+using FaucetCollector.Script;
+//css_inc ShortLinkUtilitiesV2
+//css_inc RecaptchaUtilities
+public class cryptofunspacedogecript : FaucetScript
+{
+    
+    public override FaucetSettings Settings
+    {
+        get
+        {
+            return new FaucetSettings("http://cryptofun.space/")
+            {
+                 new FaucetSetting {
+                    Name = "doge",
+                    Display = "FaucetHub linked doge wallet address",
+                    Type = EditorType.Wallet,
+                    Required = true,
+                    Default = null
+                }
+            };
+        }
+    }
+
+    
+    public override void Start()
+    {
+        
+        Title = "Crypto Fun Space|";
+
+        SuccessXPath = "//div[@class='alert alert-success']";
+        FailXPath = "//div[contains(@class,'alert-error')]";
+
+        //Let Faucet Collector start up everything
+        base.Start();
+    }
+
+    
+    public override bool IsLoggedIn()
+    {
+        
+        return true;
+    }
+
+    
+    public override int BeforeLogin()
+    {
+      
+
+        return base.BeforeLogin();
+    }
+
+   
+    public override int DoLogin()
+    {
+          
+        return base.DoLogin();
+    }
+
+   
+    public override int AfterLogin()
+    {
+        
+        return base.AfterLogin();
+    }
+
+   
+    public override int GetFaucetWaitTime()
+    {
+          
+      var waitElement = ElementByXPath("//span[@id='countdown']");
+        if (!IsVisible(waitElement))
+        {
+            //no time remaining element, so we are good to go.
+            return 0;
+        }
+
+        var waitText = waitElement.Text.ToLower().Trim().Replace("you can claim again in ", "").Replace(" seconds.", "").Trim();
+        int seconds;
+        if (!int.TryParse(waitText, out seconds))
+        {
+            return Fail("Unable to get the remaining time from text '" + waitText + "'.");
+        }
+
+        return seconds;
+    }
+   
+    public override int BeforeSolveCaptcha()
+    {
+        
+        return base.BeforeSolveCaptcha();
+    }
+
+   
+     public override int DoSolveCaptcha()
+    {
+
+        return base.DoSolveCaptcha();
+    }
+
+
+    
+    public override int AfterSolveCaptcha()
+    {
+        
+        return base.AfterSolveCaptcha();
+    }
+
+   
+    public override int BeforeSolveFaucet()
+    {
+
+        return base.BeforeSolveFaucet();
+    }
+
+  
+    public override int DoSolveFaucet()
+    {
+		if(Driver.Url!="http://cryptofun.space/"){GoToUrl("http://cryptofun.space/");}
+		var ButtonProve = ElementByXPath("//a[contains(text(),'Click here to prove you are a human.')]");
+        DateTime Tw = DateTime.Now.AddSeconds(20);
+        while (!IsVisible(ButtonProve))
+        {
+            Wait(1);
+            ButtonProve = ElementByXPath("//a[contains(text(),'Click here to prove you are a human.')]");
+            if (DateTime.Now > Tw)
+            {
+                break;
+            }
+        }
+        Wait(1);
+        if (IsVisible(ElementByXPath("//a[contains(text(),'Click here to prove you are a human.')]")))
+        {
+            var GoShortLink = ElementByXPath("//a[contains(text(),'Click here to prove you are a human.')]");
+            ShortLinkBypasser bypasser = new ShortLinkBypasser(this);
+            Click(GoShortLink);
+            bypasser.DoShortLink();
+        }
+        Wait(1);
+        var addressBox = ElementByXPath("//input[@type='text']");
+        if (!IsVisible(addressBox))
+        {
+            return Fail("Address Box not found");
+        }
+		SetText(addressBox, GetSetting("doge"));
+        var submitButton = ElementByXPath("//input[@value='Get reward!']");
+        if (!IsVisible(submitButton))
+        {
+            
+            return Fail("Get reward button not found or not visible.");
+        }
+
+
+
+
+        var result = DoSolveCaptcha();
+        if (result > 0)
+        {
+
+            return Fail("Fail solving captcha");
+        }
+
+
+        submitButton = ElementByXPath("//input[@value='Get reward!']");
+        Click(submitButton);
+
+        
+        return base.DoSolveFaucet();
+    }
+
+    
+    public override int AfterSolveFaucet()
+    {
+        
+        return base.AfterSolveFaucet();
+    }
+
+    
+    public override int CheckFaucetResult()
+    {
+       
+        var result = base.CheckFaucetResult();
+
+        if (IsSuccess)
+        {
+  
+            Reload = true;
+        }
+
+        return result;
+    }
+}

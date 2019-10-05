@@ -1,0 +1,359 @@
+using System;
+using System.Text.RegularExpressions;
+using FaucetCollector.Script;
+
+public class litecoinfaucetScript : FaucetScript
+{
+    public override FaucetSettings Settings
+    {
+        get
+        {
+            return new FaucetSettings("https://allcoins.pw/faucet.php?coin=ubq")
+            {
+				//Setting for EmailAddress for allcoins.pw
+                new FaucetSetting() { Name = "EmailAddress", Display = "EmailAddress", Type = EditorType.TextBox, Required = true },
+				//Setting for Password for allcoins.pw
+                new FaucetSetting() { Name = "Password", Display = "Password", Type = EditorType.Password, Required = true },
+                //Option to use SolveMedia or reCAPTCHA
+                new FaucetSetting() { Name = "UseSolveMedia", Display = "Use SolveMedia", Type = EditorType.CheckBox, Default = true }
+            };
+        }
+    }
+
+    public override void Start()
+    {
+        Title = "Allcoins.pw";
+        
+        SuccessXPath = "//p[starts-with(text(),'Your actual Balance')]";
+        FailXPath = "//div[contains(@class,'alert-warning')]";
+
+        base.Start();
+    }
+
+    public override bool IsLoggedIn()
+    {
+        CheckAntiBot();
+        return IsVisible(ElementByXPath("//a[contains(@href, '/logout.php')]"));
+    }
+
+    public override int BeforeLogin()
+    {
+	
+
+        return base.BeforeLogin();
+    }
+
+    public override int DoLogin()
+    {
+
+        GoToUrl("https://allcoins.pw/");
+        Wait(5);
+        var loginPanelBtn = ElementByXPath("//a[@href='#'][contains(text(),'Login')]");
+        if (!IsVisible(ElementByXPath("//*[@id='lem']")) && !IsVisible(ElementByXPath("//*[@id='lpw']")) && IsVisible(loginPanelBtn))
+        {
+            Click(loginPanelBtn);
+        }
+        Wait(2);
+
+        var c = ElementByXPath("//div[@id='register']//div[@class='modal-dialog modal-dialog-centered']//div[@class='modal-content']//div[@class='modal-footer']//button[@id='swlogin']");
+        if (IsVisible(c) && !IsVisible(ElementByXPath("//*[@id='lem']")) && !IsVisible(ElementByXPath("//*[@id='lpw']")))
+        {
+            Click(c);
+        }
+		Wait();
+		var c2=ElementByXPath("//div[@id='register']//button[@id='swlogin']");
+		if(IsVisible(c2) && !IsVisible(ElementByXPath("//*[@id='lem']")) && !IsVisible(ElementByXPath("//*[@id='lpw']")))
+        {
+		
+		Click(c2);
+		
+		}
+        Wait(2);
+        var logInUser = ElementByXPath("//*[@id='lem']");
+        if (!IsVisible(logInUser))
+        {
+
+        }
+
+        var logInPassword = ElementByXPath("//*[@id='lpw']");
+        if (!IsVisible(logInPassword))
+        {
+
+            return Fail("Password input not found.");
+        }
+
+       
+        Wait();
+        SetText(logInPassword, GetPassword("Password"));
+
+        var loginButton = ElementByXPath("//*[@id='login']//button[@class='btn btn-primary']");
+        if (!IsVisible(loginButton))
+        {
+
+            return Fail("Login button not found.");
+        }
+
+        var captc = ElementByXPath("//label[@for='captchal']");
+
+        var box = ElementByXPath("//input[@id='captchal']");
+
+        var result = DoSolveImageCaptcha(captc, box);
+
+        if (result > 0)
+        {
+            return Fail("Captcha failed");
+        }
+        else if (!IsANumber(Context.CaptchaResult.Result)){
+            return Fail("The result of captcha isn't a number Trying to login again");
+        }
+        else if(Context.CaptchaResult.Result.Length !=2 && Context.CaptchaResult.Result.Length != 3)
+        {
+            return Fail("The result of captcha doesn't have three or two digits");
+        }
+
+        
+		 SetText(logInUser, GetSetting("EmailAddress"));
+
+        Wait();
+
+		if(IsVisible(loginButton)){
+
+        Click(loginButton);
+ }       
+ Wait();
+        var alert = ElementByXPath("//div[@class='bootstrap-growl alert alert-warning border border-warning alert-dismissible']");
+        if (IsVisible(alert))
+        {
+            Log(alert.Text);
+            if(alert.Text.ToLower().Contains("email does not math"))
+            {
+                Log("You don't input correct account");
+            }
+        }
+
+        return base.DoLogin();
+
+    }
+
+    public override int AfterLogin()
+    {
+        CheckAntiBot();
+        return base.AfterLogin();
+    }
+
+    public override int GetFaucetWaitTime()
+    {
+        CheckAntiBot();
+        if (IsVisible(ElementByXPath("//button[@id='claimb']")))
+        {
+            return 0;
+        }
+        if(IsVisible(ElementByXPath("//button[@id='claimbn' and @class='btn btn-danger disabled' and @value='Disable ADblocker']")))
+        {
+            return 242;
+           
+
+
+        }
+        var waitElement = ElementByXPath("//span[@id='claim']");
+
+        if (!IsVisible(waitElement))
+        {
+            //no time remaining element, so we are good to go.
+            return 0;
+        }
+        var waitText = waitElement.Text.ToLower().Trim().Replace("you can claim in ", "").Replace(" seconds","").Trim();
+		if(waitText == "claim !")
+		{
+			//no time remaining element, so we are good to go.
+			return 0;
+		}
+        int seconds = 0;
+        if (!int.TryParse(waitText, out seconds))
+        {
+            return Fail("Unable to get the remaining time from text '" + waitText + "'.");
+        }
+        
+        //return the total wait time in seconds
+        return seconds;
+    }
+
+    public override int BeforeSolveCaptcha()
+    {
+       
+        //select the right option for captcha
+        var solveMediaCaptchaDiv = ElementByXPath("//*[@id='captcha1']");
+        var reCaptchaDiv = ElementByXPath("//*[@id='captcha2']");
+		var switchCaptchaBtn = ElementByXPath("//a[contains(@onclick, 'swc()')]");
+
+        if (GetBoolSetting("UseSolveMedia"))
+        {
+            if(reCaptchaDiv != null && IsVisible(reCaptchaDiv))
+			{
+				if(switchCaptchaBtn != null && IsVisible(switchCaptchaBtn))
+				{
+					Click(switchCaptchaBtn);
+				}
+				else
+				{
+					Fail("Switch not found");
+				}
+			}
+        }
+        else
+        {
+            if(solveMediaCaptchaDiv != null && IsVisible(solveMediaCaptchaDiv))
+			{
+				if(switchCaptchaBtn != null && IsVisible(switchCaptchaBtn))
+				{
+					Click(switchCaptchaBtn);
+				}
+				else
+				{
+					Fail("Switch not found");
+				}
+			}
+		}
+
+        Wait();
+
+        return base.BeforeSolveCaptcha();
+    }
+
+    public override int DoSolveCaptcha()
+	{
+		//check for the custom captcha image
+		var captchaImage = ElementByXPath("//*[@id='login']//label/img/..");
+		if (IsVisible(captchaImage))
+		{
+			//get the input where the result of the captcha needs to be entered.
+			var captchaInput = ElementByName("captchal");
+			if (!IsVisible(captchaInput))
+			{
+				return Fail("ImageCaptcha input field not found");
+			}
+
+			//We can use this method to let Faucet Collector solve the image captcha and put the result into the captchaInput element
+			var sleep = DoSolveImageCaptcha(captchaImage, captchaInput);
+			if (sleep > 0)
+			{
+				return sleep;
+			}
+
+			//return we are done.
+			return 0;
+		}
+		else
+		{
+			//Let Faucet Collector continue. It will check for SolveMedia and reCAPTCHA.
+			return base.DoSolveCaptcha();
+		}
+	}
+
+    public override int AfterSolveCaptcha()
+    {
+
+        return base.AfterSolveCaptcha();
+    }
+
+    public override int BeforeSolveFaucet()
+    {
+
+        return base.BeforeSolveFaucet();
+    }
+
+    public override int DoSolveFaucet()
+    {
+        
+        GoToUrl("https://allcoins.pw/faucet.php?coin=ubq");
+        Wait(2);
+        CheckAntiBot();
+        
+		
+    
+        
+       
+
+        Wait(2);
+        var claimBtn = ElementByXPath("//button[@id='claimb']");
+        if (IsVisible(claimBtn))
+        {
+            Click(claimBtn);
+        }
+        
+		 Wait(2);
+        CheckAntiBot();
+
+        //get the captchaResolved button after claimBtn click
+        var captchaResolvedBtn = ElementByXPath("//button[@type='submit' and contains(@class,'btn-primary')]");
+        if (!IsVisible(captchaResolvedBtn))
+        {
+            return Fail("Captcha is Resolved button not visible.");
+        }
+       
+        //Solve the captcha
+        var result = SolveCaptcha();
+        if (result > 0)
+        {
+        
+            return result;
+        }
+        
+     
+        Wait(2);
+      
+
+        Wait(3);
+
+        captchaResolvedBtn = ElementByXPath("//button[@type='submit' and contains(@class,'btn-primary')]");
+        Wait();
+        Click(captchaResolvedBtn);
+        Wait(2);
+        CheckAntiBot();
+
+        return base.DoSolveFaucet();
+    }
+
+    public override int AfterSolveFaucet()
+    {
+
+        return base.AfterSolveFaucet();
+    }
+
+    public override int CheckFaucetResult()
+    {
+        var result = base.CheckFaucetResult();
+        //if (IsSuccess)
+        //{
+        //
+        //    Reload = true;
+        //}
+
+        return result;
+    }
+    private static bool IsANumber(string number)
+    {
+        Regex r = new Regex("^[0-9 ]");
+        if (r.IsMatch(number))
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+    private void CheckAntiBot()
+    {
+      
+        var AntiBotButton = ElementByXPath("//a[contains(@href,'nobothere=1') or contains(@text,'I AM NOT A BOT')]");
+        if (IsVisible(AntiBotButton))
+        {
+            Click(AntiBotButton);
+            Wait(4);
+        }
+      
+        
+    }
+
+}

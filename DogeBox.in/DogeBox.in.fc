@@ -1,0 +1,150 @@
+﻿using System;
+using FaucetCollector.Script;
+
+public class dogeboxScript : FaucetScript {
+    
+    public override FaucetSettings Settings {
+        get {
+            return new FaucetSettings("http://dogebox.in/") {
+                new FaucetSetting {
+                    Name = "Doge",
+                    Display = "Doge wallet address",
+                    Type = EditorType.Wallet,
+                    Required = true,
+                    Default = null
+               }
+            };
+        }
+    }
+
+    
+    public override void Start() {
+        Title = "DOGEBOX | dogebox.in";
+
+        SuccessXPath = "//*[contains(@class, 'alert-success')]";
+
+        FailXPath = "//div[contains(@class, 'alert-danger')]";
+
+        base.Start();
+    }
+
+
+    public override bool IsLoggedIn() {
+        var walletInput = ElementByXPath("//input[@type='text' and @id='username']");
+        if (walletInput != null) {
+            var hasValue = !string.IsNullOrEmpty(walletInput.GetAttribute("value"));
+            if (hasValue) {
+                return true;
+            }
+        }
+
+        
+        var waitElement = ElementByXPath("//div[contains(@class,'alert-danger')]");
+        if (IsVisible(waitElement)) {
+            return true;
+        }
+
+        var successElement = ElementByXPath("//div[contains(@class,'alert-success')]");
+        if (IsVisible(successElement)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    
+    public override int BeforeLogin() {
+        var sleep = CheckForPopups();
+        if (sleep > 0) {
+            return sleep;
+        }
+
+        return base.BeforeLogin();
+    }
+
+   
+    public override int DoLogin() {
+        var addressInput = ElementByXPath("//input[@type='text' and contains(@class, 'form-control')]");
+        if (addressInput == null) {
+            return Fail("DOGE address input not found.");
+        }
+
+        SetText(addressInput, GetSetting("DOGE"));
+
+        return base.DoLogin();
+    }
+
+   
+    public override int AfterLogin() {
+        return base.AfterLogin();
+    }
+
+    
+    public override int GetFaucetWaitTime() {
+        var waitElement = ElementByXPath("//div[contains(@class,'alert-info')]");
+        if (!IsVisible(waitElement)) {
+            return 0;
+        }
+
+        var waitText = waitElement.Text.ToLower().Trim().Replace("you have to wait ", "").Replace(" minutes", "").Trim();
+        int minutes;
+        if (!int.TryParse(waitText, out minutes)) {
+            return Fail("[Info] " + waitText);
+        }
+        
+        return minutes * 60;
+    }
+    
+   
+    public override int BeforeSolveCaptcha() {
+        return base.BeforeSolveCaptcha();
+    }
+
+    
+    public override int DoSolveCaptcha() {
+        return base.DoSolveCaptcha();
+    }
+
+    
+    public override int AfterSolveCaptcha() {
+        return base.AfterSolveCaptcha();
+    }
+
+    
+    public override int BeforeSolveFaucet() {
+        return base.BeforeSolveFaucet();
+    }
+    
+    
+    public override int DoSolveFaucet() {
+        var submitButton = ElementByXPath("//div[@id='faucet-button']/button[contains(@class, 'btn-success')]");
+        if (!IsVisible(submitButton)) {
+            return Fail("Submit button not found or not visible.");
+        }
+
+        var result = SolveCaptcha();
+        if (result > 0) {
+            return result;
+        }
+
+        Click(submitButton);
+        
+        return base.DoSolveFaucet();
+    }
+
+    
+    public override int AfterSolveFaucet() {
+        return base.AfterSolveFaucet();
+    }
+
+   
+    public override int CheckFaucetResult() {
+        var result = base.CheckFaucetResult();
+        if (IsSuccess) {
+            result = GetWaitSetting();
+            Reload = true;
+        }
+
+        return result;
+    }
+}

@@ -1,0 +1,455 @@
+﻿using System;
+using FaucetCollector.Script;
+
+public class BtcFox : FaucetScript
+{
+    /// <summary>
+    /// List of Settings that will be shown in the bot when selecting this Faucet in the bot.
+    /// You can get the value the user entered with the methods: GetSetting("[Name of the FaucetSetting]"), GetBoolSetting and GetDateTimeSetting
+    /// You can also create a new setting value using SetSetting("[Name you want to use]", "value")
+    /// </summary>
+    public override FaucetSettings Settings
+    {
+        get
+        {
+            return new FaucetSettings("http://btcfox.info/")
+            {
+                new FaucetSetting(){Name="User",Display="Username",Type=EditorType.TextBox,Required=true},
+                new FaucetSetting(){Name="Pass",Display="Password",Type=EditorType.Password,Required=true},
+                new FaucetSetting(){Name="PIN",Display="PIN number",Type=EditorType.TextBox,Required=true},
+
+                new FaucetSetting(){Name="Menu_invest",Display="Select if you want to invest or not",Type=EditorType.ComboBox,Default="none",Items=new System.Collections.Generic.List<string>{"none","Auto invest (from your balance)"}},
+                new FaucetSetting(){Name="AmountToinvest",Display="Amount to invest (Default starts from 50 Satoshi)",Default="50",Type=EditorType.TextBox,Required=true},
+ 
+                new FaucetSetting() { Name = "FaucetClaim", Display = "FaucetClaim (Currently not working, because of the complex captcha - we will update soon)", Type = EditorType.CheckBox, Default = false},	
+								
+                new FaucetSetting(){Name="Menu_Wallet",Display="Choose which wallet you want to withdraw",Type=EditorType.ComboBox,Default="Direct Wallet (minimum 0.0005 BTC)",Items=new System.Collections.Generic.List<string>{"none","Direct Wallet (minimum from 0.00050000 BTC + fee 5000 Satoshi)","FaucetSystem Wallet - minimum 1 Satoshi (from FaucetSystem minimum 20000 Satoshi)"}},		
+                new FaucetSetting(){Name="DirectWalletAddress",Display="Your Direct Wallet Address (BTC)",Type=EditorType.TextBox,Required=true },
+                new FaucetSetting(){Name="FaucetSystemWalletAddress",Display="Your FaucetSystem Wallet Address (BTC)",Type=EditorType.TextBox,Required=true },
+				
+
+				
+                //insert user settings here
+                //new FaucetSetting { 
+                //    Name = "Name of your setting", 
+                //    Display = "Display shown in Faucet Collector", 
+                //    Type = EditorType.TextBox | EditorType.Password | EditorType.CheckBox | EditorType.Wallet | EditorType.Numeric | EditorType.ComboBox | EditorType.CheckComboBox, 
+                //    Required = true | false, 
+                //    Default = "Optionally a default value" | true | false | null.
+                //    Items = new List<string> { "item1", "item2" } (only valid for ComboBox or CheckComboBox)
+                //} 
+            };
+        }
+    }
+
+	
+	
+	
+//============================================================//
+//the number of "successes" in the script - when are finished  
+//============================================================//
+    public override void Start()
+    {
+        //Title that shows in the browser. Is used to identify and close popup windows
+        Title = "Faucet|BtcFox";
+
+        //After we did try to claim on the faucet we search for these elements to determine if it was a success or a fail
+        SuccessXPath = "//font[@size='5']";
+        FailXPath = "//font[@color='red']";
+		
+        TimerIsCountingUp = true;
+		
+        //Let Faucet Collector start up everything
+        base.Start();
+    }
+//============================================================//
+//the number of "successes" in the script - when are finished  
+//============================================================//
+
+
+
+
+
+
+    public override int DoInit()
+    {
+        //Let Faucet Collector continue.
+        return base.DoInit();
+    }
+	
+	
+	
+
+	
+//==================//
+//save Login Cookies 
+//==================//
+    public override bool IsLoggedIn()
+    {
+        //In this case we check for en element with the class "loggedIn"
+        return ElementByXPath("//a[contains(text(),'Logout')]") != null;
+    }
+	
+//==================//
+//save Login Cookies 
+//==================//
+
+
+
+
+
+
+    /// <summary>
+    /// This method gets called if IsLoggedIn returned false, right before the DoLogin method is called.
+    /// </summary>
+    public override int BeforeLogin()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeLogin();
+    }
+
+	
+	
+	
+	
+	
+//========//
+//DoLogin
+//========//
+
+ public override int DoLogin()
+ {
+        if (!Driver.Url.Contains("https://btcfox.info/index.php?view=login"))
+        {
+            GoToUrl("https://btcfox.info/index.php?view=login");
+        }
+        Wait();
+        var user_box = ElementByXPath("//input[@name='form_user']");
+        if (!IsVisible(user_box))
+        {
+            return Fail("User box no found");
+                
+        }
+        SetText(user_box, GetSetting("User"));
+        Wait();
+        var pass_box = ElementByXPath("//input[@name='form_pwd']");
+        if (!IsVisible(pass_box))
+        {
+            return Fail("Password box no found");
+        }
+        SetText(pass_box, GetPassword("Pass"));
+        Wait();
+        var pin_box = ElementByXPath("//input[@name='form_pinn']");
+        if (!IsVisible(pin_box))
+        {
+            return Fail("Pin box no found");
+        }
+        SetText(pin_box, GetSetting("PIN"));
+        Wait();
+        var button = ElementByXPath("//input[@value='Access']");
+        if (!IsVisible(button))
+        {
+            return Fail("Button no visible");
+        }
+        Click(button);
+		
+		
+		
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoLogin();
+    }
+	
+//========//
+//DoLogin
+//========//
+	
+	
+	
+	
+	
+
+//========//
+//AfterLogin
+//========//
+    public override int AfterLogin()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterLogin();
+    }
+//========//
+//AfterLogin
+//========//
+	
+	
+	
+	
+	
+	
+    /// <summary>
+    /// This method gets called after the login methods are successful, so we are logged into the faucet.
+    /// If the faucet is not yet ready to claim you should return a TimeStamp value to return how long it takes before the Faucet claim can be done.
+    /// This is used to pause the script while the faucet its timer runs out.
+    /// Return the number of seconds the bot should wait.
+    /// </summary>
+    public override int GetFaucetWaitTime()
+    {
+        if (!Driver.Url.Contains("https://btcfox.info/index.php?view=account&ac=dashboard"))
+        {
+            GoToUrl("https://btcfox.info/index.php?view=account&ac=dashboard");
+        }
+        Wait();
+        if(IsVisible(ElementByXPath("//center[contains(text(),'next') and contains(text(),'minutes')]")))
+        {
+            return 3600;
+        }
+        return 0;
+        //let Faucet Collector continue.
+        
+    }
+
+	
+	
+	
+	
+	
+    /// <summary>
+    /// This method is called right before a captcha will be solved. 
+    /// If you call SolveCaptcha() in other methods it will start this flow and tries to solve the captcha on the page.
+    /// </summary>
+    public override int BeforeSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeSolveCaptcha();
+    }
+
+	
+	
+    /// <summary>
+    /// This method gets called after BeforeSolveCaptcha and it does the actual captcha solving
+    /// It will automatically try to see if there is a SolveMedia captcha active or a reCAPTCHA active. 
+    /// If it finds either one it will then use the selected method on the Captcha tab of FaucetCollector to solve the Captcha.
+    /// </summary>
+    public override int DoSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoSolveCaptcha();
+    }
+
+	
+	
+    /// <summary>
+    /// This method will get called after DoSolveCaptcha returned it was a success.
+    /// </summary>
+    /// <returns></returns>
+    public override int AfterSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterSolveCaptcha();
+    }
+
+	
+	
+    /// <summary>
+    /// This method is called right before we attempt to claim on the faucet. So we are logged in and good to go.
+    /// Next methods that will be called are DoSolveFaucet, AfterSolveFaucet and CheckFaucetResult.
+    /// </summary>
+    public override int BeforeSolveFaucet()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeSolveCaptcha();
+    }
+	
+	
+	
+	
+	
+
+
+	
+
+//============//
+//DoSolveFaucet
+//============//
+ public override int DoSolveFaucet()
+ {
+	
+	 //============//
+     //Menu_invest
+	 //============//
+	 
+     var MenuVar = GetSetting("Menu_invest");  
+
+     if(MenuVar=="none")
+     {
+      //Do not do anything
+     }
+
+	 
+
+     if(MenuVar=="Auto invest (from your balance)")
+     {
+
+        //go to invest
+        GoToUrl("https://btcfox.info/index.php?view=account&ac=doubler&");
+	
+        Wait(5);	
+		
+       //if the colect balance not 0 - we return after 60 min
+        var BalanceVar = ElementByXPath("//input[@id='payy']");
+
+        int balance;
+            //int.TryParse(BalanceVar.Text, out balance);  //<<< normal way - ".Text" get the text of ElementByXPath
+            string b = BalanceVar.GetAttribute("value").Replace(".","");
+            int n = -1;
+            for(int i = 0; i < b.Length; i++)
+            {
+                if (b[i] != '0')
+                {
+                    n = i;
+                }
+            }
+            if (n == -1)
+            {
+                b = "0";
+            }
+            else
+            {
+                for(int i = n; i < b.Length; i++)
+                {
+                    if (i == n)
+                    {
+                        b = b[i].ToString();
+                    }
+                    else
+                    {
+                        b += b[i].ToString();
+                    }
+                }
+            }
+
+            balance = Convert.ToInt32(b);//<<< different way - .GetAttribute("value") - if we don't find the value of text, so find and put the element that founded on html
+        //  ( <=0 - it mean Less and = 0 )  ( ==50 - it mean = 50 )  ( >50 <50 - it Above or less from 50 ) //       
+
+ int mynumber;		
+ int.TryParse(GetSetting("AmountToinvest"), out mynumber);
+ 
+ 
+//double mynumber=Convert.ToDouble(GetSetting("AmountToinvest"));	
+
+
+        if (balance > mynumber)   //0.00000050   
+        {
+                string toinvest = balance.ToString();
+                int n_ = 8 - toinvest.Length;
+                for(int i = 0; i < n_; i++)
+                {
+                    if (i == n_)
+                    {
+                        toinvest = "0.0" + toinvest.ToString();
+                    }
+                    else
+                    {
+                        toinvest = "0" + toinvest.ToString();
+                    }
+                }
+		//set AmountToinvestVar
+        var AmountToinvestVar = ElementByXPath("//input[@id='payy']");
+        SetText(AmountToinvestVar, toinvest);
+		Log("Autoinvest: set AmountToinvestVar");
+		
+		//send 
+        var SendInvest = ElementByXPath("//input[@class='button medium green']");
+		Log("Autoinvest: SendInvest");	
+		Click(SendInvest);
+		
+		//info
+		var Info1Message = ElementByXPath("/html/body/center/div[3]/div[2]/h2/center/p");
+		Log(Info1Message.Text);			
+		
+        }
+
+		
+        if (balance < mynumber)    //0.00000050
+        {
+	     Log("Autoinvest: return not good");
+         //return 60*60;
+        }
+
+     } //end Auto invest (from your balance)
+
+
+	
+//=========//
+//FaucetClaim
+//==========//
+
+   if (GetBoolSetting("FaucetClaim"))
+   {  
+
+         var button_faucet = ElementByXPath("//a[contains(text(),'Faucet')]");
+         DateTime t1 = DateTime.Now.AddSeconds(60);
+		 
+      if (IsVisible(button_faucet))
+      {
+         Click(button_faucet);
+         Wait();
+         var collect = ElementByXPath("//input[@value='Collect']");
+		 
+        while (!IsVisible(collect)) {
+         Wait();
+         collect = ElementByXPath("//input[@value='Collect']");
+		 
+         if (DateTime.Now > t1)
+         {
+         break;
+         }
+		 
+        }
+         Wait();
+         Click(collect);
+      }
+         Wait(100);
+   }      
+
+   
+   
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoSolveFaucet();
+ }
+//============//
+//DoSolveFaucet
+//============//
+	
+	
+	
+	
+	
+	
+    /// <summary>
+    /// This method will get called after the DoSolveFaucet is completed and returned it was a success.
+    /// For example you can wait for a processing popup to go away until actual faucet claim result is on the page.
+    /// </summary>
+    public override int AfterSolveFaucet()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterSolveFaucet();
+    }
+
+	
+	
+	
+    /// <summary>
+    /// This method gets called in the end after the BeforeSolveFaucet/DoSolveFaucet and AfterSolveFaucet methods were done.
+    /// The base.CheckFaucetResult will try to find a visible element on the page using the XPath from SuccessXPath and FailXPath (see the Start method)
+    /// These properties should contain XPath expressions to find certain elements on the page.
+    /// For example if it finds one of the elements from the SuccessXPath, and it is visible, then it will flag the claim attempt as a success.
+    /// Or if it finds one of the elements from the FailXPath, and it is visible, then it will flag the claim attempt as a failure.
+    /// </summary>
+    public override int CheckFaucetResult()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.CheckFaucetResult();
+    }
+	
+	
+} //end public class

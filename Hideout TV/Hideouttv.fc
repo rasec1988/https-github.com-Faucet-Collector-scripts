@@ -1,0 +1,499 @@
+
+//last fix & new edit by: "BitStylez" 4/17/2019 8:11PM
+
+
+using FaucetCollector.Script;
+using OpenQA.Selenium;
+using System;
+using System.Collections.Generic;
+
+public class HideoutvScript : FaucetScript
+{
+    /// <summary>
+    /// List of Settings that will be shown in the bot when selecting this Faucet in the bot.
+    /// You can get the value the user entered with the methods: GetSetting("[Name of the FaucetSetting]"), GetBoolSetting and GetDateTimeSetting
+    /// You can also create a new setting value using SetSetting("[Name you want to use]", "value")
+    /// </summary>
+    public override FaucetSettings Settings
+    {
+        get
+        {
+            return new FaucetSettings("https://hideout.tv/")
+            {
+
+                new FaucetSetting(){Name="Email",Display="Username",Type=EditorType.TextBox,Required=true},
+                new FaucetSetting(){Name="Password",Display="Password",Type=EditorType.Password,Required=true},		
+
+                //insert user settings here
+                //new FaucetSetting { 
+                //    Name = "Name of your setting", 
+                //    Display = "Display shown in Faucet Collector", 
+                //    Type = EditorType.TextBox | EditorType.Password | EditorType.CheckBox | EditorType.Wallet | EditorType.Numeric | EditorType.ComboBox | EditorType.CheckComboBox, 
+                //    Required = true | false, 
+                //    Default = "Optionally a default value" | true | false | null.
+                //    Items = new List<string> { "item1", "item2" } (only valid for ComboBox or CheckComboBox)
+                //} 
+            };
+        }
+    }
+
+
+
+
+    //============================================================//
+    //the number of "successes" in the script - when are finished  
+    //============================================================//
+    public override void Start()
+    {
+        //Title that shows in the browser. Is used to identify and close popup windows
+        Title = "Hideout.tv";
+
+        //After we did try to claim on the faucet we search for these elements to determine if it was a success or a fail
+        SuccessXPath = "//div[contains(text(),'Whoah. You watched all videos there were to watch on this channel.')]";
+        FailXPath = "//div[@class='alert alert-danger text-center']";
+
+        //Let Faucet Collector start up everything
+        base.Start();
+    }
+    //============================================================//
+    //the number of "successes" in the script - when are finished  
+    //============================================================//
+
+
+
+    /// <summary>
+    /// This is the first method to run after the browser is opened and the first page is loaded.
+    /// </summary>
+    public override int DoInit()
+    {
+        //Let Faucet Collector continue.
+        return base.DoInit();
+    }
+
+
+
+
+    //==================//
+    //save Login Cookies 
+    //==================//
+    public override bool IsLoggedIn()
+    {
+        //save Login Cookies - Check if the image of balance is there
+        return ElementByXPath("//a[@href='/logout.php']") != null;
+    }
+    //==================//
+    //save Login Cookies 
+    //==================//
+
+
+
+
+
+    /// <summary>
+    /// This method gets called if IsLoggedIn returned false, right before the DoLogin method is called.
+    /// </summary>
+    public override int BeforeLogin()
+    {
+
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeLogin();
+    }
+
+
+
+
+
+    //=======//
+    //DoLogin 
+    //=======//
+    public override int DoLogin()
+    {
+
+        //var checks login or exit
+        GoToUrl("https://hideout.tv/login.php");
+        Wait();
+        IWebElement EmailBox = ElementByXPath("//input[@id='username']");
+        if (!IsVisible(EmailBox))
+        {
+            return Fail("Email box is not visible");
+        }
+        SetText(EmailBox, GetSetting("Email"));
+
+        IWebElement PasswordBox = ElementByXPath("//input[@id='password']");
+        if (!IsVisible(PasswordBox))
+        {
+            return Fail("Password box is not visible");
+        }
+        SetText(PasswordBox, GetPassword("Password"));
+
+        int result = DoSolveCaptcha();
+        if (result > 0)
+        {
+            return result;
+        }
+
+        IWebElement ButtonLogin = ElementByXPath("//button[contains(text(),'LOG IN')]");
+        if (!IsVisible(ButtonLogin))
+        {
+            return Fail("Fail button login is not found");
+        }
+        Click(ButtonLogin);
+        Wait();
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoLogin();
+    }
+    //=======//
+    //DoLogin 
+    //=======//
+
+
+
+
+
+    public override int AfterLogin()
+    {
+
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterLogin();
+    }
+
+
+
+
+
+
+    //================//
+    //GetFaucetWaitTime 
+    //================//
+    public override int GetFaucetWaitTime()
+    {
+
+        IWebElement FaucetTimer = IsVisible(ElementByXPath("//span[@id='faucettimer']")) ? ElementByXPath("//span[@id='faucettimer']") : ElementByXPath("//span[@id='faucet_timer']");
+        if (IsVisible(FaucetTimer))
+        {
+            string[] SplitedTimer = FaucetTimer.Text.Trim().Split(':');
+            int min = Convert.ToInt32(SplitedTimer[0]) * 60;
+            int seg = Convert.ToInt32(SplitedTimer[1]);
+
+            return min + seg;
+
+        }
+
+        //var FaucetTimerDashBoard = ElementByXPath("//span[@id='faucet_timer']");
+        //if (IsVisible(FaucetTimerDashBoard))
+        //{
+        //    var SplitedTimer = FaucetTimerDashBoard.Text.Trim().Split(':');
+        //    int min = Convert.ToInt32(SplitedTimer[0]) * 60;
+        //    int seg = Convert.ToInt32(SplitedTimer[1]);
+        //    return min + seg;
+        //}
+        //let Faucet Collector continue.
+        return base.GetFaucetWaitTime();
+    }
+    //================//
+    //GetFaucetWaitTime 
+    //================//
+
+
+
+
+
+
+    /// <summary>
+    /// This method is called right before a captcha will be solved. 
+    /// If you call SolveCaptcha() in other methods it will start this flow and tries to solve the captcha on the page.
+    /// </summary>
+    public override int BeforeSolveCaptcha()
+    {
+
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeSolveCaptcha();
+    }
+
+
+
+
+    public override int DoSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoSolveCaptcha();
+    }
+
+
+
+    public override int AfterSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterSolveCaptcha();
+    }
+
+
+
+    public override int BeforeSolveFaucet()
+    {
+        int Get_ = GetVideos();
+        if (Get_>0)
+        {
+            return Get_; 
+        }
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeSolveCaptcha();
+    }
+
+    public int GetVideos()
+    {
+        string hideTv = "https://hideout.tv/mostViewed.php";
+        if (Driver.Url != hideTv)
+        {
+            GoToUrl(hideTv);
+        }
+        Wait();
+        // TO SET THE RANDOM NUMBER THAT WE WILL CLICK
+        Func<List<IWebElement>, int> CalcR = x => { int Count = 0; int Rand = Random(0, x.Count - 1); while (Count < x.Count && !IsVisible(x[Rand])) { Rand = Random(0, x.Count - 1); Count++; } return (x.Count > Count) ? Count : -1; };
+
+        List<IWebElement> Firstvid = ElementsByXPath("//div[@class='videoItem']");
+        int NElement = CalcR(Firstvid);
+        if (NElement != -1)
+        {
+            Click(Firstvid[NElement]);
+            Log("Starting videos! This will take a while to complete...");
+        }
+        else
+        {
+            return Fail("Fail get videos");
+        }
+        return 0;
+    }
+
+
+
+
+    //==============//
+    //DoSolveFaucet	
+    //==============//
+    public override int DoSolveFaucet()
+    {
+        int CountBad = 0;
+        bool IsFinished = false;
+        bool InError = false;
+        int PastTime = 0;
+        bool NotAction;
+        DateTime Lastbreak = DateTime.Now;
+        while (!IsFinished && CountBad <= 3)
+        {
+            NotAction = true;
+            Wait(7);
+         
+            IWebElement IpBan = ElementByXPath("//div[contains(text(),' Rewards Unavailable')]");
+            if (IsVisible(IpBan))
+            {
+         
+                Log("Uh-Oh! Seems your IP banned.... these usually go away after 24 hours... [DISABLING SCRIPT]");
+                Driver.Close();
+                Driver.Quit();
+                Driver.Dispose();
+                Disable();
+                return 1;
+            }
+            Wait();
+            IWebElement PlayButton = ElementByXPath("//div[@class='brid-overlay-play-button brid-button ' and @title='Play Video']");
+            if (IsVisible(PlayButton))
+            {
+                Log("In PlayButton");
+                Click(PlayButton);
+                NotAction = false;
+            }
+            Wait();
+            IWebElement TermA = ElementByXPath("//button[@class='qc-cmp-button' and contains(text(),'I accept')]");
+            if (IsVisible(TermA))
+            {
+              
+                Click(TermA);
+                NotAction = false;
+            }
+            Wait();
+            IWebElement endofline = ElementByXPath("//div[@class='watched-text' and contains(text(),'Whoah. You watched all videos there were to watch on this channel.')]");
+            if (IsVisible(endofline))
+            {
+      
+                Log("You've completed a run... Redeeming points");
+                CheckFaucetResult();
+      
+                return GetWaitSetting();
+            }
+            Wait();
+            IWebElement BridNextVideo = ElementByXPath("//div[@class='brid-next-holder']");
+            if (IsVisible(BridNextVideo))
+            {
+                Log("Next Video Button is visible Switching video");
+                Click(BridNextVideo);
+                NotAction = false;
+
+            }
+            
+            var Advertisement = ElementByXPath("//iframe[@class='brid-tech'");
+            if (Advertisement != null || InError || DateTime.Now>Lastbreak)
+            {
+                ExecuteScript("window.scrollBy(0,1000)");
+                Wait();
+                ExecuteScript("window.scrollBy(0,-1000)");
+                Lastbreak = DateTime.Now.AddSeconds(90);
+            }
+         
+            DateTime t1 = DateTime.Now.AddSeconds(120);
+            //brid - vpaid - wrapper
+            while (Advertisement != null)
+            {
+                Wait();
+                if (DateTime.Now > t1)
+                {
+                    break;
+                }
+                Advertisement = ElementByXPath("//iframe[@class='brid-tech'");
+
+            }
+            IWebElement TimerCurrent = ElementByXPath("//div[@class='brid-current-time-display']");
+            int CurrentTime;
+            if (TimerCurrent!=null)
+            {
+                try
+                {
+                  string Current_=  ExecuteScript("try{var currentTime=document.getElementsByClassName('brid-current-time-display'); return currentTime[0].textContent;}catch(Exception){return 'Fail'}") as string;
+                    if (Current_ != "Fail")
+                    {
+                        var Splited = Current_.Trim().Split(':');
+                      
+                        int M;
+                        int S;
+                        int.TryParse(Splited[0], out M);
+                        int.TryParse(Splited[1], out S);
+                        CurrentTime = M * 60 + S;
+                    }
+                    else
+                    {
+                        CurrentTime = -1;
+                    }
+                }
+                catch (Exception ex) { CurrentTime = -1; Log(ex.ToString()); }
+            }
+            else
+            {
+                CurrentTime = -1;
+            }
+            IWebElement FinallyTime = ElementByXPath("//div[@class='brid-duration-display']");
+            int Finally_;
+            if (FinallyTime!=null)
+            {
+                try
+                {
+                    string Current_ = ExecuteScript("try{var currentTime=document.getElementsByClassName('brid-duration-display'); return currentTime[0].textContent;}catch(Exception){return 'Fail'}") as string;
+                    if (Current_ != "Fail")
+                    {
+                        var Splited = Current_.Trim().Split(':');
+                  
+                        int M;
+                        int S;
+                        int.TryParse(Splited[0], out M);
+                        int.TryParse(Splited[1], out S);
+                        Finally_ = M * 60 + S;
+                    }
+                    else
+                    {
+                        Finally_ = -1;
+                    }
+                }
+                catch (Exception ex) { Finally_ = -1; Log(ex.ToString()); }
+            }
+            else
+            {
+                Finally_ = -1;
+            }
+            if (Finally_ == -1 || CurrentTime == -1)
+            {
+
+                CountBad++;
+            }
+            else if (CurrentTime - Finally_ != PastTime)
+            {
+               
+                CountBad = 0;
+            }
+         
+            Log("Current remaining time in this video: " + (Finally_ - CurrentTime).ToString() + " Seconds");
+            if (Finally_ - CurrentTime == 0 && NotAction)
+            {
+                Log("Hang detected, Refreshing site");
+                if (!InError)
+                {
+
+                    InError = true;
+                }
+                else
+                {
+                 
+                    GetVideos();
+                    Driver.Navigate().Refresh();
+                    InError = false;
+                    continue;
+                }
+
+            }
+            if (PastTime == Finally_ - CurrentTime && Finally_ != -1 && CurrentTime != -1 && NotAction)
+            {
+                Log("Hang detected, Refreshing site");
+                if (!InError)
+                {
+
+                    InError = true;
+                }
+                else
+                {
+                    Log("Loop detected");
+                    Driver.Navigate().Refresh();
+                    CountBad++;
+                    continue;
+                }
+            }
+            PastTime = Finally_ - CurrentTime;
+
+         
+        }
+        return base.DoSolveFaucet();
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+
+    }
+
+    //==============//
+    //DoSolveFaucet	
+    //==============//
+
+
+
+
+
+    /// <summary>
+    /// This method will get called after the DoSolveFaucet is completed and returned it was a success.
+    /// For example you can wait for a processing popup to go away until actual faucet claim result is on the page.
+    /// </summary>
+    public override int AfterSolveFaucet()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterSolveFaucet();
+    }
+
+    /// <summary>
+    /// This method gets called in the end after the BeforeSolveFaucet/DoSolveFaucet and AfterSolveFaucet methods were done.
+    /// The base.CheckFaucetResult will try to find a visible element on the page using the XPath from SuccessXPath and FailXPath (see the Start method)
+    /// These properties should contain XPath expressions to find certain elements on the page.
+    /// For example if it finds one of the elements from the SuccessXPath, and it is visible, then it will flag the claim attempt as a success.
+    /// Or if it finds one of the elements from the FailXPath, and it is visible, then it will flag the claim attempt as a failure.
+    /// </summary>
+    public override int CheckFaucetResult()
+    {
+        //adds +1 on the claims
+        ClaimSuccess();
+        //register as success, so the script knows it can close
+        IsSuccess = true;
+        return 0;
+    }
+}

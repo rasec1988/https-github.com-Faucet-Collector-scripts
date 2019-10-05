@@ -1,0 +1,210 @@
+using System;
+using FaucetCollector.Script;
+
+public class XfaucetEarnScript : FaucetScript
+{
+    public override FaucetSettings Settings
+    {
+        get
+        {
+            return new FaucetSettings("https://xfaucet.tech/")
+            {
+                new FaucetSetting() { Name = "UserName", Display = "UserName", Type = EditorType.TextBox, Required = true },
+                new FaucetSetting() { Name = "Password", Display = "Password", Type = EditorType.Password, Required = true }
+            };
+        }
+    }
+
+    public override void Start()
+    {
+        Title = "xFaucet.tech|Faucet|Dogecoin Gambling";
+        
+        SuccessXPath = "//SPAN[@id='responseMessage']";
+        FailXPath = "//SPAN[@id='responseMessage'][@innerText='Invalid captcha submition.']";
+
+        base.Start();
+    }
+
+    public override bool IsLoggedIn()
+    {
+        var Faucetbtn = ElementByXPath("//A[@href='more'][text()='FAUCET']");
+        if (IsVisible(Faucetbtn))
+        {
+            return true;
+        }
+        var WaitElement = ElementByXPath("//DIV[@class='center-block']/H3");
+        if (IsVisible(WaitElement))
+        {
+            return true;
+        }
+        var Logout = ElementByXPath("//A[@href='?logout']");
+        if (IsVisible(Logout))
+        {
+            return true;
+        }
+        
+        return false;
+    }
+
+    public override int BeforeLogin()
+    {
+
+
+        var loginLink = ElementByXPath("//A[@href='login']");
+        if (loginLink == null)
+        {
+            return Fail("Login link not found.");
+        }
+
+        Click(loginLink);
+
+
+
+        return base.BeforeLogin();
+    }
+
+    public override int DoLogin()
+    {
+        var signInUser = ElementByXPath("//INPUT[@type='text']");
+        if (!IsVisible(signInUser))
+        {
+
+        }
+        SetText(signInUser, GetSetting("UserName"));
+
+
+        var signInPassword = ElementByXPath("//INPUT[@type='password']");
+        if (!IsVisible(signInPassword))
+        {
+
+            return Fail("Password input not found.");
+        }
+
+
+        SetText(signInPassword, GetPassword("Password"));
+
+        var loginButton = ElementByXPath("//INPUT[@type='submit']");
+        if (!IsVisible(loginButton))
+        {
+ 
+            return Fail("Login button not found.");
+        }
+
+        var result = SolveCaptcha();
+        if (result > 0)
+        {
+
+            return result;
+        }
+
+        Wait();
+
+
+        Click(loginButton);
+
+
+
+
+        return base.DoLogin();
+    }
+
+    public override int AfterLogin()
+    {
+
+        return base.AfterLogin();
+    }
+
+    public override int GetFaucetWaitTime()
+    {
+                GoToUrl("https://xfaucet.tech/earn");
+
+        var waitElement = ElementByXPath("//div[@class='well']/center/span/b");
+        if (!IsVisible(waitElement))
+        {
+            //no time remaining element, so we are good to go.
+            return 0;
+        }
+
+        var waitText = waitElement.Text.ToLower().Trim().Replace("minutes left for next claim.", "").Trim();
+        int minutes;
+        if (!int.TryParse(waitText, out minutes))
+        {
+            return Fail("Unable to get the remaining time from text '" + waitText + "'.");
+        }
+
+        //return the total wait time in seconds
+        return minutes * 60;
+    }
+
+    public override int BeforeSolveCaptcha()
+    {
+
+        return base.BeforeSolveCaptcha();
+    }
+
+    public override int DoSolveCaptcha()
+    {
+
+        return base.DoSolveCaptcha();
+    }
+
+    public override int AfterSolveCaptcha()
+    {
+
+        return base.AfterSolveCaptcha();
+    }
+
+    public override int BeforeSolveFaucet()
+    {
+                GoToUrl("https://xfaucet.tech/earn");
+                Wait();
+
+        return base.BeforeSolveFaucet();
+    }
+
+    public override int DoSolveFaucet()
+    {
+
+        var Claimbtn = ElementByXPath("//INPUT[@type='submit']");
+        if (!IsVisible(Claimbtn))
+        {
+            return Fail("Claim button not visible.");
+        }
+
+        //Solve the captcha
+        var result = SolveCaptcha();
+        if (result > 0)
+        {
+
+            return result;
+        }
+
+        Wait();
+
+
+        Click(Claimbtn);
+
+
+        return base.DoSolveFaucet();
+    }
+
+    public override int AfterSolveFaucet()
+    {
+
+        return base.AfterSolveFaucet();
+    }
+
+    public override int CheckFaucetResult()
+    {
+        var result = base.CheckFaucetResult();
+        if (IsSuccess)
+        {
+
+            Reload = true;
+
+        }
+
+        return result;
+    }
+
+}

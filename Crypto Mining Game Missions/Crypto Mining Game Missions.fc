@@ -1,0 +1,625 @@
+using FaucetCollector.Script;
+using OpenQA.Selenium;
+using System;
+using System.Collections.Generic;
+//css_inc RecaptchaUtilities
+//css_inc ShortLinkUtilities
+//css_inc BaseUtility
+public class cryptomininggameScript : FaucetScript
+{
+    public override FaucetSettings Settings
+    {
+        get
+        {
+            return new FaucetSettings("https://cryptomininggame.com/missions")
+            {
+				//Setting for UserName for cryptomininggame.com
+                new FaucetSetting() { Name = "UserName", Display = "UserName", Type = EditorType.TextBox, Required = true },
+				//Setting for Password for cryptomininggame.com
+                new FaucetSetting() { Name = "Password", Display = "Password", Type = EditorType.Password, Required = true },
+				//Allow the user to select an coin option
+                new FaucetSetting() {
+                    Name = "CoinToMissions",
+                    Display = "Select coin of mission",
+                    Type = EditorType.ComboBox,
+                    Items = new List<string>
+                    {
+                        "BTC",
+                        "Doge",
+                        "LTC",
+                        "CRYSTALS"
+                    },
+                    Default = "BTC"
+                },
+				//Allow the user to select the level
+                new FaucetSetting() {
+                    Name = "MissionLevel",
+                    Display = "Select level of mission",
+                    Type = EditorType.ComboBox,
+                    Items = new List<string>
+                    {
+
+                        "Level 1",
+                        "Level 2",
+                        "Level 3",
+                        "Level 4",
+                        "Level 5",
+                        "Level 6",
+                        "Level 7",
+                        "Level 8",
+                        "Level 9",
+                        "Level 10",
+                        "Level 11",
+                        "Level 12",
+                        "Level 13",
+                        "Level 14",
+                        "Level 15",
+                        "Level 16",
+                    },
+                    Default = "Level 1"
+                }
+            };
+        }
+    }
+
+    public override void Start()
+    {
+        cr = false;
+        Title = "CMG|zap|short|Short|BTC.ms|shrink|URL";
+
+        SuccessXPath = "//div[contains(@class, 'alert-success')]/big";
+        FailXPath = "//div[contains(@class,'alert-warning')]";
+
+        base.Start();
+    }
+
+    public override bool IsLoggedIn()
+    {
+
+        return IsVisible(ElementByXPath("//a[contains(@href, '/logout')]"));
+    }
+
+    public override int BeforeLogin()
+    {
+        Wait(4);
+
+        if (!IsVisible(ElementByXPath("//input[@id='username']")))
+        {
+            IWebElement loginPanelBtn = ElementByXPath("//*[@id='main_menu']/div/button[contains(text(),'Log in')]");
+            if (!IsVisible(loginPanelBtn))
+            {
+                return Fail("Login button not found.");
+            }
+
+            Click(loginPanelBtn);
+        }
+        return base.BeforeLogin();
+    }
+
+    public override int DoLogin()
+    {
+
+        IWebElement logInUser = ElementByXPath("//input[@id='username']");
+        if (!IsVisible(logInUser))
+        {
+
+        }
+        SetText(logInUser, GetSetting("UserName"));
+        IWebElement logInPassword = ElementByXPath("//input[@id='password']");
+        if (!IsVisible(logInPassword))
+        {
+
+            return Fail("Password input not found.");
+        }
+        SetText(logInPassword, GetPassword("Password"));
+        IWebElement Type = ElementByXPath("//select[@name='captchatype']");
+        if (IsVisible(Type))
+        {
+            SelectOptionByValue(Type, "g-recaptcha");
+            Wait();
+        }
+        int result = DoSolveCaptcha();
+        if (result > 0)
+        {
+
+            return Fail("Fail solving captcha");
+        }
+        Wait();
+
+
+        IWebElement loginButton = ElementByXPath("//button[@id='_submit']");
+        if (!IsVisible(loginButton))
+        {
+
+            return Fail("Login button not found.");
+        }
+
+        Wait();
+
+
+        Click(loginButton);
+        Wait(1);
+        IWebElement AlertFail = ElementByXPath("//div[@class='alert alert-danger alert-error']");
+        if (IsVisible(AlertFail))
+        {
+
+            Log(AlertFail.Text);
+        }
+
+        return base.DoLogin();
+    }
+
+    public override int AfterLogin()
+    {
+        GoToUrl(Url);
+
+        return base.AfterLogin();
+    }
+
+    public override int GetFaucetWaitTime()
+    {
+        if (!Driver.Url.Contains("https://cryptomininggame.com/missions"))
+        {
+            GoToUrl("https://cryptomininggame.com/missions");
+            Wait();
+        }
+        //div[@id='mission_collapse2']//div[contains(@id,'panel_mission_')]//span[contains(@id,'mission_timer_')]
+        //div[@id='mission_collapse2']//div[contains(@id,'panel_mission_')][3]
+        List<IWebElement> elements = ElementsByXPath("//span[contains(@id,'mission_timer')]");
+        if (elements.Count > 0)
+        {
+
+            string level = GetSetting("MissionLevel");
+            level = level.Replace("Level ", "");
+            int level_;
+            int.TryParse(level, out  level_);
+            if (GetSetting("CoinToMissions") != "CRYSTALS")
+            {
+                string coin = GetSetting("CoinToMissions");
+                int n_button = 0;
+                if (coin == "Doge")
+                {
+                    n_button += 2;
+                }
+                else if (coin == "BTC")
+                {
+                    n_button += 1;
+                }
+                else if (coin == "LTC")
+                {
+                    n_button += 3;
+                }
+                IWebElement panel_t = ElementByXPath("//div[@id='mission_collapse" + level_.ToString() + "']//div[contains(@id,'panel_mission_')][" + n_button.ToString() + "]//span[contains(@id,'mission_timer_')]");
+
+                if (panel_t != null)
+                {
+                    try
+                    {
+                        string id = panel_t.GetAttribute("id");
+                        object time = ExecuteScript("var a =document.getElementById('" + id + "');return a.innerHTML");
+                        int h;
+                        int m;
+                        int s;
+                        int.TryParse(time.ToString().Split(':')[0], out  h);
+
+                        int.TryParse(time.ToString().Split(':')[1], out  m);
+
+                        int.TryParse(time.ToString().Split(':')[2], out  s);
+
+                        h *= 3600;
+                        m *= 60;
+                        return h + m + s;
+                    }
+                    catch (Exception ex)
+                    {
+                        Log(ex.ToString());
+                        return 120;
+                    }
+                }
+                else
+                {
+                    return 0;
+                }
+            }
+            else
+            {
+                if (level_ >= 5 && level_ < 10)
+                {
+
+                    IWebElement panel_t = ElementByXPath("//div[contains(@id,'mission_collapse" + 5 + "')]//div[@class='panel-body'][4]//span[contains(@id,'mission_timer_')]");
+                    if (panel_t != null)
+                    {
+                        try
+                        {
+                            string id = panel_t.GetAttribute("id");
+                            object time = ExecuteScript("var a =document.getElementById('" + id + "');return a.innerHTML");
+                            int h;
+                            int m;
+                            int s;
+                            int.TryParse(time.ToString().Split(':')[0], out  h);
+
+                            int.TryParse(time.ToString().Split(':')[1], out  m);
+
+                            int.TryParse(time.ToString().Split(':')[2], out s);
+
+                            h *= 3600;
+                            m *= 60;
+                            return h + m + s;
+                        }
+                        catch (Exception ex)
+                        {
+                            Log(ex.ToString());
+                            return 120;
+                        }
+                    }
+                    else
+                    {
+                        return 0;
+                    }
+
+                }
+                if (level_ >= 10 && level_ < 15)
+                {
+
+                    IWebElement panel_t = ElementByXPath("//div[contains(@id,'mission_collapse" + 10 + "')]//div[@class='panel-body'][4]//span[contains(@id,'mission_timer_')]");
+                    if (panel_t != null)
+                    {
+                        try
+                        {
+                            string id = panel_t.GetAttribute("id");
+                            object time = ExecuteScript("var a =document.getElementById('" + id + "');return a.innerHTML");
+                            int h;
+                            int m;
+                            int s;
+                            int.TryParse(time.ToString().Split(':')[0], out  h);
+
+                            int.TryParse(time.ToString().Split(':')[1], out  m);
+
+                            int.TryParse(time.ToString().Split(':')[2], out  s);
+
+                            h *= 3600;
+                            m *= 60;
+                            return h + m + s;
+                        }
+                        catch (Exception ex)
+                        {
+                            Log(ex.ToString());
+                            return 120;
+                        }
+                    }
+                    else
+                    {
+                        return 0;
+                    }
+
+                }
+                if (level_ >= 15)
+                {
+
+                    IWebElement panel_t = ElementByXPath("//div[contains(@id,'mission_collapse" + 15 + "')]//div[@class='panel-body'][1]//span[contains(@id,'mission_timer_')]");
+                    if (panel_t != null)
+                    {
+                        try
+                        {
+                            string id = panel_t.GetAttribute("id");
+                            object time = ExecuteScript("var a =document.getElementById('" + id + "');return a.innerHTML");
+                            int h;
+                            int m;
+                            int s;
+                            int.TryParse(time.ToString().Split(':')[0], out  h);
+
+                            int.TryParse(time.ToString().Split(':')[1], out m);
+
+                            int.TryParse(time.ToString().Split(':')[2], out s);
+
+                            h *= 3600;
+                            m *= 60;
+                            return h + m + s;
+                        }
+                        catch (Exception ex)
+                        {
+                            Log(ex.ToString());
+                            return 120;
+                        }
+                    }
+                    else
+                    {
+                        return 0;
+                    }
+
+                }
+                else
+                {
+                    Disable(); return Fail("You need select one level >5 for claim crystals");
+
+                }
+            }
+
+
+
+        }
+        else
+        {
+            return 0;
+        }
+
+
+
+
+
+
+    }
+
+
+
+    public override int BeforeSolveCaptcha()
+    {
+
+        return base.BeforeSolveCaptcha();
+    }
+
+    public override int DoSolveCaptcha()
+    {
+        //Let Faucet Collector continue. It will check for SolveMedia and reCAPTCHA.
+        return base.DoSolveCaptcha();
+    }
+
+    public override int AfterSolveCaptcha()
+    {
+
+        return base.AfterSolveCaptcha();
+    }
+
+
+
+    public override int BeforeSolveFaucet()
+    {
+        Wait(2, 3);
+        IWebElement chest = ElementByXPath("//img[@id='chest_image']");
+        if (chest != null)
+        {
+            Wait(2, 3);
+            DateTime break_chest = DateTime.Now.AddSeconds(8);
+            while (chest != null && IsVisible(ElementByXPath("//span[@id='reward_remaining']")))
+            {
+                ExecuteScript("var a=document.getElementById('chest_image');a.click();");
+                Click(chest);
+                Wait(1);
+
+                chest = ElementByXPath("//img[@id='chest_image']");
+
+                if (DateTime.Now > break_chest)
+                {
+                    break;
+                }
+            }
+            Wait();
+        }
+        Wait();
+
+        List<IWebElement> validate = ElementsByXPath("//form[@action='/validate-missions']//button");
+        while (validate.Count > 0)
+        {
+            Click(validate[0]);
+            Wait(2, 3);
+            chest = ElementByXPath("//img[@id='chest_image']");
+            if (chest != null)
+            {
+                Wait(2, 3);
+                DateTime break_chest = DateTime.Now.AddSeconds(8);
+                while (chest != null && IsVisible(ElementByXPath("//span[@id='reward_remaining']")))
+                {
+
+                    Click(chest);
+                    Wait(1);
+
+                    chest = ElementByXPath("//img[@id='chest_image']");
+
+                    if (DateTime.Now > break_chest)
+                    {
+                        break;
+                    }
+                }
+                Wait();
+            }
+
+            GoToUrl("https://cryptomininggame.com/missions");
+            Wait(2, 3);
+            validate = ElementsByXPath("//form[@action='/validate-missions']//button");
+            Wait();
+        }
+        Driver.Navigate().Refresh();
+        return base.BeforeSolveFaucet();
+    }
+
+    private static bool cr;
+    public override int DoSolveFaucet()
+    {
+
+        if (!Driver.Url.Contains("https://cryptomininggame.com/missions"))
+        {
+            GoToUrl("https://cryptomininggame.com/missions");
+            Wait();
+        }
+        string level = GetSetting("MissionLevel");
+        level = level.Replace("Level ", "");
+        int level_;
+        int.TryParse(level, out level_);
+        level_--;
+
+        List<IWebElement> panel_ = ElementsByXPath("//a[@data-toggle='collapse']");
+        if (panel_.Count > 0)
+        {
+            if (GetSetting("CoinToMissions") != "CRYSTALS")
+            {
+                Click(panel_[level_]);
+                Wait();
+
+                int n_button = 0;
+
+
+                string coin = GetSetting("CoinToMissions");
+                if (coin == "Doge")
+                {
+                    n_button += 1;
+                }
+                else if (coin == "BTC")
+                {
+
+                }
+                else if (coin == "LTC")
+                {
+                    n_button += 2;
+                }
+                List<IWebElement> buttons = ElementsByXPath("//div[contains(@id,'mission_collapse" + (level_ + 1).ToString() + "')]//div[@class='panel-body']//div[contains(@id,'panel_mission_')]//form[@action='/do-missions']//button");
+
+                Click(buttons[n_button]);
+                Wait();
+
+
+
+            }
+            else
+            {
+                if (level_ >= 5 && level_ < 10)
+                {
+                    Click(panel_[4]);
+                    Wait();
+                    List<IWebElement> buttons = ElementsByXPath("//div[contains(@id,'mission_collapse" + 5 + "')]//div[@class='panel-body']//div[contains(@id,'panel_mission_')]//form[@action='/do-missions']//button");
+                    Click(buttons[3]);
+                }
+                if (level_ >= 10 && level_ < 15)
+                {
+                    Click(panel_[9]);
+                    Wait();
+                    List<IWebElement> buttons = ElementsByXPath("//div[contains(@id,'mission_collapse" + 10 + "')]//div[@class='panel-body']//div[contains(@id,'panel_mission_')]//form[@action='/do-missions']//button");
+                    Click(buttons[3]);
+                }
+                if (level_ >= 15)
+                {
+                    Click(panel_[14]);
+                    Wait();
+                    List<IWebElement> buttons = ElementsByXPath("//div[contains(@id,'mission_collapse" + 15 + "')]//div[@class='panel-body']//div[contains(@id,'panel_mission_')]//form[@action='/do-missions']//button");
+                    Click(buttons[0]);
+                }
+                else
+                {
+                    Disable(); return Fail("You need select one level >5 for claim crystals");
+
+                }
+            }
+            Wait();
+            if (IsVisible(ElementByXPath("//p[contains(text(),'Please follow the link below to prove')]")))
+            {
+
+                IWebElement button = ElementByXPath("//div[@class='panel panel-primary']//button[@type='button']");
+                if (IsVisible(button))
+                {
+                    Click(button);
+                }
+                Wait();
+                List<IWebElement> b_urls = ElementsByXPath("//button[@class='btn btn-block btn-sm btn-info']");
+                if (b_urls.Count > 0)
+                {
+                    int n_url = Random(0, b_urls.Count - 1);
+                    Click(b_urls[n_url]);
+                    Wait(2, 3);
+                    ShortLinkBypasser bypasser = new ShortLinkBypasser(this);
+                    bypasser.DoShortLink();
+                    Wait();
+                }
+                Wait(2, 3);
+
+                GoToUrl("https://cryptomininggame.com/missions");
+                Wait(2, 3);
+                panel_ = ElementsByXPath("//a[@data-toggle='collapse']");
+                if (panel_.Count > 0)
+                {
+                    if (GetSetting("CoinToMissions") != "CRYSTALS")
+                    {
+                        Click(panel_[level_]);
+                        Wait();
+
+                        int n_button = 0;
+
+
+                        string coin = GetSetting("CoinToMissions");
+                        if (coin == "Doge")
+                        {
+                            n_button += 1;
+                        }
+                        else if (coin == "BTC")
+                        {
+
+                        }
+                        else if (coin == "LTC")
+                        {
+                            n_button += 2;
+                        }
+                        List<IWebElement> buttons = ElementsByXPath("//div[contains(@id,'mission_collapse" + (level_ + 1).ToString() + "')]//div[@class='panel-body']//div[contains(@id,'panel_mission_')]//form[@action='/do-missions']//button");
+
+                        Click(buttons[n_button]);
+                        Wait();
+
+
+
+                    }
+                    else
+                    {
+                        if (level_ >= 5 && level_ < 10)
+                        {
+                            Click(panel_[4]);
+                            Wait();
+                            List<IWebElement> buttons = ElementsByXPath("//div[contains(@id,'mission_collapse" + 5 + "')]//div[@class='panel-body']//div[contains(@id,'panel_mission_')]//form[@action='/do-missions']//button");
+                            Click(buttons[3]);
+                        }
+                        if (level_ >= 10 && level_ < 15)
+                        {
+                            Click(panel_[9]);
+                            Wait();
+                            List<IWebElement> buttons = ElementsByXPath("//div[contains(@id,'mission_collapse" + 10 + "')]//div[@class='panel-body']//div[contains(@id,'panel_mission_')]//form[@action='/do-missions']//button");
+                            Click(buttons[3]);
+                        }
+                        if (level_ >= 15)
+                        {
+                            Click(panel_[14]);
+                            Wait();
+                            List<IWebElement> buttons = ElementsByXPath("//div[contains(@id,'mission_collapse" + 15 + "')]//div[@class='panel-body']//div[contains(@id,'panel_mission_')]//form[@action='/do-missions']//button");
+                            Click(buttons[0]);
+                        }
+                        else
+                        {
+                            Disable(); return Fail("You need select one level >5 for claim crystals");
+
+                        }
+                    }
+                }
+            }
+            Wait();
+
+        }
+        else
+        {
+            return Fail("Display panel not found");
+        }
+
+
+        return base.DoSolveFaucet();
+    }
+
+    public override int AfterSolveFaucet()
+    {
+
+
+        return base.AfterSolveFaucet();
+    }
+
+
+    public override int CheckFaucetResult()
+    {
+        int result = base.CheckFaucetResult();
+
+        return result;
+    }
+
+}

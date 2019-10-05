@@ -1,0 +1,277 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using FaucetCollector.Script;
+using OpenQA.Selenium;
+//css_inc ShortLinkUtilities
+class CoinMonsterScript : FaucetScript
+{
+
+
+    public override FaucetSettings Settings
+    {
+        get
+        {
+            return new FaucetSettings ( "https://coinmonster.pw/user" )
+            {
+                new FaucetSetting(){Name="User",
+                    Display ="Username",
+                    Type =EditorType.TextBox,
+                    Required =true
+                },
+                new FaucetSetting()
+                {
+                    Name="Pass",
+                    Display="Password",
+                    Type=EditorType.Password,
+                    Required=true
+                },
+                new FaucetSetting ( )
+                {
+                    Name="Coin",
+                    Display="Coin to claim",
+                    Type=EditorType.ComboBox,
+                    Items=AvailableCoins,
+                    Default=DefaultCoin
+
+                }
+                
+            };
+        }
+    }
+    /// <summary>
+    /// List of available coins
+    /// </summary>
+ static readonly List<string> AvailableCoins=new List<string>{ "ZRX" , "XLM","USDT","NPXS","BIT" };
+
+  const string DefaultCoin ="ZRX";
+    public override void Start ( )
+    {
+       
+
+        Title="Coinmonster";
+
+
+        SuccessXPath="//p[@class='won']";
+        FailXPath="//p[@class='err']";
+
+        base.Start ( );
+    }
+    /// <summary>
+    /// Get coin setting in the script
+    /// </summary>
+    public string Coin { get {
+
+            string SelectedCoin=GetSetting("Coin");
+            if(AvailableCoins.Contains ( SelectedCoin.ToUpper ( ) ) )
+            {
+                return SelectedCoin;
+            }
+            else
+            {
+                Log ( "Coin setting corrupted, selecting default [ZRX] " );
+                SetSetting ( "Coin" , "ZRX" );
+                return DefaultCoin;
+            }
+        }
+    }
+
+    public string UrlCoin
+    {
+        get
+        {
+            return "https://coinmonster.pw/get-free/"+Coin;
+        }
+
+    }
+    public override int DoInit ( )
+    {
+       
+        return base.DoInit ( );
+    }
+
+
+    public override bool IsLoggedIn ( )
+    {
+        // See if the element is visible;
+        return ( Driver.Url.Contains ( "https://coinmonster.pw/user"  )&& ElementByXPath ( "//h2[contains(text(),\"Whatever you were looking for doesn't currently exist at this address!\")]" )!=null ) || ElementByXPath( "//a[@href='/user/']")==null;
+    }
+
+
+    public override int BeforeLogin ( )
+    {
+
+        return base.BeforeLogin ( );
+    }
+
+
+    public override int DoLogin ( )
+    {
+
+        var UserBox = ElementByXPath("//input[@name='user_email']");
+        if ( !IsVisible ( UserBox ) )
+        {
+            return Fail ( "UserBox not found" );
+        }
+        SetText ( UserBox , GetSetting ( "User" ) );
+
+        var PasswordBox = ElementByXPath("//input[@name='user_pass']");
+        if ( !IsVisible ( PasswordBox ) )
+        {
+            return Fail ( "Password box not visible" );
+        }
+        SetText ( PasswordBox , GetPassword ( "Pass" ) );
+        var result = DoSolveCaptcha();
+
+        if ( result>0 )
+        {
+            return Fail ( "Fail solving captcha" );
+        }
+
+        var ButtonLogin = ElementByXPath("//button[@name='user_login']");
+        if ( !IsVisible ( ButtonLogin ) )
+        {
+            return Fail ( "Button login not visible" );
+
+        }
+        Click ( ButtonLogin );
+        Wait ( );
+        var ErrorElement = ElementByXPath(FailXPath);
+        if ( IsVisible ( ErrorElement ) )
+        {
+            Log ( ErrorElement.Text );
+            if ( ErrorElement.Text.ToLower ( ).Contains ( "E-mail not found!" )||ErrorElement.Text.ToLower ( ).Contains ( "invalid Password" ) )
+            {
+                Disable ( );
+                return Fail ( "You need to put correct credentials " );
+            }
+        }
+
+        return base.DoLogin ( );
+    }
+
+
+    public override int AfterLogin ( )
+    {
+
+        return base.AfterLogin ( );
+    }
+
+
+    public override int GetFaucetWaitTime ( )
+    {
+
+        var Timers=ElementsByXPath("//span[@class='countdown-amount']");
+        if ( Timers.Count==2 && IsVisible(Timers[0]) && IsVisible(Timers[1]) )
+        {
+            int Minutes=Convert.ToInt32(Timers[0].Text.Trim());
+            int Seconds=Convert.ToInt32(Timers[1].Text.Trim());
+
+            return Minutes+Seconds;
+        }
+
+        return base.GetFaucetWaitTime ( );
+    }
+
+
+    public override int BeforeSolveCaptcha ( )
+    {
+
+        return base.BeforeSolveCaptcha ( );
+    }
+
+    public override int DoSolveCaptcha ( )
+    {
+
+        return base.DoSolveCaptcha ( );
+    }
+
+
+    public override int AfterSolveCaptcha ( )
+    {
+
+        return base.AfterSolveCaptcha ( );
+    }
+
+
+    public override int BeforeSolveFaucet ( )
+    {
+       
+
+        return base.BeforeSolveCaptcha ( );
+    }
+
+
+    public override int DoSolveFaucet ( )
+    {
+        
+        GoToUrl ( UrlCoin );
+        Wait (1 );
+
+        var ButtonGo = ElementByXPath("//button[@id='claim']");
+        if ( !IsVisible ( ButtonGo ) )
+        {
+            return Fail ( "Button Claim not found" );
+        }
+
+        Click ( ButtonGo );
+
+        Wait ( 1);
+        var ButtonGoShortlink=ElementByXPath("//a[contains(text(),'Get reward')]");
+        if ( !IsVisible ( ButtonGoShortlink ) )
+        {
+            return Fail ( "button go to shortlink not found" );
+        }
+        ShortLinkBypasser bypasser=new ShortLinkBypasser(this);
+        Wait ( 1 );
+        Click ( ButtonGoShortlink );
+        Wait ( 1 );
+
+        bool res =SolveShort ( );
+        if ( res )
+        {
+            Log ( "Shortlink Success" );
+        }
+        return DoSolveFaucet ( );
+    }
+
+    public bool SolveShort ( )
+    {
+        var result=DoSolveCaptcha();
+        if ( result>0 )
+        {
+            return false;
+        }
+        DateTime Timeout=DateTime.Now.AddSeconds(20);
+        var ButtonNext=ElementByXPath("//button[@class='btn btn-success']");
+        while ( !IsVisible ( ButtonNext )&&IsVisible ( ElementByXPath ( "//div[@id='defaultCountdown']" ) )&&DateTime.Now<Timeout )
+        {
+            Wait ( );
+            ButtonNext=ElementByXPath ( "//button[@class='btn btn-success']" );
+        }
+
+        if ( !IsVisible ( ButtonNext ) )
+        {
+            return false;
+        }
+
+        Click ( ButtonNext );
+        Wait ( 1 );
+
+        return true;
+    }
+    public override int AfterSolveFaucet ( )
+    {
+        return base.AfterSolveFaucet ( );
+    }
+
+
+    public override int CheckFaucetResult ( )
+    {
+
+        return base.CheckFaucetResult ( );
+    }
+
+}

@@ -1,0 +1,777 @@
+﻿
+
+//==================//
+//script Written by: ••AviramDayan•• 01/06/2019 07:00AM
+//Last Update: 10/07/2019 07:00AM - Version 4
+//==================//
+
+using System;
+using System.Drawing;
+using FaucetCollector.Script;
+using System.Threading.Tasks;
+using System.Collections.Generic;
+using OpenQA.Selenium;
+using OpenQA.Selenium.Interactions;
+
+//css_inc recaptchaUtilities
+//css_inc AntiBotLinksUtility
+//css_ref ImageProcessing
+//css_ref ProcessingImagesUsingLockBits
+//css_inc GetestCaptcha
+
+public class esbtcnewz : FaucetScript
+{
+    /// <summary>
+    /// List of Settings that will be shown in the bot when selecting this Faucet in the bot.
+    /// You can get the value the user entered with the methods: GetSetting("[Name of the FaucetSetting]"), GetBoolSetting and GetDateTimeSetting
+    /// You can also create a new setting value using SetSetting("[Name you want to use]", "value")
+    /// </summary>
+    public override FaucetSettings Settings
+    {
+        get
+        {
+			
+            return new FaucetSettings("https://es.btcnewz.com/")
+            {
+                new FaucetSetting(){Name="Email",Display="Email",Type=EditorType.TextBox,Required=false},
+                new FaucetSetting(){Name="Password",Display="Password",Type=EditorType.Password,Required=false},
+				
+                new FaucetSetting() { Name = "SolveMedia_ReCaptcha", Display = "SolveMedia (ON/Checked) ReCaptcha (OFF/UnChecked)", Type = EditorType.CheckBox, Default = true},   
+                new FaucetSetting() { Name = "WeeklyBonus", Display = "WeeklyBonus - On/OFF", Type = EditorType.CheckBox, Default = true},				
+                new FaucetSetting() { Name = "AutoDisableScript", Display = "AutoDisableScript - protection if the page are frozen - on Login page", Type = EditorType.CheckBox, Default = true},				
+
+
+				
+                new FaucetSetting() { Name = "es", Display = "es - claim", Type = EditorType.CheckBox, Default = true},				
+                new FaucetSetting() { Name = "btc", Display = "btc - claim", Type = EditorType.CheckBox, Default = true},	
+                new FaucetSetting() { Name = "eth", Display = "eth - claim", Type = EditorType.CheckBox, Default = true},
+                new FaucetSetting() { Name = "ltc", Display = "ltc - claim", Type = EditorType.CheckBox, Default = true},	
+                new FaucetSetting() { Name = "xrp", Display = "xrp - claim", Type = EditorType.CheckBox, Default = true},	
+                new FaucetSetting() { Name = "xlm", Display = "xlm - claim", Type = EditorType.CheckBox, Default = true},	
+                new FaucetSetting() { Name = "dgb", Display = "dgb - claim", Type = EditorType.CheckBox, Default = true},				
+                new FaucetSetting() { Name = "doge", Display = "doge - claim", Type = EditorType.CheckBox, Default = true},	
+                new FaucetSetting() { Name = "bat", Display = "bat - claim", Type = EditorType.CheckBox, Default = true},	
+                new FaucetSetting() { Name = "bch", Display = "bch - claim", Type = EditorType.CheckBox, Default = true},			
+                new FaucetSetting() { Name = "etc", Display = "etc - claim", Type = EditorType.CheckBox, Default = true},			
+                new FaucetSetting() { Name = "zrx", Display = "zrx - claim", Type = EditorType.CheckBox, Default = true},	
+                new FaucetSetting() { Name = "tron", Display = "tron - claim", Type = EditorType.CheckBox, Default = true},	
+            };
+        }
+    }
+
+	
+//============================================================//
+//the number of "successes" in the script - when are finished  
+//============================================================//
+    public override void Start()
+    {
+        ad = false;
+       
+        //Title that shows in the browser. Is used to identify and close popup windows
+        Title = "ESFaucet User";
+
+		SuccessXPath = "//*";  //*[@id='']
+        FailXPath = "//*"; //*[@id='']
+	
+        //TimerIsCountingUp = true;
+		
+        //Let Faucet Collector start up everything
+        base.Start();
+    }
+//============================================================//
+//the number of "successes" in the script - when are finished  
+//============================================================//
+
+	
+    bool ad; //custom bool
+
+
+    public override int DoInit()
+    {
+	
+        //Let Faucet Collector continue.
+        return base.DoInit();
+    }
+
+	
+//==================//
+//save Login Cookies 
+//==================//
+    public override bool IsLoggedIn()
+    {
+	    //save Login Cookies - Check if the "Logout" exist
+        return ElementByXPath("//div[@id='sidebar']") != null;  //a[contains(text(),'Logout')]
+	 
+        //return base.IsLoggedIn();
+    }
+//==================//
+//save Login Cookies 
+//==================//	
+
+
+
+
+//=============//
+//BeforeLogin
+//=============//
+    public override int BeforeLogin()
+    {
+		
+	  //importent - try to go to home - to save the Cookies 
+      GoToUrl("https://es.btcnewz.com/user/home");
+	  Wait();	
+
+/*	  
+	 //var checks login or exit
+     var ExitButton = ElementByXPath("//div[@id='sidebar']");
+
+	 
+	 //if i already Login - go to "bonus"	 
+	 if (IsVisible(ExitButton))
+	 {
+        //if we already login go to here
+        GoToUrl("https://es.btcnewz.com/user/home");
+	 }	
+*/	
+		
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeLogin();
+    }
+//=============//
+//BeforeLogin
+//=============//
+
+	
+
+
+	
+//========//
+//DoLogin
+//========//
+    public override int DoLogin()
+    {
+
+	  
+      var ExitButton = ElementByXPath("//div[@id='sidebar']");
+	
+	 //if i NOT Login - go to Login Page
+	 if (!IsVisible(ExitButton))
+	 {
+
+		GoToUrl("https://es.btcnewz.com/user/login");
+		Wait();		
+		Wait(2);
+
+        var box_user = ElementByXPath("//input[@id='email']");
+        SetText(box_user, GetSetting("Email"));
+		
+		Wait(2);
+		
+        var box_pass = ElementByXPath("//input[@id='password']");
+        SetText(box_pass, GetPassword("Password"));
+		
+		Wait(2);
+
+        //SolveCaptcha if apper
+        var result = DoSolveCaptcha();
+        if (result > 0)
+        {
+            return Fail("Fail solving captcha");
+        }
+		
+		Wait(4);
+		
+        var ButtonLog = ElementByXPath("//div[4]/button[@type='submit']");
+	    if (IsVisible(ButtonLog))
+	    {		
+	    Log("ButtonLog");
+        Click(ButtonLog);
+		}
+		
+		//protection 
+		Wait(15);
+		
+        if (Driver.Url.Contains("https://es.btcnewz.com/user/login") && !Driver.Url.Contains("https://es.btcnewz.com/user/home") )   //If the page stuck on "Login" page And not continue to the homepage
+        {
+			
+            if (GetBoolSetting("AutoDisableScript"))
+            {
+            Disable();
+            return 1;
+            }
+		
+		    Wait(2);
+			Log("Login - NOT Contains - there is a temporary site problem (unrelated to script) we return after your time");
+			Driver.Close();  // Close specific chrome window
+            Driver.Quit();  // also Close the console app, that was used to kick off the chrome window
+            Driver.Dispose();  // Close the chromedriver.exe
+            return GetWaitSetting();
+	
+        }	
+		
+/*		
+        var Error_Message = ElementByXPath ("//div[@id='add_err']/div/div[@class='message' and contains(text(),'fille' | 'captcha' ) ]");
+        if (IsVisible(Error_Message))
+        {
+            Log("Error_Message - Appear - we return after 1 min ");
+            return 1*60; //we return after 1 min
+        }
+*/		
+		Wait();	
+
+	 } // end ExitButton
+
+        
+       return base.DoLogin();
+    }
+//========//
+//DoLogin
+//========//
+ 
+
+
+//========//
+//AfterLogin
+//========//
+ public override int AfterLogin()
+ {
+ 
+  
+    //we are good to continue
+    return base.AfterLogin();
+
+ }
+//========//
+//AfterLogin
+//========//
+
+
+	
+
+//================//
+//GetFaucetWaitTime
+//================//
+    public override int GetFaucetWaitTime()
+    {
+
+        if (ad)
+        {
+		    //Log("return ad");
+			ad=false;
+			Driver.Close();  // Close specific chrome window
+            Driver.Quit();  // also Close the console app, that was used to kick off the chrome window
+            Driver.Dispose();  // Close the chromedriver.exe
+            return GetWaitSetting();
+        }
+
+		//let Faucet Collector continue.
+        return base.GetFaucetWaitTime();
+    }
+//================//
+//GetFaucetWaitTime
+//================//
+
+
+
+    public override int BeforeSolveCaptcha()
+    {
+ 
+        //Return we are ready to proceed
+        return base.BeforeSolveFaucet();
+    }
+
+	
+    public override int DoSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoSolveCaptcha();
+    }
+
+	
+    public override int AfterSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterSolveCaptcha();
+    }
+
+	
+    public override int BeforeSolveFaucet()
+    {
+        //Return we can continue
+        return base.BeforeSolveFaucet();
+    }
+  
+	
+	
+//==============//
+//DoSolveFaucet
+//==============//
+ public override int DoSolveFaucet()
+  {
+
+	  //===========//
+	  //WeeklyBonus
+	  //===========//
+	  if (GetBoolSetting("WeeklyBonus"))
+      {
+			
+        GoToUrl("https://es.btcnewz.com/user/weekly/bonus");
+		Log("Go to WeeklyBonus");	
+		
+		Wait();
+		Wait(2);
+		
+        var WeeklyBonus_Here_VAR = ElementByXPath("//button[@id='btnSubmit' and contains(text(),'Weekly Bonus') ]");
+        var WeeklyBonus_NOTHere_VAR = ElementByXPath("//a[@type='button' and contains(text(),'1 day') ]");
+
+		if (IsVisible(WeeklyBonus_Here_VAR)) //HERE
+	    {
+		 Log("WeeklyBonus - click success");	
+         Click(WeeklyBonus_Here_VAR);		
+		}
+		
+		if (IsVisible(WeeklyBonus_NOTHere_VAR)) //NOT
+	    {
+		 Log("WeeklyBonus - Not Here");			
+		}
+		
+	  }	// end WeeklyBonus
+	  //===========//	
+	  
+	  
+		//======//
+		//es//
+		//======//
+        if (GetBoolSetting("es"))
+        {	
+
+        GoToUrl("https://es.btcnewz.com/user/faucet/2");
+		Log("Go to es");	
+		
+		Wait();
+		Wait(2);	
+
+        TimerFaucet_Function(); //call
+
+		}
+        //=====//		
+
+
+		//======//
+		//btc//
+		//======//
+        if (GetBoolSetting("btc"))
+        {	
+
+        GoToUrl("https://es.btcnewz.com/user/faucet/3");
+		Log("Go to btc");	
+		
+		Wait();
+		Wait(2);	
+
+        TimerFaucet_Function(); //call
+
+		}
+        //=====//	
+
+
+		//======//
+		//eth//
+		//======//
+        if (GetBoolSetting("eth"))
+        {	
+
+        GoToUrl("https://es.btcnewz.com/user/faucet/4");
+		Log("Go to eth");	
+		
+		Wait();
+		Wait(2);	
+
+        TimerFaucet_Function(); //call
+
+		}
+        //=====//
+
+		//======//
+		//ltc//
+		//======//
+        if (GetBoolSetting("ltc"))
+        {	
+
+        GoToUrl("https://es.btcnewz.com/user/faucet/6");
+		Log("Go to ltc");	
+		
+		Wait();
+		Wait(2);	
+
+        TimerFaucet_Function(); //call
+
+		}
+        //=====//
+
+		//======//
+		//xrp//
+		//======//
+        if (GetBoolSetting("xrp"))
+        {	
+
+        GoToUrl("https://es.btcnewz.com/user/faucet/7");
+		Log("Go to xrp");	
+		
+		Wait();
+		Wait(2);	
+
+        TimerFaucet_Function(); //call
+
+		}
+        //=====//
+
+		//======//
+		//xlm//
+		//======//
+        if (GetBoolSetting("xlm"))
+        {	
+
+        GoToUrl("https://es.btcnewz.com/user/faucet/8");
+		Log("Go to xlm");	
+		
+		Wait();
+		Wait(2);	
+
+        TimerFaucet_Function(); //call
+
+		}
+        //=====//
+
+		//======//
+		//dgb//
+		//======//
+        if (GetBoolSetting("dgb"))
+        {	
+
+        GoToUrl("https://es.btcnewz.com/user/faucet/11");
+		Log("Go to dgb");	
+		
+		Wait();
+		Wait(2);	
+
+        TimerFaucet_Function(); //call
+
+		}
+        //=====//
+
+		//======//
+		//doge//
+		//======//
+        if (GetBoolSetting("doge"))
+        {	
+
+        GoToUrl("https://es.btcnewz.com/user/faucet/12");
+		Log("Go to doge");	
+		
+		Wait();
+		Wait(2);	
+
+        TimerFaucet_Function(); //call
+
+		}
+        //=====//	
+
+		//======//
+		//bat//
+		//======//
+        if (GetBoolSetting("bat"))
+        {	
+
+        GoToUrl("https://es.btcnewz.com/user/faucet/13");
+		Log("Go to bat");	
+		
+		Wait();
+		Wait(2);	
+
+        TimerFaucet_Function(); //call
+
+		}
+        //=====//			
+
+		//======//
+		//bch//
+		//======//
+        if (GetBoolSetting("bch"))
+        {	
+
+        GoToUrl("https://es.btcnewz.com/user/faucet/15");
+		Log("Go to bch");	
+		
+		Wait();
+		Wait(2);	
+
+        TimerFaucet_Function(); //call
+
+		}
+        //=====//			
+
+		//======//
+		//etc//
+		//======//
+        if (GetBoolSetting("etc"))
+        {	
+
+        GoToUrl("https://es.btcnewz.com/user/faucet/16");
+		Log("Go to etc");	
+		
+		Wait();
+		Wait(2);	
+
+        TimerFaucet_Function(); //call
+
+		}
+        //=====//			
+
+		//======//
+		//zrx//
+		//======//
+        if (GetBoolSetting("zrx"))
+        {	
+
+        GoToUrl("https://es.btcnewz.com/user/faucet/18");
+		Log("Go to zrx");	
+		
+		Wait();
+		Wait(2);	
+
+        TimerFaucet_Function(); //call
+
+		}
+        //=====//			
+
+		//======//
+		//tron//
+		//======//
+        if (GetBoolSetting("tron"))
+        {	
+
+        GoToUrl("https://es.btcnewz.com/user/faucet/19");
+		Log("Go to tron");	
+		
+		Wait();
+		Wait(2);	
+
+        TimerFaucet_Function(); //call
+
+		}
+        //=====//	
+		
+		ad = true;    // if i do true - it report as succeed // only one time no multi and also required -> return GetWaitSetting();	
+        //return GetWaitSetting();	
+	
+	
+        //We are good to continue
+        return base.DoSolveFaucet();
+ }
+//==============//
+//DoSolveFaucet
+//==============///
+	
+	
+	
+	
+	
+//==============//
+//AfterSolveFaucet
+//==============//
+  public override int AfterSolveFaucet()
+  {
+
+   //This faucet has nothing to do here. We will let Faucet Collector handle it.
+   return base.AfterSolveFaucet();
+   
+  }
+	
+//==============//
+//AfterSolveFaucet
+//==============//
+
+
+
+    /// <summary>
+    /// This method gets called in the end after the BeforeSolveFaucet/DoSolveFaucet and AfterSolveFaucet methods were done.
+    /// The base.CheckFaucetResult will try to find a visible element on the page using the XPath from SuccessXPath and FailXPath (see the Start method)
+    /// These properties should contain XPath expressions to find certain elements on the page.
+    /// For example if it finds one of the elements from the SuccessXPath, and it is visible, then it will flag the claim attempt as a success.
+    /// Or if it finds one of the elements from the FailXPath, and it is visible, then it will flag the claim attempt as a failure.
+    /// </summary>
+    public override int CheckFaucetResult()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.CheckFaucetResult();
+    }
+
+
+        //==================//
+        //SolveMedia_ReCaptcha_Function
+		//==================//
+        public void SolveMedia_ReCaptcha_Function()
+        {			
+        var SolveMediaVAR = ElementByXPath("//button[@id='switchCaptcha' and contains(text(),'Switch to SolveMedia')] | //button[@id='switchCaptcha']/h6/b/u[contains(text(),'Switch')]");
+        var ReCaptchaON = ElementByXPath("//div[@id='recaptcha-block' and @style='display:block']");	
+
+        var SolveON = ElementByXPath("//div[@id='solvemedia-block' and @style='display:block']");
+        var ReCaptchaVAR = ElementByXPath("//button[@id='switchCaptcha' and contains(text(),'Switch to ReCaptcha')] | //button[@id='switchCaptcha']/h6/b/u[contains(text(),'Switch')]");  
+		
+		
+        if (GetBoolSetting("SolveMedia_ReCaptcha"))
+        {
+
+          if (IsVisible(ReCaptchaON))
+          {		
+	      Log("Switch to SolveMedia");
+          Click(SolveMediaVAR);
+		  }
+		  
+		  Wait(2);
+		  
+          //Call to solve		  		   		  
+          var result_1_VAR = DoSolveCaptcha();
+
+        }
+		
+        if (!GetBoolSetting("SolveMedia_ReCaptcha"))
+        {
+
+          if (IsVisible(SolveON))
+          {		
+	      Log("Switch to ReCaptcha");
+          Click(ReCaptchaVAR);
+		  }	
+		  
+		  Wait(2);	  
+		  
+          //Call to solve		  
+          var result_2_VAR = DoSolveCaptcha();
+	
+        }
+		 
+        }// end SolveMedia_ReCaptcha_Function
+         //=======//		
+		
+
+
+
+        //==================//
+        //TimerFaucet_Function
+		//==================//
+        public void TimerFaucet_Function()
+        {	
+ 
+         var MinuteVAR = ElementByXPath("//div[@class='col-md-6 col-xs-3 text-right']/h2"); 
+         int MinuteINT = Convert.ToInt32(MinuteVAR.Text.Trim().Split(':')[1]);	 // need [4] for example if we have Existing text "You have to wait 15 minutes"  it mean = You[0] have[1] to[2] wait[3] 15[4] minutes[5] 
+
+         if (MinuteINT > 5 )  
+         {			 
+		   Log("TimerFaucet - OK ");
+
+		   Wait(2);
+		   
+           Title = "ESFaucet User";
+		   
+	       var OpenCaptchaButtonVAR = ElementByXPath("//h3[contains(text(),'Click')]");
+           Click(OpenCaptchaButtonVAR);
+		   
+		   Wait(2);
+				  
+  		   SolveMedia_ReCaptcha_Function(); // call
+		   
+		   Wait(2);
+		   
+	       var EndButtonVAR = ElementByXPath("//button[@id='clear']");
+           Click(EndButtonVAR);		   
+		   
+         }
+		 
+         if (MinuteINT < 5 ) 
+         {
+		   Log("TimerFaucet - Not available  ");
+         }
+		 
+        }// end TimerFaucet_Function
+         //=======//
+		
+
+		
+		
+
+    public bool SeeIfThereisColor(Bitmap Image)
+    {
+        bool ContainsColor = false;
+        for(int i = 0; i < Image.Width && ! ContainsColor; i++)
+        {
+            for(int j = 0; j < Image.Height; j++)
+            {
+                if(Image.GetPixel(i,j)!=Color.FromArgb(0,0,0) && Image.GetPixel(i,j)!=Color.FromArgb(255, 255, 255))
+                {
+                    ContainsColor = true;
+                    break;
+                }
+            }
+        }
+
+        return ContainsColor;
+
+    }
+	
+	
+    private IWebElement FindCorrectArrow()
+    {
+        var Arrows = ElementsByXPath("//div[@class='verify-gap']");
+        int n = 0;
+        foreach(var arrow in Arrows)
+        {
+            if(SeeIfThereisColor(TakeScreenshot(Base.Captcha.CaptchaService.Manual,arrow)))
+            {
+                Log("Element is" + n.ToString());
+                return arrow;
+
+            }
+            n++;
+
+        }
+        return null;
+
+    }
+	
+
+        //=========//
+        //SolveCaptcha_RightSquare_Function
+		//=========//
+        public void SolveCaptcha_RightSquare_Function()
+        {	
+		
+        /*
+        GetestCaptchaUtilities.GetestCaptcha getestCaptcha = new GetestCaptchaUtilities.GetestCaptcha(this);
+        bool res2=  getestCaptcha.DoInitSolve();
+        */
+
+        var Arrow = FindCorrectArrow();
+        if(IsVisible(Arrow))
+		{
+            Log("SolveCaptcha_RightSquare_Function - Arrow");	
+
+            var ToMove = ElementByXPath("//div[@class='verify-sub-block']");
+            if (IsVisible(ToMove))
+            {
+                Log("SolveCaptcha_RightSquare_Function - ToMove");	
+                Actions actions = new Actions(Driver);
+                actions.DragAndDrop(ToMove, Arrow).Build().Perform();
+                Wait();
+
+			}
+        }
+
+	
+		}// end SolveCaptcha_RightSquare_Function
+		//=========//
+
+	
+} //end public class
+

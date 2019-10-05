@@ -1,0 +1,449 @@
+﻿using System;
+using FaucetCollector.Script;
+using OpenQA.Selenium;
+using OpenQA.Selenium.Interactions;
+//css_inc recaptchaUtilities
+public class X6DiscordScript : FaucetScript
+{
+    /// <summary>
+    /// List of Settings that will be shown in the bot when selecting this Faucet in the bot.
+    /// You can get the value the user entered with the methods: GetSetting("[Name of the FaucetSetting]"), GetBoolSetting and GetDateTimeSetting
+    /// You can also create a new setting value using SetSetting("[Name you want to use]", "value")
+    /// </summary>
+    public override FaucetSettings Settings
+    {
+        get
+        {
+            return new FaucetSettings("https://discordapp.com/activity")
+            {
+               new FaucetSetting(){Name="Email",Display="Email - Discordapp Login",Type=EditorType.TextBox},
+                new FaucetSetting(){Name="Pass",Display="Password - Discordapp Login",Type=EditorType.Password},
+                new FaucetSetting(){Name="GetNumbers",Display="Numbers of claims",Type=EditorType.TextBox,Default="10"},
+                new FaucetSetting(){Name="AlreadyRegister",Display="Already Registered",Type=EditorType.CheckBox,Default=false},
+                //insert user settings here
+                //new FaucetSetting { 
+                //    Name = "Name of your setting", 
+                //    Display = "Display shown in Faucet Collector", 
+                //    Type = EditorType.TextBox | EditorType.Password | EditorType.CheckBox | EditorType.Wallet | EditorType.Numeric | EditorType.ComboBox | EditorType.CheckComboBox, 
+                //    Required = true | false, 
+                //    Default = "Optionally a default value" | true | false | null.
+                //    Items = new List<string> { "item1", "item2" } (only valid for ComboBox or CheckComboBox)
+                //} 
+            };
+        }
+    }
+
+    /// <summary>
+    /// This method gets called when the faucet is enabled and the GO button is clicked
+    /// </summary>
+    public override void Start()
+    {
+        //Title that shows in the browser. Is used to identify and close popup windows
+        Title = "Discord|#";
+
+        //After we did try to claim on the faucet we search for these elements to determine if it was a success or a fail
+        SuccessXPath = "//div[contains(text(),'Your balance for:')]";
+        FailXPath = "//*[text()='']";
+
+        //Let Faucet Collector start up everything
+        base.Start();
+    }
+
+    /// <summary>
+    /// This is the first method to run after the browser is opened and the first page is loaded.
+    /// </summary>
+    public override int DoInit()
+    {
+        //Let Faucet Collector continue.
+        return base.DoInit();
+    }
+
+    /// <summary>
+    /// This method gets called after the Start method, here you need to return if we are logged in or not.
+    /// If you return false then it will call the BeforeLogin, Login and AfterLogin methods so you can login.
+    /// After those Login methods are called it will call this IsLoggedIn method again to see if the login did succeed.
+    /// If you return true Faucet Collector will store all cookies so it will probably be already logged in on the next attempt.
+    /// </summary>
+    public override bool IsLoggedIn()
+    {
+        if (IsVisible(ElementByXPath("//a[@href='/activity']")))
+        {
+
+            return true;
+        }
+        // New METHOD TO CHECK if It's login
+        else if (!Driver.Url.Contains("https://discordapp.com/login"))
+        {
+            GoToUrl("https://discordapp.com/login");
+            Wait(6);
+            if (Driver.Url.Contains("login"))
+            {
+                Driver.Manage().Cookies.DeleteAllCookies();
+
+                return false;
+            }
+            else
+            {
+                
+                return true;
+            }
+        }
+        else
+        {
+
+            Driver.Manage().Cookies.DeleteAllCookies();
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// This method gets called if IsLoggedIn returned false, right before the DoLogin method is called.
+    /// </summary>
+    public override int BeforeLogin()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeLogin();
+    }
+
+    /// <summary>
+    /// This method gets called after BeforeLogin, but only if IsLoggedIn returned false.
+    /// It can be used to actually login the user/enter wallet details in the faucet
+    /// </summary>
+    /// <returns></returns>
+    public override int DoLogin()
+    {
+
+
+
+
+          GoToUrl("https://discordapp.com/login");
+      
+        var box_user = ElementByXPath("//input[@type='email']");
+        if (Name.Contains("Discord"))
+        {
+            SetText(box_user, GetSetting("Email"));
+        }
+        else
+        {
+            SetText(box_user, Name + "@gmail.com");
+        }
+
+
+
+        var box_pass = ElementByXPath("//input[@type='password']");
+        SetText(box_pass, GetPassword("Pass"));
+
+        Wait(1);
+
+        var ButtonLog = ElementByXPath("//button[@type='submit']");
+        Click(ButtonLog);
+        Wait(3);
+        var BeepBoop = ElementByXPath("//div[contains(text(),'Beep boop.')]");
+        int Tries = 0;
+        while (IsVisible(BeepBoop))
+        {
+            Wait(3);
+            DateTime t1 = DateTime.Now.AddSeconds(30);
+            while (!IsVisible(ElementByXPath("//div[@class='g-recaptcha']")))
+            {
+                Wait();
+                if (DateTime.Now > t1)
+                {
+                    break;
+                }
+            }
+            Wait(3);
+          
+            if (IsVisible(ElementByXPath("//div[@class='g-recaptcha']")))
+            {
+                RecaptchaUtility utility = new RecaptchaUtility(this);
+                string Callback = utility.GetRecaptchaCallback();
+                if (Callback != "")
+                {
+                    var result=  DoSolveCaptcha();
+                    if (result > 0) { continue; }
+
+                    utility.CallRecaptcha(Callback);
+
+
+                    Wait(3);
+                }
+                else
+                {
+                    string CF = ExecuteScript("try{return ___grecaptcha_cfg.clients[0].Gq.X.callback.toString();}catch(Exception){return 'FAIL'}") as string;
+                    if (CF.Contains("FAIL"))
+                    {
+                        Driver.Navigate().Refresh();
+                    }
+                    else
+                    {
+                     var result= DoSolveCaptcha();
+                        if (result > 0) { continue; }
+                        ExecuteScript("___grecaptcha_cfg.clients[0].Gq.X.callback('" + Context.CaptchaResult.Result + "');");
+                        Wait(3);
+                    }
+                }
+
+            }
+            else
+            {
+                Driver.Navigate().Refresh();
+            }
+
+            BeepBoop = ElementByXPath("//div[contains(text(),'Beep boop.')]");
+            Tries++;
+            if (Tries > 3)
+            {
+                break;
+            }
+        }
+
+
+        //This faucet has nothing to do here.    
+        return base.DoLogin();
+    
+    }
+
+    /// <summary>
+    /// This method gets called after the DoLogin method.
+    /// </summary>
+    public override int AfterLogin()
+    {
+        var Close = ElementByXPath("//*[@name='Close']");
+        if (IsVisible(Close))
+        {
+            Click(Close);
+        }
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterLogin();
+    }
+
+    /// <summary>
+    /// This method gets called after the login methods are successful, so we are logged into the faucet.
+    /// If the faucet is not yet ready to claim you should return a TimeStamp value to return how long it takes before the Faucet claim can be done.
+    /// This is used to pause the script while the faucet its timer runs out.
+    /// Return the number of seconds the bot should wait.
+    /// </summary>
+    public override int GetFaucetWaitTime()
+    {
+        //let Faucet Collector continue.
+        return base.GetFaucetWaitTime();
+    }
+
+    /// <summary>
+    /// This method is called right before a captcha will be solved. 
+    /// If you call SolveCaptcha() in other methods it will start this flow and tries to solve the captcha on the page.
+    /// </summary>
+    public override int BeforeSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeSolveCaptcha();
+    }
+
+    /// <summary>
+    /// This method gets called after BeforeSolveCaptcha and it does the actual captcha solving
+    /// It will automatically try to see if there is a SolveMedia captcha active or a reCAPTCHA active. 
+    /// If it finds either one it will then use the selected method on the Captcha tab of FaucetCollector to solve the Captcha.
+    /// </summary>
+    public override int DoSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoSolveCaptcha();
+    }
+
+    /// <summary>
+    /// This method will get called after DoSolveCaptcha returned it was a success.
+    /// </summary>
+    /// <returns></returns>
+    public override int AfterSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterSolveCaptcha();
+    }
+
+    /// <summary>
+    /// This method is called right before we attempt to claim on the faucet. So we are logged in and good to go.
+    /// Next methods that will be called are DoSolveFaucet, AfterSolveFaucet and CheckFaucetResult.
+    /// </summary>
+    public override int BeforeSolveFaucet()
+    {
+        if (!GetBoolSetting("AlreadyRegister"))
+        {
+            GoToUrl("https://discord.gg/DAcB5qk");
+            Wait(2);
+            var ButtonAccept = ElementByXPath("//div[@class='contents-18-Yxp']");
+            if (IsVisible(ButtonAccept))
+            {
+                Click(ButtonAccept);
+                Wait(2, 3);
+            }
+
+            var TextArea = ElementByXPath("//textarea");
+            DateTime te = DateTime.Now.AddSeconds(10);
+            while (!IsVisible(TextArea))
+            {
+                if (DateTime.Now > te)
+                {
+                    break;
+                }
+                Wait();
+                TextArea = ElementByXPath("//textarea");
+            }
+            if (IsVisible(TextArea))
+            {
+                SetText(TextArea, "//register");
+                Actions Enter = new Actions(Driver);
+                Enter.MoveToElement(TextArea).Build().Perform();
+                System.Threading.Thread.Sleep(300);
+                Enter.SendKeys(Keys.Enter).Build().Perform();
+                System.Threading.Thread.Sleep(2500);
+                SetSetting("AlreadyRegister", true);
+            }
+        }
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeSolveCaptcha();
+    }
+
+    /// <summary>
+    /// This method gets called after the BeforeSolveFaucet. You can do the actual claiming of the faucet in here.
+    /// </summary>
+    /// <returns></returns>
+    public override int DoSolveFaucet()
+    {
+        if(Driver.Url!= "https://discordapp.com/activity")
+        {
+            GoToUrl("https://discordapp.com/activity");
+            Wait(3,5);
+        }
+        var Channels = ElementsByXPath("//div[@class='channel-2QD9_O']");
+        bool Enc = false;
+        foreach(var Channel in Channels)
+        {
+           string Name=ExecuteScript("try{return arguments[0].children[0].children[1].children[0].textContent}catch(Exception){return 'Fail'}", Channel) as string;
+            if (Name.Trim() == "X6")
+            {
+                
+                Click(Channel);
+                Enc = true;
+                Wait();
+                break;
+            }
+        }
+        if (!Enc)
+        {
+            var SearchBot = ElementByXPath("//input[@type='text']");
+            DateTime t1 = DateTime.Now.AddSeconds(15);
+            while (!IsVisible(SearchBot))
+            {
+                SearchBot = ElementByXPath("//input[@type='text']");
+                if (DateTime.Now > t1)
+                {
+                    break;
+                }
+                Wait();
+            }
+            Click(SearchBot);
+            Wait();
+            var InputSearch = ElementByXPath("//input[@class='input-2VB9rf']");
+            if (!IsVisible(InputSearch))
+            {
+                return Fail("Search bot box is not visible");
+            }
+            SetText(InputSearch, "X6#2852");
+            Wait();
+            Actions Enter = new Actions(Driver);
+            Enter.MoveToElement(InputSearch).Build().Perform();
+            System.Threading.Thread.Sleep(300);
+            Enter.SendKeys(Keys.Enter).Build().Perform();
+            Wait();
+
+        }
+
+        var TextArea = ElementByXPath("//textarea");
+        if (!IsVisible(TextArea))
+        {
+            return Fail("Fail to get the x6 channel");
+            
+        }
+        int Claims;
+        try
+        {
+            Claims = Convert.ToInt32(GetSetting("GetNumbers"));
+        }
+        catch (Exception)
+        {
+            Claims = 10;
+        }
+        int Count = 0;
+        double TotalClaimed = 0;
+        try
+        {
+            while (IsVisible(TextArea) && Count < Claims)
+            {
+                SetText(TextArea, "//get");
+                Actions Enter = new Actions(Driver);
+                Enter.MoveToElement(TextArea).Build().Perform();
+                System.Threading.Thread.Sleep(300);
+                Enter.SendKeys(Keys.Enter).Build().Perform();
+                System.Threading.Thread.Sleep(1320);
+
+                var Codes = ElementsByXPath("//code");
+                try
+                {
+                    if (Codes.Count > 0)
+                    {
+                        TotalClaimed += Convert.ToDouble(Codes[Codes.Count - 1].Text.Trim());
+                    }
+                }
+                finally
+                {
+                    Count++;
+                }
+                TextArea = ElementByXPath("//textarea");
+            }
+        }
+        finally
+        {
+            TextArea = ElementByXPath("//textarea");
+            if (IsVisible(TextArea))
+            {
+                SetText(TextArea, "//balance");
+            }
+            Actions Enter = new Actions(Driver);
+            Enter.MoveToElement(TextArea).Build().Perform();
+            System.Threading.Thread.Sleep(300);
+            Enter.SendKeys(Keys.Enter).Build().Perform();
+            System.Threading.Thread.Sleep(1700);
+
+            CheckFaucetResult();
+            Log("You totally Claimed:" + TotalClaimed.ToString());
+           
+        }
+        return GetWaitSetting();
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+
+    }
+
+    /// <summary>
+    /// This method will get called after the DoSolveFaucet is completed and returned it was a success.
+    /// For example you can wait for a processing popup to go away until actual faucet claim result is on the page.
+    /// </summary>
+    public override int AfterSolveFaucet()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterSolveFaucet();
+    }
+
+    /// <summary>
+    /// This method gets called in the end after the BeforeSolveFaucet/DoSolveFaucet and AfterSolveFaucet methods were done.
+    /// The base.CheckFaucetResult will try to find a visible element on the page using the XPath from SuccessXPath and FailXPath (see the Start method)
+    /// These properties should contain XPath expressions to find certain elements on the page.
+    /// For example if it finds one of the elements from the SuccessXPath, and it is visible, then it will flag the claim attempt as a success.
+    /// Or if it finds one of the elements from the FailXPath, and it is visible, then it will flag the claim attempt as a failure.
+    /// </summary>
+    public override int CheckFaucetResult()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.CheckFaucetResult();
+    }
+}

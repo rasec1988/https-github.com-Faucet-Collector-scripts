@@ -1,0 +1,465 @@
+﻿using System;
+using FaucetCollector.Script;
+using OpenQA.Selenium;
+
+public class newbirds : FaucetScript
+{
+    /// <summary>
+    /// List of Settings that will be shown in the bot when selecting this Faucet in the bot.
+    /// You can get the value the user entered with the methods: GetSetting("[Name of the FaucetSetting]"), GetBoolSetting and GetDateTimeSetting
+    /// You can also create a new setting value using SetSetting("[Name you want to use]", "value")
+    /// </summary>
+    public override FaucetSettings Settings
+    {
+        get
+        {		
+		
+            return new FaucetSettings("https://new-birds.com/")
+            {
+                new FaucetSetting(){Name="Email",Display="Email",Type=EditorType.TextBox,Required=true},
+                new FaucetSetting(){Name="Pass",Display="Password",Type=EditorType.Password,Required=true},
+                new FaucetSetting() { Name = "UseSolveMedia", Display = "Use SolveMedia", Type = EditorType.CheckBox, Default = true},
+				
+                new FaucetSetting(){Name="DailyBonus",Display="Claim Daily Bonus",Type=EditorType.CheckBox,Default=true},
+	
+                new FaucetSetting(){Name="ExchangeEggs",Display="Exchange Eggs above 1 Egg",Type=EditorType.CheckBox,Default=true},
+					
+				//new FaucetSetting(){Name="SurfingAds",Display="Surfing Ads",Type=EditorType.CheckBox,Default=false},   
+                
+            };
+        }
+    }
+
+//============================================================//
+//the number of "successes" in the script - when are finished  
+//============================================================//
+    public override void Start()
+    {
+        //Title that shows in the browser. Is used to identify and close popup windows
+        Title = "New-Birds";
+
+        //Success window popup after - Balance button
+        SuccessXPath = "//b[starts-with(text(),'На Ваш счет для покупок зачислен бонус в размере')]"; //silver was credited to your shopping account
+        FailXPath = "//*[starts-with(text(),'')]";
+		
+        TimerIsCountingUp = true;
+		
+        //Let Faucet Collector start up everything
+        base.Start();
+    }
+//============================================================//
+//the number of "successes" in the script - when are finished  
+//============================================================//
+
+
+
+
+	//loop
+    public static bool cs;
+
+
+	
+    /// <summary>
+    /// This is the first method to run after the browser is opened and the first page is loaded.
+    /// </summary>
+	
+    public override int DoInit()
+    {
+        cs = false;
+        //Let Faucet Collector continue.
+        return base.DoInit();
+    }
+
+	
+	
+//==================//
+//save Login Cookies 
+//==================//
+    public override bool IsLoggedIn()
+    {
+//when you are logout - if the button "PAYMENT ORDER" not found
+//so 
+//when you are login //cahck Exit text
+   return ElementByXPath("//a[text()='Выход']") != null; //Exit
+
+    }
+//==================//
+//save Login Cookies 
+//==================//
+
+
+
+
+
+    /// <summary>
+    /// This method gets called if IsLoggedIn returned false, right before the DoLogin method is called.
+    /// </summary>
+    public override int BeforeLogin()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeLogin();
+    }
+
+
+	
+	
+	
+//==============//
+//start DoLogin
+//===============//
+ public override int DoLogin()
+ {
+
+	 //var checks login or exit
+	 var LoginStart =ElementByXPath("//a[text()='Вход в аккаунт']"); //Signing in to your account
+     var ExitButton =ElementByXPath("//a[text()='Выход']"); //exit
+
+	 
+	 //if i already Login - go to "Exchange Eggs"	 
+	 if (IsVisible(ExitButton))
+	 {
+        GoToUrl("https://new-birds.com/account/market");
+     }
+
+	 
+	 //if i NOT Login - go to Login Page
+	 if (IsVisible(LoginStart))
+	 {	
+ 
+        //go to "Login area"
+        GoToUrl("https://new-birds.com/signin");
+		
+        Wait(2);
+		
+        var Email_Box =ElementByXPath("//input[@name='log_email']");
+        if (!IsVisible(Email_Box))
+        {
+		return Fail("Fail login , user box not found");
+        }
+        SetText(Email_Box, GetSetting("Email"));        
+
+        Wait();
+		
+        var Password_Box = ElementByXPath("//input[@name='pass']");
+        if (!IsVisible(Password_Box)){
+         
+		return Fail("Fail login , pass box not found");
+        }        
+		SetText(Password_Box, GetPassword("Pass"));   
+
+		Wait();
+
+		
+		//Solve ReCaptcha Or SolveMedia if apper
+        var result = SolveCaptcha();
+        if (result > 0)
+        {
+            //SolveCaptcha returned there was something wrong - we also need to return that .
+            return result;
+        }
+
+        Wait(4);
+
+		//click login button   
+        var LoginButtonVar = ElementByXPath("//input[@class='button login']");
+        if (!IsVisible(LoginButtonVar))
+        {
+            return Fail("Fail LoginButtonVar not visible");
+        }
+        Click(LoginButtonVar);
+		
+        Wait();
+     }
+	 
+
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoLogin();
+ }
+//================================//
+//end DoLogin
+//================================//
+	
+	
+	
+	
+	
+//================================//
+//start AfterLogin
+//================================//
+    public override int AfterLogin()
+    {
+
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterLogin();
+    }
+//================================//
+//end AfterLogin
+//================================//
+	
+	
+
+	
+	
+    /// <summary>
+    /// This method gets called after the login methods are successful, so we are logged into the faucet.
+    /// If the faucet is not yet ready to claim you should return a TimeStamp value to return how long it takes before the Faucet claim can be done.
+    /// This is used to pause the script while the faucet its timer runs out.
+    /// Return the number of seconds the bot should wait.
+    /// </summary>
+    public override int GetFaucetWaitTime()
+    {    
+		
+		//Faucet Collector - will wait 1 hour - 3600 sec - for next claim
+        if (cs)
+        {
+
+            return 36 * 60;
+        }
+
+        //0 mean let Faucet Collector continue.
+        //return 0;
+		
+		//let Faucet Collector continue.
+        return base.GetFaucetWaitTime();
+
+    }
+
+	
+	
+
+	
+	
+	
+    /// <summary>
+    /// This method is called right before a captcha will be solved. 
+    /// If you call SolveCaptcha() in other methods it will start this flow and tries to solve the captcha on the page.
+    /// </summary>
+    public override int BeforeSolveCaptcha()
+    {
+		
+        //Check if the user wants to do SolveMedia or reCAPTCHA.
+        if (GetBoolSetting("UseSolveMedia"))
+        {
+            //Make sure SolveMedia is active by clicking the link.
+            Click(ElementByLinkText("Switch to SolveMedia captcha"));
+        }
+        else
+        {
+            //Make sure reCAPTCHA is active by clicking the link.
+            Click(ElementByLinkText("Switch to Recaptcha"));
+        }
+
+        //Wait a little (1 - 2 seconds) for the captcha to switch.
+        Wait();
+
+		
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeSolveCaptcha();
+    }
+
+	
+	
+    /// <summary>
+    /// This method gets called after BeforeSolveCaptcha and it does the actual captcha solving
+    /// It will automatically try to see if there is a SolveMedia captcha active or a reCAPTCHA active. 
+    /// If it finds either one it will then use the selected method on the Captcha tab of FaucetCollector to solve the Captcha.
+    /// </summary>
+    public override int DoSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoSolveCaptcha();
+    }
+
+	
+	
+    /// <summary>
+    /// This method will get called after DoSolveCaptcha returned it was a success.
+    /// </summary>
+    /// <returns></returns>
+    public override int AfterSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterSolveCaptcha();
+    }
+
+	
+	
+    /// <summary>
+    /// This method is called right before we attempt to claim on the faucet. So we are logged in and good to go.
+    /// Next methods that will be called are DoSolveFaucet, AfterSolveFaucet and CheckFaucetResult.
+    /// </summary>
+    public override int BeforeSolveFaucet()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeSolveCaptcha();
+    }
+
+
+
+
+
+//================================//
+//end DoSolveFaucet
+//================================//
+	
+ public override int DoSolveFaucet()
+ {
+		
+		if (GetBoolSetting("ExchangeEggs"))
+	{		
+		//go to "Exchange Eggs"
+        GoToUrl("https://new-birds.com/account/market");
+		
+        Wait(10);
+			
+		// if available - click on "Sell All" - Button - above 1 Egg
+        var ExchangeEggsVar = ElementByXPath("/html/body/div[2]/div[4]/div[2]/div[2]/form/table/tbody/tr[8]/td/input[2]"); //Sell All
+        if (IsVisible(ExchangeEggsVar))
+        {		
+	    Wait(3);
+        Click(ExchangeEggsVar);
+        }      
+
+    }
+	
+
+	/*
+	
+		if (GetBoolSetting("SurfingAds"))
+	{	
+
+	    //go to SurfingAds
+        GoToUrl("https://new-birds.com/serfing");
+
+        Wait(2, 3);
+        var cs = ElementsByXPath("//div[@class='serfing serfing_3']//form//button");
+        while(cs.Count > 0)
+        {
+
+            
+            Wait();
+            cs[0].Click();
+          
+            Wait(6);
+           
+            
+       
+            Title = Driver.Title;
+            Wait();
+        
+
+           
+            Wait(3, 4);
+            DateTime t1 = DateTime.Now.AddMinutes(1).AddSeconds(40);
+            while (IsVisible(ElementByXPath("//div[@id='timer']")))
+            {
+                Wait();
+                if (DateTime.Now > t1) {
+                    break;
+                }
+            }
+            Wait(5,6);
+            var div = ElementByXPath("//td[@rowspan='2']");
+            ExecuteScript("arguments[0].innerHTML+=\"<input type='text' name='cap'>\"", div);
+            Wait();
+            var result=DoSolveImageCaptcha(ElementByXPath("//img[@id='captch']"), ElementByXPath("//input[@name='cap']"));
+            if (result > 0)
+            {
+                return Fail("Problem with captcha");
+            }
+            string resultado = Context.CaptchaResult.Result;
+            var result_ = ElementByXPath("//span[contains(text(),'" + Context.CaptchaResult.Result + "')]");
+            if (IsVisible(result_))
+            {
+                Click(result_);
+            }
+        
+            Wait(4);
+            Title = "Money";
+
+            GoToUrl("https://new-birds.com/serfing");
+
+            Wait();
+            cs = ElementsByXPath("//div[@class='sites_for_payment']//form//button");
+			
+		}
+	
+			
+    }
+		
+    */   
+		
+		
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoSolveFaucet();
+ }
+//================================//
+//end AfterSolveFaucet
+//================================//
+	
+	
+	
+	
+
+	
+	
+	
+//================//
+//AfterSolveFaucet//
+//================//
+    public override int AfterSolveFaucet()
+    {
+
+
+        if (GetBoolSetting("DailyBonus"))
+        {
+
+            //go to bonus area "Daily Bonus"
+            GoToUrl("https://new-birds.com/account/bonus");
+            Wait(2);
+			
+			//if can not do faucet and need to wait - so find the "text" that appear on the site that tell us that is not possible
+			if (IsVisible(ElementByXPath("//b[text()='Вы уже получали бонус за последние 24 часа']"))) //You have already received a bonus in the last 24 hours
+            {
+            //Faucet Collector - will wait 2 hours - for next claim
+            return 120 * 60;
+			//cs = true;
+            }
+
+			
+            //if "Get a bonus" button apper
+            var button = ElementByXPath("/html/body/div[2]/div[4]/div[2]/div[2]/form/table/tbody/tr[2]/td/input"); //Get a bonus
+            if (IsVisible(button))
+            {
+				Wait(2);
+                Click(button);
+            }
+
+        }
+		
+		return base.DoSolveFaucet();
+		
+    }
+//================================//
+//end AfterSolveFaucet
+//================================//
+	
+	
+	
+	
+	
+	
+    /// <summary>
+    /// This method gets called in the end after the BeforeSolveFaucet/DoSolveFaucet and AfterSolveFaucet methods were done.
+    /// The base.CheckFaucetResult will try to find a visible element on the page using the XPath from SuccessXPath and FailXPath (see the Start method)
+    /// These properties should contain XPath expressions to find certain elements on the page.
+    /// For example if it finds one of the elements from the SuccessXPath, and it is visible, then it will flag the claim attempt as a success.
+    /// Or if it finds one of the elements from the FailXPath, and it is visible, then it will flag the claim attempt as a failure.
+    /// </summary>
+    public override int CheckFaucetResult()
+    {
+
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.CheckFaucetResult();
+    }
+}

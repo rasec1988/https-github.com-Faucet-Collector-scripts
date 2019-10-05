@@ -1,0 +1,1161 @@
+﻿using System;
+
+using System.Drawing;
+using System.IO;
+
+using FaucetCollector.Script;
+using OpenQA.Selenium;
+using OpenQA.Selenium.Interactions;
+//css_inc RecaptchaUtilities
+//css_inc ShortLinkUtilities
+//css_inc BaseUtility
+
+namespace Freebitco.win
+{
+    public class TemplateScript : FaucetScript
+    {
+        /// <summary>
+        /// List of Settings that will be shown in the bot when selecting this Faucet in the bot.
+        /// You can get the value the user entered with the methods: GetSetting("[Name of the FaucetSetting]"), GetBoolSetting and GetDateTimeSetting
+        /// You can also create a new setting value using SetSetting("[Name you want to use]", "value")
+        /// </summary>
+        public override FaucetSettings Settings
+        {
+            get
+            {
+                return new FaucetSettings("https://freebitcoin.win/")
+                {
+                    new FaucetSetting() { Name = "User", Display = "Username or email", Type = EditorType.TextBox, Required = true },
+                    new FaucetSetting(){Name="Pass",Display="Password",Type=EditorType.Password,Required=true},                    
+                    new FaucetSetting(){Name="btc",Display="Claim BTC", Type = EditorType.CheckBox, Default = true },
+                    new FaucetSetting(){Name="btx",Display="Claim BTX",Type=EditorType.CheckBox,Default=false},
+                    new FaucetSetting(){Name="dodg",Display="Claim DOGE",Type=EditorType.CheckBox,Default=false},
+                    new FaucetSetting(){Name="ltc",Display="Claim LTC",Type=EditorType.CheckBox,Default=false},
+                    new FaucetSetting(){Name="ptc",Display="Claim Potcoin",Type=EditorType.CheckBox,Default=false},
+                    new FaucetSetting(){Name="kb3",Display="Claim KB3Coin", Type=EditorType.CheckBox,Default=false},
+                    new FaucetSetting(){Name="zec",Display="Claim Zcash",Type=EditorType.CheckBox,Default=false},
+                    new FaucetSetting(){Name="xmr",Display="Claim XMR",Type=EditorType.CheckBox,Default=false },
+                    new FaucetSetting(){Name="dgb",Display="Claim Digibyte",Type=EditorType.CheckBox,Default=false},
+                    //insert user settings here
+                    //new FaucetSetting { 
+                    //    Name = "Name of your setting", 
+                    //    Display = "Display shown in Faucet Collector", 
+                    //    Type = EditorType.TextBox | EditorType.Password | EditorType.CheckBox | EditorType.Wallet | EditorType.Numeric | EditorType.ComboBox | EditorType.CheckComboBox, 
+                    //    Required = true | false, 
+                    //    Default = "Optionally a default value" | true | false | null.
+                    //    Items = new List<string> { "item1", "item2" } (only valid for ComboBox or CheckComboBox)
+                    //} 
+                };
+            }
+        }
+
+        /// <summary>
+        /// This method gets called when the faucet is enabled and the GO button is clicked
+        /// </summary>
+        public override void Start()
+        {
+            //Title that shows in the browser. Is used to identify and close popup windows
+            Title = "FreeBitcoin.Win";
+
+            //After we did try to claim on the faucet we search for these elements to determine if it was a success or a fail
+            SuccessXPath = "//div[@class='alert alert-success']";
+            FailXPath = "//div[@class='alert alert-warning']//p";
+
+            //Let Faucet Collector start up everything
+            base.Start();
+        }
+
+        /// <summary>
+        /// This is the first method to run after the browser is opened and the first page is loaded.
+        /// </summary>
+        public override int DoInit()
+        {
+            //Let Faucet Collector continue.
+            return base.DoInit();
+        }
+
+        /// <summary>
+        /// This method gets called after the Start method, here you need to return if we are logged in or not.
+        /// If you return false then it will call the BeforeLogin, Login and AfterLogin methods so you can login.
+        /// After those Login methods are called it will call this IsLoggedIn method again to see if the login did succeed.
+        /// If you return true Faucet Collector will store all cookies so it will probably be already logged in on the next attempt.
+        /// </summary>
+        public override bool IsLoggedIn()
+        {
+            var Fail_l = ElementByXPath("//div[@class='login-page']");
+            if (IsVisible(Fail_l))
+            {
+                if (Fail_l.Text.Contains("Invalid Login Details!"))
+                {
+                    Log("Invalid Login Details");
+                    Disable();
+                    return false;
+
+                }
+                
+            }
+
+            GoToUrl("https://freebitcoin.win/settings/withdraw#");
+            Wait(2, 5);
+            if (Driver.Url.Contains("withdraw"))
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+
+            //In here we can check for the presence of an element that is only present when you are logged in.
+            //In this case we check for en element with the class "loggedIn"
+
+        }
+
+        /// <summary>
+        /// This method gets called if IsLoggedIn returned false, right before the DoLogin method is called.
+        /// </summary>
+        public override int BeforeLogin()
+        {
+            //This faucet has nothing to do here. We will let Faucet Collector handle it.
+            return base.BeforeLogin();
+        }
+
+        /// <summary>
+        /// This method gets called after BeforeLogin, but only if IsLoggedIn returned false.
+        /// It can be used to actually login the user/enter wallet details in the faucet
+        /// </summary>
+        /// <returns></returns>
+        public override int DoLogin()
+        {
+            GoToUrl("https://freebitcoin.win/login");
+            Wait(2, 4);
+            var input_u = ElementByXPath("//div[@class='input-group']//input[@type='text']");
+            if (!IsVisible(input_u))
+            {
+                return Fail("Fail login");
+            }
+            SetText(input_u, GetSetting("User"));
+            Wait();
+            input_u = ElementByXPath("//input[@type='password']");
+            if (!IsVisible(input_u))
+            {
+                return Fail("Fail Login");
+            }
+            SetText(input_u, GetPassword("Pass"));
+            var result = SolveCaptcha();
+            if (result > 0)
+            {
+                return Fail("Fail to solve captcha");
+            }
+            Wait();
+            input_u = ElementByXPath("//input[@type='submit']");
+            Click(input_u);
+            //This faucet has nothing to do here. We will let Faucet Collector handle it.
+            return base.DoLogin();
+        }
+
+        /// <summary>
+        /// This method gets called after the DoLogin method.
+        /// </summary>
+        public override int AfterLogin()
+        {
+
+            //This faucet has nothing to do here. We will let Faucet Collector handle it.
+            return base.AfterLogin();
+        }
+
+        /// <summary>
+        /// This method gets called after the login methods are successful, so we are logged into the faucet.
+        /// If the faucet is not yet ready to claim you should return a TimeStamp value to return how long it takes before the Faucet claim can be done.
+        /// This is used to pause the script while the faucet its timer runs out.
+        /// Return the number of seconds the bot should wait.
+        /// </summary>
+        public override int GetFaucetWaitTime()
+        {
+            GoToUrl("https://freebitcoin.win/");
+            Wait(2, 5);
+            int cont = 0;
+            var cl = Driver.FindElements(By.ClassName("kkcount-down-1"));
+            foreach (var cl_ in cl)
+            {
+                if (cl_.Text.Contains("Ready to claim"))
+                {
+                    Ready_f[cont] = true;
+                }
+                else
+                {
+                    Ready_f[cont] = false;
+                }
+                cont++;
+            }
+            Wait();
+            Wait();
+            int cont_1 = 0;
+            if (GetBoolSetting("btc"))
+            {
+                cont_1++;
+            }
+            if (GetBoolSetting("btx"))
+            {
+                cont_1++;
+            }
+            if (GetBoolSetting("dodg"))
+            {
+                cont_1++;
+            }
+            if (GetBoolSetting("ltc"))
+            {
+                cont_1++;
+            }
+            if (GetBoolSetting("ptc"))
+            {
+                cont_1++;
+            }
+            if (GetBoolSetting("kb3"))
+            {
+                cont_1++;
+            }
+            if (GetBoolSetting("xmr"))
+            {
+                cont_1++;
+            }
+            if (GetBoolSetting("dgb"))
+            {
+                cont_1++;
+            }
+            int cont_2 = 0;
+            for(int i = 0; i < 9; i++)
+            {
+                if (!Ready_f[i])
+                {
+                    cont_2++;
+                }
+            }
+            if (cont_2 >= cont_1)
+            {
+                return 900;
+            }
+            else
+            {
+                return 0;
+            }
+            //let Faucet Collector continue.
+            
+        }
+
+        /// <summary>
+        /// This method is called right before a captcha will be solved. 
+        /// If you call SolveCaptcha() in other methods it will start this flow and tries to solve the captcha on the page.
+        /// </summary>
+        public override int BeforeSolveCaptcha()
+        {
+            //This faucet has nothing to do here. We will let Faucet Collector handle it.
+            return base.BeforeSolveCaptcha();
+        }
+
+        /// <summary>
+        /// This method gets called after BeforeSolveCaptcha and it does the actual captcha solving
+        /// It will automatically try to see if there is a SolveMedia captcha active or a reCAPTCHA active. 
+        /// If it finds either one it will then use the selected method on the Captcha tab of FaucetCollector to solve the Captcha.
+        /// </summary>
+        public override int DoSolveCaptcha()
+        {
+            //This faucet has nothing to do here. We will let Faucet Collector handle it.
+            return base.DoSolveCaptcha();
+        }
+
+        /// <summary>
+        /// This method will get called after DoSolveCaptcha returned it was a success.
+        /// </summary>
+        /// <returns></returns>
+        public override int AfterSolveCaptcha()
+        {
+            //This faucet has nothing to do here. We will let Faucet Collector handle it.
+            return base.AfterSolveCaptcha();
+        }
+
+        /// <summary>
+        /// This method is called right before we attempt to claim on the faucet. So we are logged in and good to go.
+        /// Next methods that will be called are DoSolveFaucet, AfterSolveFaucet and CheckFaucetResult.
+        /// </summary>
+        private bool[] Ready_f = new bool[10];
+        public override int BeforeSolveFaucet()
+        {
+            GoToUrl("https://freebitcoin.win/");
+            Wait(2,5);
+            int cont = 0;
+            var cl = Driver.FindElements(By.ClassName("kkcount-down-1"));
+            foreach(var cl_ in cl)
+            {
+                if (cl_.Text.Contains("Ready to claim"))
+                {
+                    Ready_f[cont] = true;
+                }
+                else
+                {
+                    Ready_f[cont] = false;
+                }
+                cont++;
+            }
+            Wait();
+            //This faucet has nothing to do here. We will let Faucet Collector handle it.
+            return base.BeforeSolveCaptcha();
+        }
+
+        /// <summary>
+        /// This method gets called after the BeforeSolveFaucet. You can do the actual claiming of the faucet in here.
+        /// </summary>
+        /// <returns></returns>
+         public bool doShortLink(string url)
+    {
+
+            ShortLinkBypasser bypasser = new ShortLinkBypasser(this);
+            return bypasser.DoShortLink();
+
+
+    }
+        public override int DoSolveFaucet()
+        {
+            if (GetBoolSetting("btc") && Ready_f[0])
+            {
+                GoToUrl("https://freebitcoin.win/faucet/bitcoin");
+                Wait();
+                
+               
+                var capt = ElementByXPath("//div[@id='adcopy-outer']");
+                if (GetBoolSetting("captme"))
+                {
+                    var c= ElementByXPath("//div[@id='captchmeslider']");
+                    while (!IsVisible(c))
+                    {
+                        Driver.Navigate().Refresh();
+                        Wait();
+                        c= ElementByXPath("//div[@id='captchmeslider']");
+                    }
+                }
+                if (IsVisible(capt))
+                {
+
+                    Wait();
+                    var result = SolveCaptcha();
+                    if (result > 0)
+                    {
+                        return Fail("Fail Solve faucet");
+                    }
+                }
+                else
+                {
+                     var slider = ElementByXPath("//div[@id='captchmeslider']");
+                    if (IsVisible(slider))
+                    {
+                        
+                        Actions move = new Actions(Driver).DragAndDropToOffset(slider, 200, 0);
+                        move.Perform();
+                    }
+                    else
+                    {
+                        return Fail("Fail to solve");
+                    }
+                }
+                Wait(4,6);
+                var icon_c = ElementByXPath("//div[@id='captcha-holder']");
+                if (IsVisible(icon_c))
+                {
+
+
+                    bool result_2 = Solveicon();
+                    if (result_2)
+                    {
+                        var button2 = ElementByXPath("//input[@type='submit']");
+                        Wait(2, 5);
+                        Click(button2);
+                        Wait(2, 5);
+                    }
+                    else
+                    {
+                        return Fail("Fail solve icon");
+                    }
+                }
+                else
+                {
+                    Wait(2, 5);
+                    var button2 = ElementByXPath("//input[@type='submit']");
+                    Click(button2);
+                    Wait(2, 5);
+                }
+                Wait(2,3);if(!Driver.Url.Contains("freebitcoin")){doShortLink("freebitcoin");}
+                Wait();
+                var el = ElementByXPath("//div[@class='alert alert-success']");
+                
+            }
+            if (GetBoolSetting("dgb"))
+            {
+                GoToUrl("https://freebitcoin.win/faucet/digibyte");
+                Wait();
+
+
+                var capt = ElementByXPath("//div[@id='adcopy-outer']");
+                if (GetBoolSetting("captme"))
+                {
+                    var c = ElementByXPath("//div[@id='captchmeslider']");
+                    while (!IsVisible(c))
+                    {
+                        Driver.Navigate().Refresh();
+                        Wait();
+                        c = ElementByXPath("//div[@id='captchmeslider']");
+                    }
+                }
+                if (IsVisible(capt))
+                {
+
+                    Wait();
+                    var result = SolveCaptcha();
+                    if (result > 0)
+                    {
+                        return Fail("Fail Solve faucet");
+                    }
+                }
+                else
+                {
+                    var slider = ElementByXPath("//div[@id='captchmeslider']");
+                    if (IsVisible(slider))
+                    {
+
+                        Actions move = new Actions(Driver).DragAndDropToOffset(slider, 200, 0);
+                        move.Perform();
+                    }
+                    else
+                    {
+                        return Fail("Fail to solve");
+                    }
+                }
+                Wait(4, 6);
+                var icon_c = ElementByXPath("//div[@id='captcha-holder']");
+                if (IsVisible(icon_c))
+                {
+
+
+                    bool result_2 = Solveicon();
+                    if (result_2)
+                    {
+                        var button2 = ElementByXPath("//input[@type='submit']");
+                        Wait(2, 5);
+                        Click(button2);
+                        Wait(2, 5);
+                    }
+                    else
+                    {
+                        return Fail("Fail solve icon");
+                    }
+                }
+                else
+                {
+                    Wait(2, 5);
+                    var button2 = ElementByXPath("//input[@type='submit']");
+                    Click(button2);
+                    Wait(2, 5);
+                }
+                Wait(2,3);if(!Driver.Url.Contains("freebitcoin")){doShortLink("freebitcoin");}
+                Wait();
+                var el = ElementByXPath("//div[@class='alert alert-success']");
+            }
+            if (GetBoolSetting("zec"))
+            {
+                GoToUrl("https://freebitcoin.win/faucet/zcash");
+                Wait();
+
+
+                var capt = ElementByXPath("//div[@id='adcopy-outer']");
+                if (GetBoolSetting("captme"))
+                {
+                    var c = ElementByXPath("//div[@id='captchmeslider']");
+                    while (!IsVisible(c))
+                    {
+                        Driver.Navigate().Refresh();
+                        Wait();
+                        c = ElementByXPath("//div[@id='captchmeslider']");
+                    }
+                }
+                if (IsVisible(capt))
+                {
+
+                    Wait();
+                    var result = SolveCaptcha();
+                    if (result > 0)
+                    {
+                        return Fail("Fail Solve faucet");
+                    }
+                }
+                else
+                {
+                    var slider = ElementByXPath("//div[@id='captchmeslider']");
+                    if (IsVisible(slider))
+                    {
+
+                        Actions move = new Actions(Driver).DragAndDropToOffset(slider, 200, 0);
+                        move.Perform();
+                    }
+                    else
+                    {
+                        return Fail("Fail to solve");
+                    }
+                }
+                Wait(4, 6);
+                var icon_c = ElementByXPath("//div[@id='captcha-holder']");
+                if (IsVisible(icon_c))
+                {
+
+
+                    bool result_2 = Solveicon();
+                    if (result_2)
+                    {
+                        var button2 = ElementByXPath("//input[@type='submit']");
+                        Wait(2, 5);
+                        Click(button2);
+                        Wait(2, 5);
+                    }
+                    else
+                    {
+                        return Fail("Fail solve icon");
+                    }
+                }
+                else
+                {
+                    Wait(2, 5);
+                    var button2 = ElementByXPath("//input[@type='submit']");
+                    Click(button2);
+                    Wait(2, 5);
+                }
+                Wait(2,3);if(!Driver.Url.Contains("freebitcoin")){doShortLink("freebitcoin");}
+                Wait();
+                var el = ElementByXPath("//div[@class='alert alert-success']");
+            }
+            if (GetBoolSetting("btx") && Ready_f[1])
+            {
+                GoToUrl("https://freebitcoin.win/faucet/bitcore");
+                Wait();
+              
+                var capt = ElementByXPath("//div[@id='adcopy-outer']");
+                if (GetBoolSetting("captme"))
+                {
+                    var c= ElementByXPath("//div[@id='captchmeslider']");
+                    while (!IsVisible(c))
+                    {
+                        Driver.Navigate().Refresh();
+                        Wait();
+                        c= ElementByXPath("//div[@id='captchmeslider']");
+                    }
+                }
+                if (IsVisible(capt))
+                {
+
+                    Wait();
+                    var result = SolveCaptcha();
+                    if (result > 0)
+                    {
+                        return Fail("Fail Solve faucet");
+                    }
+                }
+                else
+                {
+                     var slider = ElementByXPath("//div[@id='captchmeslider']");
+                    if (IsVisible(slider))
+                    {
+                        
+                        Actions move = new Actions(Driver).DragAndDropToOffset(slider, 200, 0);
+                        move.Perform();
+                    }
+                    else
+                    {
+                        return Fail("Fail to solve");
+                    }
+                }
+                Wait(4,6);
+                var icon_c = ElementByXPath("//div[@id='captcha-holder']");
+                if (IsVisible(icon_c))
+                {
+
+
+                    bool result_2 = Solveicon();
+                    if (result_2)
+                    {
+                        Wait(2, 5);
+                        var button2 = ElementByXPath("//input[@type='submit']");
+                        Click(button2);
+                        Wait(2, 5);
+                    }
+                    else
+                    {
+                        return Fail("Fail solve icon");
+                    }
+                }
+                else
+                {
+                    Wait(2, 5);
+                    var button2 = ElementByXPath("//input[@type='submit']");
+                    Click(button2);
+                    Wait(2, 5);
+                }
+                Wait(2,3);if(!Driver.Url.Contains("freebitcoin")){doShortLink("freebitcoin");}
+                Wait();
+                var el = ElementByXPath("//div[@class='alert alert-success']");
+             
+            }
+            if (GetBoolSetting("dodg") && Ready_f[2])
+            {
+                GoToUrl("https://freebitcoin.win/faucet/dogecoin");
+                Wait();
+                
+                var capt = ElementByXPath("//div[@id='adcopy-outer']");
+                if (GetBoolSetting("captme"))
+                {
+                    var c = ElementByXPath("//div[@id='captchmeslider']");
+                    while (!IsVisible(c))
+                    {
+                        Driver.Navigate().Refresh();
+                        Wait();
+                        c = ElementByXPath("//div[@id='captchmeslider']");
+                    }
+                }
+                if (IsVisible(capt))
+                {
+
+                    Wait();
+                    var result = SolveCaptcha();
+                    if (result > 0)
+                    {
+                        return Fail("Fail Solve faucet");
+                    }
+                }
+                else
+                {
+                    var slider = ElementByXPath("//div[@id='captchmeslider']");
+                    if (IsVisible(slider))
+                    {
+
+                        Actions move = new Actions(Driver).DragAndDropToOffset(slider, 200, 0);
+                        move.Perform();
+                    }
+                    else
+                    {
+                        return Fail("Fail to solve");
+                    }
+                }
+                Wait(4, 6);
+                var icon_c = ElementByXPath("//div[@id='captcha-holder']");
+                if (IsVisible(icon_c))
+                {
+
+
+                    bool result_2 = Solveicon();
+                    if (result_2)
+                    {
+                        Wait(2, 5);
+                        var button2 = ElementByXPath("//input[@type='submit']");
+                        Click(button2);
+                        Wait(2, 5);
+                    }
+                    else
+                    {
+                        return Fail("Fail solve icon");
+                    }
+                }
+                else
+                {
+                    Wait(2, 5);
+                    var button2 = ElementByXPath("//input[@type='submit']");
+                    Click(button2);
+                    Wait(2, 5);
+                }
+                Wait(2,3);if(!Driver.Url.Contains("freebitcoin")){doShortLink("freebitcoin");}
+                Wait();
+                var el = ElementByXPath("//div[@class='alert alert-success']");
+                
+            }
+            if (GetBoolSetting("ltc") && Ready_f[3]){
+                GoToUrl("https://freebitcoin.win/faucet/litecoin");
+                Wait();
+               
+                var capt = ElementByXPath("//div[@id='adcopy-outer']");
+                if (GetBoolSetting("captme"))
+                {
+                    var c = ElementByXPath("//div[@id='captchmeslider']");
+                    while (!IsVisible(c))
+                    {
+                        Driver.Navigate().Refresh();
+                        Wait();
+                        c = ElementByXPath("//div[@id='captchmeslider']");
+                    }
+                }
+                if (IsVisible(capt))
+                {
+
+                    Wait();
+                    var result = SolveCaptcha();
+                    if (result > 0)
+                    {
+                        return Fail("Fail Solve faucet");
+                    }
+                }
+                else
+                {
+                    var slider = ElementByXPath("//div[@id='captchmeslider']");
+                    if (IsVisible(slider))
+                    {
+
+                        Actions move = new Actions(Driver).DragAndDropToOffset(slider, 200, 0);
+                        move.Perform();
+                    }
+                    else
+                    {
+                        return Fail("Fail to solve");
+                    }
+                }
+                Wait(4, 6);
+                var icon_c = ElementByXPath("//div[@id='captcha-holder']");
+                if (IsVisible(icon_c))
+                {
+
+
+                    bool result_2 = Solveicon();
+                    if (result_2)
+                    {
+                        Wait(2, 5);
+                        var button2 = ElementByXPath("//input[@type='submit']");
+                        Click(button2);
+                        Wait(2, 5);
+                    }
+                    else
+                    {
+                        return Fail("Fail solve icon");
+                    }
+                }
+                else
+                {
+                    Wait(2, 5);
+                    var button2 = ElementByXPath("//input[@type='submit']");
+                    Click(button2);
+                    Wait(2, 5);
+                }
+                Wait(2,3);if(!Driver.Url.Contains("freebitcoin")){doShortLink("freebitcoin");}
+                Wait();
+                var el = ElementByXPath("//div[@class='alert alert-success']");
+               
+            }
+            if (GetBoolSetting("xmr"))
+            {
+                GoToUrl("https://freebitcoin.win/faucet/monero");
+                Wait();
+
+                var capt = ElementByXPath("//div[@id='adcopy-outer']");
+                if (GetBoolSetting("captme"))
+                {
+                    var c = ElementByXPath("//div[@id='captchmeslider']");
+                    while (!IsVisible(c))
+                    {
+                        Driver.Navigate().Refresh();
+                        Wait();
+                        c = ElementByXPath("//div[@id='captchmeslider']");
+                    }
+                }
+                if (IsVisible(capt))
+                {
+
+                    Wait();
+                    var result = SolveCaptcha();
+                    if (result > 0)
+                    {
+                        return Fail("Fail Solve faucet");
+                    }
+                }
+                else
+                {
+                    var slider = ElementByXPath("//div[@id='captchmeslider']");
+                    if (IsVisible(slider))
+                    {
+
+                        Actions move = new Actions(Driver).DragAndDropToOffset(slider, 200, 0);
+                        move.Perform();
+                    }
+                    else
+                    {
+                        return Fail("Fail to solve");
+                    }
+                }
+                Wait(4, 6);
+                var icon_c = ElementByXPath("//div[@id='captcha-holder']");
+                if (IsVisible(icon_c))
+                {
+
+
+                    bool result_2 = Solveicon();
+                    if (result_2)
+                    {
+                        Wait(2, 5);
+                        var button2 = ElementByXPath("//input[@type='submit']");
+                        Click(button2);
+                        Wait(2, 5);
+                    }
+                    else
+                    {
+                        return Fail("Fail solve icon");
+                    }
+                }
+                else
+                {
+                    Wait(2, 5);
+                    var button2 = ElementByXPath("//input[@type='submit']");
+                    Click(button2);
+                    Wait(2, 5);
+                }
+                Wait(2,3);if(!Driver.Url.Contains("freebitcoin")){doShortLink("freebitcoin");}
+                Wait();
+                var el = ElementByXPath("//div[@class='alert alert-success']");
+
+            }
+            if (GetBoolSetting("ptc") && Ready_f[4])
+            {
+                GoToUrl("https://freebitcoin.win/faucet/potcoin");
+                Wait();
+              
+                var capt = ElementByXPath("//div[@id='adcopy-outer']");
+                if (GetBoolSetting("captme"))
+                {
+                    var c = ElementByXPath("//div[@id='captchmeslider']");
+                    while (!IsVisible(c))
+                    {
+                        Driver.Navigate().Refresh();
+                        Wait();
+                        c = ElementByXPath("//div[@id='captchmeslider']");
+                    }
+                }
+                if (IsVisible(capt))
+                {
+
+                    Wait();
+                    var result = SolveCaptcha();
+                    if (result > 0)
+                    {
+                        return Fail("Fail Solve faucet");
+                    }
+                }
+                else
+                {
+                    var slider = ElementByXPath("//div[@id='captchmeslider']");
+                    if (IsVisible(slider))
+                    {
+
+                        Actions move = new Actions(Driver).DragAndDropToOffset(slider, 200, 0);
+                        move.Perform();
+                    }
+                    else
+                    {
+                        return Fail("Fail to solve");
+                    }
+                }
+                Wait(4, 6);
+                var icon_c = ElementByXPath("//div[@id='captcha-holder']");
+                if (IsVisible(icon_c))
+                {
+
+
+                    bool result_2 = Solveicon();
+                    if (result_2)
+                    {
+                        Wait(2, 5);
+                        var button2 = ElementByXPath("//input[@type='submit']");
+                        Click(button2);
+                        Wait(2, 5);
+                    }
+                    else
+                    {
+                        return Fail("Fail solve icon");
+                    }
+                }
+                else
+                {
+                    Wait(2, 5);
+                    var button2 = ElementByXPath("//input[@type='submit']");
+                    Click(button2);
+                    Wait(2, 5);
+                }
+                Wait(2,3);if(!Driver.Url.Contains("freebitcoin")){doShortLink("freebitcoin");}
+                Wait();
+
+                var el = ElementByXPath("//div[@class='alert alert-success']");
+               
+
+            }
+            if (GetBoolSetting("kb3") && Ready_f[5])
+            {
+                GoToUrl("https://freebitcoin.win/faucet/potcoin");
+                Wait();
+              
+                var capt = ElementByXPath("//div[@id='adcopy-outer']");
+                if (GetBoolSetting("captme"))
+                {
+                    var c = ElementByXPath("//div[@id='captchmeslider']");
+                    while (!IsVisible(c))
+                    {
+                        Driver.Navigate().Refresh();
+                        Wait();
+                        c = ElementByXPath("//div[@id='captchmeslider']");
+                    }
+                }
+                if (IsVisible(capt))
+                {
+
+                    Wait();
+                    var result = SolveCaptcha();
+                    if (result > 0)
+                    {
+                        return Fail("Fail Solve faucet");
+                    }
+                }
+                else
+                {
+                    var slider = ElementByXPath("//div[@id='captchmeslider']");
+                    if (IsVisible(slider))
+                    {
+
+                        Actions move = new Actions(Driver).DragAndDropToOffset(slider, 200, 0);
+                        move.Perform();
+                    }
+                    else
+                    {
+                        return Fail("Fail to solve");
+                    }
+                }
+                Wait(4, 6);
+                var icon_c = ElementByXPath("//div[@id='captcha-holder']");
+                if (IsVisible(icon_c))
+                {
+
+
+                    bool result_2 = Solveicon();
+                    if (result_2)
+                    {
+                        Wait(2, 5);
+                        var button2 = ElementByXPath("//input[@type='submit']");
+                        Click(button2);
+                        Wait(2, 5);
+                    }
+                    else
+                    {
+                        return Fail("Fail solve icon");
+                    }
+                }
+                else
+                {
+                    Wait(2, 5);
+                    var button2 = ElementByXPath("//input[@type='submit']");
+                    Click(button2);
+                    Wait(2, 5);
+                }
+                Wait(2,3);if(!Driver.Url.Contains("freebitcoin")){doShortLink("freebitcoin");}
+                Wait();
+                var el = ElementByXPath("//div[@class='alert alert-success']");
+                
+            }
+
+
+
+            
+            //This faucet has nothing to do here. We will let Faucet Collector handle it.
+            return base.DoSolveFaucet();
+        }
+        
+        
+        /// <summary>
+        /// This method will get called after the DoSolveFaucet is completed and returned it was a success.
+        /// For example you can wait for a processing popup to go away until actual faucet claim result is on the page.
+        /// </summary>
+        public override int AfterSolveFaucet()
+        {
+            //This faucet has nothing to do here. We will let Faucet Collector handle it.
+            return base.AfterSolveFaucet();
+        }
+
+        /// <summary>
+        /// This method gets called in the end after the BeforeSolveFaucet/DoSolveFaucet and AfterSolveFaucet methods were done.
+        /// The base.CheckFaucetResult will try to find a visible element on the page using the XPath from SuccessXPath and FailXPath (see the Start method)
+        /// These properties should contain XPath expressions to find certain elements on the page.
+        /// For example if it finds one of the elements from the SuccessXPath, and it is visible, then it will flag the claim attempt as a success.
+        /// Or if it finds one of the elements from the FailXPath, and it is visible, then it will flag the claim attempt as a failure.
+        /// </summary>
+        public override int CheckFaucetResult()
+        {
+          
+            //This faucet has nothing to do here. We will let Faucet Collector handle it.
+            return base.CheckFaucetResult();
+        }
+
+        private bool Solveicon()
+        {
+            
+            Wait();
+            int solution = getIconCaptchaSol();
+            if (solution == -1)
+            {
+                return false;
+            }
+            solution--;
+
+            Wait();
+            try
+            {
+                ExecuteScript("var a=document.getElementsByClassName('captcha-image');var element =a[0];element.addEventListener('mouseover', function() {console.log('Event triggered');});var event = new MouseEvent('mouseover', {'view': window,'bubbles': true,'cancelable': true});element.dispatchEvent(event);a[" + solution + "].click();");
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+            Wait(7,10);
+            var ttl = ElementByXPath("//div[@class='captcha-modal__icons-title']");
+            if (!IsVisible(ttl))
+            {
+                return false;
+            }
+            if (ttl.Text.Contains("Great"))
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+
+        }
+        private Bitmap GetElementScreenShort(IWebDriver driver, IWebElement element, string name)
+        {
+            Actions actions = new Actions(driver);
+            actions.MoveToElement(element);
+            actions.Perform();
+            Screenshot sc = ((ITakesScreenshot)driver).GetScreenshot();
+            var img = Image.FromStream(new MemoryStream(sc.AsByteArray)) as Bitmap;
+            var x = ExecuteScript("let coords = arguments[0].getBoundingClientRect();return coords.left;", element);
+            var y = ExecuteScript("let coords = arguments[0].getBoundingClientRect();return coords.top;", element);
+            int x2 = Convert.ToInt32(x);
+            int y2 = Convert.ToInt32(y);
+            var width = ExecuteScript("let coords = arguments[0].getBoundingClientRect();return coords.width;", element);
+            var height = ExecuteScript("let coords = arguments[0].getBoundingClientRect();return coords.height;", element);
+            int width2 = Convert.ToInt32(width);
+            int height2 = Convert.ToInt32(height);
+       
+            if (Convert.ToInt32(name) != 4)
+            {
+                img = img.Clone(new Rectangle(x2, y2, width2-1, height2), img.PixelFormat);
+            }
+            else
+            {
+                img = img.Clone(new Rectangle(x2, y2, width2, height2), img.PixelFormat);
+            }
+         
+            return img;
+        }
+        private int getIconCaptchaSol()
+        {
+           
+            Wait();
+            int sol = 0;
+
+
+
+            Bitmap[] icons = new Bitmap[5];
+
+
+
+
+            var Icons = Driver.FindElements(By.ClassName("captcha-image"));
+            int cont = 0;
+
+            //   foreach (var icon in Icons)
+            //     {
+            foreach (var icon in Icons)
+            {
+         
+                Wait();
+                icons[cont] = GetElementScreenShort(Driver, icon,cont.ToString());
+                cont++;
+                
+
+            }
+
+
+            //   }
+            int one_two, one_three, one_four, one_five;
+      
+            one_two = CompareImage(icons[0], icons[1]);
+         
+            one_three = CompareImage(icons[0], icons[2]);
+            
+            one_four = CompareImage(icons[0], icons[3]);
+            
+            one_five = CompareImage(icons[0], icons[4]);
+          
+
+
+
+            int m = one_two;
+            int one_one = (one_five + one_four + one_two + one_three) / 4;
+            if (one_one > 2200)
+            {
+                sol = 1;
+                return sol;
+            }
+            if (m < one_three)
+            {
+                m = one_three;
+            }
+            if (m < one_four)
+            {
+                m = one_four;
+            }
+            if (m < one_five)
+            {
+                m = one_five;
+            }
+            if (m == one_two)
+            {
+                sol = 2;
+            }
+            else if (m == one_three)
+            {
+                sol = 3;
+            }
+            else if (m == one_four)
+            {
+                sol = 4;
+            }
+            else if (m == one_five)
+            {
+                sol = 5;
+            }
+
+            return sol;
+
+
+        }
+        private int CompareImage(Bitmap image1, Bitmap image2)
+        {
+            int cont = 0;
+            for (int i = 0; i < image1.Height; i++)
+            {
+                for (int j = 0; j < image1.Width; j++)
+                {
+                    if (image1.GetPixel(j, i) != image2.GetPixel(j, i))
+                    {
+
+                        cont++;
+
+                    }
+                }
+            }
+
+            return cont;
+
+
+        }
+
+    }
+}

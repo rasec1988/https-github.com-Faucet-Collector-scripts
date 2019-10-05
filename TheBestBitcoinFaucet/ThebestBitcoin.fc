@@ -1,0 +1,395 @@
+﻿
+
+//==========================================//
+//new edit by: AviramDayan 14/09/2018 16:00PM
+//*fix login
+//* add menu Menu_ReCaptcha_Or_SolveTextCaptcha
+//*infoSuccess
+//==========================================//
+
+using System;
+using System.Threading.Tasks;
+using FaucetCollector.Script;
+
+
+public class bestbitcoinfaucetcript : FaucetScript
+{
+    
+    public override FaucetSettings Settings
+    {
+        get
+        {
+            return new FaucetSettings("https://www.thebestbitcoinfaucet.com/")
+            {
+                 new FaucetSetting(){Name="BTC",Display="FaucetHub linked BTC wallet address",Type=EditorType.TextBox,Required=true},
+                 new FaucetSetting() { Name = "UnlimitedClaims", Display = "Unlimited Claims", Type = EditorType.CheckBox, Default = true},
+				 new FaucetSetting(){Name="Menu_ReCaptcha_Or_SolveTextCaptcha",Display="Select favorite Captcha to solve",Type=EditorType.ComboBox,Default="SolveTextCaptcha",Items=new System.Collections.Generic.List<string>{"SolveTextCaptcha","ReCaptcha"}},
+			
+                //insert user settings here
+                //new FaucetSetting { 
+                //    Name = "Name of your setting", 
+                //    Display = "Display shown in Faucet Collector", 
+                //    Type = EditorType.TextBox | EditorType.Password | EditorType.CheckBox | EditorType.Wallet | EditorType.Numeric | EditorType.ComboBox | EditorType.CheckComboBox, 
+                //    Required = true | false, 
+                //    Default = "Optionally a default value" | true | false | null.
+                //    Items = new List<string> { "item1", "item2" } (only valid for ComboBox or CheckComboBox)
+                //} 
+            };
+        }
+    }
+
+	
+	
+	
+//============================================================//
+//the number of "successes" in the script - when are finished  
+//============================================================//
+ public override void Start()
+ {
+        
+        Title = "The Best Bitcoin Faucet|";
+
+        SuccessXPath = "//P[@align='left']";
+        FailXPath = "//*[text()='']";
+
+        //Let Faucet Collector start up everything
+        base.Start();
+ }
+//============================================================//
+//the number of "successes" in the script - when are finished  
+//============================================================//
+	
+	
+	
+	
+	
+ public override int DoInit()
+ {
+    //Let Faucet Collector continue.
+    return base.DoInit();
+ }
+	
+	
+	
+	
+	
+//==================//
+//save Login Cookies 
+//==================//
+ public override bool IsLoggedIn()
+ {
+	 
+   return IsVisible(ElementByXPath("//input[@type='submit'][@value='Logout']"));
+   
+ }
+//==================//
+//save Login Cookies 
+//==================//
+	
+	
+	
+	
+	
+	
+//============//
+//BeforeLogin 
+//============//
+ public override int BeforeLogin()
+ {
+
+   Driver.Manage().Cookies.DeleteAllCookies(); 
+   Driver.Navigate().Refresh();
+   
+   return base.BeforeLogin();
+	
+ }
+//============//
+//BeforeLogin 
+//============//
+
+
+	
+	
+	
+	
+//========//
+//DoLogin 
+//========//
+    public override int DoLogin()
+    {
+ 
+        Wait(3);  
+		
+        var addressInput = ElementByXPath("//input[@name='address']");
+        SetText(addressInput, GetSetting("BTC"));
+
+        Wait(3);      
+		
+        var enterButton = ElementByXPath("//input[@type='submit']");
+        if (!IsVisible(enterButton))
+        {
+            
+            return Fail("enter button not found.");
+        }
+        
+        Click(enterButton);
+
+        
+        return base.DoLogin();
+    }
+//========//
+//DoLogin 
+//========//
+   
+   
+   
+   
+   
+    public override int AfterLogin()
+    {
+        
+        return base.AfterLogin();
+    }
+
+	
+	
+
+	
+	
+    public override int GetFaucetWaitTime()
+    {
+
+		
+		//let Faucet Collector continue.
+        return base.GetFaucetWaitTime();
+    }
+	
+	
+	
+	
+	
+
+   
+    public override int BeforeSolveCaptcha()
+    {
+        
+        return base.BeforeSolveCaptcha();
+    }
+
+   
+     public override int DoSolveCaptcha()
+    {
+       
+        return base.DoSolveCaptcha();
+    }
+
+
+    
+    public override int AfterSolveCaptcha()
+    {
+        
+        return base.AfterSolveCaptcha();
+    }
+
+   
+    public override int BeforeSolveFaucet()
+    {
+       
+
+        return base.BeforeSolveFaucet();
+    }
+
+	
+	
+
+	
+//============//	
+//DoSolveFaucet
+//============//
+ public override int DoSolveFaucet()
+ {
+		
+    if (GetBoolSetting("UnlimitedClaims"))
+    {  	
+		
+         do
+         { //start do
+			
+		
+		 //befor all - Check if the general text amount to claim is - 0
+	     var ClaimAmountZero = ElementByXPath("//*[text()='Claims Available : 0 ']");
+         if (IsVisible(ClaimAmountZero))
+         {
+		 Log("UnlimitedClaims: we return after 240 min"); 
+		 return 240*60;
+         } 
+
+		 
+		 
+		 //if the general text amount NOT 0 - do all stuff
+         if (!IsVisible(ClaimAmountZero))
+         {
+
+         Driver.Navigate().Refresh(); //Refresh Page
+
+	
+		 //===================//	
+		 //if captcha visible
+		 //===================//
+		 
+         var MenuVar = GetSetting("Menu_ReCaptcha_Or_SolveTextCaptcha");  
+
+		 
+		 //===============//	
+		 //SolveTextCaptcha
+		 //===============//	
+		 
+         if(MenuVar=="SolveTextCaptcha")
+         {
+			 
+         //first click on SolveTextCaptcha Radio Button - to open the Text Captcha
+         var SolveTextCaptchaButton = ElementByXPath("//a[@href='#Text_Captcha']");
+		 
+         if (IsVisible(SolveTextCaptchaButton))
+         {
+         Wait(3);		 
+         Click(SolveTextCaptchaButton);
+
+
+         //solve Captcha X2 XPath (1 = captcha image | 2 = input text )
+         var result = DoSolveImageCaptcha(ElementByXPath("//*[@id='Text_Captcha']/form/img"),ElementByXPath("//input[@name='captcha']")); 
+
+         if (result > 0)
+         {
+         return Fail("Fail login --- captcha failed");
+         }
+	 
+         } // end  SolveTextCaptcha Button - open the Text Captcha
+		 
+		 } // end  SolveTextCaptcha Menu
+		 
+	
+	
+		 //=========//	
+		 //ReCaptcha
+		 //=========//
+		 
+         if(MenuVar=="ReCaptcha")
+         {
+			 
+         //first click on SolveTextCaptcha Radio Button - to open the Text Captcha
+         var ReCaptchaButton = ElementByXPath("//input[@type='submit'][@value='Solve the captcha']");
+  
+		 if (IsVisible(ReCaptchaButton))
+         {
+         //solve
+         var result = SolveCaptcha();
+         if (result > 0)
+         {
+         return result;
+         }
+         Click(ReCaptchaButton);
+		 
+         } // end  ReCaptcha Button - open the Text Captcha
+		 
+         } // end ReCaptcha Menu
+		 //======================//
+		 
+		 
+		 
+		 //wait for claim button
+         var WaitForClaimButton = ElementByXPath("//*[@id='claimbutton'][@type='submit']");
+         var t1 = DateTime.Now.AddSeconds(65);
+		 
+         while (IsVisible(WaitForClaimButton))
+         {
+			 
+         Wait();
+		 
+         if (DateTime.Now > t1) //if the time above 65 sec 
+         {
+         break; //break the wait loop
+         }
+
+         } // end while
+		 
+		 
+         var claimbutton = ElementByXPath("//input[@id='claimbutton']");
+         if (!IsVisible(claimbutton))
+         {
+          //do not do nothing
+         }
+		 
+		 //click on claimbutton
+         Wait(4);
+         Click(claimbutton);
+		 
+		 //infoSuccess 
+		 var infoSuccess = ElementByXPath("//P[@align='left']");
+		 Log(infoSuccess.Text); 
+	 
+         } //end ClaimAmountZero	
+		 
+         } //end DO
+		 
+		 
+         while (GetBoolSetting("UnlimitedClaims"));  // now if checkbox "UnlimitedClaims" is checked - this tell to "FC" to do same action, to wait and do this in "Loop" 
+		
+		
+    } //end UnlimitedClaims CheckBox
+		
+		
+        return base.DoSolveFaucet();
+ }
+//============//	
+//DoSolveFaucet
+//============//
+	
+	
+
+
+	
+	
+	
+//===============//
+//AfterSolveFaucet
+//===============//
+    public override int AfterSolveFaucet()
+    {
+
+		
+		
+        
+        return base.AfterSolveFaucet();
+    }
+//===============//
+//AfterSolveFaucet
+//===============//
+
+  
+  
+  
+    /// <summary>
+    /// This method gets called in the end after the BeforeSolveFaucet/DoSolveFaucet and AfterSolveFaucet methods were done.
+    /// The base.CheckFaucetResult will try to find a visible element on the page using the XPath from SuccessXPath and FailXPath (see the Start method)
+    /// These properties should contain XPath expressions to find certain elements on the page.
+    /// For example if it finds one of the elements from the SuccessXPath, and it is visible, then it will flag the claim attempt as a success.
+    /// Or if it finds one of the elements from the FailXPath, and it is visible, then it will flag the claim attempt as a failure.
+    /// </summary>
+    public override int CheckFaucetResult()
+    {
+       
+        var result = base.CheckFaucetResult();
+
+        if (IsSuccess)
+        {
+            result = GetWaitSetting();
+            Reload = true;  
+        }
+
+        return result;
+    }
+	
+	
+	
+} //END public class

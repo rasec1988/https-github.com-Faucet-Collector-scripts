@@ -1,0 +1,184 @@
+﻿using FaucetCollector.Script;
+using System;
+//css_inc RecaptchaUtilities
+
+class Uplibrascript : FaucetScript
+{
+
+
+    public override FaucetSettings Settings
+    {
+        get
+        {
+            return new FaucetSettings ( "https://uplibra.io" )
+            {
+                new FaucetSetting(){Name="User",
+                    Display ="Username",
+                    Type =EditorType.TextBox,
+                    Required =true
+                },
+                new FaucetSetting()
+                {
+                    Name="Pass",
+                    Display="Password",
+                    Type=EditorType.Password,
+                    Required=true
+                },         
+            };
+        }
+    }
+
+    public override void Start ( )
+    {
+
+        Title="UPLibra";
+
+
+        SuccessXPath="//*[@class='alert alert-success']";
+        FailXPath="//*[@class='alert alert-warning']";
+
+        base.Start ( );
+    }
+
+
+    public override int DoInit ( )
+    {
+
+        return base.DoInit ( );
+    }
+
+
+    public override bool IsLoggedIn ( )
+    {
+        // See if the element is visible;
+        return ElementByXPath ( "//a[contains(@href,'logout')]" )!=null;
+    }
+
+
+    public override int BeforeLogin ( )
+    {
+
+        return base.BeforeLogin ( );
+    }
+
+
+    public override int DoLogin ( )
+    {
+        if(Driver.Url!="https://uplibra.io/signin" )
+        {
+            GoToUrl ( "https://uplibra.io/signin" );
+            Wait ( );
+
+        }
+        var UserBox = ElementByXPath("//input[@id='sliver_sign_user_name']");
+        if ( !IsVisible ( UserBox ) )
+        {
+            return Fail ( "UserBox not found" );
+        }
+        SetText ( UserBox , GetSetting ( "User" ) );
+
+        var PasswordBox = ElementByXPath("//input[@id='sliver_sign_user_password']");
+        if ( !IsVisible ( PasswordBox ) )
+        {
+            return Fail ( "Password box not visible" );
+        }
+        SetText ( PasswordBox , GetPassword ( "Pass" ) );
+   
+
+        var ButtonLogin = ElementByXPath("//button[@id='kt_login_signin_submit']");
+        if ( !IsVisible ( ButtonLogin ) )
+        {
+            return Fail ( "Button login not visible" );
+
+        }
+        Click ( ButtonLogin );
+
+        return base.DoLogin ( );
+    }
+
+
+    public override int AfterLogin ( )
+    {
+
+        return base.AfterLogin ( );
+    }
+
+
+    public override int GetFaucetWaitTime ( )
+    {
+
+        var hour=ElementByXPath("//num[@class='h']");
+        var min=ElementByXPath("//num[@class='m']");
+        var seg=ElementByXPath("//num[@class='s']");
+
+        if(IsVisible(hour) && IsVisible(min) &&IsVisible ( seg ) )
+        {
+            return Convert.ToInt32 ( hour.Text )*3600+Convert.ToInt32 ( min.Text )*60+Convert.ToInt32 ( seg.Text );
+
+        }
+
+        return base.GetFaucetWaitTime ( );
+    }
+
+
+    public override int BeforeSolveCaptcha ( )
+    {
+
+        return base.BeforeSolveCaptcha ( );
+    }
+
+    public override int DoSolveCaptcha ( )
+    {
+        var result=base.DoSolveCaptcha();
+        RecaptchaUtility util=new RecaptchaUtility(this);
+
+        if ( result<=0 )
+        {
+            util.DoSolve ( );
+        }
+
+        return result;
+    }
+
+
+    public override int AfterSolveCaptcha ( )
+    {
+
+        return base.AfterSolveCaptcha ( );
+    }
+
+
+    public override int BeforeSolveFaucet ( )
+    {
+       
+
+        return base.BeforeSolveCaptcha ( );
+    }
+
+
+    public override int DoSolveFaucet ( )
+    {
+        GoToUrl ( "https://uplibra.io/dashboard" );
+        var result=DoSolveCaptcha();
+        if ( result>0 )
+        {
+            return Fail ( "Problem solving captcha" );
+        }
+
+        return base.DoSolveFaucet ( );
+    }
+
+
+    public override int AfterSolveFaucet ( )
+    {
+        return base.AfterSolveFaucet ( );
+    }
+
+
+    public override int CheckFaucetResult ( )
+    {
+
+        return base.CheckFaucetResult ( );
+    }
+
+}

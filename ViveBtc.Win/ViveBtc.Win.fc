@@ -1,0 +1,1120 @@
+﻿
+
+//==================//
+//script Written by: ••AviramDayan•• 27/25/2019 21:09PM
+//Last Update: 29/07/2019 18:10PM - Version 12
+//==================//
+
+using System;
+using FaucetCollector.Script;
+using OpenQA.Selenium;
+using OpenQA.Selenium.Interactions;
+//css_inc RecaptchaUtilities
+//css_inc ShortLinkUtilities
+
+public class vivebtcwin : FaucetScript
+{
+    /// <summary>
+    /// List of Settings that will be shown in the bot when selecting this Faucet in the bot.
+    /// You can get the value the user entered with the methods: GetSetting("[Name of the FaucetSetting]"), GetBoolSetting and GetDateTimeSetting
+    /// You can also create a new setting value using SetSetting("[Name you want to use]", "value")
+    /// </summary>
+    public override FaucetSettings Settings
+    {
+        get
+        {
+			
+            return new FaucetSettings("https://vivebtc.win/")
+            {
+                new FaucetSetting(){Name="Email",Display="Email",Type=EditorType.TextBox,Required=false},
+                new FaucetSetting(){Name="Password",Display="Password",Type=EditorType.Password,Required=false},
+				
+                new FaucetSetting() { Name = "FaucetClaim", Display = "FaucetClaim - ON/OFF", Type = EditorType.CheckBox, Default = true},	
+				new FaucetSetting(){Name="FaucetTime",Display="FaucetTime - i recommended to choose every 60min because the security of captcha when you are failed",Type=EditorType.ComboBox,Default="60",Items=new System.Collections.Generic.List<string>{"none","15","30","45","60"}},		
+				
+                new FaucetSetting() { Name = "ViveGrid", Display = "ViveGrid - ON/OFF", Type = EditorType.CheckBox, Default = true},	
+                
+				new FaucetSetting() { Name = "MachineCoins", Display = "MachineCoins - ON/OFF", Type = EditorType.CheckBox, Default = true},	            
+				new FaucetSetting() { Name = "AutoClaimShortFaoucetHub", Display = "AutoClaimShortFaoucetHub - ON/OFF", Type = EditorType.CheckBox, Default = false},					
+ 				new FaucetSetting(){Name="AutoClaim_MenuDefaultCoin",Display="AutoClaim_MenuDefaultCoin - Select Favorite Coin to claim",Type=EditorType.ComboBox,Default="DOGECOIN",Items=new System.Collections.Generic.List<string>{"DOGECOIN","DIGIBYTE","PRIMECOIN","POTCOIN","BLACKCOIN","BITCORE","TRON","HORA"}},               
+                
+				new FaucetSetting(){Name="BITCOIN_SetWallet",Display="BITCOIN_SetWallet",Type=EditorType.TextBox,Required=true},
+				new FaucetSetting(){Name="LITECOIN_SetWallet",Display="LITECOIN_SetWallet",Type=EditorType.TextBox,Required=true},
+				new FaucetSetting(){Name="DOGECOIN_SetWallet",Display="DOGECOIN_SetWallet",Type=EditorType.TextBox,Required=true},
+                new FaucetSetting(){Name="DASH_SetWallet",Display="DASH_SetWallet",Type=EditorType.TextBox,Required=true},
+                new FaucetSetting(){Name="ETHEREUM_SetWallet",Display="ETHEREUM_SetWallet",Type=EditorType.TextBox,Required=true},
+                new FaucetSetting(){Name="POTCOIN_SetWallet",Display="POTCOIN_SetWallet",Type=EditorType.TextBox,Required=true},
+                new FaucetSetting(){Name="PRIMECOIN_SetWallet",Display="PRIMECOIN_SetWallet",Type=EditorType.TextBox,Required=true},
+                new FaucetSetting(){Name="PEERCOIN_SetWallet",Display="PEERCOIN_SetWallet",Type=EditorType.TextBox,Required=true},
+                new FaucetSetting(){Name="DIGIBYTE_SetWallet",Display="DIGIBYTE_SetWallet",Type=EditorType.TextBox,Required=true},
+                new FaucetSetting(){Name="BITCORE_SetWallet",Display="BITCORE_SetWallet",Type=EditorType.TextBox,Required=true},
+                new FaucetSetting(){Name="BLACKCOIN_SetWallet",Display="BLACKCOIN_SetWallet",Type=EditorType.TextBox,Required=true},
+                new FaucetSetting(){Name="TRON_SetWallet",Display="TRON_SetWallet",Type=EditorType.TextBox,Required=true},
+                new FaucetSetting(){Name="HORA_SetWallet",Display="HORA_SetWallet",Type=EditorType.TextBox,Required=true},
+		
+				new FaucetSetting() { Name = "TimeToWait", Display = "MachineCoins OR AutoClaimShortFaoucetHub - TimeToWait", Type = EditorType.Numeric, Default = 3},
+                
+				new FaucetSetting() { Name = "ScamScore", Display = "ScamScore -ON/OFF - account protection from ban - if the captcha files above 330 times so we will try to decrease the amount by solve correct captcha", Type = EditorType.CheckBox, Default = false},				
+                new FaucetSetting() { Name = "MyLimitNumber", Display = "MyLimitNumber", Type = EditorType.Numeric, Default = 400},      
+				
+				new FaucetSetting() { Name = "ShortLink", Display = "ShortLink - ON/OFF", Type = EditorType.CheckBox, Default = false},	
+				new FaucetSetting(){Name="Menu_Packages",Display="Packages - Select your favorite",Type=EditorType.ComboBox,Default="none",Items=new System.Collections.Generic.List<string>{"none","Gold","Silver","Bronze"}},		
+
+ 
+				
+            };
+        }
+    }
+
+	
+//============================================================//
+//the number of "successes" in the script - when are finished  
+//============================================================//
+    public override void Start()
+    {
+        ad = false;
+       
+        //Title that shows in the browser. Is used to identify and close popup windows
+        Title = "ViveBTC";
+
+		SuccessXPath = "//*";  //*[@id='']
+        FailXPath = "//*"; //*[@id='']
+	
+        //TimerIsCountingUp = true;
+		
+        //Let Faucet Collector start up everything
+        base.Start();
+    }
+//============================================================//
+//the number of "successes" in the script - when are finished  
+//============================================================//
+
+	
+    bool ad; //custom bool
+
+
+    public override int DoInit()
+    {
+	
+        //Let Faucet Collector continue.
+        return base.DoInit();
+    }
+
+
+	
+//==================//
+//save Login Cookies 
+//==================//
+    public override bool IsLoggedIn()
+    {
+	    //save Login Cookies - Check if the "Logout" exist
+        return ElementByXPath("//ul[@id='exampleAccordion']") != null;
+	 
+        //return base.IsLoggedIn();
+    }
+//==================//
+//save Login Cookies 
+//==================//	
+
+
+
+
+//=============//
+//BeforeLogin
+//=============//
+    public override int BeforeLogin()
+    {
+
+	   GoToUrl("https://vivebtc.win/dashboard");
+
+		
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeLogin();
+    }
+//=============//
+//BeforeLogin
+//=============//
+
+	
+
+	
+//========//
+//DoLogin
+//========//
+    public override int DoLogin()
+    {
+	
+      var ExitButton = ElementByXPath("//ul[@id='exampleAccordion']");
+
+	
+	 //if i NOT Login - go to Login Page
+	 if (!IsVisible(ExitButton))
+	 {
+	
+		GoToUrl("https://vivebtc.win/login");
+		Wait();		
+		Wait(2);
+		
+        /*
+        var StartOpenLogin = ElementByXPath("//a[@class='btn btn-primary' and contains(text(),'Sign In')]");
+	    if (IsVisible(StartOpenLogin))
+	    { 
+        Click(StartOpenLogin);
+		}
+		*/
+
+		Wait(2);
+		
+        var box_user = ElementByXPath("//input[@id='email']");
+        SetText(box_user, GetSetting("Email"));
+		
+		Wait(2);
+		
+        var box_pass = ElementByXPath("//input[@id='password']");
+        SetText(box_pass, GetPassword("Password"));
+
+		Wait(2);
+
+        CheckForPopupsEnabled = true;     //enable
+        CheckForPopups();    //call
+		
+        //solve Captcha X2 XPath (1 = captcha image | 2 = input text )
+        var result = DoSolveImageCaptcha(ElementByXPath("//img[@id='img-captcha']"),ElementByXPath("//input[@id='name']")); 
+
+        if (result > 0)
+        {
+        return Fail("Fail login --- captcha failed");
+        }
+		
+		Wait(2);
+		
+        var ButtonLog = ElementByXPath("//button[@type='submit']");
+        Click(ButtonLog);
+		
+		Wait(2);
+		
+        CheckForPopupsEnabled = false;    //disable
+		
+		Wait(2);			
+		
+/*		
+        var Error_Message = ElementByXPath ("//div[@id='add_err']/div/div[@class='message' and contains(text(),'fille' | 'captcha' ) ]");
+        if (IsVisible(Error_Message))
+        {
+            Log("Error_Message - Appear - we return after 1 min ");
+            return 1*60; //we return after 1 min
+        }
+*/		
+		Wait();	
+
+	 } // end ExitButton
+
+        
+       return base.DoLogin();
+    }
+//========//
+//DoLogin
+//========//
+ 
+
+
+//========//
+//AfterLogin
+//========//
+ public override int AfterLogin()
+ {
+ 
+  
+    //we are good to continue
+    return base.AfterLogin();
+
+ }
+//========//
+//AfterLogin
+//========//
+
+
+	
+
+//================//
+//GetFaucetWaitTime
+//================//
+    public override int GetFaucetWaitTime()
+    {
+
+        if (ad)
+        {
+		    //Log("return ad");
+			ad=false;
+			Driver.Close();  // Close specific chrome window
+            Driver.Quit();  // also Close the console app, that was used to kick off the chrome window
+            Driver.Dispose();  // Close the chromedriver.exe
+            return GetWaitSetting();
+        }
+
+		//let Faucet Collector continue.
+        return base.GetFaucetWaitTime();
+    }
+//================//
+//GetFaucetWaitTime
+//================//
+
+
+
+    public override int BeforeSolveCaptcha()
+    {
+ 
+        //Return we are ready to proceed
+        return base.BeforeSolveFaucet();
+    }
+
+	
+    public override int DoSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoSolveCaptcha();
+    }
+
+	
+    public override int AfterSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterSolveCaptcha();
+    }
+
+	
+    public override int BeforeSolveFaucet()
+    {
+        //Return we can continue
+        return base.BeforeSolveFaucet();
+    }
+  
+	
+	
+//==============//
+//DoSolveFaucet
+//==============//
+ public override int DoSolveFaucet()
+  {
+
+
+
+	 //====================//
+     //Menu_Packages_Var
+     //====================//
+
+     var Menu_Packages_Var = GetSetting("Packages");    
+
+     GoToUrl("https://vivebtc.win/packages");
+     Log("Go to Menu_Packages");	
+     Wait();
+     Wait(2);	
+	 
+	 // * none * //
+     if(Menu_Packages_Var=="none")
+     {
+      Log("Menu_Packages_Var - none");
+     }	
+
+	 // * Gold * //
+     if(Menu_Packages_Var=="Gold")
+     {
+         Log("Menu_Packages_Var - Gold");
+		 
+         var Gold_Button = ElementByXPath("//a[@href='https://vivebtc.win/package/active/694']"); 
+         if (IsVisible(Gold_Button))
+         {	
+		 Log("Menu_Packages - Gold_Button");	
+	     Click(Gold_Button);		 
+	     }
+     }	
+
+	 // * Silver * //
+     if(Menu_Packages_Var=="Silver")
+     {
+         Log("Menu_Packages_Var - Silver");
+
+         var Silver_Button = ElementByXPath("//a[@href='https://vivebtc.win/package/active/546']"); 
+         if (IsVisible(Silver_Button))
+         {	
+		 Log("Menu_Packages - Silver_Button");	
+	     Click(Silver_Button);		 
+	     }	  
+     }	
+
+	 // * Bronze * //
+     if(Menu_Packages_Var=="Bronze")
+     {
+         Log("Menu_Packages_Var - Bronze");
+
+         var Bronze_Button = ElementByXPath("//a[@href='https://vivebtc.win/package/active/693']"); 
+         if (IsVisible(Bronze_Button))
+         {	
+		 Log("Menu_Packages - Bronze_Button");	
+	     Click(Bronze_Button);		 
+	     }
+     }		 
+     //============================//
+	 
+
+
+	 //===========//
+     //ViveGrid
+	 //===========//
+       if (GetBoolSetting("ViveGrid"))
+       {
+           GoToUrl("https://claimbtc.in/grid#");
+		   Log("Go to ViveGrid");	
+           Wait();
+           Wait(2);	
+
+
+		    //do loop 
+            for(var i=1; i<=60; i++)
+            {
+              ClickGrid_Function(i);
+            }	
+
+	 
+	   } //end ViveGrid
+	 //===========//
+	 
+
+
+	 //===========//	 
+	 //MachineCoins
+	 //===========//
+
+       if (GetBoolSetting("MachineCoins"))
+       {
+         GoToUrl("https://vivebtc.win/machine_coins");
+		 Log("Go to MachineCoins");	
+         Wait();
+         Wait(2);	
+
+         var StartMachine = ElementByXPath("//button[@class='btn btn-block btn-primary' and contains(text(),'') ]"); 
+         if (IsVisible(StartMachine))
+         {	
+		 Log("MachineCoins - sratt MachineCoins button");	
+	     Click(StartMachine);		 
+	     }
+
+         var ProgressBarAbove_VAR = ElementByXPath("//span[@class='badge badge-secondary']");  
+         int ProgressBarAbove_INT = Convert.ToInt32(ProgressBarAbove_VAR.Text.Trim().Split('/')[0]);	 // need [4] for example if we have Existing text "You have to wait 15 minutes"  it mean = You[0] have[1] to[2] wait[3] 15[4] minutes[5] 
+
+         if (ProgressBarAbove_INT > 100 )  
+         {			 
+		   Log("CollectCoins - OK ");
+		 
+           var CollectCoins = ElementByXPath("//button[@class='btn btn-block btn-success' and contains(text(),'') ]"); 
+           if (IsVisible(CollectCoins))
+           {	
+		   Log("MachineCoins - now CollectCoins");	
+	       Click(CollectCoins);		 
+	       }
+		 		  
+		 }
+
+         if (ProgressBarAbove_INT < 100 )  
+         {			 
+		  Log("CollectCoins - NOT OK - we need to pass the ProgressBar - the limit from 50 ");		  
+		 }
+
+		 Log("MachineCoins - wait by your custom time");		 
+         int TimeToWaitINT;
+         TimeToWaitINT = GetIntSetting("TimeToWait") * 60; 		 
+         Wait(TimeToWaitINT);	
+         Wait(2);	
+
+	   }// end MachineCoins
+	 //===========//	   
+	 
+
+
+	 //===========//	 
+	 //AutoClaimShortFaoucetHub
+	 //===========//
+
+       if (GetBoolSetting("AutoClaimShortFaoucetHub"))
+       {
+         GoToUrl("https://vivebtc.win/auto");
+		 Log("Go to AutoClaimShortFaoucetHub");	
+         Wait();
+         Wait(2);	
+
+         var MyCredits_VAR = ElementByXPath("//li[@class='nav-item navbar-text']/span[2]");  
+         int MyCredits_INT = Convert.ToInt32(MyCredits_VAR.Text.Trim().Split(' ')[0]);	
+
+         if (MyCredits_INT > 150 )  
+         {	
+            Log("AutoClaimShortFaoucetHub - MyCredits_INT - above");
+	 
+	        AutoClaim_MenuDefaultCoin_Faunction(); //call to set wallet
+            Wait();
+            Wait(2);	
+			
+            var NotActive = ElementByXPath("//span[contains(text(),'Inactive') ]");
+            if (IsVisible(NotActive))
+            {	
+            Log("AutoClaimShortFaoucetHub - NotActive");
+            Wait(2);	
+			
+            var AutoButton = ElementByXPath("//button[@class='btn btn-block btn-primary' ]");
+            Click(AutoButton);	
+            Log("AutoClaimShortFaoucetHub - click on AutoButton");						
+            } // end NotActive
+			
+            Log("MachineCoins - wait by your custom time");		 
+            int TimeToWaitINT;
+            TimeToWaitINT = GetIntSetting("TimeToWait") * 60; 		 
+            Wait(TimeToWaitINT);	
+            //Wait(2);	
+			
+         } //end MyCredits_INT > 150
+ 
+
+         if (MyCredits_INT < 150 )  
+         {			 
+         Log("AutoClaimShortFaoucetHub - you do not have credit - the limit from 50 - on each claim");		  
+         }//end MyCredits_INT < 150
+
+       } // end AutoClaimShortFaoucetHub
+	 //===========//	   
+
+
+	 
+	 //===========//
+	 //FaucetClaim
+	 //===========//
+       if (GetBoolSetting("FaucetClaim"))
+       {
+   
+        GoToUrl("https://vivebtc.win/faucet");
+		Log("Go to FaucetClaim");	
+		Wait();
+		Wait(2);
+ 
+		//FaucetTime//
+        var Change_VAR = ElementByXPath("//a[@data-target='#change-timeModal']");
+        if (IsVisible(Change_VAR))
+        {	
+		Log("FaucetTime - Change_VAR");	
+	    Click(Change_VAR);		 
+
+        //Menu
+        var Menu_FaucetTime_Var = GetSetting("FaucetTime"); 
+		Log("FaucetTime - Select time");
+
+
+        if(Menu_FaucetTime_Var=="none")
+        {
+         Log("FaucetTime - none");
+        }
+		
+        if(Menu_FaucetTime_Var=="15")
+        {
+         Log("FaucetTime - 15");
+         var faucet_15_VAR = ElementByXPath("//*[@id='change-time']/div[1]/label/input");
+         Click(faucet_15_VAR);
+        }
+		
+        if(Menu_FaucetTime_Var=="30")
+        {
+         Log("FaucetTime - 30");
+         var faucet_30_VAR = ElementByXPath("//*[@id='change-time']/div[2]/label/input");
+         Click(faucet_30_VAR);
+        }
+		
+	    if(Menu_FaucetTime_Var=="45")
+        {
+         Log("FaucetTime - 45");
+         var faucet_45_VAR = ElementByXPath("//*[@id='change-time']/div[3]/label/input");
+         Click(faucet_45_VAR);
+        }
+		
+	    if(Menu_FaucetTime_Var=="60")
+        {
+         Log("FaucetTime - 60");
+         var faucet_60_VAR = ElementByXPath("//*[@id='change-time']/div[4]/label/input");
+         Click(faucet_60_VAR);
+        }
+			
+         var Confirm_VAR = ElementByXPath("//*[@id='change-timeModal']/div/div/div[3]/button[1 and contains(text(),'Confirm')]");
+         Click(Confirm_VAR);
+		 Log("FaucetTime - Confirm_VAR");
+
+		 Wait();
+		 Wait(2);
+
+         Driver.Navigate().Refresh();
+		
+		 Wait();
+		 Wait(2);
+
+	    }// end Change_VAR
+
+		
+        var LimitClaim = ElementByXPath("//div[@class='alert alert-warning m-auto']");
+        if (!IsVisible(LimitClaim))
+        {		
+
+		Wait(2);
+		  
+        CheckForPopupsEnabled = true;     //enable
+        CheckForPopups();    //call
+
+		Wait();
+		Wait(2);
+
+        Windows_Function(); //call to close the Windows
+
+		Wait();
+		Wait(2);	 
+
+        //solve Captcha X2 XPath (1 = captcha image | 2 = input text )
+        var result = DoSolveImageCaptcha(ElementByXPath("//img[@id='img-captcha']"),ElementByXPath("//input[@id='name']")); 
+		
+		Wait(2);
+		
+        var ButtonLog = ElementByXPath("//button[@class='btn btn-primary btn-block handcursor']");
+        Click(ButtonLog);
+		
+		Wait(2);
+		
+        CheckForPopupsEnabled = false;    //disable
+		
+		Wait(2);
+
+		
+        }//end LimitClaim
+		
+		
+	   }// end faucetclaim
+	 //===========//
+
+
+
+
+	 //===========//
+	 //ShortLink
+	 //===========//
+       if (GetBoolSetting("ShortLink"))
+       {
+		   
+         GoToUrl("https://vivebtc.win/links/");
+		 Log("Go to ShortLink");		
+
+         Wait();
+         Wait(2);
+		 
+         for(var i=1; i<=30; i++)
+         {
+           ShortLink_ClickAll_Function(i);
+         }
+ 
+ 	   }// end ShortLink
+	 //===========//
+
+
+
+	 //===========//	 
+	 //ScamScore
+	 //===========//
+
+       if (GetBoolSetting("ScamScore"))
+       {
+         GoToUrl("https://vivebtc.win/scam_score");
+		 Log("Go to ScamScore page");	
+         Wait();
+         Wait(2);	
+
+         var ProgressBarAbove_VAR = ElementByXPath("//div[1]/p[1]/span");  
+         int ProgressBarAbove_INT = Convert.ToInt32(ProgressBarAbove_VAR.Text);
+         	 
+         int MyLimitNumberINT;
+         Int32.TryParse(GetSetting("MyLimitNumber"), out MyLimitNumberINT);
+
+         if (ProgressBarAbove_INT > MyLimitNumberINT ) //LIMIT IS 330 
+         {			 
+		   Log("ScamScore - Close to get 'ban' the limit is 330 Captcha fails - now we on 325 - we need to disable the script now ");		 
+           Disable();
+           return 1;		 		  
+		 }
+
+         var Get_Better_Button = ElementByXPath("//button[@class='btn btn-block btn-success']");	
+		 
+         if (ProgressBarAbove_INT < MyLimitNumberINT && IsVisible(Get_Better_Button) )  
+         {			 
+		  Log("ScamScore - under 330 - so we try to solve 3 time to decrease the fails");        
+		  
+		  Captcha_Function(); //call
+          Wait(2);
+		  
+          var Wrong_1_Captcha = ElementByXPath("//span[@data-notify='message' and contains(text(),'Wrong captcha') ]");
+          if (IsVisible(Wrong_1_Captcha ))
+          {	
+	        Log("Wrong_1_Captcha - captcha fails - message apper - we return after your time");
+			Driver.Close();  // Close specific chrome window
+            Driver.Quit();  // also Close the console app, that was used to kick off the chrome window
+            Driver.Dispose();  // Close the chromedriver.exe
+            return GetWaitSetting();	  
+		  }	 
+		  
+		  Wait(3);	
+		  
+          Captcha_Function(); //call	
+          Wait(2);
+		  
+          var Wrong_2_Captcha = ElementByXPath("//span[@data-notify='message' and contains(text(),'Wrong captcha') ]");
+          if (IsVisible(Wrong_2_Captcha ))
+          {	
+	        Log("Wrong_2_Captcha - captcha fails - message apper - we return after your time");
+			Driver.Close();  // Close specific chrome window
+            Driver.Quit();  // also Close the console app, that was used to kick off the chrome window
+            Driver.Dispose();  // Close the chromedriver.exe
+            return GetWaitSetting();	  
+		  }	 
+		  
+		  Wait(3);		  		  
+		  
+          Captcha_Function(); //call	
+          Wait(2);	
+		  
+          var Wrong_3_Captcha = ElementByXPath("//span[@data-notify='message' and contains(text(),'Wrong captcha') ]");
+          if (IsVisible(Wrong_3_Captcha ))
+          {	
+	        Log("Wrong_3_Captcha - captcha fails - message apper - we return after your time");
+			Driver.Close();  // Close specific chrome window
+            Driver.Quit();  // also Close the console app, that was used to kick off the chrome window
+            Driver.Dispose();  // Close the chromedriver.exe
+            return GetWaitSetting();	  
+		  }	 
+		  
+		  Wait(3);		
+		  
+		 }
+
+
+	   }// end ScamScore
+	 //===========//	   
+	 
+
+		ad = true;    // if i do true - it report as succeed // only one time no multi and also required -> return GetWaitSetting();	
+        //return GetWaitSetting();	
+	
+	
+        //We are good to continue
+        return base.DoSolveFaucet();
+ }
+//==============//
+//DoSolveFaucet
+//==============///
+	
+	
+	
+	
+	
+//==============//
+//AfterSolveFaucet
+//==============//
+  public override int AfterSolveFaucet()
+  {
+
+   //This faucet has nothing to do here. We will let Faucet Collector handle it.
+   return base.AfterSolveFaucet();
+   
+  }
+	
+//==============//
+//AfterSolveFaucet
+//==============//
+
+
+
+    /// <summary>
+    /// This method gets called in the end after the BeforeSolveFaucet/DoSolveFaucet and AfterSolveFaucet methods were done.
+    /// The base.CheckFaucetResult will try to find a visible element on the page using the XPath from SuccessXPath and FailXPath (see the Start method)
+    /// These properties should contain XPath expressions to find certain elements on the page.
+    /// For example if it finds one of the elements from the SuccessXPath, and it is visible, then it will flag the claim attempt as a success.
+    /// Or if it finds one of the elements from the FailXPath, and it is visible, then it will flag the claim attempt as a failure.
+    /// </summary>
+    public override int CheckFaucetResult()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.CheckFaucetResult();
+    }
+	
+	
+        //=================//
+		//ShortLink_Function
+        //=================//
+        public void ShortLink_Function()
+        {
+			
+        //call to ShortLink
+        ShortLinkBypasser bypasser = new ShortLinkBypasser(this);
+        bool ShorBool = bypasser.DoShortLink();
+        if (!ShorBool)
+        {
+            Log("Fail shortlink");
+        }
+
+        }//	ShortLink_Function
+        //=================//
+	
+
+	    //================//
+        //ShortLink_ClickAll_Function
+	    //================//
+        public void ShortLink_ClickAll_Function(int number)
+        {
+    
+         var Link_All_VAR = ElementByXPath ("//div["+number.ToString()+"]/div/div[3]/a[@class='btn btn-primary btn-cell ' ]");
+         if (IsVisible(Link_All_VAR))
+         {	
+	 
+         GoToUrl("https://vivebtc.win/links/");
+		 Log("Go to ShortLink");	
+		 
+		 Wait();
+		 Wait(2);	
+		 
+	     Click(Link_All_VAR);			 
+		 Log("ShortLink - Link_All_VAR" + number.ToString() );	
+		 
+		 Wait();
+		 Wait(2);
+		 
+         ShortLink_Function(); //call to ShortLink_Function		
+		 
+		 Wait();
+		 Wait(2);
+	 
+	     } //Link_All_VAR		 
+		  
+        } //ShortLink_ClickAll_Function
+        //=================//
+				  
+
+	    //================//
+        //ClickGrid_Function
+	    //================//
+        public void ClickGrid_Function(int number)
+        {
+    
+           var WarningAlert = ElementByXPath("//div[@class='alert alert-warning']");
+           if (IsVisible(WarningAlert))
+           {
+		       Log("WarningAlert here - we need to try in the next time ");
+	       }
+		   			
+           if (!IsVisible(WarningAlert))
+           {
+		       Log("Cool - The area is clean - no WarningAlert ");
+               var Grid_Visibale_ALL = ElementByXPath("//div["+number.ToString()+"]/div/div[2]/a[@class='btn btn-primary btn-cell']");
+
+               //Visible
+               if (IsVisible(Grid_Visibale_ALL))
+               {
+		       Log("Button here click on - Grid_Visibale_1" + number.ToString() );
+		       Click(Grid_Visibale_ALL);
+               Wait(2);	
+		       }
+
+               //NOT Visible
+               if (!IsVisible(Grid_Visibale_ALL))
+               {
+		         Log("Button Not Here  - Grid_Visibale_1" + number.ToString() );
+		       }
+  
+           } //end WarningAlert not here
+
+        } //ClickGrid_Function
+        //=================//
+		
+		
+
+        //=================//
+		//Captcha_Function
+        //=================//
+        public void Captcha_Function()
+        {
+          CheckForPopupsEnabled = true;     //enable
+          CheckForPopups();    //call	
+		  
+          //solve Captcha X2 XPath (1 = captcha image | 2 = input text )
+          var result = DoSolveImageCaptcha(ElementByXPath("//img[@id='img-captcha']"),ElementByXPath("//input[@id='name']")); 
+		  
+		  Wait(2);
+	   
+          var GetBetterButton = ElementByXPath("//button[@class='btn btn-block btn-success']");		  
+		  Click(GetBetterButton);
+		  
+		  Wait();		  
+		  Wait(1);
+
+          CheckForPopupsEnabled = false;    //disable	  
+		  
+        }//	Captcha_Function
+        //=================//
+	
+
+        //=================//
+		//Windows_Function
+        //=================//
+        public void Windows_Function()
+        {
+			
+		  Wait();
+
+          var WindowsFucet = ElementByXPath("//*[@id='infoModal']/div/div");		  
+          if (IsVisible(WindowsFucet))
+          {	
+          Log("WindowsFucet");	
+		  Title = "ViveBTC";
+          var WindowsFucet_Close = ElementByXPath("//*[@id='infoModal']/div/div/div[1]/button/span");		  
+		  Click(WindowsFucet_Close);
+          Log("WindowsFucet_Close");			  
+		  }	  
+  
+	  
+        }//	Windows_Function
+        //=================//
+
+
+
+      //=============//
+      //AutoClaim_MenuDefaultCoin_Faunction
+      //=============// 
+      public void AutoClaim_MenuDefaultCoin_Faunction()
+      {
+
+       CheckForPopupsEnabled = true;  //enable
+       CheckForPopups();  //call	
+
+       Log("AutoClaim_MenuDefaultCoin_Faunction");
+
+
+     var SelectChecking = ElementByXPath("//div[@class='card  o-hidden h-100 border-4 border-danger']");
+     if (!IsVisible(SelectChecking)) //if the red border - not exist/selected - only then do all stuff 
+     {	 
+
+       //menu
+       var MenuCoinsVAR = GetSetting("AutoClaim_MenuDefaultCoin"); 
+	  
+       if(MenuCoinsVAR=="DOGECOIN")
+       {
+         var DOGECOIN_Select = ElementByXPath("//div[1]/div/div[2]/a[1 and @class='btn btn-secondary']");		  
+		 Click(DOGECOIN_Select);
+         Log("DOGECOIN_Select");
+		 
+		 Wait();		 
+		 Wait(2);
+		 
+         var DOGECOIN_ManageWallet = ElementByXPath("//div[1]/div/div[2]/a[2 and @class='btn btn-success']");		  
+		 Click(DOGECOIN_ManageWallet);
+         Log("DOGECOIN_ManageWallet");		 
+
+		 Wait();		 
+		 Wait(2);
+
+         AutoClaim_SetWallet_Faunction(); //call
+		 
+		 Wait();
+		 Wait(2);
+		 
+	   } //end DOGECOIN
+
+       if(MenuCoinsVAR=="DIGIBYTE")
+       {
+         var DIGIBYTE_Select = ElementByXPath("//div[3]/div/div[2]/a[1 and @class='btn btn-secondary']");		  
+		 Click(DIGIBYTE_Select);
+         Log("DIGIBYTE_Select");
+		 
+		 Wait();		 
+		 Wait(2);
+		 
+         var DIGIBYTE_ManageWallet = ElementByXPath("//div[3]/div/div[2]/a[2 and @class='btn btn-success']");		  
+		 Click(DIGIBYTE_ManageWallet);
+         Log("DIGIBYTE_ManageWallet");		 
+
+		 Wait();		 
+		 Wait(2);
+
+         AutoClaim_SetWallet_Faunction(); //call
+		 
+		 Wait();
+		 Wait(2);
+		 
+	   } //end DIGIBYTE
+
+       if(MenuCoinsVAR=="PRIMECOIN")
+       {
+         var PRIMECOIN_Select = ElementByXPath("//div[5]/div/div[2]/a[1 and @class='btn btn-secondary']");		  
+		 Click(PRIMECOIN_Select);
+         Log("PRIMECOIN_Select");
+		 
+		 Wait();		 
+		 Wait(2);
+		 
+         var PRIMECOIN_ManageWallet = ElementByXPath("//div[5]/div/div[2]/a[2 and @class='btn btn-success']");		  
+		 Click(PRIMECOIN_ManageWallet);
+         Log("PRIMECOIN_ManageWallet");		 
+
+		 Wait();		 
+		 Wait(2);
+
+         AutoClaim_SetWallet_Faunction(); //call
+		 
+		 Wait();
+		 Wait(2);
+		 
+	   } //end PRIMECOIN
+
+       if(MenuCoinsVAR=="POTCOIN")
+       {
+         var POTCOIN_Select = ElementByXPath("//div[7]/div/div[2]/a[1 and @class='btn btn-secondary']");		  
+		 Click(POTCOIN_Select);
+         Log("POTCOIN_Select");
+		 
+		 Wait();		 
+		 Wait(2);
+		 
+         var POTCOIN_ManageWallet = ElementByXPath("//div[7]/div/div[2]/a[2 and @class='btn btn-success']");		  
+		 Click(POTCOIN_ManageWallet);
+         Log("POTCOIN_ManageWallet");		 
+
+		 Wait();		 
+		 Wait(2);
+
+         AutoClaim_SetWallet_Faunction(); //call
+		 
+		 Wait();
+		 Wait(2);
+		 
+	   } //end POTCOIN
+
+       if(MenuCoinsVAR=="BLACKCOIN")
+       {
+         var BLACKCOIN_Select = ElementByXPath("//div[9]/div/div[2]/a[1 and @class='btn btn-secondary']");		  
+		 Click(BLACKCOIN_Select);
+         Log("BLACKCOIN_Select");
+		 
+		 Wait();		 
+		 Wait(2);
+		 
+         var BLACKCOIN_ManageWallet = ElementByXPath("//div[9]/div/div[2]/a[2 and @class='btn btn-success']");		  
+		 Click(BLACKCOIN_ManageWallet);
+         Log("BLACKCOIN_ManageWallet");		 
+
+		 Wait();		 
+		 Wait(2);
+
+         AutoClaim_SetWallet_Faunction(); //call
+		 
+		 Wait();
+		 Wait(2);
+		 
+	   } //end BLACKCOIN
+
+       if(MenuCoinsVAR=="BITCORE")
+       {
+         var BITCORE_Select = ElementByXPath("//div[11]/div/div[2]/a[1 and @class='btn btn-secondary']");		  
+		 Click(BITCORE_Select);
+         Log("BITCORE_Select");
+		 
+		 Wait();		 
+		 Wait(2);
+		 
+         var BITCORE_ManageWallet = ElementByXPath("//div[11]/div/div[2]/a[2 and @class='btn btn-success']");		  
+		 Click(BITCORE_ManageWallet);
+         Log("BITCORE_ManageWallet");		 
+
+		 Wait();		 
+		 Wait(2);
+
+         AutoClaim_SetWallet_Faunction(); //call
+		 
+		 Wait();
+		 Wait(2);
+		 
+	   } //end BITCORE
+
+       if(MenuCoinsVAR=="TRON")
+       {
+         var TRON_Select = ElementByXPath("//div[13]/div/div[2]/a[1 and @class='btn btn-secondary']");		  
+		 Click(TRON_Select);
+         Log("TRON_Select");
+		 
+		 Wait();		 
+		 Wait(2);
+		 
+         var TRON_ManageWallet = ElementByXPath("//div[13]/div/div[2]/a[2 and @class='btn btn-success']");		  
+		 Click(TRON_ManageWallet);
+         Log("TRON_ManageWallet");		 
+
+		 Wait();		 
+		 Wait(2);
+
+         AutoClaim_SetWallet_Faunction(); //call
+		 
+		 Wait();
+		 Wait(2);
+		 
+	   } //end TRON
+
+       if(MenuCoinsVAR=="HORA")
+       {
+         var HORA_Select = ElementByXPath("//div[15]/div/div[2]/a[1 and @class='btn btn-secondary']");		  
+		 Click(HORA_Select);
+         Log("HORA_Select");
+		 
+		 Wait();		 
+		 Wait(2);
+		 
+         var HORA_ManageWallet = ElementByXPath("//div[15]/div/div[2]/a[2 and @class='btn btn-success']");		  
+		 Click(HORA_ManageWallet);
+         Log("HORA_ManageWallet");		 
+
+		 Wait();		 
+		 Wait(2);
+
+         AutoClaim_SetWallet_Faunction(); //call
+		 
+		 Wait();
+		 Wait(2);
+		 
+	   } //end HORA
+	   
+     } //end SelectChecking
+	   
+       CheckForPopupsEnabled = false;    //disable	 
+	   
+      } //end AutoClaim_MenuDefaultCoin_Faunction
+
+
+
+
+      //=============//
+      //AutoClaim_SetWallet_Faunction
+      //=============// 
+      public void AutoClaim_SetWallet_Faunction()
+      {
+
+         var SetWallet_input = ElementByXPath("//*[@id='manageWalletdogecoin']/div/input[2 and @class='form-control']");
+         SetText(SetWallet_input, GetSetting("SetWallet_input"));		 
+         Log("SetWallet_input");	
+
+		 Wait();		 
+		 Wait(2);
+
+         var SetWallet_button = ElementByXPath("//div[@class='modal fade show']/div/div/div[3]/button[contains(text(),'Confirm') ]") ;
+         Click(SetWallet_button);
+         Log("SetWallet_button");
+
+		 
+      } //end AutoClaim_SetWallet_Faunction
+
+
+} //end public class
+

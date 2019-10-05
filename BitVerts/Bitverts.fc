@@ -1,0 +1,573 @@
+﻿using System;
+using FaucetCollector.Script;
+using OpenQA.Selenium;
+public class Bitverts : FaucetScript
+{
+    /// <summary>
+    /// List of Settings that will be shown in the bot when selecting this Faucet in the bot.
+    /// You can get the value the user entered with the methods: GetSetting("[Name of the FaucetSetting]"), GetBoolSetting and GetDateTimeSetting
+    /// You can also create a new setting value using SetSetting("[Name you want to use]", "value")
+    /// </summary>
+    public override FaucetSettings Settings
+    {
+        get
+        {
+            return new FaucetSettings("http://bitverts.io")
+            {
+                new FaucetSetting(){Name="User",Display="Username",Type=EditorType.TextBox,Required=true},
+                new FaucetSetting(){Name="Pass",Display="Password",Type=EditorType.Password,Required=true},
+                new FaucetSetting(){Name="Img",Display="Use Login image captcha",Type=EditorType.CheckBox,Default=true},
+				new FaucetSetting(){Name="FreeSpain",Display="Auto Click - Free Spain",Type=EditorType.CheckBox,Default=true},
+                new FaucetSetting(){Name="btcads",Display="View Btc ads",Type=EditorType.CheckBox,Default=true},
+                new FaucetSetting(){Name="ethads",Display="View Eth ads",Type=EditorType.CheckBox,Default=true},
+                new FaucetSetting(){Name="ltcads",Display="View Ltc ads",Type=EditorType.CheckBox,Default=true},
+                new FaucetSetting(){Name="bchads",Display="View Bch ads",Type=EditorType.CheckBox,Default=true},
+                //insert user settings here
+                //new FaucetSetting { 
+                //    Name = "Name of your setting", 
+                //    Display = "Display shown in Faucet Collector", 
+                //    Type = EditorType.TextBox | EditorType.Password | EditorType.CheckBox | EditorType.Wallet | EditorType.Numeric | EditorType.ComboBox | EditorType.CheckComboBox, 
+                //    Required = true | false, 
+                //    Default = "Optionally a default value" | true | false | null.
+                //    Items = new List<string> { "item1", "item2" } (only valid for ComboBox or CheckComboBox)
+                //} 
+            };
+        }
+    }
+
+    /// <summary>
+    /// This method gets called when the faucet is enabled and the GO button is clicked
+    /// </summary>
+    public override void Start()
+    {
+        //Title that shows in the browser. Is used to identify and close popup windows
+        Title = "BitVerts";
+
+        //After we did try to claim on the faucet we search for these elements to determine if it was a success or a fail
+        SuccessXPath = "//html//tr[1]/td[1]";
+        FailXPath = "//li[@class='nav-item-questions nav-item active']";
+
+        //Let Faucet Collector start up everything
+        base.Start();
+    }
+
+    /// <summary>
+    /// This is the first method to run after the browser is opened and the first page is loaded.
+    /// </summary>
+    public override int DoInit()
+    {
+        GoToUrl("http://bitverts.io/dashboard");
+        finish = false;
+        //Let Faucet Collector continue.
+        return base.DoInit();
+    }
+
+    /// <summary>
+    /// This method gets called after the Start method, here you need to return if we are logged in or not.
+    /// If you return false then it will call the BeforeLogin, Login and AfterLogin methods so you can login.
+    /// After those Login methods are called it will call this IsLoggedIn method again to see if the login did succeed.
+    /// If you return true Faucet Collector will store all cookies so it will probably be already logged in on the next attempt.
+    /// </summary>
+    public override bool IsLoggedIn()
+    {
+        if (!Driver.Url.Contains("http://bitverts.io/dashboard"))
+        {
+            GoToUrl("http://bitverts.io/dashboard");
+        }
+        Wait();
+        //In here we can check for the presence of an element that is only present when you are logged in.
+        //In this case we check for en element with the class "loggedIn"
+        return IsVisible(ElementByXPath("//b[contains(text(),'Logout')]"));
+    }
+
+    /// <summary>
+    /// This method gets called if IsLoggedIn returned false, right before the DoLogin method is called.
+    /// </summary>
+    public override int BeforeLogin()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeLogin();
+    }
+
+    /// <summary>
+    /// This method gets called after BeforeLogin, but only if IsLoggedIn returned false.
+    /// It can be used to actually login the user/enter wallet details in the faucet
+    /// </summary>
+    /// <returns></returns>
+    public override int DoLogin()
+    {
+        GoToUrl("http://bitverts.io/login");
+        Wait();
+        var boxuser = ElementByXPath("//input[@id='username']");
+        if (!IsVisible(boxuser))
+        {
+            return Fail("Fail box user no visible or not found");
+        }
+        SetText(boxuser, GetSetting("User"));
+        Wait();
+        var boxpass = ElementByXPath("//input[@id='password']");
+        if (!IsVisible(boxpass))
+        {
+            return Fail("Fail box pass no visible or not found");
+        }
+        SetText(boxpass, GetPassword("Pass"));
+        Wait();
+        var select = ElementByXPath("//select[@id='select_captcha']");
+        if (GetBoolSetting("Img"))
+        {
+            SelectOptionByValue(select, "2");
+            Wait(2, 3);
+            var result=DoSolveImageCaptcha(ElementByXPath("//img[@id='captcha_code']"), ElementByXPath("//input[@id='captcha']"));
+            if (result > 0)
+            {
+                return Fail("Error solving captcha");
+            }
+            Wait();
+        }
+        else
+        {
+            SelectOptionByValue(select, "1");
+            Wait(2, 3);
+            var result = SolveCaptcha();
+            if (result > 0)
+            {
+                return Fail("Error solving recaptcha");
+            }
+            Wait();
+        }
+        var button_Login = ElementByXPath("//button[@type='submit']");
+        if (!IsVisible(button_Login))
+        {
+            return Fail("Button login not found");
+        }
+        Click(button_Login);
+        Wait();
+
+       
+
+
+        //This fa1ucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoLogin();
+    }
+
+    /// <summary>
+    /// This method gets called after the DoLogin method.
+    /// </summary>
+    public override int AfterLogin()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterLogin();
+    }
+
+    /// <summary>
+    /// This method gets called after the login methods are successful, so we are logged into the faucet.
+    /// If the faucet is not yet ready to claim you should return a TimeStamp value to return how long it takes before the Faucet claim can be done.
+    /// This is used to pause the script while the faucet its timer runs out.
+    /// Return the number of seconds the bot should wait.
+    /// </summary>
+    public override int GetFaucetWaitTime()
+    {
+        if (finish)
+        {
+            return 4000;
+        }
+        //let Faucet Collector continue.
+        return base.GetFaucetWaitTime();
+    }
+
+    /// <summary>
+    /// This method is called right before a captcha will be solved. 
+    /// If you call SolveCaptcha() in other methods it will start this flow and tries to solve the captcha on the page.
+    /// </summary>
+    public override int BeforeSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeSolveCaptcha();
+    }
+
+    /// <summary>
+    /// This method gets called after BeforeSolveCaptcha and it does the actual captcha solving
+    /// It will automatically try to see if there is a SolveMedia captcha active or a reCAPTCHA active. 
+    /// If it finds either one it will then use the selected method on the Captcha tab of FaucetCollector to solve the Captcha.
+    /// </summary>
+    public override int DoSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoSolveCaptcha();
+    }
+
+    /// <summary>
+    /// This method will get called after DoSolveCaptcha returned it was a success.
+    /// </summary>
+    /// <returns></returns>
+    public override int AfterSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterSolveCaptcha();
+    }
+
+    /// <summary>
+    /// This method is called right before we attempt to claim on the faucet. So we are logged in and good to go.
+    /// Next methods that will be called are DoSolveFaucet, AfterSolveFaucet and CheckFaucetResult.
+    /// </summary>
+    public override int BeforeSolveFaucet()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeSolveCaptcha();
+    }
+
+    /// <summary>
+    /// This method gets called after the BeforeSolveFaucet. You can do the actual claiming of the faucet in here.
+    /// </summary>
+    /// <returns></returns>
+    bool finish;
+    public override int DoSolveFaucet()
+    {
+        finish = false;  
+       
+            if (GetBoolSetting("btcads"))
+            {
+                if (!Driver.Url.Contains("http://bitverts.io/see-ads?b=1"))
+                {
+                    GoToUrl("http://bitverts.io/see-ads?b=1");
+                }
+                Wait(2, 3);
+                var ads = ElementsByXPath("//a[@class='block block-rounded block-transparent text-center']");
+                Log(ads.Count + " Btc ads detected");
+                Wait();
+                while (ads.Count > 0)
+                {
+                string url = ads[0].GetAttribute("href");
+                Driver.Manage().Timeouts().PageLoad = TimeSpan.FromSeconds(20);
+                try
+                {
+                   
+                    Driver.Navigate().GoToUrl(url);
+                    Wait(2, 3);
+                }
+                catch (Exception)
+                {
+                    ExecuteScript("window.stop();");
+                }
+                    
+                
+                    DateTime t1 = DateTime.Now.AddMinutes(3);
+                var element = ElementByXPath("//a[@href='#'][contains(text(),'Close')]");
+                while (element == null)
+                {
+                    Wait();
+                    if (DateTime.Now > t1)
+                    {
+                        break;
+                    }
+                    if (IsVisible(ElementByXPath("//b[contains(text(),'Verify the following captcha:')]")))
+                    {
+                        var select = ElementByXPath("//select[@id='select_captcha']");
+
+                        SelectOptionByValue(select, "2");
+                        Wait(2, 3);
+                        var result = DoSolveImageCaptcha(ElementByXPath("//img[@id='captcha_code']"), ElementByXPath("//input[@id='captcha']"));
+                        if (result > 0)
+                        {
+                            return Fail("Error solving captcha");
+                        }
+                        Wait();
+                        var button = ElementByXPath("//a[@onclick='submit_captcha();']");
+                        if (IsVisible(button))
+                        {
+                            Click(button);
+                        }
+                        Wait();
+                    }
+                    element = ElementByXPath("//a[@href='#'][contains(text(),'Close')]");
+                }
+                Wait(2, 3);
+                    GoToUrl("http://bitverts.io/see-ads?b=1");
+                    Wait(2,4);
+                    ads = ElementsByXPath("//a[@class='block block-rounded block-transparent text-center']");
+
+                }
+                
+            }
+            if (GetBoolSetting("ethads"))
+            {
+                if (!Driver.Url.Contains("http://bitverts.io/see-ads?b=2"))
+                {
+                    GoToUrl("http://bitverts.io/see-ads?b=2");
+                }
+                Wait(2, 3);
+                var ads = ElementsByXPath("//a[@class='block block-rounded block-transparent text-center']");
+                Log(ads.Count + " Eth ads detected");
+                Wait();
+                while (ads.Count > 0)
+                {
+                string url = ads[0].GetAttribute("href");
+                Driver.Manage().Timeouts().PageLoad = TimeSpan.FromSeconds(20);
+                try
+                {
+
+                    Driver.Navigate().GoToUrl(url);
+                    Wait(2, 3);
+                }
+                catch (Exception)
+                {
+                    ExecuteScript("window.stop();");
+                }
+
+                DateTime t1 = DateTime.Now.AddMinutes(3);
+                var element = ElementByXPath("//a[@href='#'][contains(text(),'Close')]");
+                while (element == null)
+                {
+                    Wait();
+                    if (DateTime.Now > t1)
+                    {
+                        break;
+                    }
+                    if (IsVisible(ElementByXPath("//b[contains(text(),'Verify the following captcha:')]")))
+                    {
+                        var select = ElementByXPath("//select[@id='select_captcha']");
+
+                        SelectOptionByValue(select, "2");
+                        Wait(2, 3);
+                        var result = DoSolveImageCaptcha(ElementByXPath("//img[@id='captcha_code']"), ElementByXPath("//input[@id='captcha']"));
+                        if (result > 0)
+                        {
+                            return Fail("Error solving captcha");
+                        }
+                        Wait();
+                        var button = ElementByXPath("//a[@onclick='submit_captcha();']");
+                        if (IsVisible(button))
+                        {
+                            Click(button);
+                        }
+                        Wait();
+                    }
+                    element = ElementByXPath("//a[@href='#'][contains(text(),'Close')]");
+                }
+                Wait(2, 3);
+                    GoToUrl("http://bitverts.io/see-ads?b=2");
+                    Wait(2, 4);
+                    ads = ElementsByXPath("//a[@class='block block-rounded block-transparent text-center']");
+
+                }
+            }
+            if (GetBoolSetting("ltcads"))
+            {
+                if (!Driver.Url.Contains("http://bitverts.io/see-ads?b=3"))
+                {
+                    GoToUrl("http://bitverts.io/see-ads?b=3");
+                }
+                Wait(2, 3);
+                var ads = ElementsByXPath("//a[@class='block block-rounded block-transparent text-center']");
+                Log(ads.Count + " Eth ads detected");
+                Wait();
+                while (ads.Count > 0)
+                {
+                string url = ads[0].GetAttribute("href");
+                Driver.Manage().Timeouts().PageLoad = TimeSpan.FromSeconds(20);
+                try
+                {
+
+                    Driver.Navigate().GoToUrl(url);
+                    Wait(2, 3);
+                }
+                catch (Exception)
+                {
+                    ExecuteScript("window.stop();");
+                }
+                DateTime t1 = DateTime.Now.AddMinutes(3);
+                var element = ElementByXPath("//a[@href='#'][contains(text(),'Close')]");
+                while (element == null)
+                {
+                    Wait();
+                    if (DateTime.Now > t1)
+                    {
+                        break;
+                    }
+                    if (IsVisible(ElementByXPath("//b[contains(text(),'Verify the following captcha:')]")))
+                    {
+                        var select = ElementByXPath("//select[@id='select_captcha']");
+
+                        SelectOptionByValue(select, "2");
+                        Wait(2, 3);
+                        var result = DoSolveImageCaptcha(ElementByXPath("//img[@id='captcha_code']"), ElementByXPath("//input[@id='captcha']"));
+                        if (result > 0)
+                        {
+                            return Fail("Error solving captcha");
+                        }
+                        Wait();
+                        var button = ElementByXPath("//a[@onclick='submit_captcha();']");
+                        if (IsVisible(button))
+                        {
+                            Click(button);
+                        }
+                        Wait();
+                    }
+                    element = ElementByXPath("//a[@href='#'][contains(text(),'Close')]");
+                }
+                Wait(2, 3);
+                    GoToUrl("http://bitverts.io/see-ads?b=3");
+                    Wait(2, 4);
+                    ads = ElementsByXPath("//a[@class='block block-rounded block-transparent text-center']");
+
+                }
+            }
+            if (GetBoolSetting("bchads"))
+            {
+                if (!Driver.Url.Contains("http://bitverts.io/see-ads?b=4"))
+                {
+                    GoToUrl("http://bitverts.io/see-ads?b=4");
+                }
+                Wait(2, 3);
+                var ads = ElementsByXPath("//a[@class='block block-rounded block-transparent text-center']");
+                Log(ads.Count + " Eth ads detected");
+                Wait();
+                while (ads.Count > 0)
+                {
+                string url = ads[0].GetAttribute("href");
+                Driver.Manage().Timeouts().PageLoad = TimeSpan.FromSeconds(20);
+                try
+                {
+
+                    Driver.Navigate().GoToUrl(url);
+                    Wait(2, 3);
+                }
+                catch (Exception)
+                {
+                    ExecuteScript("window.stop();");
+                }
+
+                DateTime t1 = DateTime.Now.AddMinutes(3);
+                var element = ElementByXPath("//a[@href='#'][contains(text(),'Close')]");
+                while (element==null)
+                {
+                    Wait();
+                    if (DateTime.Now > t1)
+                    {
+                        break;
+                    }
+                    if (IsVisible(ElementByXPath("//b[contains(text(),'Verify the following captcha:')]")))
+                    {
+                        var select = ElementByXPath("//select[@id='select_captcha']");
+
+                        SelectOptionByValue(select, "2");
+                        Wait(2, 3);
+                        var result = DoSolveImageCaptcha(ElementByXPath("//img[@id='captcha_code']"), ElementByXPath("//input[@id='captcha']"));
+                        if (result > 0)
+                        {
+                            return Fail("Error solving captcha");
+                        }
+                        Wait();
+                        var button = ElementByXPath("//a[@onclick='submit_captcha();']");
+                        if (IsVisible(button))
+                        {
+                            Click(button);
+                        }
+                        Wait();
+                    }
+                    element = ElementByXPath("//a[@href='#'][contains(text(),'Close')]");
+                }
+                Wait(2, 3);
+                    GoToUrl("http://bitverts.io/see-ads?b=4");
+                    Wait(2, 4);
+                    ads = ElementsByXPath("//a[@class='block block-rounded block-transparent text-center']");
+
+                }
+            }
+
+        finish = true;
+        
+
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoSolveFaucet();
+    }
+
+	
+	
+	
+	
+//====================//
+//start AfterSolveFaucet//
+//====================//
+    public override int AfterSolveFaucet()
+    {
+        if (GetBoolSetting("FreeSpain"))
+        {
+
+            //go to "FreeSpain" page
+            GoToUrl("http://bitverts.io/celebration");
+
+            Wait();
+            var spinleft = ElementByXPath("//span[@id='chances_left']");
+            if (IsVisible(spinleft))
+            {
+                try
+                {
+                    while (Convert.ToInt32(spinleft.Text.Split(' ')[0]) > 0)
+                    {
+
+                        var FreeSpainButtonVar = ElementByXPath("//button[@id='spinbtn']");
+                        if (IsVisible(FreeSpainButtonVar))
+                        {
+                            Click(FreeSpainButtonVar);
+                            Wait(3, 4);
+                            FreeSpainButtonVar = ElementByXPath("//button[@id='spinbtn']");
+                            DateTime t1 = DateTime.Now.AddSeconds(40);
+                            while (!FreeSpainButtonVar.Enabled)
+                            {
+
+                                Wait();
+
+                                FreeSpainButtonVar = ElementByXPath("//button[@id='spinbtn']");
+                                if (DateTime.Now > t1)
+                                {
+                                    Driver.Navigate().Refresh();
+                                    Wait();
+                                    break;
+                                    
+                                }
+                            }
+                        }
+                        else
+                        {
+                            break;
+                        }
+
+                        Wait(2, 3);
+                        spinleft = ElementByXPath("//span[@id='chances_left']");
+                        if (!IsVisible(spinleft))
+                        {
+                            break;
+                        }
+                    }
+
+                }
+                catch (Exception)
+                {
+                    // NO SPIN LEFT
+                }
+            }
+
+        }
+
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterSolveFaucet();
+    }
+
+//====================//
+//end AfterSolveFaucet//
+//====================//
+	
+	
+	
+	
+	
+
+    public override int CheckFaucetResult()
+    {
+        GoToUrl("http://bitverts.io/dashboard");
+        Wait();
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.CheckFaucetResult();
+    }
+}
