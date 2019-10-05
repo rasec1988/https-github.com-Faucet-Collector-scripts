@@ -1,0 +1,195 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using FaucetCollector.Script;
+using OpenQA.Selenium;
+
+public class potioncoincomscript : FaucetScript
+{
+    /// <summary>
+    /// List of Settings that will be shown in the bot when selecting this Faucet in the bot.
+    /// You can get the value the user entered with the methods: GetSetting("[Name of the FaucetSetting]"), GetBoolSetting and GetDateTimeSetting
+    /// </summary>
+    public override FaucetSettings Settings
+    {
+        get
+        {
+            return new FaucetSettings("https://potioncoin.com/earn")
+            {
+                
+                new FaucetSetting() { Name = "Email", Display = "Email", Type = EditorType.TextBox, Required = true },
+                new FaucetSetting() { Name = "Password", Display = "Password", Type = EditorType.Password, Required = true }
+                
+            };
+        }
+    }
+
+    
+    public override void Start()
+    {
+        
+        Title = "potioncoin.com";
+
+        
+        SuccessXPath = "//DIV[@class='alert alert-info']";
+        FailXPath = "//div[contains(@class,'alert-warning')]";
+
+        
+        base.Start();
+    }
+
+   
+    public override bool IsLoggedIn()
+    {
+
+        return IsVisible(ElementByXPath("//A[@href='logout']"));
+    }
+
+   
+    public override int BeforeLogin()
+    {
+        var LoginLink = ElementByXPath("//A[@href='login'][text()='Login']");
+        Click(LoginLink);
+        return base.BeforeLogin();
+    }
+
+    
+    public override int DoLogin()
+    {
+
+
+        var signInEmail = ElementByXPath("//INPUT[@type='email']");
+        if (signInEmail == null)
+        {
+          
+            return Fail("Signin email input not found.");
+        }
+
+        var signInPassword = ElementByXPath("//INPUT[@type='password']");
+        if (signInPassword == null)
+        {
+            
+            return Fail("Signin password input not found.");
+        }
+
+       
+        SetText(signInEmail, GetSetting("Email"));
+        SetText(signInPassword, GetPassword("Password"));
+        
+       
+        var loginButton = ElementByXPath("//BUTTON[@type='submit'][text()='Sign In']");
+        if (loginButton == null)
+        {
+            
+            return Fail("Login button not found.");
+        }
+
+        
+        var result = SolveCaptcha();
+        if (result > 0)
+        {
+           
+            return result;
+        }
+        Click(loginButton);
+
+
+
+        //Let Faucet Collector continue
+        return base.DoLogin();
+    }
+
+
+    public override int AfterLogin()
+    {
+
+        return base.AfterLogin();
+    }
+
+
+    public override int GetFaucetWaitTime()
+    {
+
+        return 0;
+    }
+
+
+    public override int BeforeSolveCaptcha()
+    {
+
+        return base.BeforeSolveCaptcha();
+    }
+
+
+    public override int DoSolveCaptcha()
+    {
+
+
+            return base.DoSolveCaptcha();
+        }
+    
+
+    public override int AfterSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterSolveCaptcha();
+    }
+
+
+    public override int BeforeSolveFaucet()
+    {
+        var SelectCaptcha = ElementByXPath("//SELECT[@name='captcha_type']");
+        Click(SelectCaptcha);
+        var ReCaptcha = ElementByXPath("//option[@value='1']");
+        Click(ReCaptcha);
+       
+        return base.BeforeSolveFaucet();
+    }
+
+    public override int DoSolveFaucet()
+    {
+            
+        var ClaimButton = ElementByXPath("//BUTTON[@type='submit'][text()='Claim']");
+        if (!IsVisible(ClaimButton))
+        {
+
+            return Fail("Claim button not found or not visible.");
+        }
+
+
+        var result = SolveCaptcha();
+        if (result > 0)
+        {
+            //Unable to solve the captcha - return the failure
+            return result;
+        }
+
+        //The Captcha is solved, click the submit button
+        Click(ClaimButton);
+
+        //Let Faucet Collector continue its work
+        return base.DoSolveFaucet();
+    }
+
+
+    public override int AfterSolveFaucet()
+    {
+        //Let Faucet Collector continue
+        return base.AfterSolveFaucet();
+    }
+
+
+    public override int CheckFaucetResult()
+    {
+       
+        var result = base.CheckFaucetResult();
+
+        if (IsSuccess)
+        {
+            result = GetWaitSetting();
+            Reload = true;
+        }
+
+        return result;
+    }
+}

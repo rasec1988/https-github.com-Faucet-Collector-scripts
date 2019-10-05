@@ -1,0 +1,396 @@
+﻿
+//edit by: AviramDayan 1/9/2018 16:00PM
+
+
+using System;
+using FaucetCollector.Script;
+using OpenQA.Selenium;
+
+
+public class trustbtcfaucetcomScript : FaucetScript
+{
+    /// <summary>
+    /// List of Settings that will be shown in the bot when selecting this Faucet in the bot.
+    /// You can get the value the user entered with the methods: GetSetting("[Name of the FaucetSetting]"), GetBoolSetting and GetDateTimeSetting
+    /// </summary>
+    public override FaucetSettings Settings
+    {
+        get
+        {
+            return new FaucetSettings("https://www.trustbtcfaucet.com/")
+            {
+                
+                new FaucetSetting() { Name = "Username", Display = "Username", Type = EditorType.TextBox, Required = true },
+                //And we also need the password
+                new FaucetSetting() { Name = "Password", Display = "Password", Type = EditorType.Password, Required = true },
+				  new FaucetSetting() { Name = "UseSolvemedia", Display = "UseSolvemedia(Login)", Type = EditorType.CheckBox, Default = true},
+                new FaucetSetting() { Name = "FaucetClaim", Display = "FaucetClaim - Every 5 minutes", Type = EditorType.CheckBox, Default = true},
+                new FaucetSetting() { Name = "LoyaltyBonus", Display = "LoyaltyBonus - Every day", Type = EditorType.CheckBox, Default = true},		
+				 
+            };
+        }
+    }
+	
+	
+
+//============================================================//
+//the number of "successes" in the script - when are finished  
+//============================================================//
+    public override void Start()
+    {
+        
+        Title = "free bitcoins every 5 minutes";
+
+        
+        SuccessXPath = "//div[@class='div_one']";
+        FailXPath = "//div[@class='alert alert-danger']";
+		
+        TimerIsCountingUp = true;
+		
+        base.Start();
+    }
+//============================================================//
+//the number of "successes" in the script - when are finished  
+//============================================================//
+	
+   
+   
+   
+    public override bool IsLoggedIn()
+    {
+   
+		return ElementByXPath("//a[@href='?logout']") != null;  	
+	
+    }
+	
+
+	
+	
+   
+    public override int BeforeLogin()
+    {
+        
+  
+        return base.BeforeLogin();
+    }
+
+	
+	
+	
+	
+//=====//
+//DoLogin  
+//=====//
+ public override int DoLogin()
+ {
+      
+		GoToUrl("https://www.trustbtcfaucet.com/login");	
+
+	
+        var signInUser = ElementByXPath("//*[@id='username']");
+        if (!IsVisible(signInUser))
+        {
+            return Fail("Sign in user box is not visible");
+        }
+        SetText(signInUser, GetSetting("username"));
+		
+        Wait(2);
+		
+        var signInPassword = ElementByXPath("//*[@id='password']");
+        if (!IsVisible(signInPassword))
+        {
+            return Fail("Sign in password box is not visible");
+        }
+        SetText(signInPassword, GetPassword("Password"));
+
+        if (GetBoolSetting("UseSolvemedia")) // SOLVEMEDIA WAS DELETED IN THIS SITE
+        {
+            var Solvemedia = ElementByXPath("//li[contains(text(),'Solvemedia')]");
+            if (IsVisible(Solvemedia))
+            {
+                Click(Solvemedia);
+            }
+           
+        }
+        else
+        {
+            var recaptcha = ElementByXPath("//li[contains(text(),'GoogleRecaptcha')]");
+            if (IsVisible(recaptcha))
+            {
+                Click(recaptcha);
+            }
+        }
+        Wait(2);
+		
+        var result = SolveCaptcha();
+        if (result > 0)
+        {
+           
+            return result;
+        }
+		
+        Wait(2);
+		
+        var loginButton = ElementByXPath("//*[contains(@class,'btn-primary')]");
+        if (!IsVisible(loginButton))
+        {
+            return Fail("Button login is not visible");
+        }
+       
+        Click(loginButton);
+        Wait();
+        var Alert = ElementByXPath("//div[@class='alert alert-dismissable alert-info']");
+        if(IsVisible(Alert))
+        { Log(Alert.Text); }
+        Wait();
+        //Let Faucet Collector continue
+        return base.DoLogin();
+    }
+//=====//
+//DoLogin  
+//=====//
+	
+	
+	
+	
+
+    public override int AfterLogin()
+    {
+
+        return base.AfterLogin();
+    }
+
+
+	
+	
+    public override int GetFaucetWaitTime()
+    {
+        if (!Driver.Url.Contains("https://www.trustbtcfaucet.com/freebitcoin"))
+        {
+            GoToUrl("https://www.trustbtcfaucet.com/freebitcoin");
+        }
+        Wait();
+        var time = ElementByXPath("//span[@id='minutes']");
+        if (IsVisible(time))
+        {
+            try
+            {
+                int min = Convert.ToInt32(time.Text.Split(':')[0]) * 60, seg = Convert.ToInt32(time.Text.Split(':')[1]);
+                return min + seg;
+            }
+            catch (Exception)
+            {
+                return 300;
+            }
+        }
+        
+		
+		//let Faucet Collector continue.
+        return base.GetFaucetWaitTime();
+    }
+	
+	
+	
+
+
+    public override int BeforeSolveCaptcha()
+    {
+        //Let Faucet Collector continue
+        return base.BeforeSolveCaptcha();
+    }
+
+
+    public override int DoSolveCaptcha()
+    {
+
+
+            return base.DoSolveCaptcha();
+        }
+    
+
+    public override int AfterSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterSolveCaptcha();
+    }
+
+	
+	
+	
+	
+
+    public override int BeforeSolveFaucet()
+    {
+
+        return base.BeforeSolveFaucet();
+    }
+
+	
+	
+	
+
+//===========//	
+//DoSolveFaucet
+//===========//
+ public override int DoSolveFaucet()
+ {
+
+        if (GetBoolSetting("LoyaltyBonus"))
+        {
+            bool IsClaimed = false;
+            var SettingTime = GetSetting("LoyaltyTime").Split(',');
+            if (SettingTime.Length == 5)
+            {
+                try
+                {
+                    DateTime time = new DateTime(Convert.ToInt32(SettingTime[0]), Convert.ToInt32(SettingTime[1]), Convert.ToInt32(SettingTime[2]), Convert.ToInt32(SettingTime[3]), Convert.ToInt32(SettingTime[4]), 0);
+                    if (DateTime.Now.AddHours(24) > time)
+                    {
+                        IsClaimed = true;
+                    }
+                }
+                catch (Exception)
+                {
+                   
+                    SetSetting("LoyaltyTime", "");
+                }
+            }
+            if (!IsClaimed)
+            {
+                //first go to home page
+                Log("LoyaltyBonus: go to LoyaltyBonus page");
+                GoToUrl("https://www.trustbtcfaucet.com/pin");
+
+                Wait(3);
+
+                //click on
+                for (int i = 0; i < 3; i++)
+                {
+                    var PinImageButton = ElementByXPath("//img[@class='imgThis']");
+
+                    if (IsVisible(PinImageButton))
+                    {
+                        Click(PinImageButton);
+                        Wait(3);
+
+                    }
+                    bool IsFinished = false;
+                    while (!IsFinished)
+                    {
+                        try
+                        {
+                            Driver.SwitchTo().Alert().Accept();
+                            Wait();
+
+                        }
+                        catch (Exception)
+                        {
+                            IsFinished = true;
+                        }
+                    }
+                }
+                SetSetting("LoyaltyTime", DateTime.Now.Year.ToString() + "," + DateTime.Now.Month.ToString() + "," + DateTime.Now.Day.ToString() + "," + DateTime.Now.Hour.ToString() + "," + DateTime.Now.Minute);
+            }
+            else
+            {
+                Log("Loyalty already claimed");
+            }
+
+
+        }
+
+
+   
+ 
+
+   if (GetBoolSetting("FaucetClaim"))
+   {  
+		//first go to home page
+		Log("FaucetClaim: go to FaucetClaim page");        
+		GoToUrl("https://www.trustbtcfaucet.com/freebitcoin");
+
+
+        ExecuteScript("if($('.cc_btn_accept_all').length > 0) { $('.cc_btn_accept_all')[0].click(); }");
+        var ClaimButton = ElementByXPath("//a[@class='btn btn-lg btn-primary claim_show']");
+        if (!IsVisible(ClaimButton))
+        {
+            //Unable to find the submit button - return the failure.
+            return Fail("FaucetClaim: Failed, button1 isn't visible ");
+        }
+        Click(ClaimButton);
+
+            Wait();
+        var submitButton = ElementByXPath("//SPAN[text()='Claim']");
+        if (!IsVisible(submitButton))
+        {
+
+            return Fail("Submit button not found or not visible.");
+        }
+            Wait(1);
+
+            if (false) // SOLVEMEDIA WAS DELETED IN THIS SITE
+            {
+                var Solvemedia = ElementByXPath("//a[@id='solvemediaSpan']");
+                if (IsVisible(Solvemedia))
+                {
+                    Click(Solvemedia);
+                }
+               
+            }
+            else
+            {
+                var recaptcha = ElementByXPath("//a[@id='googleSpan']");
+                if (IsVisible(recaptcha))
+                {
+                    Click(recaptcha);
+                }
+            }
+            Wait();
+            var result = SolveCaptcha();
+        if (result > 0)
+        {
+                //Unable to solve the captcha - return the failure
+                return Fail("Captcha failed") ;
+        }
+            Wait();
+            submitButton = ElementByXPath("//SPAN[text()='Claim']");
+            if (IsVisible(submitButton))
+            {
+                Click(submitButton);
+            }
+
+	     //return after 5 min
+      
+   }
+
+
+        //Let Faucet Collector continue its work
+        return base.DoSolveFaucet();
+    }
+
+
+    //===========//	
+    //DoSolveFaucet
+    //===========//
+
+
+
+
+
+
+    public override int AfterSolveFaucet()
+    {
+        //Let Faucet Collector continue
+        return base.AfterSolveFaucet();
+    }
+
+	
+	
+	
+
+    public override int CheckFaucetResult()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.CheckFaucetResult();
+    }
+}

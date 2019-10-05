@@ -1,0 +1,323 @@
+﻿
+
+//==================//
+//script Written by: ••AviramDayan•• 27/25/2019 21:09PM
+//Last Update: 26/08/2019 19:20PM - Version 4
+//==================//
+
+using System;
+using System.Drawing;
+using System.IO;
+using FaucetCollector.Script;
+using OpenQA.Selenium;
+using OpenQA.Selenium.Interactions;
+using System.Text.RegularExpressions;
+using System.Collections.Generic;
+using System.Linq;
+//css_inc RecaptchaUtilities
+//css_inc ShortLinkUtilities
+
+
+public class vivebtcwin : FaucetScript
+{
+    /// <summary>
+    /// List of Settings that will be shown in the bot when selecting this Faucet in the bot.
+    /// You can get the value the user entered with the methods: GetSetting("[Name of the FaucetSetting]"), GetBoolSetting and GetDateTimeSetting
+    /// You can also create a new setting value using SetSetting("[Name you want to use]", "value")
+    /// </summary>
+    public override FaucetSettings Settings
+    {
+        get
+        {
+			
+            return new FaucetSettings("https://claimbtc.in/")
+            {
+                new FaucetSetting(){Name="Email",Display="Email",Type=EditorType.TextBox,Required=false},
+                new FaucetSetting(){Name="Password",Display="Password",Type=EditorType.Password,Required=false},
+                new FaucetSetting(){Name="CaptchaOption",Display="CaptchaOption - ON UseSolvemedia | OFF Recaptcha",Type=EditorType.CheckBox,Default=false },
+		
+
+                new FaucetSetting(){Name="FaucetClaims",Display="Claim to: ", Type=EditorType.CheckComboBox ,
+                    Items=new System.Collections.Generic.List<string>{"BITCOIN","LITECOIN","DOGECOIN","DASH","ETHEREUM","POTCOIN","PRIMECOIN","PEERCOIN","DIGIBYTE","BITCORE","BLACKCOIN","TRON","HORA"  }, Default="BITCOIN;LITECOIN;DOGECOIN;DASH;ETHEREUM;POTCOIN;PRIMECOIN;PEERCOIN;DIGIBYTE;BITCORE;BLACKCOIN;TRON"  }			
+            };
+        }
+    }
+
+    public override void Start()
+    {
+       
+        //Title that shows in the browser. Is used to identify and close popup windows
+        Title = "Faucet";
+
+		SuccessXPath ="//div[@class='alert alert-success']";
+        FailXPath ="//div[@class='alert alert-danger']"; //*[@id='']
+	
+        //TimerIsCountingUp = true;
+		
+        //Let Faucet Collector start up everything
+        base.Start();
+    }
+
+    public override bool IsLoggedIn()
+    {
+	    //save Login Cookies - Check if the "Logout" exist
+        return ElementByXPath ("//a[contains(@href,'logout')]") != null;
+
+        //return base.IsLoggedIn();
+    }
+
+
+
+
+//========//
+//DoLogin
+//========//
+    public override int DoLogin()
+    {
+	
+     
+		GoToUrl("https://claimbtc.in/login");
+		
+        var box_user = ElementByXPath("//input[@placeholder='Email']");
+        if ( !IsVisible ( box_user ) )
+        {
+            return Fail ( "Box user is not visible" );
+        }
+        SetText ( box_user , GetSetting ( "Email" ) );
+
+        var box_pass = ElementByXPath("//input[@placeholder='Password']");
+        if ( !IsVisible ( box_pass ) )
+        {
+            return Fail ( "Box pass is not visible" );
+        }
+        SetText (box_pass, GetPassword("Password"));
+
+
+        var result=SolveCaptcha();
+        if ( result>0 )
+        {
+            return Fail ( "Problem solving the captcha" );
+        }	
+    	
+        var ButtonLog = ElementByXPath("//button[@class='btn btn-info']");
+        if ( !IsVisible ( ButtonLog ) )
+        {
+            return Fail ( "Button login not visible" );
+        }
+        Click(ButtonLog);
+		
+		
+	
+        var Error_Message = ElementByXPath ("//strong[contains(text(),'Warning') ]");
+        if (IsVisible(Error_Message))
+        {
+            Log ( Error_Message.Text );
+        }
+
+	
+
+
+        
+       return base.DoLogin();
+    }
+
+
+    public override int BeforeSolveCaptcha()
+    {
+        var CaptchaType=ElementByXPath("//select[@name='captcha_type']");
+        if ( IsVisible ( CaptchaType ) )
+        {
+            SelectOptionByValue ( CaptchaType , (GetBoolSetting ( "CaptchaOption" )?1:0).ToString() );
+            Wait ( 1 );
+        }
+
+        Solveicon ( );
+
+        //Return we are ready to proceed
+        return base.BeforeSolveFaucet();
+    }
+
+	
+//==============//
+//DoSolveFaucet
+//==============//
+ public override int DoSolveFaucet()
+  {
+
+
+        int NClaims=0;
+            var Faucets=GetSetting("FaucetClaims").Split(new[] { ';' },StringSplitOptions.RemoveEmptyEntries);
+            foreach ( var Faucet in Faucets)
+            {
+            try
+            {
+                GoToUrl ( "https://claimbtc.in/faucet/"+Faucet.ToLower ( ).Trim ( ) );
+                Wait ( );
+                var WaitTimerText = ElementByXPath("//span[@class='kkcountdown-box']");
+                if ( IsVisible ( WaitTimerText ) )
+                {
+                    continue;
+                }
+
+                var result=SolveCaptcha();
+                if ( result>0 )
+                {
+                    continue;
+                }
+
+                var ButtonClaim=ElementByXPath("//input[@type='image']");
+                if ( !IsVisible ( ButtonClaim ) )
+                {
+                    continue;
+                }
+                Click ( ButtonClaim );
+                Wait ( 1 );
+               
+              
+            }
+            finally
+            {
+                Wait ( 2 );
+                if ( CheckFaucetResult ( )==0 )
+                {
+                    Log ( "Claim successfull in: "+Faucet.ToString ( ) );
+                    NClaims++;
+                }
+
+            }
+
+
+            }
+        Log ( "You have claimed " +NClaims.ToString() +" Faucets of "+Faucets.Length.ToString()  );
+        if ( NClaims>0 )
+        {
+            IsSuccess=true;
+            ClaimSuccess ( );
+        }
+
+  
+        return GetWaitSetting ( );
+
+ }
+	
+    public override int CheckFaucetResult()
+    {
+        var Success=ElementByXPath(SuccessXPath);
+        if ( IsVisible ( Success ) )
+        {
+            Log ( Success.Text );
+            return 0;
+        }
+        else
+        {
+            var Fail_=ElementByXPath(FailXPath);
+            if ( IsVisible ( Fail_ ) )
+            {
+                Log ( Fail_.Text );
+            }
+            return 1;
+        }
+    }
+    private bool Solveicon()
+    {
+        Wait ( 1 , 2 );
+        var Icons = ElementsByXPath("//div[@class='captcha-image']");
+        if ( Icons.Count>0 )
+        {
+            DateTime LoadingTime=DateTime.Now.AddSeconds(20);
+            while ( IsVisible ( ElementByXPath ( "//div[@class='captcha-loader']" ) ) && DateTime.Now<LoadingTime )
+            {
+                Wait ( );
+            }
+
+            int solution = getIconCaptchaSol();
+            if ( solution==-1 )
+            {
+                return false;
+            }
+            solution--;
+
+
+            try
+            {
+                ExecuteScript ( "var a=document.getElementsByClassName('captcha-image');var element =a[0];element.addEventListener('mouseover', function() {console.log('Event triggered');});var event = new MouseEvent('mouseover', {'view': window,'bubbles': true,'cancelable': true});element.dispatchEvent(event);a["+solution+"].click();" );
+            }
+            catch ( Exception )
+            {
+                return false;
+            }
+            Wait ( 7 , 10 );
+            var ttl = ElementByXPath("//div[@class='captcha-modal__icons-title']");
+            if ( !IsVisible ( ttl ) )
+            {
+                return false;
+            }
+            if ( ttl.Text.Contains ( "Great" ) )
+            {
+                return true;
+            }         
+        }
+        return false;
+
+    }
+    private int getIconCaptchaSol ( )
+    {
+
+        try {
+
+            List<Bitmap> icons=new List<Bitmap>();
+         
+            var Icons =ElementsByXPath("//div[@class='captcha-image']");
+
+            foreach ( var icon in Icons )
+            {
+
+                Wait ( );
+                icons.Add(TakeScreenshot ( Base.Captcha.CaptchaService.Manual , icon ));
+
+            }
+            List<int> ListValues=new List<int>();
+
+            for ( int i = 1 ; i<5 ; i++ )
+            {
+                ListValues.Add ( CompareImage ( icons[0] , icons[i] ) );
+            }
+
+            if ( ListValues.Sum ( )/4>2200 )
+            {
+                return 1;
+            }
+            else
+            {
+                return ListValues.IndexOf ( ListValues.Max ( )+2 );
+            }
+
+        }
+        catch ( Exception )
+        {
+            return -1;
+        }
+
+
+        }
+    private int CompareImage(Bitmap image1, Bitmap image2)
+    {
+
+        
+        int cont = 0;
+        for (int i = 0; i < image1.Height; i++)
+        {
+            for (int j = 0; j < image1.Width; j++)
+            {
+                if (image1.GetPixel(j, i) != image2.GetPixel(j, i))
+                {
+
+                    cont++;
+
+                }
+            }
+        }
+
+        return cont;
+    }
+} //end class

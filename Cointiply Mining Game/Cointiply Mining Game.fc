@@ -1,0 +1,246 @@
+using System;
+using FaucetCollector.Script;
+
+public class CointiplyScript_ : FaucetScript
+{
+    public override FaucetSettings Settings
+    {
+        get
+        {
+            return new FaucetSettings("https://cointiply.com/mg")
+            {
+                new FaucetSetting() { Name = "Email", Display = "Your Cointiply Email", Type = EditorType.TextBox, Required = true },
+                new FaucetSetting() { Name = "Password", Display = "Your Cointiply Password", Type = EditorType.Password, Required = true },
+                new FaucetSetting(){Name="CG",Display="Bost Efficience",Type=EditorType.ComboBox,Default="none",Items=new System.Collections.Generic.List<string>{"none","1% 101 gems","2% 202 gems","3% 303 gems","4% 404 gems","5% 505 gems","6% 606 gems","7% 707gems","8% 808 gems","9% 909 gems","10% 1010 gems"} },
+            };
+        }
+    }
+
+    public override void Start()
+    {
+        Title = "Cointiply";
+        
+        SuccessXPath = "//span[contains(text(),'Your Mine')]";
+        FailXPath = "//span[contains(@class, 'md-error') and not(@style)]";
+
+        base.Start();
+    }
+
+    public override bool IsLoggedIn()
+    {
+        if (!Driver.Url.Contains("https://cointiply.com/mg"))
+        {
+            GoToUrl("https://cointiply.com/mg");
+        }
+        CloseModal();
+
+        Wait(3);
+
+        //If the earning-nav element is visible we are logged in
+        return (IsVisible(ElementByXPath("//i[contains(text(),'build')]")) || IsVisible(ElementByClass("earning-nav")));
+    }
+
+    public override int BeforeLogin()
+    {
+        //Click on the Login link
+        var loginLink = ElementByXPath("//a[contains(@href, 'cointiply.com/login')]");
+       
+
+        if(IsVisible(loginLink)){
+		
+		Click(loginLink);
+		Wait();
+		}
+		
+		GoToUrl("https://cointiply.com/login");
+
+        //let Faucet Collector continue.
+        return base.BeforeLogin();
+    }
+
+    public override int DoLogin()
+    {
+        //Find the input field that holds the email address
+        var signInEmail = ElementByXPath("//form//input[@type='text']");
+        if (!IsVisible(signInEmail))
+        {
+            //We couldn't find it. Register it as a fail so it can reload the page and try again in 10-15 seconds.
+            return Fail("Email input not found.");
+        }
+
+        var signInPassword = ElementByXPath("//form//input[@type='password']");
+        if (!IsVisible(signInPassword))
+        {
+            //We couldn't find it. Register it as a fail so it can reload the page and try again in 10-15 seconds.
+            return Fail("Password input not found.");
+        }
+
+        SetText(signInEmail, GetSetting("Email"));
+        Wait();
+        SetText(signInPassword, GetPassword("Password"));
+
+        //Now we search for the login submit button
+        var loginButton = ElementByXPath("//form//button[@type='button' and contains(., 'Login')]");
+        if (!IsVisible(loginButton))
+        {
+            //We couldn't find it. Register it as a fail so it can reload the page and try again in 10-15 seconds.
+            return Fail("Login button not found.");
+        }
+
+        Wait();
+
+        //We are ready to click the login button.
+        Click(loginButton);
+
+        //Let Faucet Collector continue
+        return base.DoLogin();
+    }
+
+    public override int AfterLogin()
+    {
+        GoToUrl(Url);
+
+        return base.AfterLogin();
+    }
+
+    public override int GetFaucetWaitTime()
+
+    {
+        var button_gems = ElementByXPath("//div[contains(@class,'text-center margin-top-10')]//button[1]");
+        if (IsVisible(button_gems))
+        {
+            Click(button_gems);
+            Wait(2, 3);
+        }
+        //Get the how much time has passed since last check in
+        var button_e = ElementByXPath("//button[@class='md-button md-button condensed-button md-accent md-raised margin-5 md-theme-default']");
+        if (IsVisible(button_e))
+        {
+            return 0;
+        }
+        else
+        {
+            return 3600;
+        }
+    }
+
+    public override int BeforeSolveCaptcha()
+    {
+        CloseModal();
+
+        //Let Faucet Collector continue
+        return base.BeforeSolveCaptcha();
+    }
+
+    public override int DoSolveCaptcha()
+    {
+        //Let Faucet Collector continue. It will check for SolveMedia and reCAPTCHA.
+        return base.DoSolveCaptcha();
+    }
+
+    public override int AfterSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterSolveCaptcha();
+    }
+
+    public override int BeforeSolveFaucet()
+    {	
+		
+
+        //Let Faucet Collector Continue.
+        return base.BeforeSolveFaucet();
+    }
+
+    public override int DoSolveFaucet()
+    {
+        if (!Driver.Url.Contains("https://cointiply.com/mg"))
+        {
+            GoToUrl("https://cointiply.com/mg");
+            Wait(3);
+        }
+        
+        var button_gems = ElementByXPath("//div[contains(@class,'text-center margin-top-10')]//button[1]");
+        if (IsVisible(button_gems))
+        {
+            Click(button_gems);
+            Wait(3);
+        }
+        Wait();
+        var button_e = ElementByXPath("//button[@class='md-button md-button condensed-button md-accent md-raised margin-5 md-theme-default']");
+
+		
+        if (button_e!=null)
+        {
+            Click(button_e);
+            Wait();
+        }
+        //Let Faucet Collector continue its work
+        return base.DoSolveFaucet();
+    }
+
+    public override int AfterSolveFaucet()
+    {
+        var setting_Boost = GetSetting("CG");
+        if (setting_Boost != "none")
+        {
+            int setting_act = -1;
+            for(int i = 1; i <= 10; i++)
+            {
+                if (setting_Boost.Contains(i.ToString()))
+                {
+                    setting_act = i;
+                    break;
+                }
+            }
+            var button = ElementByXPath("//div[@class='no-margin-bottom']");
+            if (IsVisible(button))
+            {
+                Click(button);
+                Wait(2, 3);
+                var opt = ElementsByXPath("//select[@class='form-control']//option");
+                Click(opt[setting_act - 1]);
+                Wait();
+
+               
+            }
+            var button_Boost = ElementByXPath("//div[contains(@class,'text-center margin-top-10')]//button[2]");
+            if (IsVisible(button_Boost))
+            {
+                Click(button_Boost);
+                Wait(2,3);
+                var button_c = ElementByXPath("//button[text()='Confirm Purchase']");
+                if (IsVisible(button_c))
+                {
+                    Click(button_c);
+                }
+            }
+            Wait();
+        }
+        //Let Faucet Collector continue
+        return base.AfterSolveFaucet();
+    }
+
+    public override int CheckFaucetResult()
+    {
+        var result = base.CheckFaucetResult();
+        if (IsSuccess)
+        {
+            //Force a reload when the captcha is solved (so the wait text is displayed)
+            Reload = true;
+        }
+
+        return result;
+    }
+
+    private void CloseModal()
+    {
+        var maybeLater = ElementByXPath("//button[@type='button' and contains(., 'Maybe Later')]");
+        if (IsVisible(maybeLater))
+        {
+            //Close the earn 1000's of coins offerwall
+            Click(maybeLater);
+        }
+    }
+
+}

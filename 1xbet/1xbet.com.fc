@@ -1,0 +1,2268 @@
+﻿using System;
+using FaucetCollector.Script;
+using OpenQA.Selenium;
+
+
+public class XbetScript : FaucetScript
+{
+    /// <summary>
+    /// List of Settings that will be shown in the bot when selecting this Faucet in the bot.
+    /// You can get the value the user entered with the methods: GetSetting("[Name of the FaucetSetting]"), GetBoolSetting and GetDateTimeSetting
+    /// You can also create a new setting value using SetSetting("[Name you want to use]", "value")
+    /// </summary>
+    public override FaucetSettings Settings
+    {
+        get
+        {
+            return new FaucetSettings("https://1xbet.com/en/")
+            {
+				
+				//form menu
+
+                new FaucetSetting(){Name="Email",Display="UserName",Type=EditorType.TextBox,Required=true},
+                new FaucetSetting(){Name="Password",Display="Password",Type=EditorType.Password,Required=true},
+				
+				//new FaucetSetting() { Name = "UseSolveMedia", Display = "Use SolveMedia", Type = EditorType.CheckBox, Default = true},
+				new FaucetSetting(){Name="NotificationsByEmail",Display="Email Notifications - Select your favorite",Type=EditorType.ComboBox,Default="Daily",Items=new System.Collections.Generic.List<string>{"none","Do not email","Daily","On weekdays","At weekends"}},		
+				new FaucetSetting(){Name="ExchangeBonusPointsToPromoCodes",Display="Exchange Points - Exchange the Bonus Points to Promo Codes (if you have in the balance)",Type=EditorType.ComboBox,Default="Lucky Wheel",Items=new System.Collections.Generic.List<string>{"none","Wheel of Fortune","Lucky Wheel","Single bet","Chest","Safe","Accumulator","Lottery","Football single","Memory","Football accumulator","TOTO","Tennis single","Basketball single","eSports-FIFA","Ice Hockey single","Volleyball single","Financials","Tennis accumulator","Ice Hockey accumulator","Basketball accumulator","eSports Ice Hockey","eSports Basketball","Bet Constructor","eSports Wrestling","eSports Tennis","eSports Martial Arts"}},		
+				new FaucetSetting(){Name="AutoPlayGamesList",Display="Auto Play from Prize - Games List (Currently in development , you can offer more games, and I will add)",Type=EditorType.ComboBox,Default="Game 1 - Pharaohs Kingdom",Items=new System.Collections.Generic.List<string>{"none","Game 1 - Pharaohs Kingdom","Game 2 - test"}},
+				
+			    new FaucetSetting() { Name = "LuckyDay", Display = "Lucky Day - Get Free 'Daily Lottery', every 24h", Type = EditorType.CheckBox, Default = true},	
+			    new FaucetSetting() { Name = "FreeToto", Display = "Free Toto - Get every 24h", Type = EditorType.CheckBox, Default = true},	
+			    new FaucetSetting() { Name = "LuckyWheel", Display = "Lucky Wheel - Get Free Spin Daily, every 24h", Type = EditorType.CheckBox, Default = true},	
+			    new FaucetSetting() { Name = "Bonuses_List_AfterYouGotPointsFromFree", Display = "Bonuses List - Click on Bonuses List After You Got Points From Free", Type = EditorType.CheckBox, Default = true},	
+
+            };
+        }
+    }
+	
+
+	
+	
+//============================================================//
+//the number of "successes" in the script - when are finished  
+//============================================================//
+    public override void Start()
+    {
+        //Title that shows in the browser. Is used to identify and close popup windows
+        Title = "1xbet.com";
+
+        //Success - FreeToto
+		SuccessXPath = "//div[starts-with(text(),'Bet accepted')]";
+        FailXPath = "//div[@class='']";
+		
+        TimerIsCountingUp = true;
+		
+        //Let Faucet Collector start up everything
+        base.Start();
+    }
+//============================================================//
+//the number of "successes" in the script - when are finished  
+//============================================================//
+
+	
+
+	//loop
+    public static bool cs;
+
+
+	
+	
+    /// <summary>
+    /// This is the first method to run after the browser is opened and the first page is loaded.
+    /// </summary>
+	
+    public override int DoInit()
+    {
+
+        cs = false;
+        //Let Faucet Collector continue.
+        return base.DoInit();
+    }
+
+	
+	
+	
+//==================//
+//save Login Cookies 
+//==================//
+    public override bool IsLoggedIn()
+    {
+
+     //save Login Cookies - Normal- LOGOUT
+     return ElementByXPath("//*[@id='loginout']/span[2]/ul/li[7]/a") != null;  
+
+    }
+//==================//
+//save Login Cookies 
+//==================//	
+
+
+
+
+
+	
+	
+//================================//
+//start BeforeLogin
+//================================//
+    public override int BeforeLogin()
+    {
+
+		
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeLogin();
+    }
+	
+//================================//
+//start BeforeLogin
+//================================//
+	
+	
+	
+	
+	
+	
+//================================//
+//start DoLogin
+//================================//
+ public override int DoLogin()
+ {
+
+	    //general - var checks login or exit
+        var LoginStart =ElementByXPath("//span[text()='Log in']"); //Log in
+        var ExitButton =ElementByXPath("//*[@id='loginout']/span[2]/ul/li[7]/a"); //LOGOUT
+
+
+	    //if i already Login - go to "dashboard Page"	    
+	    if (IsVisible(ExitButton))
+	    {
+        GoToUrl("https://1xbet.com/en/");
+        }
+	    
+
+	    //if i NOT Login - go to Login Page
+	    if (IsVisible(LoginStart))
+	    {
+		    
+		//click on login Main start
+		Click(LoginStart);
+		
+        Wait(2);
+		
+        //set email
+        var signInEmail = ElementByXPath("//input[@id='userLogin']");
+        SetText(signInEmail, GetSetting("Email"));
+		Log("Login: set Email");
+		
+        Wait(2);
+		
+        //set pass
+        var signInPassword = ElementByXPath("//input[@id='userPassword']");
+        SetText(signInPassword, GetPassword("Password"));
+		Log("Login: set Pass");
+
+        Wait(2);
+		
+		//RememberLoginCheckBox
+		var RememberLoginCheckBox = ElementByXPath("//*[@id='fLogin2']/div/label");
+        Click(RememberLoginCheckBox);
+		Log("Login: Remember Login Check Box - Click Button");
+		
+        Wait(2);
+		
+        //Click login button
+        var loginButton = ElementByXPath("//*[@id='userConButton']"); //button[text()='Log in']
+        Click(loginButton);
+		Log("Login: Click Button");
+		
+        Wait(2);
+		
+		//refresh/reload the page
+        //return 15;
+
+        } 
+
+        //Let Faucet Collector continue
+        return base.DoLogin();
+ }
+//================================//
+//end DoLogin
+//================================//
+ 
+
+
+ 
+ 
+ 
+	
+	
+	
+//================================//
+//start AfterLogin
+//================================//
+public override int AfterLogin()
+{
+	
+	 //============================//
+     //Menu NotificationsByEmail
+     //============================//
+
+     var MenuNotificationsByEmailVar = GetSetting("NotificationsByEmail");    
+
+	 
+	 // * none * //
+     if(MenuNotificationsByEmailVar=="none")
+     {
+     //just do not do nothing - if i set return 0 - It will skip, for the next action
+     }	
+	 
+ 
+	 // * Do not email * //
+     if(MenuNotificationsByEmailVar=="Do not email")
+     {
+     //go sattings page
+     GoToUrl("https://1xbet.com/en/office/settings/"); 
+	 
+     Wait(5);	 
+	 
+     var DoNotEmailVar =ElementByXPath("//div[text()='Do not email']");
+     Click(DoNotEmailVar);
+	 
+     Wait(2);
+	 
+     var MessageOkButton =ElementByXPath("//span[text()='OK']");
+     Click(MessageOkButton);
+     }	 
+	 
+
+	 // * Daily * //
+     if(MenuNotificationsByEmailVar=="Daily")
+     {
+     //go sattings page
+     GoToUrl("https://1xbet.com/en/office/settings/"); 
+	 
+     Wait(5);	 
+	 
+     var DailyVar =ElementByXPath("//div[text()='Daily']");
+     Click(DailyVar);
+	 
+     Wait(2);
+	 
+     var MessageOkButton =ElementByXPath("//span[text()='OK']");
+     Click(MessageOkButton);
+     }	 
+	 
+	 
+	 // * On weekdays * //
+     if(MenuNotificationsByEmailVar=="On weekdays")
+     {
+     //go sattings page
+     GoToUrl("https://1xbet.com/en/office/settings/"); 
+	 
+     Wait(5);	 
+	 
+     var OnweekdaysVar =ElementByXPath("//div[text()='On weekdays']");
+     Click(OnweekdaysVar);
+	 
+     Wait(2);
+	 
+     var MessageOkButton =ElementByXPath("//span[text()='OK']"); 
+     Click(MessageOkButton);
+     }	 
+	 
+	 
+	 // * At weekends * //
+     if(MenuNotificationsByEmailVar=="At weekends")
+     {
+     //go sattings page
+     GoToUrl("https://1xbet.com/en/office/settings/"); 
+	 
+     Wait(5);	 
+	 
+     var AtweekendsVar =ElementByXPath("//div[text()='At weekends']");
+     Click(AtweekendsVar);
+	 
+     Wait(2);
+	 
+     var MessageOkButton =ElementByXPath("//span[text()='OK']"); //Log in
+     Click(MessageOkButton);
+     }	 
+     //============================//
+   
+
+     //we are good to continue
+     return base.AfterLogin();
+}
+	
+//================================//
+//end AfterLogin
+//================================//
+	
+	
+
+	
+	
+	
+	
+    /// <summary>
+    /// This method gets called after the login methods are successful, so we are logged into the faucet.
+    /// If the faucet is not yet ready to claim you should return a TimeStamp value to return how long it takes before the Faucet claim can be done.
+    /// This is used to pause the script while the faucet its timer runs out.
+    /// Return the number of seconds the bot should wait.
+    /// </summary>
+    public override int GetFaucetWaitTime()
+    {
+		//wait 36 min
+        if (cs)
+        {
+            return 60 * 60;
+        }
+
+        //0 mean let Faucet Collector continue.
+        //return 0;
+		
+		//let Faucet Collector continue.
+        return base.GetFaucetWaitTime();
+
+    }
+
+	
+	
+	
+	
+    /// <summary>
+    /// This method is called right before a captcha will be solved. 
+    /// If you call SolveCaptcha() in other methods it will start this flow and tries to solve the captcha on the page.
+    /// </summary>
+    public override int BeforeSolveCaptcha()
+    {
+		/*
+		
+        //Check if the user wants to do SolveMedia or reCAPTCHA.
+        if (GetBoolSetting("UseSolveMedia"))
+        {
+            //Make sure SolveMedia is active by clicking the link.
+            Click(ElementByLinkText("Switch to SolveMedia captcha"));
+        }
+        else
+        {
+            //Make sure reCAPTCHA is active by clicking the link.
+            Click(ElementByLinkText("Switch to Recaptcha"));
+        }
+
+        //Wait a little (1 - 2 seconds) for the captcha to switch.
+        Wait();
+
+		*/
+		
+        //Return we are ready to proceed
+        return base.BeforeSolveFaucet();
+    }
+	
+	
+	
+	
+	
+    /// <summary>
+    /// This method gets called after BeforeSolveCaptcha and it does the actual captcha solving
+    /// It will automatically try to see if there is a SolveMedia captcha active or a reCAPTCHA active. 
+    /// If it finds either one it will then use the selected method on the Captcha tab of FaucetCollector to solve the Captcha.
+    /// </summary>
+    public override int DoSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoSolveCaptcha();
+    }
+
+	
+	
+	
+    /// <summary>
+    /// This method will get called after DoSolveCaptcha returned it was a success.
+    /// </summary>
+    /// <returns></returns>
+    public override int AfterSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterSolveCaptcha();
+    }
+
+	
+	
+
+	
+	
+//================================//
+//start BeforeSolveFaucet
+//================================//
+
+public override int BeforeSolveFaucet()
+  {
+
+  
+        //Let Faucet Collector Continue.
+        return base.BeforeSolveFaucet();
+  }
+  
+//================================//
+//end BeforeSolveFaucet
+//================================//
+	
+
+	
+	
+	
+//================================//
+//start DoSolveFaucet
+//================================//
+ public override int DoSolveFaucet()
+ {
+	
+ 
+   //=======//  
+   //LuckyDay
+   //=======//
+   if (GetBoolSetting("LuckyDay"))
+   {  
+       //go to LuckyDay page
+       GoToUrl("https://1xbet.com/en/luckyday");
+	   Log("go to LuckyDay");
+	   
+	   Wait(2);	
+	   
+	   //Close Pop Up
+	   var CloseLuckyDayPopUpVar =ElementByXPath("//*[@id='popup2']/div[2]/div[1]"); 	
+	   if (IsVisible(CloseLuckyDayPopUpVar))
+	   {		   
+	   Log("LuckyDay - Close Pop Up");
+       Click(CloseLuckyDayPopUpVar);
+	   }
+	   
+	   if (!IsVisible(CloseLuckyDayPopUpVar))
+	   {		   
+
+       Wait(3);	
+	   
+       var WaitTextLuckyDayVar =ElementByXPath("//div[text()='№:']"); 		
+	    
+	   // If there is WaitText
+	   if (IsVisible(WaitTextLuckyDayVar))
+	   {		
+	   Log("LuckyDay - return 0 WaitText apper");
+	   //return 0;
+	   }
+	   
+	   // If not apper - click to get ticket
+	   if (!IsVisible(WaitTextLuckyDayVar))
+	   {	   
+	   var TicketButton =ElementByXPath("//button[text()='take part']"); 
+	   Log("LuckyDay - Success click on TicketButton");
+       Click(TicketButton);
+	   }
+	   
+	   
+	   }  
+	   
+
+
+   }    
+   //=======//
+		
+		
+
+   //=======//  
+   //FreeToto
+   //=======//
+   if (GetBoolSetting("FreeToto"))
+   { 
+
+       Wait(2);	
+		
+       //go to FreeToto page
+       GoToUrl("https://1xbet.com/en/toto/free/");
+	   Log("go to FreeToto");	 
+		
+	   Wait(2);	
+	   
+       var WaitTextFreeTotoVar =ElementByXPath("//p[text()='Sorry, you have already placed a bet today']"); 		
+	    
+	   // If there is WaitText
+	   if (IsVisible(WaitTextFreeTotoVar))
+	   {		
+	   Log("FreeToto - return 0 WaitText apper");
+	   //return 0;
+	   }
+	   
+	   // If not apper
+	   if (!IsVisible(WaitTextFreeTotoVar))
+	   {	
+       //click on RandomButton
+       var FreeTotoRandomButton =ElementByXPath("//*[@id='sports_main']/div/div/div[2]/div/div/a[3]"); //a[starts-with(text(),'Random selection')]
+	   Log("FreeToto - click on RandomButton");
+	   Wait(3);	 
+       Click(FreeTotoRandomButton);
+	   Wait(2);	 
+       Click(FreeTotoRandomButton);
+	   Wait(4);	 
+       Click(FreeTotoRandomButton);
+	   
+	   Wait(2);	 	   
+
+       //click on FreeTotoButton
+       var FreeTotoButton =ElementByXPath("//*[@id='sports_main']/div/div/div[2]/div/div/a[1]"); //a[starts-with(text(),'Make a prediction')]
+	   Log("FreeToto - Success click on FreeTotoButton");
+       Click(FreeTotoButton);
+	   }
+	   
+   }    
+   //=======//
+	 	
+		
+		
+   //=======//  
+   //LuckyWheel
+   //=======//
+   if (GetBoolSetting("LuckyWheel"))
+   {  
+       //go to LuckyWheel page
+       GoToUrl("https://1xbet.com/en/allgamesentrance/");
+	   Log("go to LuckyWheel");	
+	   
+	   Wait(3);
+	   
+       var LuckyWheelContainerButton =ElementByXPath("//*[@id='games_container']/div[2]/div/div[2]/a"); 		
+	   Log("LuckyWheel - click on Container Button");     
+       Click(LuckyWheelContainerButton);	   
+	   
+	   Wait(3);
+	   	   
+       var ButtonLuckyWheelVar =ElementByXPath("//*[@id='wheel_quest_app']/div/div[2]/button"); //button[text()='Spin for free']
+
+	   // If there is "Spin for free" - click
+	   if (IsVisible(ButtonLuckyWheelVar))
+	   {	
+	   Log("LuckyWheel - click on Spin for free");
+       Click(ButtonLuckyWheelVar);
+	   }
+
+	   Wait(10);
+
+   }    
+   //=======//
+		
+		
+		
+		
+        //We are good to continue
+        return base.DoSolveFaucet();
+ }
+ 
+//================================//
+//end DoSolveFaucet
+//================================//
+	
+	
+	
+	
+
+
+	
+//===========================//
+//*** Start AfterSolveFaucet ***
+//==========================//	
+
+ public override int AfterSolveFaucet()
+ {
+	 
+
+    //============================//
+    //Menu ExchangeBonusPointsToPromoCodes
+    //============================//
+
+    var ExchangeBonusPointsToPromoCodesVar = GetSetting("ExchangeBonusPointsToPromoCodes");    
+
+    // * none * //
+    if(ExchangeBonusPointsToPromoCodesVar=="none")
+    {
+     //just do not do nothing - if i set return 0 - It will skip, for the next action 
+    }	 
+	
+	 
+    //======================//
+    // * Wheel of Fortune * //
+    //======================//
+    if(ExchangeBonusPointsToPromoCodesVar=="Wheel of Fortune")
+    {
+		
+	   //first go Promo page
+       GoToUrl("https://1xbet.com/en/promo/");
+	   Log("go to - Exchange Bonus Points - Wheel of Fortune");	
+	   
+       var NoPointsVar = ElementByXPath("//*[@id='currentPromo']//span[text()='0']");
+ 
+       // If there is no points
+	   if (IsVisible(NoPointsVar))
+	   {		
+	   Log("no points - you have 0 in the balance - we return after 180min");
+	   //just do not do nothing - if i set return 0 - It will skip, for the next action
+	   }
+
+	   // if Points Appear 
+	   if (!IsVisible(NoPointsVar))
+	   { 
+
+       Wait(2);	 
+	   
+       //click on bar
+       var BarClickVar =ElementByXPath("//*[@id='sports_main']/div[2]/ul/li[1]"); //il[1]
+       Click(BarClickVar);
+	 
+       Wait(2);
+	 
+       //set text amount of point - 50
+       var inputText =ElementByXPath("//input[@class='input ui-spinner-input']"); 
+       SetText(inputText,"50");
+
+       Wait(2);
+	   
+       //click on GetASpin
+       var GetASpinVar =ElementByXPath("//span[text()='Get a spin']"); 
+       Click(GetASpinVar);
+	   
+       Wait(2);
+	   
+       //checks points PopUp Message
+       var PopUp_NoPoints =ElementByXPath("//div[text()='You do not have enough points to purchase this promo code.']"); 
+	   if (IsVisible(PopUp_NoPoints))
+	   {		
+	   Log("no points - You do not have enough points to purchase this promo code. - we return after 180min");
+	   //just do not do nothing - if i set return 0 - It will skip, for the next action
+	   }
+	   
+	   if (!IsVisible(PopUp_NoPoints))
+	   {		
+	   Log("Success: points exchange");
+	   //just do not do nothing - if i set return 0 - It will skip, for the next action	
+	   }
+
+	   }
+    }	 
+    //============================//
+ 	
+	
+    //======================//
+    // * Lucky Wheel * //
+    //======================//
+    if(ExchangeBonusPointsToPromoCodesVar=="Lucky Wheel")
+    {
+		
+	   //first go Promo page
+       GoToUrl("https://1xbet.com/en/promo/");
+  
+       var NoPointsVar = ElementByXPath("//*[@id='currentPromo']//span[text()='0']");
+ 
+       // If there is no points
+	   if (IsVisible(NoPointsVar))
+	   {		
+	   Log("no points - you have 0 in the balance - we return after 180min");
+	   //just do not do nothing - if i set return 0 - It will skip, for the next action
+	   }
+
+	   // if Points Appear 
+	   if (!IsVisible(NoPointsVar))
+	   { 
+
+       Wait(2);	 
+	   
+       //click on bar
+       var BarClickVar =ElementByXPath("//*[@id='sports_main']/div[2]/ul/li[2]"); //il[2]
+       Click(BarClickVar);
+	 
+       Wait(2);
+	 
+       //set text amount of point - 50
+       var inputText =ElementByXPath("//input[@class='input ui-spinner-input']"); 
+       SetText(inputText,"50");
+
+       Wait(2);
+	   
+       //click on GetASpin
+       var GetASpinVar =ElementByXPath("//span[text()='Get a spin']"); 
+       Click(GetASpinVar);
+	   
+       Wait(2);
+	   
+       //checks points PopUp Message
+       var PopUp_NoPoints =ElementByXPath("//div[text()='You do not have enough points to purchase this promo code.']"); 
+	   if (IsVisible(PopUp_NoPoints))
+	   {		
+	   Log("no points - You do not have enough points to purchase this promo code. - we return after 180min");
+	   //just do not do nothing - if i set return 0 - It will skip, for the next action
+	   }
+	   
+	   if (!IsVisible(PopUp_NoPoints))
+	   {		
+	   Log("Success: points exchange");
+	   //just do not do nothing - if i set return 0 - It will skip, for the next action	
+	   }
+
+	   }
+    }	 
+    //============================//
+ 	
+	
+    //======================//
+    // * Single bet * //
+    //======================//
+    if(ExchangeBonusPointsToPromoCodesVar=="Single bet")
+    {
+		
+	   //first go Promo page
+       GoToUrl("https://1xbet.com/en/promo/");
+  
+       var NoPointsVar = ElementByXPath("//*[@id='currentPromo']//span[text()='0']");
+ 
+       // If there is no points
+	   if (IsVisible(NoPointsVar))
+	   {		
+	   Log("no points - you have 0 in the balance - we return after 180min");
+	   //just do not do nothing - if i set return 0 - It will skip, for the next action
+	   }
+
+	   // if Points Appear 
+	   if (!IsVisible(NoPointsVar))
+	   { 
+
+       Wait(2);	 
+	   
+       //click on bar
+       var BarClickVar =ElementByXPath("//*[@id='sports_main']/div[2]/ul/li[3]"); //il[3]
+       Click(BarClickVar);
+	 
+       Wait(2);
+	 
+       //set text amount of point - 50
+       var inputText =ElementByXPath("//input[@class='input ui-spinner-input']"); 
+       SetText(inputText,"50");
+
+       Wait(2);
+	   
+       //click on GetASpin
+       var GetASpinVar =ElementByXPath("//span[text()='Get a spin']"); 
+       Click(GetASpinVar);
+	   
+       Wait(2);
+	   
+       //checks points PopUp Message
+       var PopUp_NoPoints =ElementByXPath("//div[text()='You do not have enough points to purchase this promo code.']"); 
+	   if (IsVisible(PopUp_NoPoints))
+	   {		
+	   Log("no points - You do not have enough points to purchase this promo code. - we return after 180min");
+	   //just do not do nothing - if i set return 0 - It will skip, for the next action
+	   }
+	   
+	   if (!IsVisible(PopUp_NoPoints))
+	   {		
+	   Log("Success: points exchange");
+	   //just do not do nothing - if i set return 0 - It will skip, for the next action	
+	   }
+
+	   }
+    }	 
+    //============================//
+ 	
+	
+    //======================//
+    // * Chest * //
+    //======================//
+    if(ExchangeBonusPointsToPromoCodesVar=="Chest")
+    {
+		
+	   //first go Promo page
+       GoToUrl("https://1xbet.com/en/promo/");
+  
+       var NoPointsVar = ElementByXPath("//*[@id='currentPromo']//span[text()='0']");
+ 
+       // If there is no points
+	   if (IsVisible(NoPointsVar))
+	   {		
+	   Log("no points - you have 0 in the balance - we return after 180min");
+	   //just do not do nothing - if i set return 0 - It will skip, for the next action
+	   }
+
+	   // if Points Appear 
+	   if (!IsVisible(NoPointsVar))
+	   { 
+
+       Wait(2);	 
+	   
+       //click on bar
+       var BarClickVar =ElementByXPath("//*[@id='sports_main']/div[2]/ul/li[4]"); //il[4]
+       Click(BarClickVar);
+	 
+       Wait(2);
+	 
+       //set text amount of point - 50
+       var inputText =ElementByXPath("//input[@class='input ui-spinner-input']"); 
+       SetText(inputText,"50");
+
+       Wait(2);
+	   
+       //click on GetASpin
+       var GetASpinVar =ElementByXPath("//span[text()='Get a spin']"); 
+       Click(GetASpinVar);
+	   
+       Wait(2);
+	   
+       //checks points PopUp Message
+       var PopUp_NoPoints =ElementByXPath("//div[text()='You do not have enough points to purchase this promo code.']"); 
+	   if (IsVisible(PopUp_NoPoints))
+	   {		
+	   Log("no points - You do not have enough points to purchase this promo code. - we return after 180min");
+	   //just do not do nothing - if i set return 0 - It will skip, for the next action
+	   }
+	   
+	   if (!IsVisible(PopUp_NoPoints))
+	   {		
+	   Log("Success: points exchange");
+	   //just do not do nothing - if i set return 0 - It will skip, for the next action	
+	   }
+
+	   }
+    }	 
+    //============================//	
+	
+	
+	
+    //======================//
+    // * Safe * //
+    //======================//
+    if(ExchangeBonusPointsToPromoCodesVar=="Safe")
+    {
+		
+	   //first go Promo page
+       GoToUrl("https://1xbet.com/en/promo/");
+  
+       var NoPointsVar = ElementByXPath("//*[@id='currentPromo']//span[text()='0']");
+ 
+       // If there is no points
+	   if (IsVisible(NoPointsVar))
+	   {		
+	   Log("no points - you have 0 in the balance - we return after 180min");
+	   //just do not do nothing - if i set return 0 - It will skip, for the next action
+	   }
+
+	   // if Points Appear 
+	   if (!IsVisible(NoPointsVar))
+	   { 
+
+       Wait(2);	 
+	   
+       //click on bar
+       var BarClickVar =ElementByXPath("//*[@id='sports_main']/div[2]/ul/li[5]"); //il[5]
+       Click(BarClickVar);
+	 
+       Wait(2);
+	 
+       //set text amount of point - 50
+       var inputText =ElementByXPath("//input[@class='input ui-spinner-input']"); 
+       SetText(inputText,"50");
+
+       Wait(2);
+	   
+       //click on GetASpin
+       var GetASpinVar =ElementByXPath("//span[text()='Get a spin']"); 
+       Click(GetASpinVar);
+	   
+       Wait(2);
+	   
+       //checks points PopUp Message
+       var PopUp_NoPoints =ElementByXPath("//div[text()='You do not have enough points to purchase this promo code.']"); 
+	   if (IsVisible(PopUp_NoPoints))
+	   {		
+	   Log("no points - You do not have enough points to purchase this promo code. - we return after 180min");
+	   //just do not do nothing - if i set return 0 - It will skip, for the next action
+	   }
+	   
+	   if (!IsVisible(PopUp_NoPoints))
+	   {		
+	   Log("Success: points exchange");
+	   //just do not do nothing - if i set return 0 - It will skip, for the next action	
+	   }
+
+	   }
+    }	 
+    //============================//	
+	
+	
+	
+    //======================//
+    // * Accumulator * //
+    //======================//
+    if(ExchangeBonusPointsToPromoCodesVar=="Accumulator")
+    {
+		
+	   //first go Promo page
+       GoToUrl("https://1xbet.com/en/promo/");
+  
+       var NoPointsVar = ElementByXPath("//*[@id='currentPromo']//span[text()='0']");
+ 
+       // If there is no points
+	   if (IsVisible(NoPointsVar))
+	   {		
+	   Log("no points - you have 0 in the balance - we return after 180min");
+	   //just do not do nothing - if i set return 0 - It will skip, for the next action
+	   }
+
+	   // if Points Appear 
+	   if (!IsVisible(NoPointsVar))
+	   { 
+
+       Wait(2);	 
+	   
+       //click on bar
+       var BarClickVar =ElementByXPath("//*[@id='sports_main']/div[2]/ul/li[6]"); //il[6]
+       Click(BarClickVar);
+	 
+       Wait(2);
+	 
+       //set text amount of point - 50
+       var inputText =ElementByXPath("//input[@class='input ui-spinner-input']"); 
+       SetText(inputText,"50");
+
+       Wait(2);
+	   
+       //click on GetASpin
+       var GetASpinVar =ElementByXPath("//span[text()='Get a spin']"); 
+       Click(GetASpinVar);
+	   
+       Wait(2);
+	   
+       //checks points PopUp Message
+       var PopUp_NoPoints =ElementByXPath("//div[text()='You do not have enough points to purchase this promo code.']"); 
+	   if (IsVisible(PopUp_NoPoints))
+	   {		
+	   Log("no points - You do not have enough points to purchase this promo code. - we return after 180min");
+	   //just do not do nothing - if i set return 0 - It will skip, for the next action
+	   }
+	   
+	   if (!IsVisible(PopUp_NoPoints))
+	   {		
+	   Log("Success: points exchange");
+	   //just do not do nothing - if i set return 0 - It will skip, for the next action	
+	   }
+
+	   }
+    }	 
+    //============================//		
+	
+	
+    //======================//
+    // * Lottery * //
+    //======================//
+    if(ExchangeBonusPointsToPromoCodesVar=="Lottery")
+    {
+		
+	   //first go Promo page
+       GoToUrl("https://1xbet.com/en/promo/");
+  
+       var NoPointsVar = ElementByXPath("//*[@id='currentPromo']//span[text()='0']");
+ 
+       // If there is no points
+	   if (IsVisible(NoPointsVar))
+	   {		
+	   Log("no points - you have 0 in the balance - we return after 180min");
+	   //just do not do nothing - if i set return 0 - It will skip, for the next action
+	   }
+
+	   // if Points Appear 
+	   if (!IsVisible(NoPointsVar))
+	   { 
+
+       Wait(2);	 
+	   
+       //click on bar
+       var BarClickVar =ElementByXPath("//*[@id='sports_main']/div[2]/ul/li[7]"); //il[7]
+       Click(BarClickVar);
+	 
+       Wait(2);
+	 
+       //set text amount of point - 50
+       var inputText =ElementByXPath("//input[@class='input ui-spinner-input']"); 
+       SetText(inputText,"50");
+
+       Wait(2);
+	   
+       //click on GetASpin
+       var GetASpinVar =ElementByXPath("//span[text()='Get a spin']"); 
+       Click(GetASpinVar);
+	   
+       Wait(2);
+	   
+       //checks points PopUp Message
+       var PopUp_NoPoints =ElementByXPath("//div[text()='You do not have enough points to purchase this promo code.']"); 
+	   if (IsVisible(PopUp_NoPoints))
+	   {		
+	   Log("no points - You do not have enough points to purchase this promo code. - we return after 180min");
+	   //just do not do nothing - if i set return 0 - It will skip, for the next action
+	   }
+	   
+	   if (!IsVisible(PopUp_NoPoints))
+	   {		
+	   Log("Success: points exchange");
+	   //just do not do nothing - if i set return 0 - It will skip, for the next action	
+	   }
+
+	   }
+    }	 
+    //============================//	
+	
+	
+    //======================//
+    // * Football single * //
+    //======================//
+    if(ExchangeBonusPointsToPromoCodesVar=="Football single")
+    {
+		
+	   //first go Promo page
+       GoToUrl("https://1xbet.com/en/promo/");
+  
+       var NoPointsVar = ElementByXPath("//*[@id='currentPromo']//span[text()='0']");
+ 
+       // If there is no points
+	   if (IsVisible(NoPointsVar))
+	   {		
+	   Log("no points - you have 0 in the balance - we return after 180min");
+	   //just do not do nothing - if i set return 0 - It will skip, for the next action
+	   }
+
+	   // if Points Appear 
+	   if (!IsVisible(NoPointsVar))
+	   { 
+
+       Wait(2);	 
+	   
+       //click on bar
+       var BarClickVar =ElementByXPath("//*[@id='sports_main']/div[2]/ul/li[8]"); //il[8]
+       Click(BarClickVar);
+	 
+       Wait(2);
+	 
+       //set text amount of point - 50
+       var inputText =ElementByXPath("//input[@class='input ui-spinner-input']"); 
+       SetText(inputText,"50");
+
+       Wait(2);
+	   
+       //click on GetASpin
+       var GetASpinVar =ElementByXPath("//span[text()='Get a spin']"); 
+       Click(GetASpinVar);
+	   
+       Wait(2);
+	   
+       //checks points PopUp Message
+       var PopUp_NoPoints =ElementByXPath("//div[text()='You do not have enough points to purchase this promo code.']"); 
+	   if (IsVisible(PopUp_NoPoints))
+	   {		
+	   Log("no points - You do not have enough points to purchase this promo code. - we return after 180min");
+	   //just do not do nothing - if i set return 0 - It will skip, for the next action
+	   }
+	   
+	   if (!IsVisible(PopUp_NoPoints))
+	   {		
+	   Log("Success: points exchange");
+	   //just do not do nothing - if i set return 0 - It will skip, for the next action	
+	   }
+
+	   }
+    }	 
+    //============================//	
+	
+	
+	
+    //======================//
+    // * Memory * //
+    //======================//
+    if(ExchangeBonusPointsToPromoCodesVar=="Memory")
+    {
+		
+	   //first go Promo page
+       GoToUrl("https://1xbet.com/en/promo/");
+  
+       var NoPointsVar = ElementByXPath("//*[@id='currentPromo']//span[text()='0']");
+ 
+       // If there is no points
+	   if (IsVisible(NoPointsVar))
+	   {		
+	   Log("no points - you have 0 in the balance - we return after 180min");
+	   //just do not do nothing - if i set return 0 - It will skip, for the next action
+	   }
+
+	   // if Points Appear 
+	   if (!IsVisible(NoPointsVar))
+	   { 
+
+       Wait(2);	 
+	   
+       //click on bar
+       var BarClickVar =ElementByXPath("//*[@id='sports_main']/div[2]/ul/li[9]"); //il[9]
+       Click(BarClickVar);
+	 
+       Wait(2);
+	 
+       //set text amount of point - 50
+       var inputText =ElementByXPath("//input[@class='input ui-spinner-input']"); 
+       SetText(inputText,"50");
+
+       Wait(2);
+	   
+       //click on GetASpin
+       var GetASpinVar =ElementByXPath("//span[text()='Get a spin']"); 
+       Click(GetASpinVar);
+	   
+       Wait(2);
+	   
+       //checks points PopUp Message
+       var PopUp_NoPoints =ElementByXPath("//div[text()='You do not have enough points to purchase this promo code.']"); 
+	   if (IsVisible(PopUp_NoPoints))
+	   {		
+	   Log("no points - You do not have enough points to purchase this promo code. - we return after 180min");
+	   //just do not do nothing - if i set return 0 - It will skip, for the next action
+	   }
+	   
+	   if (!IsVisible(PopUp_NoPoints))
+	   {		
+	   Log("Success: points exchange");
+	   //just do not do nothing - if i set return 0 - It will skip, for the next action	
+	   }
+
+	   }
+    }	 
+    //============================//	
+	
+	
+    //======================//
+    // * Football accumulator * //
+    //======================//
+    if(ExchangeBonusPointsToPromoCodesVar=="Football accumulator")
+    {
+		
+	   //first go Promo page
+       GoToUrl("https://1xbet.com/en/promo/");
+  
+       var NoPointsVar = ElementByXPath("//*[@id='currentPromo']//span[text()='0']");
+ 
+       // If there is no points
+	   if (IsVisible(NoPointsVar))
+	   {		
+	   Log("no points - you have 0 in the balance - we return after 180min");
+	   //just do not do nothing - if i set return 0 - It will skip, for the next action
+	   }
+
+	   // if Points Appear 
+	   if (!IsVisible(NoPointsVar))
+	   { 
+
+       Wait(2);	 
+	   
+       //click on bar
+       var BarClickVar =ElementByXPath("//*[@id='sports_main']/div[2]/ul/li[10]"); //il[10]
+       Click(BarClickVar);
+	 
+       Wait(2);
+	 
+       //set text amount of point - 50
+       var inputText =ElementByXPath("//input[@class='input ui-spinner-input']"); 
+       SetText(inputText,"50");
+
+       Wait(2);
+	   
+       //click on GetASpin
+       var GetASpinVar =ElementByXPath("//span[text()='Get a spin']"); 
+       Click(GetASpinVar);
+	   
+       Wait(2);
+	   
+       //checks points PopUp Message
+       var PopUp_NoPoints =ElementByXPath("//div[text()='You do not have enough points to purchase this promo code.']"); 
+	   if (IsVisible(PopUp_NoPoints))
+	   {		
+	   Log("no points - You do not have enough points to purchase this promo code. - we return after 180min");
+	   //just do not do nothing - if i set return 0 - It will skip, for the next action
+	   }
+	   
+	   if (!IsVisible(PopUp_NoPoints))
+	   {		
+	   Log("Success: points exchange");
+	   //just do not do nothing - if i set return 0 - It will skip, for the next action	
+	   }
+
+	   }
+    }	 
+    //============================//	
+	
+	
+	
+    //======================//
+    // * TOTO * //
+    //======================//
+    if(ExchangeBonusPointsToPromoCodesVar=="TOTO")
+    {
+		
+	   //first go Promo page
+       GoToUrl("https://1xbet.com/en/promo/");
+  
+       var NoPointsVar = ElementByXPath("//*[@id='currentPromo']//span[text()='0']");
+ 
+       // If there is no points
+	   if (IsVisible(NoPointsVar))
+	   {		
+	   Log("no points - you have 0 in the balance - we return after 180min");
+	   //just do not do nothing - if i set return 0 - It will skip, for the next action
+	   }
+
+	   // if Points Appear 
+	   if (!IsVisible(NoPointsVar))
+	   { 
+
+       Wait(2);	 
+	   
+       //click on bar
+       var BarClickVar =ElementByXPath("//*[@id='sports_main']/div[2]/ul/li[11]"); //il[11]
+       Click(BarClickVar);
+	 
+       Wait(2);
+	 
+       //set text amount of point - 50
+       var inputText =ElementByXPath("//input[@class='input ui-spinner-input']"); 
+       SetText(inputText,"50");
+
+       Wait(2);
+	   
+       //click on GetASpin
+       var GetASpinVar =ElementByXPath("//span[text()='Get a spin']"); 
+       Click(GetASpinVar);
+	   
+       Wait(2);
+	   
+       //checks points PopUp Message
+       var PopUp_NoPoints =ElementByXPath("//div[text()='You do not have enough points to purchase this promo code.']"); 
+	   if (IsVisible(PopUp_NoPoints))
+	   {		
+	   Log("no points - You do not have enough points to purchase this promo code. - we return after 180min");
+	   //just do not do nothing - if i set return 0 - It will skip, for the next action
+	   }
+	   
+	   if (!IsVisible(PopUp_NoPoints))
+	   {		
+	   Log("Success: points exchange");
+	   //just do not do nothing - if i set return 0 - It will skip, for the next action	
+	   }
+
+	   }
+    }	 
+    //============================//	
+	
+	
+	
+    //======================//
+    // * Tennis single * //
+    //======================//
+    if(ExchangeBonusPointsToPromoCodesVar=="Tennis single")
+    {
+		
+	   //first go Promo page
+       GoToUrl("https://1xbet.com/en/promo/");
+  
+       var NoPointsVar = ElementByXPath("//*[@id='currentPromo']//span[text()='0']");
+ 
+       // If there is no points
+	   if (IsVisible(NoPointsVar))
+	   {		
+	   Log("no points - you have 0 in the balance - we return after 180min");
+	   //just do not do nothing - if i set return 0 - It will skip, for the next action
+	   }
+
+	   // if Points Appear 
+	   if (!IsVisible(NoPointsVar))
+	   { 
+
+       Wait(2);	 
+	   
+       //click on bar
+       var BarClickVar =ElementByXPath("//*[@id='sports_main']/div[2]/ul/li[12]"); //il[12]
+       Click(BarClickVar);
+	 
+       Wait(2);
+	 
+       //set text amount of point - 50
+       var inputText =ElementByXPath("//input[@class='input ui-spinner-input']"); 
+       SetText(inputText,"50");
+
+       Wait(2);
+	   
+       //click on GetASpin
+       var GetASpinVar =ElementByXPath("//span[text()='Get a spin']"); 
+       Click(GetASpinVar);
+	   
+       Wait(2);
+	   
+       //checks points PopUp Message
+       var PopUp_NoPoints =ElementByXPath("//div[text()='You do not have enough points to purchase this promo code.']"); 
+	   if (IsVisible(PopUp_NoPoints))
+	   {		
+	   Log("no points - You do not have enough points to purchase this promo code. - we return after 180min");
+	   //just do not do nothing - if i set return 0 - It will skip, for the next action
+	   }
+	   
+	   if (!IsVisible(PopUp_NoPoints))
+	   {		
+	   Log("Success: points exchange");
+	   //just do not do nothing - if i set return 0 - It will skip, for the next action	
+	   }
+
+	   }
+    }	 
+    //============================//	
+	
+	
+	
+    //======================//
+    // * Basketball single * //
+    //======================//
+    if(ExchangeBonusPointsToPromoCodesVar=="Basketball single")
+    {
+		
+	   //first go Promo page
+       GoToUrl("https://1xbet.com/en/promo/");
+  
+       var NoPointsVar = ElementByXPath("//*[@id='currentPromo']//span[text()='0']");
+ 
+       // If there is no points
+	   if (IsVisible(NoPointsVar))
+	   {		
+	   Log("no points - you have 0 in the balance - we return after 180min");
+	   //just do not do nothing - if i set return 0 - It will skip, for the next action
+	   }
+
+	   // if Points Appear 
+	   if (!IsVisible(NoPointsVar))
+	   { 
+
+       Wait(2);	 
+	   
+       //click on bar
+       var BarClickVar =ElementByXPath("//*[@id='sports_main']/div[2]/ul/li[13]"); //il[13]
+       Click(BarClickVar);
+	 
+       Wait(2);
+	 
+       //set text amount of point - 50
+       var inputText =ElementByXPath("//input[@class='input ui-spinner-input']"); 
+       SetText(inputText,"50");
+
+       Wait(2);
+	   
+       //click on GetASpin
+       var GetASpinVar =ElementByXPath("//span[text()='Get a spin']"); 
+       Click(GetASpinVar);
+	   
+       Wait(2);
+	   
+       //checks points PopUp Message
+       var PopUp_NoPoints =ElementByXPath("//div[text()='You do not have enough points to purchase this promo code.']"); 
+	   if (IsVisible(PopUp_NoPoints))
+	   {		
+	   Log("no points - You do not have enough points to purchase this promo code. - we return after 180min");
+	   //just do not do nothing - if i set return 0 - It will skip, for the next action
+	   }
+	   
+	   if (!IsVisible(PopUp_NoPoints))
+	   {		
+	   Log("Success: points exchange");
+	   //just do not do nothing - if i set return 0 - It will skip, for the next action	
+	   }
+
+	   }
+    }	 
+    //============================//	
+	
+	
+	
+    //======================//
+    // * eSports-FIFA * //
+    //======================//
+    if(ExchangeBonusPointsToPromoCodesVar=="eSports-FIFA")
+    {
+		
+	   //first go Promo page
+       GoToUrl("https://1xbet.com/en/promo/");
+  
+       var NoPointsVar = ElementByXPath("//*[@id='currentPromo']//span[text()='0']");
+ 
+       // If there is no points
+	   if (IsVisible(NoPointsVar))
+	   {		
+	   Log("no points - you have 0 in the balance - we return after 180min");
+	   //just do not do nothing - if i set return 0 - It will skip, for the next action
+	   }
+
+	   // if Points Appear 
+	   if (!IsVisible(NoPointsVar))
+	   { 
+
+       Wait(2);	 
+	   
+       //click on bar
+       var BarClickVar =ElementByXPath("//*[@id='sports_main']/div[2]/ul/li[14]"); //il[14]
+       Click(BarClickVar);
+	 
+       Wait(2);
+	 
+       //set text amount of point - 50
+       var inputText =ElementByXPath("//input[@class='input ui-spinner-input']"); 
+       SetText(inputText,"50");
+
+       Wait(2);
+	   
+       //click on GetASpin
+       var GetASpinVar =ElementByXPath("//span[text()='Get a spin']"); 
+       Click(GetASpinVar);
+	   
+       Wait(2);
+	   
+       //checks points PopUp Message
+       var PopUp_NoPoints =ElementByXPath("//div[text()='You do not have enough points to purchase this promo code.']"); 
+	   if (IsVisible(PopUp_NoPoints))
+	   {		
+	   Log("no points - You do not have enough points to purchase this promo code. - we return after 180min");
+	   //just do not do nothing - if i set return 0 - It will skip, for the next action
+	   }
+	   
+	   if (!IsVisible(PopUp_NoPoints))
+	   {		
+	   Log("Success: points exchange");
+	   //just do not do nothing - if i set return 0 - It will skip, for the next action	
+	   }
+
+	   }
+    }	 
+    //============================//	
+	
+	
+	
+	
+    //======================//
+    // * Volleyball single * //
+    //======================//
+    if(ExchangeBonusPointsToPromoCodesVar=="Volleyball single")
+    {
+		
+	   //first go Promo page
+       GoToUrl("https://1xbet.com/en/promo/");
+  
+       var NoPointsVar = ElementByXPath("//*[@id='currentPromo']//span[text()='0']");
+ 
+       // If there is no points
+	   if (IsVisible(NoPointsVar))
+	   {		
+	   Log("no points - you have 0 in the balance - we return after 180min");
+	   //just do not do nothing - if i set return 0 - It will skip, for the next action
+	   }
+
+	   // if Points Appear 
+	   if (!IsVisible(NoPointsVar))
+	   { 
+
+       Wait(2);	 
+	   
+       //click on bar
+       var BarClickVar =ElementByXPath("//*[@id='sports_main']/div[2]/ul/li[15]"); //il[15]
+       Click(BarClickVar);
+	 
+       Wait(2);
+	 
+       //set text amount of point - 50
+       var inputText =ElementByXPath("//input[@class='input ui-spinner-input']"); 
+       SetText(inputText,"50");
+
+       Wait(2);
+	   
+       //click on GetASpin
+       var GetASpinVar =ElementByXPath("//span[text()='Get a spin']"); 
+       Click(GetASpinVar);
+	   
+       Wait(2);
+	   
+       //checks points PopUp Message
+       var PopUp_NoPoints =ElementByXPath("//div[text()='You do not have enough points to purchase this promo code.']"); 
+	   if (IsVisible(PopUp_NoPoints))
+	   {		
+	   Log("no points - You do not have enough points to purchase this promo code. - we return after 180min");
+	   //just do not do nothing - if i set return 0 - It will skip, for the next action
+	   }
+	   
+	   if (!IsVisible(PopUp_NoPoints))
+	   {		
+	   Log("Success: points exchange");
+	   //just do not do nothing - if i set return 0 - It will skip, for the next action	
+	   }
+
+	   }
+    }	 
+    //============================//	
+	
+	
+    //======================//
+    // * Financials * //
+    //======================//
+    if(ExchangeBonusPointsToPromoCodesVar=="Financials")
+    {
+		
+	   //first go Promo page
+       GoToUrl("https://1xbet.com/en/promo/");
+  
+       var NoPointsVar = ElementByXPath("//*[@id='currentPromo']//span[text()='0']");
+ 
+       // If there is no points
+	   if (IsVisible(NoPointsVar))
+	   {		
+	   Log("no points - you have 0 in the balance - we return after 180min");
+	   //just do not do nothing - if i set return 0 - It will skip, for the next action
+	   }
+
+	   // if Points Appear 
+	   if (!IsVisible(NoPointsVar))
+	   { 
+
+       Wait(2);	 
+	   
+       //click on bar
+       var BarClickVar =ElementByXPath("//*[@id='sports_main']/div[2]/ul/li[16]"); //il[16]
+       Click(BarClickVar);
+	 
+       Wait(2);
+	 
+       //set text amount of point - 50
+       var inputText =ElementByXPath("//input[@class='input ui-spinner-input']"); 
+       SetText(inputText,"50");
+
+       Wait(2);
+	   
+       //click on GetASpin
+       var GetASpinVar =ElementByXPath("//span[text()='Get a spin']"); 
+       Click(GetASpinVar);
+	   
+       Wait(2);
+	   
+       //checks points PopUp Message
+       var PopUp_NoPoints =ElementByXPath("//div[text()='You do not have enough points to purchase this promo code.']"); 
+	   if (IsVisible(PopUp_NoPoints))
+	   {		
+	   Log("no points - You do not have enough points to purchase this promo code. - we return after 180min");
+	   //just do not do nothing - if i set return 0 - It will skip, for the next action
+	   }
+	   
+	   if (!IsVisible(PopUp_NoPoints))
+	   {		
+	   Log("Success: points exchange");
+	   //just do not do nothing - if i set return 0 - It will skip, for the next action	
+	   }
+
+	   }
+    }	 
+    //============================//	
+	
+	
+    //======================//
+    // * Tennis accumulator * //
+    //======================//
+    if(ExchangeBonusPointsToPromoCodesVar=="Tennis accumulator")
+    {
+		
+	   //first go Promo page
+       GoToUrl("https://1xbet.com/en/promo/");
+  
+       var NoPointsVar = ElementByXPath("//*[@id='currentPromo']//span[text()='0']");
+ 
+       // If there is no points
+	   if (IsVisible(NoPointsVar))
+	   {		
+	   Log("no points - you have 0 in the balance - we return after 180min");
+	   //just do not do nothing - if i set return 0 - It will skip, for the next action
+	   }
+
+	   // if Points Appear 
+	   if (!IsVisible(NoPointsVar))
+	   { 
+
+       Wait(2);	 
+	   
+       //click on bar
+       var BarClickVar =ElementByXPath("//*[@id='sports_main']/div[2]/ul/li[17]"); //il[17]
+       Click(BarClickVar);
+	 
+       Wait(2);
+	 
+       //set text amount of point - 50
+       var inputText =ElementByXPath("//input[@class='input ui-spinner-input']"); 
+       SetText(inputText,"50");
+
+       Wait(2);
+	   
+       //click on GetASpin
+       var GetASpinVar =ElementByXPath("//span[text()='Get a spin']"); 
+       Click(GetASpinVar);
+	   
+       Wait(2);
+	   
+       //checks points PopUp Message
+       var PopUp_NoPoints =ElementByXPath("//div[text()='You do not have enough points to purchase this promo code.']"); 
+	   if (IsVisible(PopUp_NoPoints))
+	   {		
+	   Log("no points - You do not have enough points to purchase this promo code. - we return after 180min");
+	   //just do not do nothing - if i set return 0 - It will skip, for the next action
+	   }
+	   
+	   if (!IsVisible(PopUp_NoPoints))
+	   {		
+	   Log("Success: points exchange");
+	   //just do not do nothing - if i set return 0 - It will skip, for the next action	
+	   }
+
+	   }
+    }	 
+    //============================//
+	
+	
+    //======================//
+    // * Ice Hockey accumulator * //
+    //======================//
+    if(ExchangeBonusPointsToPromoCodesVar=="Ice Hockey accumulator")
+    {
+		
+	   //first go Promo page
+       GoToUrl("https://1xbet.com/en/promo/");
+  
+       var NoPointsVar = ElementByXPath("//*[@id='currentPromo']//span[text()='0']");
+ 
+       // If there is no points
+	   if (IsVisible(NoPointsVar))
+	   {		
+	   Log("no points - you have 0 in the balance - we return after 180min");
+	   //just do not do nothing - if i set return 0 - It will skip, for the next action
+	   }
+
+	   // if Points Appear 
+	   if (!IsVisible(NoPointsVar))
+	   { 
+
+       Wait(2);	 
+	   
+       //click on bar
+       var BarClickVar =ElementByXPath("//*[@id='sports_main']/div[2]/ul/li[18]"); //il[18]
+       Click(BarClickVar);
+	 
+       Wait(2);
+	 
+       //set text amount of point - 50
+       var inputText =ElementByXPath("//input[@class='input ui-spinner-input']"); 
+       SetText(inputText,"50");
+
+       Wait(2);
+	   
+       //click on GetASpin
+       var GetASpinVar =ElementByXPath("//span[text()='Get a spin']"); 
+       Click(GetASpinVar);
+	   
+       Wait(2);
+	   
+       //checks points PopUp Message
+       var PopUp_NoPoints =ElementByXPath("//div[text()='You do not have enough points to purchase this promo code.']"); 
+	   if (IsVisible(PopUp_NoPoints))
+	   {		
+	   Log("no points - You do not have enough points to purchase this promo code. - we return after 180min");
+	   //just do not do nothing - if i set return 0 - It will skip, for the next action
+	   }
+	   
+	   if (!IsVisible(PopUp_NoPoints))
+	   {		
+	   Log("Success: points exchange");
+	   //just do not do nothing - if i set return 0 - It will skip, for the next action	
+	   }
+
+	   }
+    }	 
+    //============================//
+	
+	
+	
+    //======================//
+    // * Basketball accumulator * //
+    //======================//
+    if(ExchangeBonusPointsToPromoCodesVar=="Basketball accumulator")
+    {
+		
+	   //first go Promo page
+       GoToUrl("https://1xbet.com/en/promo/");
+  
+       var NoPointsVar = ElementByXPath("//*[@id='currentPromo']//span[text()='0']");
+ 
+       // If there is no points
+	   if (IsVisible(NoPointsVar))
+	   {		
+	   Log("no points - you have 0 in the balance - we return after 180min");
+	   //just do not do nothing - if i set return 0 - It will skip, for the next action
+	   }
+
+	   // if Points Appear 
+	   if (!IsVisible(NoPointsVar))
+	   { 
+
+       Wait(2);	 
+	   
+       //click on bar
+       var BarClickVar =ElementByXPath("//*[@id='sports_main']/div[2]/ul/li[19]"); //il[19]
+       Click(BarClickVar);
+	 
+       Wait(2);
+	 
+       //set text amount of point - 50
+       var inputText =ElementByXPath("//input[@class='input ui-spinner-input']"); 
+       SetText(inputText,"50");
+
+       Wait(2);
+	   
+       //click on GetASpin
+       var GetASpinVar =ElementByXPath("//span[text()='Get a spin']"); 
+       Click(GetASpinVar);
+	   
+       Wait(2);
+	   
+       //checks points PopUp Message
+       var PopUp_NoPoints =ElementByXPath("//div[text()='You do not have enough points to purchase this promo code.']"); 
+	   if (IsVisible(PopUp_NoPoints))
+	   {		
+	   Log("no points - You do not have enough points to purchase this promo code. - we return after 180min");
+	   //just do not do nothing - if i set return 0 - It will skip, for the next action
+	   }
+	   
+	   if (!IsVisible(PopUp_NoPoints))
+	   {		
+	   Log("Success: points exchange");
+	   //just do not do nothing - if i set return 0 - It will skip, for the next action	
+	   }
+
+	   }
+    }	 
+    //============================//
+	
+	
+    //======================//
+    // * eSports Ice Hockey * //
+    //======================//
+    if(ExchangeBonusPointsToPromoCodesVar=="eSports Ice Hockey")
+    {
+		
+	   //first go Promo page
+       GoToUrl("https://1xbet.com/en/promo/");
+  
+       var NoPointsVar = ElementByXPath("//*[@id='currentPromo']//span[text()='0']");
+ 
+       // If there is no points
+	   if (IsVisible(NoPointsVar))
+	   {		
+	   Log("no points - you have 0 in the balance - we return after 180min");
+	   //just do not do nothing - if i set return 0 - It will skip, for the next action
+	   }
+
+	   // if Points Appear 
+	   if (!IsVisible(NoPointsVar))
+	   { 
+
+       Wait(2);	 
+	   
+       //click on bar
+       var BarClickVar =ElementByXPath("//*[@id='sports_main']/div[2]/ul/li[20]"); //il[20]
+       Click(BarClickVar);
+	 
+       Wait(2);
+	 
+       //set text amount of point - 50
+       var inputText =ElementByXPath("//input[@class='input ui-spinner-input']"); 
+       SetText(inputText,"50");
+
+       Wait(2);
+	   
+       //click on GetASpin
+       var GetASpinVar =ElementByXPath("//span[text()='Get a spin']"); 
+       Click(GetASpinVar);
+	   
+       Wait(2);
+	   
+       //checks points PopUp Message
+       var PopUp_NoPoints =ElementByXPath("//div[text()='You do not have enough points to purchase this promo code.']"); 
+	   if (IsVisible(PopUp_NoPoints))
+	   {		
+	   Log("no points - You do not have enough points to purchase this promo code. - we return after 180min");
+	   //just do not do nothing - if i set return 0 - It will skip, for the next action
+	   }
+	   
+	   if (!IsVisible(PopUp_NoPoints))
+	   {		
+	   Log("Success: points exchange");
+	   //just do not do nothing - if i set return 0 - It will skip, for the next action	
+	   }
+
+	   }
+    }	 
+    //============================//
+	
+	
+    //======================//
+    // * eSports Basketball * //
+    //======================//
+    if(ExchangeBonusPointsToPromoCodesVar=="eSports Basketball")
+    {
+		
+	   //first go Promo page
+       GoToUrl("https://1xbet.com/en/promo/");
+  
+       var NoPointsVar = ElementByXPath("//*[@id='currentPromo']//span[text()='0']");
+ 
+       // If there is no points
+	   if (IsVisible(NoPointsVar))
+	   {		
+	   Log("no points - you have 0 in the balance - we return after 180min");
+	   //just do not do nothing - if i set return 0 - It will skip, for the next action
+	   }
+
+	   // if Points Appear 
+	   if (!IsVisible(NoPointsVar))
+	   { 
+
+       Wait(2);	 
+	   
+       //click on bar
+       var BarClickVar =ElementByXPath("//*[@id='sports_main']/div[2]/ul/li[21]"); //il[21]
+       Click(BarClickVar);
+	 
+       Wait(2);
+	 
+       //set text amount of point - 50
+       var inputText =ElementByXPath("//input[@class='input ui-spinner-input']"); 
+       SetText(inputText,"50");
+
+       Wait(2);
+	   
+       //click on GetASpin
+       var GetASpinVar =ElementByXPath("//span[text()='Get a spin']"); 
+       Click(GetASpinVar);
+	   
+       Wait(2);
+	   
+       //checks points PopUp Message
+       var PopUp_NoPoints =ElementByXPath("//div[text()='You do not have enough points to purchase this promo code.']"); 
+	   if (IsVisible(PopUp_NoPoints))
+	   {		
+	   Log("no points - You do not have enough points to purchase this promo code. - we return after 180min");
+	   //just do not do nothing - if i set return 0 - It will skip, for the next action
+	   }
+	   
+	   if (!IsVisible(PopUp_NoPoints))
+	   {		
+	   Log("Success: points exchange");
+	   //just do not do nothing - if i set return 0 - It will skip, for the next action	
+	   }
+
+	   }
+    }	 
+    //============================//
+	
+
+    //======================//
+    // * Bet Constructor * //
+    //======================//
+    if(ExchangeBonusPointsToPromoCodesVar=="Bet Constructor")
+    {
+		
+	   //first go Promo page
+       GoToUrl("https://1xbet.com/en/promo/");
+  
+       var NoPointsVar = ElementByXPath("//*[@id='currentPromo']//span[text()='0']");
+ 
+       // If there is no points
+	   if (IsVisible(NoPointsVar))
+	   {		
+	   Log("no points - you have 0 in the balance - we return after 180min");
+	   //just do not do nothing - if i set return 0 - It will skip, for the next action
+	   }
+
+	   // if Points Appear 
+	   if (!IsVisible(NoPointsVar))
+	   { 
+
+       Wait(2);	 
+	   
+       //click on bar
+       var BarClickVar =ElementByXPath("//*[@id='sports_main']/div[2]/ul/li[22]"); //il[22]
+       Click(BarClickVar);
+	 
+       Wait(2);
+	 
+       //set text amount of point - 50
+       var inputText =ElementByXPath("//input[@class='input ui-spinner-input']"); 
+       SetText(inputText,"50");
+
+       Wait(2);
+	   
+       //click on GetASpin
+       var GetASpinVar =ElementByXPath("//span[text()='Get a spin']"); 
+       Click(GetASpinVar);
+	   
+       Wait(2);
+	   
+       //checks points PopUp Message
+       var PopUp_NoPoints =ElementByXPath("//div[text()='You do not have enough points to purchase this promo code.']"); 
+	   if (IsVisible(PopUp_NoPoints))
+	   {		
+	   Log("no points - You do not have enough points to purchase this promo code. - we return after 180min");
+	   //just do not do nothing - if i set return 0 - It will skip, for the next action
+	   }
+	   
+	   if (!IsVisible(PopUp_NoPoints))
+	   {		
+	   Log("Success: points exchange");
+	   //just do not do nothing - if i set return 0 - It will skip, for the next action	
+	   }
+
+	   }
+    }	 
+    //============================//	
+	
+	
+    //======================//
+    // * eSports Wrestling * //
+    //======================//
+    if(ExchangeBonusPointsToPromoCodesVar=="eSports Wrestling")
+    {
+		
+	   //first go Promo page
+       GoToUrl("https://1xbet.com/en/promo/");
+  
+       var NoPointsVar = ElementByXPath("//*[@id='currentPromo']//span[text()='0']");
+ 
+       // If there is no points
+	   if (IsVisible(NoPointsVar))
+	   {		
+	   Log("no points - you have 0 in the balance - we return after 180min");
+	   //just do not do nothing - if i set return 0 - It will skip, for the next action
+	   }
+
+	   // if Points Appear 
+	   if (!IsVisible(NoPointsVar))
+	   { 
+
+       Wait(2);	 
+	   
+       //click on bar
+       var BarClickVar =ElementByXPath("//*[@id='sports_main']/div[2]/ul/li[23]"); //il[23]
+       Click(BarClickVar);
+	 
+       Wait(2);
+	 
+       //set text amount of point - 50
+       var inputText =ElementByXPath("//input[@class='input ui-spinner-input']"); 
+       SetText(inputText,"50");
+
+       Wait(2);
+	   
+       //click on GetASpin
+       var GetASpinVar =ElementByXPath("//span[text()='Get a spin']"); 
+       Click(GetASpinVar);
+	   
+       Wait(2);
+	   
+       //checks points PopUp Message
+       var PopUp_NoPoints =ElementByXPath("//div[text()='You do not have enough points to purchase this promo code.']"); 
+	   if (IsVisible(PopUp_NoPoints))
+	   {		
+	   Log("no points - You do not have enough points to purchase this promo code. - we return after 180min");
+	   //just do not do nothing - if i set return 0 - It will skip, for the next action
+	   }
+	   
+	   if (!IsVisible(PopUp_NoPoints))
+	   {		
+	   Log("Success: points exchange");
+	   //just do not do nothing - if i set return 0 - It will skip, for the next action	
+	   }
+
+	   }
+    }	 
+    //============================//	
+	
+	
+    //======================//
+    // * eSports Tennis * //
+    //======================//
+    if(ExchangeBonusPointsToPromoCodesVar=="eSports Tennis")
+    {
+		
+	   //first go Promo page
+       GoToUrl("https://1xbet.com/en/promo/");
+  
+       var NoPointsVar = ElementByXPath("//*[@id='currentPromo']//span[text()='0']");
+ 
+       // If there is no points
+	   if (IsVisible(NoPointsVar))
+	   {		
+	   Log("no points - you have 0 in the balance - we return after 180min");
+	   //just do not do nothing - if i set return 0 - It will skip, for the next action
+	   }
+
+	   // if Points Appear 
+	   if (!IsVisible(NoPointsVar))
+	   { 
+
+       Wait(2);	 
+	   
+       //click on bar
+       var BarClickVar =ElementByXPath("//*[@id='sports_main']/div[2]/ul/li[24]"); //il[24]
+       Click(BarClickVar);
+	 
+       Wait(2);
+	 
+       //set text amount of point - 50
+       var inputText =ElementByXPath("//input[@class='input ui-spinner-input']"); 
+       SetText(inputText,"50");
+
+       Wait(2);
+	   
+       //click on GetASpin
+       var GetASpinVar =ElementByXPath("//span[text()='Get a spin']"); 
+       Click(GetASpinVar);
+	   
+       Wait(2);
+	   
+       //checks points PopUp Message
+       var PopUp_NoPoints =ElementByXPath("//div[text()='You do not have enough points to purchase this promo code.']"); 
+	   if (IsVisible(PopUp_NoPoints))
+	   {		
+	   Log("no points - You do not have enough points to purchase this promo code. - we return after 180min");
+	   //just do not do nothing - if i set return 0 - It will skip, for the next action
+	   }
+	   
+	   if (!IsVisible(PopUp_NoPoints))
+	   {		
+	   Log("Success: points exchange");
+	   //just do not do nothing - if i set return 0 - It will skip, for the next action	
+	   }
+
+	   }
+    }	 
+    //============================//
+	
+    //======================//
+    // * eSports Martial Arts * //
+    //======================//
+    if(ExchangeBonusPointsToPromoCodesVar=="eSports Martial Arts")
+    {
+		
+	   //first go Promo page
+       GoToUrl("https://1xbet.com/en/promo/");
+  
+       var NoPointsVar = ElementByXPath("//*[@id='currentPromo']//span[text()='0']");
+ 
+       // If there is no points
+	   if (IsVisible(NoPointsVar))
+	   {		
+	   Log("no points - you have 0 in the balance - we return after 180min");
+	   //just do not do nothing - if i set return 0 - It will skip, for the next action
+	   }
+
+	   // if Points Appear 
+	   if (!IsVisible(NoPointsVar))
+	   { 
+
+       Wait(2);	 
+	   
+       //click on bar
+       var BarClickVar =ElementByXPath("//*[@id='sports_main']/div[2]/ul/li[25]"); //il[25]
+       Click(BarClickVar);
+	 
+       Wait(2);
+	 
+       //set text amount of point - 50
+       var inputText =ElementByXPath("//input[@class='input ui-spinner-input']"); 
+       SetText(inputText,"50");
+
+       Wait(2);
+	   
+       //click on GetASpin
+       var GetASpinVar =ElementByXPath("//span[text()='Get a spin']"); 
+       Click(GetASpinVar);
+	   
+       Wait(2);
+	   
+       //checks points PopUp Message
+       var PopUp_NoPoints =ElementByXPath("//div[text()='You do not have enough points to purchase this promo code.']"); 
+	   if (IsVisible(PopUp_NoPoints))
+	   {		
+	   Log("no points - You do not have enough points to purchase this promo code. - we return after 180min");
+	   //just do not do nothing - if i set return 0 - It will skip, for the next action
+	   }
+	   
+	   if (!IsVisible(PopUp_NoPoints))
+	   {		
+	   Log("Success: points exchange");
+	   //just do not do nothing - if i set return 0 - It will skip, for the next action	
+	   }
+
+	   }
+    }	 
+    //============================//
+	
+	 
+	 
+	 
+	 
+	 
+   //===========//  
+   //Bonuses_List_AfterYouGotPointsFromFree
+   //===========//
+   
+   if (GetBoolSetting("Bonuses_List_AfterYouGotPointsFromFree"))
+   { 
+
+       //go to Bonuses_List page
+       GoToUrl("https://1xbet.com/en/allgamesentrance/");
+	   Log("Bonuses_List - go to Bonuses_List page");	
+
+       //click on ButtonBonusesList
+       var ButtonBonusesList =ElementByXPath("//*[@id='games_container']/div[2]/div/div[1]/a"); 
+	   Log("Bonuses List - click on ButtonBonusesList");
+       Click(ButtonBonusesList);
+
+	   Wait(2);	
+ 
+       var BonusesListCheck =ElementByXPath("//ul[@class='bonuses-modal__bonuses-list']"); 
+
+       // If there is Bonuses 
+	   if (IsVisible(BonusesListCheck))
+	   {		
+	   Log("Bonuses List - click on some Bonuses List");
+       Click(ButtonBonusesList);
+	   }
+ 
+        // If Bonuses not apper
+	   if (!IsVisible(BonusesListCheck))
+	   {		
+	   Log("Bonuses List - return 0 - you dont have a Bonuses");
+	   //just do not do nothing - if i set return 0 - It will skip, for the next action	
+	   }
+   } 
+    //===========//
+  
+  
+  
+  
+  
+    //============================//
+    //Menu AutoPlayGamesList
+    //============================//
+
+    var AutoPlayGamesListVar = GetSetting("AutoPlayGamesList");    
+
+    // * none * //
+    if(AutoPlayGamesListVar=="none")
+    {
+	 //just do not do nothing - if i set return 0 - It will skip, for the next action	
+    }	 
+	
+	 
+    //======================//
+    // * Game 1 - Pharaohs Kingdom* //
+    //======================//
+    if(AutoPlayGamesListVar=="Game 1 - Pharaohs Kingdom")
+    {
+		
+	   //first go to Game page
+       GoToUrl("https://1xbet.com/en/allgamesentrance/pharaohskingdom");
+	   Log("AutoPlayGamesList - go to Game - Game 1 - Pharaohs Kingdom");
+	   
+	   Wait(2);	
+ 
+	   //enter Bet Amount
+       var inputBetAmount =ElementByXPath("//input[@id='sumBet']"); 
+	   Log("AutoPlayGamesList - enter Bet Amount");
+	   SetText(inputBetAmount,"3");
+	   
+	   Wait(2);	
+ 
+	   //click Bet Button
+       var BetButton =ElementByXPath("//*[@id='place_bet']"); 
+	   Log("AutoPlayGamesList - click on Bet Button");
+       Click(BetButton);
+	   
+	   Wait(2);	
+
+	   //GameBalanceCheck
+       var GameBalanceCheck =ElementByXPath("//*[@id='js_pharaoh_error_msg']//p[text()='Not enough funds in the account']"); 
+
+       // after i click - If there is no balance 
+	   if (!IsVisible(GameBalanceCheck))
+	   {
+       Log("AutoPlayGamesList - you dont have a balance - stop and return after 120min");  
+       return 120*60;	
+	   } 
+
+       // If there is a balance 
+	   if (IsVisible(GameBalanceCheck))
+	   {
+       Log("AutoPlayGamesList - Success you click on bet - return 0 - continue");  
+	   //just do not do nothing - if i set return 0 - It will skip, for the next action	
+	   }
+    }
+
+	
+    //======================//
+    // * Game 2 - Pharaohs Kingdom* //
+    //======================//
+    if(AutoPlayGamesListVar=="Game 2 - test")
+    {
+       //return 0;	
+    }
+	
+
+   //Let Faucet Collector continue
+   return base.AfterSolveFaucet();
+ }
+ 
+//===========================//
+//*** End AfterSolveFaucet ***
+//==========================//	
+	
+
+	
+	
+	
+	
+
+    /// <summary>
+    /// This method gets called in the end after the BeforeSolveFaucet/DoSolveFaucet and AfterSolveFaucet methods were done.
+    /// The base.CheckFaucetResult will try to find a visible element on the page using the XPath from SuccessXPath and FailXPath (see the Start method)
+    /// These properties should contain XPath expressions to find certain elements on the page.
+    /// For example if it finds one of the elements from the SuccessXPath, and it is visible, then it will flag the claim attempt as a success.
+    /// Or if it finds one of the elements from the FailXPath, and it is visible, then it will flag the claim attempt as a failure.
+    /// </summary>
+    public override int CheckFaucetResult()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.CheckFaucetResult();
+    }
+ 
+
+ 
+ 
+} //END public class CryptoSkullScript

@@ -1,0 +1,199 @@
+﻿using System;
+using System.Threading.Tasks;
+using FaucetCollector.Script;
+using OpenQA.Selenium;
+//css_inc RecaptchaUtilities
+//css_inc ShortLinkUtilities
+public class forumcoinwinBTCcript : FaucetScript
+{
+    
+    public override FaucetSettings Settings
+    {
+        get
+        {
+            return new FaucetSettings("https://www.forumcoin.win/btx/")
+            {
+                 new FaucetSetting {
+                    Name = "btc",
+                    Display = "FaucetHub linked btx wallet address",
+                    Type = EditorType.Wallet,
+                    Required = true,
+                    Default = null
+                }
+            };
+        }
+    }
+
+    
+    public override void Start()
+    {
+        
+        Title = "Claim";
+
+        SuccessXPath = "//div[contains(@class,'alert-success')]";
+        FailXPath = "//div[contains(@class,'alert-danger')]";
+
+        //Let Faucet Collector start up everything
+        base.Start();
+    }
+
+    
+    public override bool IsLoggedIn()
+    {
+        
+        
+        return true;
+    }
+
+    
+    public override int BeforeLogin()
+    {
+       
+
+        return base.BeforeLogin();
+    }
+
+   
+    public override int DoLogin()
+    {
+       
+        return base.DoLogin();
+    }
+
+   
+    public override int AfterLogin()
+    {
+        
+        return base.AfterLogin();
+    }
+
+   
+    public override int GetFaucetWaitTime()
+    {
+        var waitElement = ElementByXPath("//p[contains(@class, 'alert')][contains(.,'wait')]");
+        if (!IsVisible(waitElement))
+        {
+            //no time remaining element, so we are good to go.
+            return 0;
+        }
+
+        var waitText = waitElement.Text.ToLower().Trim().Replace("you have to wait", "").Replace("minutes", "").Trim();
+        int minutes;
+        if (!int.TryParse(waitText, out minutes))
+        {
+            return Fail("Unable to get the remaining time from text '" + waitText + "'.");
+        }
+
+        //return the total wait time in seconds
+        return minutes * 60;
+    }
+   
+    public override int BeforeSolveCaptcha()
+    {
+        
+        return base.BeforeSolveCaptcha();
+    }
+
+   
+     public override int DoSolveCaptcha()
+    {
+        
+        var extraCaptcha = ElementByXPath("//label[@class='here col-sm-4 col-md-offset-1 tash col-lg-5 there control-label']");
+        var input = ElementByXPath("//div[@class='ghhfs col-sm-8 fgfghf col-md-5']//input[@type='text']");
+        if(IsVisible(extraCaptcha) && IsVisible(input))
+        {
+            var result = DoSolveImageCaptcha(extraCaptcha, input);
+            return result;
+        }
+
+
+        return base.DoSolveCaptcha();
+         
+    }
+
+
+    
+    public override int AfterSolveCaptcha()
+    {
+        
+        return base.AfterSolveCaptcha();
+    }
+
+ 
+
+    public override int BeforeSolveFaucet()
+    {
+        if(IsVisible(ElementByXPath("//a[contains(text(),'Click here to complete shortlink to gain access to')]")))
+        {
+            var el = ElementByXPath("//a[contains(text(),'Click here to complete shortlink to gain access to')]");
+            Click(el);
+            Wait();
+            ShortLinkBypasser bypasser = new ShortLinkBypasser(this);
+            bypasser.DoShortLink();
+          
+            Wait(2, 3);
+
+        }
+        //ExecuteScript("if($('.cc_btn_accept_all').length > 0) { $('.cc_btn_accept_all')[0].click(); }");        
+        var signInaddress = ElementByXPath("//input[@type='text' and contains(@class, 'form-control')]");
+        if (signInaddress == null)
+        {
+            
+            return Fail("Signin address not found.");
+        }
+        SetText(signInaddress, GetSetting("btc"));
+
+        var popup = ElementByClass("v_closeBtn");
+        if (IsVisible(popup))
+        {
+            Click(popup);
+        }
+
+        return base.BeforeSolveFaucet();
+    }
+
+  
+    public override int DoSolveFaucet()
+    {
+        var submitButton = ElementByXPath("//input[@type='submit']");
+        if (!IsVisible(submitButton))
+        {
+            
+            return Fail("Submit button not found or not visible.");
+        }
+
+        var result = DoSolveCaptcha();
+        if (result > 0)
+        {
+            
+            return result;
+        }
+        
+        Click(submitButton);
+
+        
+        return base.DoSolveFaucet();
+    }
+
+    
+    public override int AfterSolveFaucet()
+    {
+        
+        return base.AfterSolveFaucet();
+    }
+
+    
+    public override int CheckFaucetResult()
+    {
+       
+        var result = base.CheckFaucetResult();
+
+        if (IsSuccess)
+        {
+  
+            Reload = true;
+        }
+
+        return result;
+    }
+}

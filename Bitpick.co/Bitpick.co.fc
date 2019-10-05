@@ -1,0 +1,297 @@
+﻿
+
+//==================//
+//script Written by: ••AviramDayan•• 07/08/2019 17:00PM - Version 1
+//Last Update: 08/08/2019 01:00PM - Version 4
+//==================//
+
+using System;
+using FaucetCollector.Script;
+//css_inc recaptchaUtilities
+
+public class bitpick : FaucetScript
+{
+    /// <summary>
+    /// List of Settings that will be shown in the bot when selecting this Faucet in the bot.
+    /// You can get the value the user entered with the methods: GetSetting("[Name of the FaucetSetting]"), GetBoolSetting and GetDateTimeSetting
+    /// You can also create a new setting value using SetSetting("[Name you want to use]", "value")
+    /// </summary>
+    public override FaucetSettings Settings
+    {
+        get
+        {
+			
+            return new FaucetSettings("https://Bitpick.co/")
+            {
+                new FaucetSetting(){Name="Email",Display="Email",Type=EditorType.TextBox,Required=false},
+                new FaucetSetting(){Name="Password",Display="Password",Type=EditorType.Password,Required=false},
+                //new FaucetSetting() { Name = "GetActivityToken", Display = "GetActivityToken - on/off (it's recommended to set the time every 360 min '6 hours') ", Type = EditorType.CheckBox, Default = true},				
+                //new FaucetSetting() { Name = "UserCustomTime", Display = "UserCustomTime", Type = EditorType.Numeric, Default = 2 },				           			
+            };
+        }
+    }
+
+	
+//============================================================//
+//the number of "successes" in the script - when are finished  
+//============================================================//
+    public override void Start()
+    {
+   
+        //Title that shows in the browser. Is used to identify and close popup windows
+        Title = "Bitpick.co";
+
+		SuccessXPath = "//div[@class='sweet-alert showSweetAlert visible']//p[@style='display: block;']"; 
+	
+        FailXPath = "//div[@class='sweet-alert showSweetAlert visible']//p[@style='display: block;']"; 
+	
+        //TimerIsCountingUp = true;
+		
+        //Let Faucet Collector start up everything
+        base.Start();
+    }
+//============================================================//
+//the number of "successes" in the script - when are finished  
+//============================================================//
+
+	
+
+
+
+    public override int DoInit()
+    {
+			
+
+		
+        //Let Faucet Collector continue.
+        return base.DoInit();
+    }
+
+	
+//==================//
+//save Login Cookies 
+//==================//
+    public override bool IsLoggedIn()
+    {
+
+        return ElementByXPath("//a[contains(@href,'logout.php')]") != null;
+	 
+	   
+    }
+//==================//
+//save Login Cookies 
+//==================//	
+
+
+
+
+//=============//
+//BeforeLogin
+//=============//
+    public override int BeforeLogin()
+    {
+		
+
+
+
+		
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeLogin();
+    }
+//=============//
+//BeforeLogin
+//=============//
+
+	
+
+
+	
+//========//
+//DoLogin
+//========//
+    public override int DoLogin()
+    {
+        var UserBox = ElementByXPath("//input[@id='user_email']");
+        if (!IsVisible(UserBox))
+        {
+            return Fail("User box not visible");
+        }
+        SetText(UserBox, GetSetting("Email"));
+
+        var PasswordBox = ElementByXPath("//input[@id='user_pwd']");
+        if (!IsVisible(PasswordBox))
+        {
+            return Fail("Password box is not visible");
+        }
+        SetText(PasswordBox, GetPassword("Password"));
+
+
+        var ButtonLogin = ElementByXPath("//button[@id='login_button']");
+        if (!IsVisible(ButtonLogin))
+        {
+            return Fail("Button login is not visible");
+        }
+        Click(ButtonLogin);
+
+        Wait(1);
+        var LoginMessage = ElementByXPath("//p[@style='display: block;']");
+
+        if (IsVisible(LoginMessage))
+        {
+            Log(LoginMessage.Text);
+        }
+
+
+       return base.DoLogin();
+    }
+//========//
+//DoLogin
+//========//
+ 
+
+
+//========//
+//AfterLogin
+//========//
+ public override int AfterLogin()
+ {
+ 
+  
+    //we are good to continue
+    return base.AfterLogin();
+
+ }
+    //========//
+    //AfterLogin
+    //========//
+
+
+
+
+    //================//
+    //GetFaucetWaitTime
+    //================//
+    public override int GetFaucetWaitTime()
+    {
+        var ElementsTimer = ElementsByXPath("//ul[@class='flip  play']//li[@class='flip-clock-active']//div[@class='up']//div[@class='inn']");
+
+        if (ElementsTimer.Count == 4)
+        {
+            string Minutes = ElementsTimer[0].Text + ElementsTimer[1].Text;
+            string Seconds = ElementsTimer[2].Text + ElementsTimer[3].Text;
+
+            return Convert.ToInt32(Minutes) * 60 + Convert.ToInt32(Seconds);
+        }
+   
+		//let Faucet Collector continue.
+        return base.GetFaucetWaitTime();
+    }
+//================//
+//GetFaucetWaitTime
+//================//
+
+
+
+    public override int BeforeSolveCaptcha()
+    {
+ 
+        //Return we are ready to proceed
+        return base.BeforeSolveFaucet();
+    }
+
+	
+    public override int DoSolveCaptcha()
+    {
+       var CaptchaImg = ElementByXPath("//img[@id='captcha_img']");
+        var TextAreaCaptcha = ElementByXPath("//input[@id='game_capt']");
+        if(IsVisible(CaptchaImg)&& IsVisible(TextAreaCaptcha))
+        {
+            return DoSolveImageCaptcha(CaptchaImg, TextAreaCaptcha);
+        }
+
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoSolveCaptcha();
+    }
+
+	
+    public override int AfterSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterSolveCaptcha();
+    }
+
+	
+    public override int BeforeSolveFaucet()
+    {
+        //Return we can continue
+        return base.BeforeSolveFaucet();
+    }
+  
+	
+	
+//==============//
+//DoSolveFaucet
+//==============//
+ public override int DoSolveFaucet()
+  {
+
+        var ButtonClaim = ElementByXPath("//input[@id='roll_button']");
+        if (!IsVisible(ButtonClaim))
+        {
+            return Fail("Button claim is not visible");
+        }
+
+        var result = DoSolveCaptcha();
+        if(result>0)
+        {
+            return Fail("Fail solving captcha");
+        }
+
+
+        Click(ButtonClaim);
+        //We are good to continue
+        return base.DoSolveFaucet();
+ }
+//==============//
+//DoSolveFaucet
+//==============///
+	
+	
+	
+	
+	
+//==============//
+//AfterSolveFaucet
+//==============//
+  public override int AfterSolveFaucet()
+  {
+
+   //This faucet has nothing to do here. We will let Faucet Collector handle it.
+   return base.AfterSolveFaucet();
+   
+  }
+	
+//==============//
+//AfterSolveFaucet
+//==============//
+
+
+
+    /// <summary>
+    /// This method gets called in the end after the BeforeSolveFaucet/DoSolveFaucet and AfterSolveFaucet methods were done.
+    /// The base.CheckFaucetResult will try to find a visible element on the page using the XPath from SuccessXPath and FailXPath (see the Start method)
+    /// These properties should contain XPath expressions to find certain elements on the page.
+    /// For example if it finds one of the elements from the SuccessXPath, and it is visible, then it will flag the claim attempt as a success.
+    /// Or if it finds one of the elements from the FailXPath, and it is visible, then it will flag the claim attempt as a failure.
+    /// </summary>
+    public override int CheckFaucetResult()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.CheckFaucetResult();
+    }
+	
+	
+
+	
+} //end public class
+

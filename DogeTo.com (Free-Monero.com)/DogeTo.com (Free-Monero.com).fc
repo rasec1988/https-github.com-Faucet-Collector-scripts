@@ -1,0 +1,406 @@
+﻿
+
+//==================//
+//script Written by: ••AviramDayan•• 04/05/2019 03:00AM 
+//Last Update: 04/05/2019 03:00AM - Version 1
+//==================//
+
+using System;
+using FaucetCollector.Script;
+using OpenQA.Selenium;
+//css_inc ShortLinkUtilities
+//css_inc RecaptchaUtilities
+
+
+public class dogeto : FaucetScript
+{
+    /// <summary>
+    /// List of Settings that will be shown in the bot when selecting this Faucet in the bot.
+    /// You can get the value the user entered with the methods: GetSetting("[Name of the FaucetSetting]"), GetBoolSetting and GetDateTimeSetting
+    /// You can also create a new setting value using SetSetting("[Name you want to use]", "value")
+    /// </summary>
+    public override FaucetSettings Settings
+    {
+        get
+        {
+            return new FaucetSettings("http://dogeto.com/")
+            {
+                new FaucetSetting(){Name="Address",Display="direct Dogecoin Address",Type=EditorType.TextBox,Required=true},
+				
+                new FaucetSetting(){Name="Multiplier",Display="Multiplier - every 12Hour",Type=EditorType.CheckBox,Default=true},		
+                //new FaucetSetting(){Name="DeleteCookies",Display="Delete Cookies - Sometimes solves problems (Recommended)",Type=EditorType.CheckBox,Default=false},
+                
+				
+                //insert user settings here
+                //new FaucetSetting { 
+                //    Name = "Name of your setting", 
+                //    Display = "Display shown in Faucet Collector", 
+                //    Type = EditorType.TextBox | EditorType.Password | EditorType.CheckBox | EditorType.Wallet | EditorType.Numeric | EditorType.ComboBox | EditorType.CheckComboBox, 
+                //    Required = true | false, 
+                //    Default = "Optionally a default value" | true | false | null.
+                //    Items = new List<string> { "item1", "item2" } (only valid for ComboBox or CheckComboBox)
+                //} 
+            };
+        }
+    }
+
+	
+	
+	
+	
+	
+	
+//============================================================//
+//the number of "successes" in the script - when are finished  
+//============================================================//
+    public override void Start()
+    {
+		ad=false;
+		
+        //Title that shows in the browser. Is used to identify and close popup windows
+        Title = "DOGETO is Free Dogecoin Faucet";
+
+        //After we did try to claim on the faucet we search for these elements to determine if it was a success or a fail
+        SuccessXPath = "//*"; //div[@id='btc-balance']
+        FailXPath = "//*"; //*[text()='']
+
+        //Let Faucet Collector start up everything
+        base.Start();
+    }
+//============================================================//
+//the number of "successes" in the script - when are finished  
+//============================================================//
+	
+	
+	
+	bool ad;
+	
+	
+    public override int DoInit()
+    {
+		
+		//if it's Checked
+       if (GetBoolSetting("DeleteCookies"))
+       {
+		//Delete Cookies
+		 Log("DeleteCookies - Checked");
+         Driver.Manage().Cookies.DeleteAllCookies();
+       } 
+	   
+        //Let Faucet Collector continue.
+        return base.DoInit();
+    }
+
+	
+	
+	
+//==================//
+//save Login Cookies 
+//==================//
+    public override bool IsLoggedIn()
+    {
+
+        //In this case we check for en element with the class "loggedIn"
+		 return ElementByXPath("//a[@href='https://www.dogeto.com/logout/']") != null;
+		
+    }
+//==================//
+//save Login Cookies 
+//==================//
+	
+	
+	
+	
+	
+    /// <summary>
+    /// This method gets called if IsLoggedIn returned false, right before the DoLogin method is called.
+    /// </summary>
+    public override int BeforeLogin()
+    {
+		
+	 //var checks login or exit
+     var ExitButton = ElementByXPath("//a[@href='https://www.dogeto.com/logout/']"); //SIGN OUT
+
+	 
+	 //if i already Login - go to "bonus"	 
+	 if (IsVisible(ExitButton))
+	 {
+        //if we already login go to here
+        GoToUrl("https://www.dogeto.com/");
+	 }	
+	 
+		
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeLogin();
+    }
+	
+	
+	
+	
+	
+
+	
+//=============//
+//start DoLogin
+//=============//
+    public override int DoLogin()
+    {
+		
+	 //var checks login or exit
+     var ExitButton = ElementByXPath("//a[@href='https://www.dogeto.com/logout/']"); //SIGN OUT
+
+		
+	 //if i NOT Login - go to Login Page
+	 if (!IsVisible(ExitButton))
+	 {
+		
+        //else go to normal login
+		GoToUrl("https://www.dogeto.com/signin/");
+		
+        var box_user = ElementByXPath("//input[@id='f_wallet']");
+        SetText(box_user, GetSetting("Address"));
+		
+        Wait(2);
+		
+		/*
+        //RecaptchaUtility
+        RecaptchaUtility BypassRecaptcha = new RecaptchaUtility(this);
+        BypassRecaptcha.DoSolve();
+		*/
+		
+        //SolveCaptcha if apper
+        var result = DoSolveCaptcha();
+        if (result > 0)
+        {
+        return result;
+        }	
+		
+        Wait();	
+        Wait(2);
+		
+		
+        var ButtonLog = ElementByXPath("//button[@type='submit']");
+        Click(ButtonLog);
+		
+        Wait();
+        Wait(2);
+		
+	    var ErrorMessage = ElementByXPath("//p[@class='message text-danger']");	 
+	    if (IsVisible(ErrorMessage))
+		{			
+		Log(ErrorMessage.Text);
+        Wait();	
+		return 1*60;		
+		}
+		
+	 }	//end ExitButton
+	 
+        //This faucet has nothing to do here.    
+        return base.DoLogin();
+    }
+//=============//
+//start DoLogin
+//=============//
+	
+
+	
+	
+	
+	
+//==========//
+//AfterLogin
+//=========//
+ public override int AfterLogin()
+ {
+ 
+	 
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterLogin();
+ }
+//==========//
+//AfterLogin
+//=========//
+	
+	
+	
+
+	
+//=============//
+//GetFaucetWaitTime
+//=============//
+ public override int GetFaucetWaitTime()
+ {
+
+    if(ad)
+	{
+        Driver.Close();  // Close specific chrome window
+        Driver.Quit();  // also Close the console app, that was used to kick off the chrome window
+        Driver.Dispose();  // Close the chromedriver.exe
+        ad=false; //solve the problem in start - after he return to script again
+        return GetWaitSetting();    
+	
+		/*
+        var WaitTimerText = ElementByXPath("//div[@id='timer']");
+        if (IsVisible(WaitTimerText))
+        {
+            try {
+				Log("FaucetClaim: WaitTimerText apper"); 
+                int m, s;
+                m = Convert.ToInt32(WaitTimerText.Text.Split(':')[0])*60;
+                s = Convert.ToInt32(WaitTimerText.Text.Split(':')[1]);
+                
+				Driver.Close();  // Close specific chrome window
+                Driver.Quit();  // also Close the console app, that was used to kick off the chrome window
+                Driver.Dispose();  // Close the chromedriver.exe
+                return m + s;
+
+            }
+            catch (Exception)
+            {
+                return 1800;
+
+            }
+
+        } // end WaitTimerText
+		*/
+		
+		
+    }	//end ad
+		
+		
+   //let Faucet Collector continue.
+   return base.GetFaucetWaitTime();
+ }
+//=============//
+//GetFaucetWaitTime
+//=============//
+	
+	
+	
+	
+
+    public override int BeforeSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeSolveCaptcha();
+    }
+
+
+    public override int DoSolveCaptcha()
+    {
+
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoSolveCaptcha();
+    }
+
+
+    public override int AfterSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterSolveCaptcha();
+    }
+	
+	
+
+    public override int BeforeSolveFaucet()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeSolveCaptcha();
+    }
+	
+	
+	
+
+
+//=============//
+//DoSolveFaucet
+//=============//
+    public override int DoSolveFaucet()
+    {
+	
+
+      //=========================//
+      //Multiplier - Normal Way//
+      //=========================//
+      if (GetBoolSetting("Multiplier"))
+      {
+			
+        //else go to normal login
+		GoToUrl("https://www.dogeto.com/multiplier/");
+		
+	    Wait();
+	    Wait(2);
+
+        var NOTAvailable_Multiplier = ElementByXPath("//span[@class='text-danger']");
+        if (IsVisible(NOTAvailable_Multiplier))
+		{
+        Driver.Close();  // Close specific chrome window
+        Driver.Quit();  // also Close the console app, that was used to kick off the chrome window
+        Driver.Dispose();  // Close the chromedriver.exe
+        return GetWaitSetting();   	
+		}
+		
+	    Wait();
+	    Wait(2);
+		
+        var Claim_Multiplier = ElementByXPath("//a[@class='btn btn-lg px-5 py-3 btn-primary btn-multiplier']");
+        if (IsVisible(Claim_Multiplier))
+		{
+		Click(Claim_Multiplier);		
+		}
+	
+	    Wait();
+	    Wait(2);
+	    
+		//ShortLinkUtilities
+        var ShortLinkBypasser_ = new ShortLinkBypasser(this);
+        bool cs=ShortLinkBypasser_.DoShortLink();
+		
+	    Wait();		
+	    Wait(2);
+	
+        var Success_Multiplier = ElementByXPath("//p[@class='message text-success']"); //Multiplier has been successfully increased
+        if (IsVisible(Claim_Multiplier))
+		{
+		Log("Multiplier - Multiplier has been successfully increased ");  
+		CheckFaucetResult(); //skip all actions - and call to --> CheckFaucetResult - to make sure That FC mark as "Payout" before	
+        ad = true; //call to timer / and do success
+		}	
+		
+      } //end FaucetClaim
+
+	 
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoSolveFaucet();
+    }
+	
+	
+
+
+	
+	
+    public override int AfterSolveFaucet()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterSolveFaucet();
+    }
+	
+	
+	
+
+    /// <summary>
+    /// This method gets called in the end after the BeforeSolveFaucet/DoSolveFaucet and AfterSolveFaucet methods were done.
+    /// The base.CheckFaucetResult will try to find a visible element on the page using the XPath from SuccessXPath and FailXPath (see the Start method)
+    /// These properties should contain XPath expressions to find certain elements on the page.
+    /// For example if it finds one of the elements from the SuccessXPath, and it is visible, then it will flag the claim attempt as a success.
+    /// Or if it finds one of the elements from the FailXPath, and it is visible, then it will flag the claim attempt as a failure.
+    /// </summary>
+    public override int CheckFaucetResult()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.CheckFaucetResult();
+    }
+	
+	
+	
+} //public class dogeto

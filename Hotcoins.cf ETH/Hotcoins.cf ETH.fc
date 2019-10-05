@@ -1,0 +1,215 @@
+﻿using System;
+using System.Threading.Tasks;
+using FaucetCollector.Script;
+
+public class hotcoincfETHScript : FaucetScript
+{
+    
+    public override FaucetSettings Settings
+    {
+        get
+        {
+            return new FaucetSettings("http://hotcoins.cf/eth/")
+            {
+                 new FaucetSetting {
+                    Name = "ETH",
+                    Display = "FaucetHub linked ETH wallet address",
+                    Type = EditorType.Wallet,
+                    Required = true,
+                    Default = null
+                }
+            };
+        }
+    }
+
+    
+    public override void Start()
+    {
+        
+        Title = "Home-HOT COINS";
+
+        SuccessXPath = "//div[contains(@class,'alert-success') and contains(text(), 'success')]";
+        FailXPath = "//div[contains(@class,'alert-danger')]";
+
+        //Let Faucet Collector start up everything
+        base.Start();
+    }
+
+    
+    public override bool IsLoggedIn()
+    {
+       
+        return IsVisible(ElementByXPath("//a[@href='logout.php']"));
+    }
+
+    
+    public override int BeforeLogin()
+    {
+
+
+        return base.BeforeLogin();
+    }
+
+   
+    public override int DoLogin()
+    {
+        
+        var signInaddress = ElementByName("address");
+        if (signInaddress == null)
+        {
+            
+            return Fail("Signin address not found.");
+        }
+
+        
+        SetText(signInaddress, GetSetting("ETH"));
+
+        
+        var loginButton = ElementByXPath("//button[@type='submit' and contains(@class, 'btn-primary')]");
+        if (loginButton == null)
+        {
+           
+            return Fail("Login button not found.");
+        }
+
+        
+        Click(loginButton);
+
+        
+        return base.DoLogin();
+    }
+
+
+   
+    public override int AfterLogin()
+    {
+         
+        return base.AfterLogin();
+    }
+
+    public override int GetFaucetWaitTime()
+    {
+       
+        
+      var waitElement = ElementByXPath("//*[@id='countdown']");
+        if (!IsVisible(waitElement))
+        {
+            //no time remaining element, so we are good to go.
+            return 0;
+        }
+
+        var waitText = waitElement.Text.ToLower().Trim().Replace("you can claim again in ", "").Replace(" seconds.", "").Trim();
+        int seconds;
+        if (!int.TryParse(waitText, out seconds))
+        {
+            return Fail("Unable to get the remaining time from text '" + waitText + "'.");
+        }
+
+        return seconds;
+    }
+ 
+
+   
+    public override int BeforeSolveCaptcha()
+    {
+       
+        return base.BeforeSolveCaptcha();
+    }
+
+   
+     public override int DoSolveCaptcha()
+    {
+        
+        var extraCaptcha = ElementById("captcha");
+        var extraInput = ElementByName("captcha_code");
+        Task<int> extraTask = null;
+        if (IsVisible(extraCaptcha) && IsVisible(extraInput))
+        {
+            
+            extraTask = Task.Run(() =>
+            {
+                return DoSolveImageCaptcha(extraCaptcha, extraInput);
+            });
+        }
+        var result = base.DoSolveCaptcha();
+        if (extraTask != null)
+        {
+           
+            extraTask.Wait();
+        result += extraTask.Result;
+        }
+       return result;
+        }
+
+
+    
+    public override int AfterSolveCaptcha()
+    {
+        
+        return base.AfterSolveCaptcha();
+    }
+
+   
+    public override int BeforeSolveFaucet()
+    {
+        var claimButton = ElementByXPath("//div[@id='mainframe']//div[@class='container']//div[@class='col-md-6']//div[@class='well content']/form[contains(@method, 'post')]/button[contains(@class, 'btn-lg')]");
+        if (claimButton == null)
+        {
+           
+            return Fail("claim button not found.");
+        }
+
+        
+        Click(claimButton);
+
+        
+        return base.BeforeSolveFaucet();
+    }
+
+  
+    public override int DoSolveFaucet()
+    {
+        
+        var submitButton = ElementByXPath("//div[@id='mainframe']//div[@class='container']//div[@class='col-md-6']//div[@class='well content']/form[contains(@method, 'post')]/button[contains(@class, 'btn-success')]");
+        if (!IsVisible(submitButton))
+        {
+            
+            return Fail("Submit button not found or not visible.");
+        }
+        var result = SolveCaptcha();
+        if (result > 0)
+        {
+            
+            return result;
+        }
+        
+        Click(submitButton);
+
+        
+        return base.DoSolveFaucet();
+    }
+
+
+    
+    public override int AfterSolveFaucet()
+    {
+        
+        return base.AfterSolveFaucet();
+    }
+
+    
+    public override int CheckFaucetResult()
+    {
+            var result = base.CheckFaucetResult();
+            if (IsSuccess)
+            {
+                
+
+                
+                Reload = true;
+            }
+
+            return result;
+       
+    }
+}

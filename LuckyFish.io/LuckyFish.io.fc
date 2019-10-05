@@ -1,0 +1,1966 @@
+﻿
+//==================//
+//script Written by: ••AviramDayan•• 26/05/2019 04:00PM - Version 1
+//Last Update: 03/10/2019 14:00AM - Version 13
+//==================//
+
+using System;
+using System.Drawing;
+using FaucetCollector.Script;
+using System.Threading.Tasks;
+using System.Collections.Generic;
+using OpenQA.Selenium;
+using OpenQA.Selenium.Interactions;
+
+//css_inc recaptchaUtilities
+//css_inc AntiBotLinksUtility
+//css_ref ImageProcessing
+//css_ref ProcessingImagesUsingLockBits
+//css_inc GetestCaptcha
+
+public class luckyfishorg : FaucetScript
+{
+    /// <summary>
+    /// List of Settings that will be shown in the bot when selecting this Faucet in the bot.
+    /// You can get the value the user entered with the methods: GetSetting("[Name of the FaucetSetting]"), GetBoolSetting and GetDateTimeSetting
+    /// You can also create a new setting value using SetSetting("[Name you want to use]", "value")
+    /// </summary>
+    public override FaucetSettings Settings
+    {
+        get
+        {
+			
+            return new FaucetSettings("https://luckyfish.io/")
+            {
+                new FaucetSetting(){Name="Email",Display="Email",Type=EditorType.TextBox,Required=false},
+                new FaucetSetting(){Name="Password",Display="Password",Type=EditorType.Password,Required=false},
+				
+                new FaucetSetting() { Name = "UserCustomTimeLimitFaucet_CheckBox", Display = "UserCustomTimeLimitFaucet - ON/OFF", Type = EditorType.CheckBox, Default = true},	
+                new FaucetSetting() { Name = "UserCustomTimeLimitFaucet_input", Display = "UserCustomTimeLimitFaucet - if you claim multiple currency one after one, and you have a message to wait between each coin, so i recommended to set to 2 min (the default is 2 min) ", Type = EditorType.Numeric, Default = 2},
+
+                new FaucetSetting() { Name = "AllCoinsFaucets", Display = "AllCoinsFaucets - ON/OFF", Type = EditorType.CheckBox, Default = true},	
+				
+                new FaucetSetting() { Name = "btc", Display = "btc - claim", Type = EditorType.CheckBox, Default = true},	
+                new FaucetSetting() { Name = "doge", Display = "doge - claim", Type = EditorType.CheckBox, Default = true},	
+                new FaucetSetting() { Name = "ltc", Display = "ltc - claim", Type = EditorType.CheckBox, Default = true},	
+                new FaucetSetting() { Name = "eth", Display = "eth - claim", Type = EditorType.CheckBox, Default = true},	
+                new FaucetSetting() { Name = "bch", Display = "bch - claim", Type = EditorType.CheckBox, Default = true},	
+                new FaucetSetting() { Name = "xlm", Display = "xlm - claim", Type = EditorType.CheckBox, Default = false},	
+                new FaucetSetting() { Name = "xrp", Display = "xrp - claim", Type = EditorType.CheckBox, Default = false},	
+                new FaucetSetting() { Name = "dash", Display = "dash - claim", Type = EditorType.CheckBox, Default = true},	
+                new FaucetSetting() { Name = "zec", Display = "zec - claim", Type = EditorType.CheckBox, Default = true},	
+                new FaucetSetting() { Name = "usdt", Display = "usdt - claim", Type = EditorType.CheckBox, Default = false},	
+                new FaucetSetting() { Name = "bsv", Display = "bsv - claim", Type = EditorType.CheckBox, Default = false},
+                new FaucetSetting() { Name = "btg", Display = "btg - claim", Type = EditorType.CheckBox, Default = false},					
+                new FaucetSetting() { Name = "eos", Display = "eos - claim", Type = EditorType.CheckBox, Default = false},	
+                new FaucetSetting() { Name = "link", Display = "link - claim", Type = EditorType.CheckBox, Default = false},	
+                new FaucetSetting() { Name = "bat", Display = "bat - claim", Type = EditorType.CheckBox, Default = false},	
+                new FaucetSetting() { Name = "omg", Display = "omg - claim", Type = EditorType.CheckBox, Default = false},	
+                new FaucetSetting() { Name = "hot", Display = "hot - claim", Type = EditorType.CheckBox, Default = false},	
+                new FaucetSetting() { Name = "ht", Display = "ht - claim", Type = EditorType.CheckBox, Default = false},	
+                new FaucetSetting() { Name = "usdc", Display = "usdc - claim", Type = EditorType.CheckBox, Default = false},	
+                new FaucetSetting() { Name = "tusd", Display = "tusd - claim", Type = EditorType.CheckBox, Default = false},	
+                new FaucetSetting() { Name = "pax", Display = "pax - claim", Type = EditorType.CheckBox, Default = false},	
+			
+                new FaucetSetting() { Name = "AffWithdraw", Display = "AffWithdraw", Type = EditorType.CheckBox, Default = false},	
+	            new FaucetSetting(){Name="AllGames_Menu",Display="AllGames_Menu - Select Favorite Game (Correctly available only 'slots' Games)",Type=EditorType.ComboBox,Default="none",Items=new System.Collections.Generic.List<string>{"none","Slot - slotsOfAmerica","Slot - slotsOfChina","Slot - slotsOfOZ","Slot - slotsOfAlice","Slot - slotsOfRedHat","Slot - slotsOfCandy","Slot - slotsOfCinderella"}}, 
+				new FaucetSetting(){Name="MenuDefaultCoin",Display="MenuDefaultCoin - Select Favorite Coin to play OR for general stuff",Type=EditorType.ComboBox,Default="btc",Items=new System.Collections.Generic.List<string>{"btc","doge","ltc","eth","bch","xlm","xrp","dash","zec","usdt","bsv","btg","eos","link","bat","omg","hot","ht","usdc","tusd","pax"}},
+
+                new FaucetSetting(){Name="Slot_Amount",Display="Slot_Amount",Default = "0.00000001",Type=EditorType.TextBox,Required=false},
+                new FaucetSetting(){Name="Slot_Lines",Display="Slot_Lines",Default = "1",Type=EditorType.TextBox,Required=false},
+
+            };
+        }
+    }
+
+	
+//============================================================//
+//the number of "successes" in the script - when are finished  
+//============================================================//
+    public override void Start()
+    {
+        ad = false;
+       
+        //Title that shows in the browser. Is used to identify and close popup windows
+        Title = "LuckyFish.io";
+
+		SuccessXPath = "//*";  //*[@id='']
+        FailXPath = "//*"; //*[@id='']
+	
+        //TimerIsCountingUp = true;
+		
+        //Let Faucet Collector start up everything
+        base.Start();
+    }
+//============================================================//
+//the number of "successes" in the script - when are finished  
+//============================================================//
+
+	
+    bool ad; //custom bool
+
+
+    public override int DoInit()
+    {
+	
+        //Let Faucet Collector continue.
+        return base.DoInit();
+    }
+
+	
+//==================//
+//save Login Cookies 
+//==================//
+    public override bool IsLoggedIn()
+    {
+	    //save Login Cookies - Check if the "Logout" exist
+        return ElementByXPath("//img[@class='userPhoto']") != null;
+	 
+        //return base.IsLoggedIn();
+    }
+//==================//
+//save Login Cookies 
+//==================//	
+
+
+
+
+//=============//
+//BeforeLogin
+//=============//
+    public override int BeforeLogin()
+    {
+		
+
+	 //var checks login or exit
+     var ExitButton = ElementByXPath("//img[@class='userPhoto']");
+
+	 
+	 //if i already Login - go to "bonus"	 
+	 if (IsVisible(ExitButton))
+	 {
+        //if we already login go to here
+        GoToUrl("https://www.luckyfish.io/");
+	 }	
+	
+		
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeLogin();
+    }
+//=============//
+//BeforeLogin
+//=============//
+
+	
+
+
+	
+//========//
+//DoLogin
+//========//
+    public override int DoLogin()
+    {
+	
+      var ExitButton = ElementByXPath("//img[@class='userPhoto']");
+
+	
+	 //if i NOT Login - go to Login Page
+	 if (!IsVisible(ExitButton))
+	 {
+
+		GoToUrl("https://www.luckyfish.io/");
+		Wait();		
+		Wait(2);
+     
+        var StartOpenLogin = ElementByXPath("//ul[@class='logRegister_nav clear']/li[@class='right']");
+	    if (IsVisible(StartOpenLogin))
+	    { 
+        Click(StartOpenLogin);
+		}
+
+		Wait(2);
+		
+        var box_user = ElementByXPath("//input[@placeholder='Username']");
+        SetText(box_user, GetSetting("Email"));
+		
+		Wait(2);
+		
+        var box_pass = ElementByXPath("//input[@placeholder='Password']");
+        SetText(box_pass, GetPassword("Password"));
+		
+		Wait(2);
+/*		
+       //SolveCaptcha if apper
+        var result = DoSolveCaptcha();
+        if (result > 0)
+        {
+            return Fail("Fail solving captcha");
+        }
+*/		
+		Wait(4);
+		
+        var ButtonLog = ElementByXPath("//button[@class='el-button el-button--primary is-plain']");
+        Click(ButtonLog);
+		
+		Wait(2);
+/*		
+        var Error_Message = ElementByXPath ("//div[@id='add_err']/div/div[@class='message' and contains(text(),'fille' | 'captcha' ) ]");
+        if (IsVisible(Error_Message))
+        {
+            Log("Error_Message - Appear - we return after 1 min ");
+            return 1*60; //we return after 1 min
+        }
+*/		
+		Wait();	
+
+	 } // end ExitButton
+
+        
+       return base.DoLogin();
+    }
+//========//
+//DoLogin
+//========//
+ 
+
+
+//========//
+//AfterLogin
+//========//
+ public override int AfterLogin()
+ {
+ 
+  
+    //we are good to continue
+    return base.AfterLogin();
+
+ }
+//========//
+//AfterLogin
+//========//
+
+
+	
+
+//================//
+//GetFaucetWaitTime
+//================//
+    public override int GetFaucetWaitTime()
+    {
+
+        if (ad)
+        {
+		    //Log("return ad");
+			ad=false;
+			Driver.Close();  // Close specific chrome window
+            Driver.Quit();  // also Close the console app, that was used to kick off the chrome window
+            Driver.Dispose();  // Close the chromedriver.exe
+            return GetWaitSetting();
+        }
+
+		//let Faucet Collector continue.
+        return base.GetFaucetWaitTime();
+    }
+//================//
+//GetFaucetWaitTime
+//================//
+
+
+
+    public override int BeforeSolveCaptcha()
+    {
+ 
+        //Return we are ready to proceed
+        return base.BeforeSolveFaucet();
+    }
+
+	
+    public override int DoSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoSolveCaptcha();
+    }
+
+	
+    public override int AfterSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterSolveCaptcha();
+    }
+
+	
+    public override int BeforeSolveFaucet()
+    {
+        //Return we can continue
+        return base.BeforeSolveFaucet();
+    }
+  
+	
+	
+//==============//
+//DoSolveFaucet
+//==============//
+ public override int DoSolveFaucet()
+  {
+
+        GoToUrl("https://www.luckyfish.io/");
+		Log("Go to faucet");	
+		
+		Wait();
+		Wait(2);	
+		
+		
+     //=============//
+     //AffWithdraw
+     //=============// 
+     if (GetBoolSetting("AffWithdraw"))
+     {
+	 
+		Log("AffWithdraw");
+
+        var AffiliateButton = ElementByXPath("//li[@class='left deposit affiliate']");   
+	    if (IsVisible(AffiliateButton))
+	    { 
+        Click(AffiliateButton);
+		Log("AffiliateButton");
+		}
+
+        Wait(2);
+		
+        var WithdrawTab = ElementByXPath("//body/section/div/div[2]/ul[2 and @class='affiliate_ul clear']/li[2 and contains(text(),'WITHDRAWALS')]");   
+	    if (IsVisible(WithdrawTab))
+	    { 
+        Click(WithdrawTab);
+		Log("WithdrawTab");
+		}
+		
+        Wait(2);
+
+        //do all stuff	
+        MenuCoins_Faunction(); //call
+        Wait(2);
+        var btc_w_VAR = ElementByXPath("//div[6]/div[1]/div[1]/ul/li[1]/span");  
+        Click(btc_w_VAR);
+        Wait(2);
+        WithdrawEndButton_Faunction(); //call
+		Log("WithdrawEndButton - btc");	
+        Wait(2);
+
+        MenuCoins_Faunction(); //call	
+        Wait(2);	
+        var doge_w_VAR = ElementByXPath("//div[6]/div[1]/div[1]/ul/li[2]/span");   
+        Click(doge_w_VAR);	
+        Wait(2);
+        WithdrawEndButton_Faunction(); //call
+		Log("WithdrawEndButton - doge");	
+        Wait(2);
+
+        MenuCoins_Faunction(); //call	
+        Wait(2);	
+        var ltc_w_VAR = ElementByXPath("//div[6]/div[1]/div[1]/ul/li[3]/span");   
+        Click(ltc_w_VAR);	
+        Wait(2);
+        WithdrawEndButton_Faunction(); //call
+		Log("WithdrawEndButton - ltc");	
+        Wait(2);
+
+        MenuCoins_Faunction(); //call	
+        Wait(2);	
+        var eth_w_VAR = ElementByXPath("//div[6]/div[1]/div[1]/ul/li[4]/span");   
+        Click(eth_w_VAR);	
+        Wait(2);
+        WithdrawEndButton_Faunction(); //call
+		Log("WithdrawEndButton - eth");		
+        Wait(2);
+
+        MenuCoins_Faunction(); //call
+        Wait(2);
+        var bch_w_VAR = ElementByXPath("//div[6]/div[1]/div[1]/ul/li[5]/span");  
+        Click(bch_w_VAR);	
+        Wait(2);
+        WithdrawEndButton_Faunction(); //call
+		Log("WithdrawEndButton - bch");		
+        Wait(2);
+
+        MenuCoins_Faunction(); //call
+        Wait(2);
+        var xlm_w_VAR = ElementByXPath("//div[6]/div[1]/div[1]/ul/li[6]/span");   
+        Click(xlm_w_VAR);	
+        Wait(2);
+        WithdrawEndButton_Faunction(); //call
+		Log("WithdrawEndButton - xlm");		
+        Wait(2);
+
+        MenuCoins_Faunction(); //call
+        Wait(2);
+        var eos_w_VAR = ElementByXPath("//div[6]/div[1]/div[1]/ul/li[7]/span");   
+        Click(eos_w_VAR);	
+        Wait(2);
+        WithdrawEndButton_Faunction(); //call	
+		Log("WithdrawEndButton - eos");	
+        Wait(2);
+
+        MenuCoins_Faunction(); //call
+        Wait(2);
+        var xrp_w_VAR = ElementByXPath("//div[6]/div[1]/div[1]/ul/li[8]/span");   
+        Click(xrp_w_VAR);	
+        Wait(2);
+        WithdrawEndButton_Faunction(); //call	
+		Log("WithdrawEndButton - xrp");	
+        Wait(2);
+
+        MenuCoins_Faunction(); //call
+        Wait(2);
+        var dash_w_VAR = ElementByXPath("//div[6]/div[1]/div[1]/ul/li[9]/span");   
+        Click(dash_w_VAR);	
+        Wait(2);
+        WithdrawEndButton_Faunction(); //call		
+		Log("WithdrawEndButton - dash");	
+        Wait(2);
+
+        MenuCoins_Faunction(); //call
+        Wait(2);
+        var zec_w_VAR = ElementByXPath("//div[6]/div[1]/div[1]/ul/li[10]/span");   
+        Click(zec_w_VAR);	
+        Wait(2);
+        WithdrawEndButton_Faunction(); //call
+		Log("WithdrawEndButton - zec");			
+        Wait(2);
+
+        MenuCoins_Faunction(); //call
+        Wait(2);
+        var usdt_w_VAR = ElementByXPath("//div[6]/div[1]/div[1]/ul/li[11]/span"); 
+        Click(usdt_w_VAR);	
+        Wait(2);
+        WithdrawEndButton_Faunction(); //call	
+		Log("WithdrawEndButton - usdt");			
+        Wait(2);
+
+        MenuCoins_Faunction(); //call
+        Wait(2);
+        var bsv_w_VAR = ElementByXPath("//div[6]/div[1]/div[1]/ul/li[12]/span");  
+        Click(bsv_w_VAR);	
+        Wait(2);
+        WithdrawEndButton_Faunction(); //call	
+		Log("WithdrawEndButton - bsv");	
+        Wait(2);
+
+        MenuCoins_Faunction(); //call
+        Wait(2);
+        var btg_w_VAR = ElementByXPath("//div[6]/div[1]/div[1]/ul/li[13]/span"); 
+        Click(btg_w_VAR);	
+        Wait(2);
+        WithdrawEndButton_Faunction(); //call	
+		Log("WithdrawEndButton - btg");	
+        Wait(2);
+
+        MenuCoins_Faunction(); //call
+        Wait(2);
+        var bat_w_VAR = ElementByXPath("//div[6]/div[1]/div[1]/ul/li[14]/span"); 
+        Click(bat_w_VAR);	
+        Wait(2);
+        WithdrawEndButton_Faunction(); //call	
+		Log("WithdrawEndButton - bat");	
+        Wait(2);
+
+        MenuCoins_Faunction(); //call
+        Wait(2);
+        var hot_w_VAR = ElementByXPath("//div[6]/div[1]/div[1]/ul/li[15]/span"); 
+        Click(hot_w_VAR);	
+        Wait(2);
+        WithdrawEndButton_Faunction(); //call	
+		Log("WithdrawEndButton - hot");	
+        Wait(2);
+
+        MenuCoins_Faunction(); //call
+        Wait(2);
+        var link_w_VAR = ElementByXPath("//div[6]/div[1]/div[1]/ul/li[16]/span"); 
+        Click(link_w_VAR);	
+        Wait(2);
+        WithdrawEndButton_Faunction(); //call	
+		Log("WithdrawEndButton - link");	
+        Wait(2);
+
+        MenuCoins_Faunction(); //call
+        Wait(2);
+        var omg_w_VAR = ElementByXPath("//div[6]/div[1]/div[1]/ul/li[17]/span"); 
+        Click(omg_w_VAR);	
+        Wait(2);
+        WithdrawEndButton_Faunction(); //call	
+		Log("WithdrawEndButton - omg");	
+        Wait(2);
+
+        MenuCoins_Faunction(); //call
+        Wait(2);
+        var ht_w_VAR = ElementByXPath("//div[6]/div[1]/div[1]/ul/li[18]/span"); 
+        Click(ht_w_VAR);	
+        Wait(2);
+        WithdrawEndButton_Faunction(); //call	
+		Log("WithdrawEndButton - ht");	
+        Wait(2);
+
+        MenuCoins_Faunction(); //call
+        Wait(2);
+        var usdc_w_VAR = ElementByXPath("//div[6]/div[1]/div[1]/ul/li[19]/span"); 
+        Click(usdc_w_VAR);	
+        Wait(2);
+        WithdrawEndButton_Faunction(); //call	
+		Log("WithdrawEndButton - usdc");	
+        Wait(2);
+
+        MenuCoins_Faunction(); //call
+        Wait(2);
+        var tusd_w_VAR = ElementByXPath("//div[6]/div[1]/div[1]/ul/li[20]/span"); 
+        Click(tusd_w_VAR);	
+        Wait(2);
+        WithdrawEndButton_Faunction(); //call	
+		Log("WithdrawEndButton - tusd");	
+        Wait(2);
+
+        MenuCoins_Faunction(); //call
+        Wait(2);
+        var pax_w_VAR = ElementByXPath("//div[6]/div[1]/div[1]/ul/li[21]/span"); 
+        Click(pax_w_VAR);	
+        Wait(2);
+        WithdrawEndButton_Faunction(); //call	
+		Log("WithdrawEndButton - pax");	
+        Wait(2);
+		
+     }// end AffWithdraw
+     //=============//
+	 
+	 
+
+
+     //========//
+     //faucet
+     //========// 
+
+     if (GetBoolSetting("AllCoinsFaucets"))
+     {	
+
+		//======//
+		//btc//
+		//======//
+        if (GetBoolSetting("btc"))
+        {	
+        FaucetButton_Function(); //call
+	
+        Menu_Function(); //call
+
+	    Wait(2);
+
+        var btc_VAR = ElementByXPath("//div[@x-placement='bottom-start']/div[1]/div[1]/ul/li[1]");   
+        if (IsVisible(btc_VAR))
+        {		
+		Log("btc");		
+        Click(btc_VAR);
+        }//end btc_VAR
+		
+	    Wait(2);
+				
+        SolveCaptcha_RightSquare_Function(); //call
+	
+	    Wait(2);
+		
+        Claim_Function(); //call
+
+        if (GetBoolSetting("UserCustomTimeLimitFaucet_CheckBox"))
+        {		
+          var customTime = CustomReturn_Faunction();
+          if (customTime > 0) 
+          {
+              return customTime;
+          }	
+        }// end  UserCustomTimeLimitFaucet_CheckBox	
+		
+		}// GetBoolSetting - btc
+        //=========//	
+	
+		//======//
+		//doge//
+		//======//
+        if (GetBoolSetting("doge"))
+        {
+        FaucetButton_Function(); //call
+		
+        Menu_Function(); //call
+
+	    Wait(2);
+
+        var doge_VAR = ElementByXPath("//div[@x-placement='bottom-start']/div[1]/div[1]/ul/li[2]");   
+        if (IsVisible(doge_VAR))
+        {	
+		Log("doge");
+        Click(doge_VAR);
+        }//end doge_VAR
+		
+	    Wait(2);
+
+        SolveCaptcha_RightSquare_Function(); //call
+	
+	    Wait(2);
+		
+        Claim_Function(); //call
+
+        if (GetBoolSetting("UserCustomTimeLimitFaucet_CheckBox"))
+        {		
+          var customTime = CustomReturn_Faunction();
+          if (customTime > 0) 
+          {
+              return customTime;
+          }	 		
+        }// end  UserCustomTimeLimitFaucet_CheckBox	
+		
+		}// GetBoolSetting - doge
+        //=========//		
+	
+		//======//
+		//ltc//
+		//======//
+        if (GetBoolSetting("ltc"))
+        {
+        FaucetButton_Function(); //call
+		
+        Menu_Function(); //call
+
+	    Wait(2);
+
+        var ltc_VAR = ElementByXPath("//div[@x-placement='bottom-start']/div[1]/div[1]/ul/li[3]");   
+        if (IsVisible(ltc_VAR))
+        {	
+		Log("ltc");			
+        Click(ltc_VAR);
+        }//end ltc_VAR
+		
+	    Wait(2);
+				
+        SolveCaptcha_RightSquare_Function(); //call
+	
+	    Wait(2);
+		
+        Claim_Function(); //call
+
+        if (GetBoolSetting("UserCustomTimeLimitFaucet_CheckBox"))
+        {		
+          var customTime = CustomReturn_Faunction();
+          if (customTime > 0) 
+          {
+              return customTime;
+          }	 		
+        }// end  UserCustomTimeLimitFaucet_CheckBox	
+		
+		}// GetBoolSetting - ltc
+        //=========//		
+			
+		//======//
+		//eth//
+		//======//
+        if (GetBoolSetting("eth"))
+        {
+        FaucetButton_Function(); //call
+		
+        Menu_Function(); //call
+
+	    Wait(2);
+
+        var eth_VAR = ElementByXPath("//div[@x-placement='bottom-start']/div[1]/div[1]/ul/li[4]");   
+        if (IsVisible(eth_VAR))
+        {	
+		Log("eth");	
+        Click(eth_VAR);
+        }//end eth_VAR
+		
+	    Wait(2);
+				
+        SolveCaptcha_RightSquare_Function(); //call
+	
+	    Wait(2);
+		
+        Claim_Function(); //call
+
+        if (GetBoolSetting("UserCustomTimeLimitFaucet_CheckBox"))
+        {		
+          var customTime = CustomReturn_Faunction();
+          if (customTime > 0) 
+          {
+              return customTime;
+          }	 		
+        }// end  UserCustomTimeLimitFaucet_CheckBox	
+		
+		}// GetBoolSetting - etc
+        //=========//				
+			
+		//======//
+		//bch//
+		//======//
+        if (GetBoolSetting("bch"))
+        {
+        FaucetButton_Function(); //call
+	
+        Menu_Function(); //call
+
+	    Wait(2);
+
+        var bch_VAR = ElementByXPath("//div[@x-placement='bottom-start']/div[1]/div[1]/ul/li[5]");   
+        if (IsVisible(bch_VAR))
+        {	
+		Log("bch");
+        Click(bch_VAR);
+        }//end bch_VAR	
+		
+	    Wait(2);
+				
+        SolveCaptcha_RightSquare_Function(); //call
+	
+	    Wait(2);
+		
+        Claim_Function(); //call
+
+        if (GetBoolSetting("UserCustomTimeLimitFaucet_CheckBox"))
+        {		
+          var customTime = CustomReturn_Faunction();
+          if (customTime > 0) 
+          {
+              return customTime;
+          }	 			
+        }// end  UserCustomTimeLimitFaucet_CheckBox	
+		
+		}// GetBoolSetting - bch
+        //=========//				
+			
+		//======//
+		//xlm//
+		//======//
+        if (GetBoolSetting("xlm"))
+        {
+        FaucetButton_Function(); //call
+		
+        Menu_Function(); //call
+
+	    Wait(2);
+
+        var xlm_VAR = ElementByXPath("//div[@x-placement='bottom-start']/div[1]/div[1]/ul/li[6]");   
+        if (IsVisible(xlm_VAR))
+        {	
+		Log("xlm");
+        Click(xlm_VAR);
+        }//end xlm_VAR	
+		
+	    Wait(2);
+				
+        SolveCaptcha_RightSquare_Function(); //call
+	
+	    Wait(2);
+		
+        Claim_Function(); //call
+
+        if (GetBoolSetting("UserCustomTimeLimitFaucet_CheckBox"))
+        {		
+          var customTime = CustomReturn_Faunction();
+          if (customTime > 0) 
+          {
+              return customTime;
+          }	 				
+        }// end  UserCustomTimeLimitFaucet_CheckBox	
+		
+		}// GetBoolSetting - xlm
+        //=========//					
+			
+		//======//
+		//xrp//
+		//======//
+        if (GetBoolSetting("xrp"))
+        {
+        FaucetButton_Function(); //call
+	
+        Menu_Function(); //call
+
+	    Wait(2);
+
+        var xrp_VAR = ElementByXPath("//div[@x-placement='bottom-start']/div[1]/div[1]/ul/li[7]");   
+        if (IsVisible(xrp_VAR))
+        {	
+		Log("xrp");	
+        Click(xrp_VAR);
+        }//end xrp_VAR	
+		
+	    Wait(2);
+				
+        SolveCaptcha_RightSquare_Function(); //call
+	
+	    Wait(2);
+		
+        Claim_Function(); //call
+
+        if (GetBoolSetting("UserCustomTimeLimitFaucet_CheckBox"))
+        {		
+          var customTime = CustomReturn_Faunction();
+          if (customTime > 0) 
+          {
+              return customTime;
+          }	 		 		
+        }// end  UserCustomTimeLimitFaucet_CheckBox	
+		
+		}// GetBoolSetting - xrp
+        //=========//					
+			
+		//======//
+		//dash//
+		//======//
+        if (GetBoolSetting("dash"))
+        {	
+        FaucetButton_Function(); //call
+	
+        Menu_Function(); //call
+
+	    Wait(2);
+
+        var dash_VAR = ElementByXPath("//div[@x-placement='bottom-start']/div[1]/div[1]/ul/li[8]");   
+        if (IsVisible(dash_VAR))
+        {
+		Log("dash");			
+        Click(dash_VAR);
+        }//end dash_VAR	
+		
+	    Wait(2);
+				
+        SolveCaptcha_RightSquare_Function(); //call
+	
+	    Wait(2);
+		
+        Claim_Function(); //call
+
+        if (GetBoolSetting("UserCustomTimeLimitFaucet_CheckBox"))
+        {		
+          var customTime = CustomReturn_Faunction();
+          if (customTime > 0) 
+          {
+              return customTime;
+          }	 			
+        }// end  UserCustomTimeLimitFaucet_CheckBox	
+		
+		}// GetBoolSetting - dash
+        //=========//					
+			
+		//======//
+		//zec//
+		//======//
+        if (GetBoolSetting("zec"))
+        {
+        FaucetButton_Function(); //call
+			
+        Menu_Function(); //call
+
+	    Wait(2);
+		
+        var zec_VAR = ElementByXPath("//div[@x-placement='bottom-start']/div[1]/div[1]/ul/li[9]");   
+        if (IsVisible(zec_VAR))
+        {
+		Log("zec");			
+        Click(zec_VAR);
+        }//end zec_VAR	
+		
+	    Wait(2);
+				
+        SolveCaptcha_RightSquare_Function(); //call
+	
+	    Wait(2);
+		
+        Claim_Function(); //call
+
+        if (GetBoolSetting("UserCustomTimeLimitFaucet_CheckBox"))
+        {		
+          var customTime = CustomReturn_Faunction();
+          if (customTime > 0) 
+          {
+              return customTime;
+          }	 		 		
+        }// end  UserCustomTimeLimitFaucet_CheckBox	
+		
+		}// GetBoolSetting - zec
+        //=========//				
+			
+		//======//
+		//usdt//
+		//======//
+        if (GetBoolSetting("usdt"))
+        {
+        FaucetButton_Function(); //call
+			
+        Menu_Function(); //call
+
+	    Wait(2);
+			
+        var usdt_VAR = ElementByXPath("//div[@x-placement='bottom-start']/div[1]/div[1]/ul/li[10]");   
+        if (IsVisible(usdt_VAR))
+        {
+		Log("usdt");	
+        Click(usdt_VAR);
+        }//end usdt_VAR	
+		
+	    Wait(2);
+				
+        SolveCaptcha_RightSquare_Function(); //call
+	
+	    Wait(2);
+		
+        Claim_Function(); //call
+
+        if (GetBoolSetting("UserCustomTimeLimitFaucet_CheckBox"))
+        {		
+          var customTime = CustomReturn_Faunction();
+          if (customTime > 0) 
+          {
+              return customTime;
+          }	 		 		
+        }// end  UserCustomTimeLimitFaucet_CheckBox	
+		
+		}// GetBoolSetting - usdt
+        //=========//				
+			
+		//======//
+		//bsv//
+		//======//
+        if (GetBoolSetting("bsv"))
+        {
+        FaucetButton_Function(); //call
+			
+        Menu_Function(); //call
+
+	    Wait(2);
+			
+        var bsv_VAR = ElementByXPath("//div[@x-placement='bottom-start']/div[1]/div[1]/ul/li[11]");   
+        if (IsVisible(bsv_VAR))
+        {
+		Log("bsv");			
+        Click(bsv_VAR);
+        }//end bsv_VAR	
+		
+	    Wait(2);
+				
+        SolveCaptcha_RightSquare_Function(); //call
+	
+	    Wait(2);
+		
+        Claim_Function(); //call
+
+        if (GetBoolSetting("UserCustomTimeLimitFaucet_CheckBox"))
+        {		
+          var customTime = CustomReturn_Faunction();
+          if (customTime > 0) 
+          {
+              return customTime;
+          }	 					
+        }// end  UserCustomTimeLimitFaucet_CheckBox	
+		
+		}// GetBoolSetting - bsv
+        //=========//		
+
+		//======//
+		//btg//
+		//======//
+        if (GetBoolSetting("btg"))
+        {
+        FaucetButton_Function(); //call
+			
+        Menu_Function(); //call
+
+	    Wait(2);
+			
+        var btg_VAR = ElementByXPath("//div[@x-placement='bottom-start']/div[1]/div[1]/ul/li[12]");   
+        if (IsVisible(btg_VAR))
+        {	
+		Log("btg");	
+        Click(btg_VAR);
+        }//end btg_VAR	
+		
+	    Wait(2);
+				
+        SolveCaptcha_RightSquare_Function(); //call
+	
+	    Wait(2);
+		
+        Claim_Function(); //call
+
+        if (GetBoolSetting("UserCustomTimeLimitFaucet_CheckBox"))
+        {		
+          var customTime = CustomReturn_Faunction();
+          if (customTime > 0) 
+          {
+              return customTime;
+          }	 				
+        }// end  UserCustomTimeLimitFaucet_CheckBox	
+		
+		}// GetBoolSetting - btg
+        //=========//	
+			
+		//======//
+		//eos//
+		//======//
+        if (GetBoolSetting("eos"))
+        {
+        FaucetButton_Function(); //call
+			
+        Menu_Function(); //call
+
+	    Wait(2);
+			
+        var eos_VAR = ElementByXPath("//div[@x-placement='bottom-start']/div[1]/div[1]/ul/li[13]");   
+        if (IsVisible(eos_VAR))
+        {	
+		Log("eos");	
+        Click(eos_VAR);
+        }//end eos_VAR	
+		
+	    Wait(2);
+				
+        SolveCaptcha_RightSquare_Function(); //call
+	
+	    Wait(2);
+		
+        Claim_Function(); //call
+
+        if (GetBoolSetting("UserCustomTimeLimitFaucet_CheckBox"))
+        {		
+          var customTime = CustomReturn_Faunction();
+          if (customTime > 0) 
+          {
+              return customTime;
+          }	 			
+        }// end  UserCustomTimeLimitFaucet_CheckBox	
+		
+		}// GetBoolSetting - eos
+        //=========//	
+			
+		//======//
+		//link//
+		//======//
+        if (GetBoolSetting("link"))
+        {
+        FaucetButton_Function(); //call
+			
+        Menu_Function(); //call
+
+	    Wait(2);
+			
+        var link_VAR = ElementByXPath("//div[@x-placement='bottom-start']/div[1]/div[1]/ul/li[14]");   
+        if (IsVisible(link_VAR))
+        {	
+		Log("link");	
+        Click(link_VAR);
+        }//end link_VAR	
+		
+	    Wait(2);
+				
+        SolveCaptcha_RightSquare_Function(); //call
+	
+	    Wait(2);
+		
+        Claim_Function(); //call
+
+        if (GetBoolSetting("UserCustomTimeLimitFaucet_CheckBox"))
+        {		
+          var customTime = CustomReturn_Faunction();
+          if (customTime > 0) 
+          {
+              return customTime;
+          }	 		 		
+        }// end  UserCustomTimeLimitFaucet_CheckBox	
+		
+		}// GetBoolSetting - link
+        //=========//	
+			
+		//======//
+		//bat//
+		//======//
+        if (GetBoolSetting("bat"))
+        {
+        FaucetButton_Function(); //call
+			
+        Menu_Function(); //call
+
+	    Wait(2);
+			
+        var bat_VAR = ElementByXPath("//div[@x-placement='bottom-start']/div[1]/div[1]/ul/li[15]");   
+        if (IsVisible(bat_VAR))
+        {	
+		Log("bat");	
+        Click(bat_VAR);
+        }//end bat_VAR	
+		
+	    Wait(2);
+				
+        SolveCaptcha_RightSquare_Function(); //call
+	
+	    Wait(2);
+		
+        Claim_Function(); //call
+
+        if (GetBoolSetting("UserCustomTimeLimitFaucet_CheckBox"))
+        {		
+          var customTime = CustomReturn_Faunction();
+          if (customTime > 0) 
+          {
+              return customTime;
+          }	 			
+        }// end  UserCustomTimeLimitFaucet_CheckBox	
+		
+		}// GetBoolSetting - bat
+        //=========//	
+			
+		//======//
+		//omg//
+		//======//
+        if (GetBoolSetting("omg"))
+        {
+        FaucetButton_Function(); //call
+			
+        Menu_Function(); //call
+
+	    Wait(2);
+			
+        var omg_VAR = ElementByXPath("//div[@x-placement='bottom-start']/div[1]/div[1]/ul/li[16]");   
+        if (IsVisible(omg_VAR))
+        {	
+		Log("omg");	
+        Click(omg_VAR);
+        }//end omg_VAR	
+		
+	    Wait(2);
+				
+        SolveCaptcha_RightSquare_Function(); //call
+	
+	    Wait(2);
+		
+        Claim_Function(); //call
+
+        if (GetBoolSetting("UserCustomTimeLimitFaucet_CheckBox"))
+        {		
+          var customTime = CustomReturn_Faunction();
+          if (customTime > 0) 
+          {
+              return customTime;
+          }	 		 		
+        }// end  UserCustomTimeLimitFaucet_CheckBox	
+		
+		}// GetBoolSetting - omg
+        //=========//	
+			
+		//======//
+		//hot//
+		//======//
+        if (GetBoolSetting("hot"))
+        {
+        FaucetButton_Function(); //call
+			
+        Menu_Function(); //call
+
+	    Wait(2);
+			
+        var hot_VAR = ElementByXPath("//div[@x-placement='bottom-start']/div[1]/div[1]/ul/li[17]");   
+        if (IsVisible(hot_VAR))
+        {	
+		Log("hot");	
+        Click(hot_VAR);
+        }//end hot_VAR	
+		
+	    Wait(2);
+				
+        SolveCaptcha_RightSquare_Function(); //call
+	
+	    Wait(2);
+		
+        Claim_Function(); //call
+
+        if (GetBoolSetting("UserCustomTimeLimitFaucet_CheckBox"))
+        {		
+          var customTime = CustomReturn_Faunction();
+          if (customTime > 0) 
+          {
+              return customTime;
+          }	 				
+        }// end  UserCustomTimeLimitFaucet_CheckBox	
+		
+		}// GetBoolSetting - hot
+        //=========//	
+			
+		//======//
+		//ht//
+		//======//
+        if (GetBoolSetting("ht"))
+        {
+        FaucetButton_Function(); //call
+			
+        Menu_Function(); //call
+
+	    Wait(2);
+			
+        var ht_VAR = ElementByXPath("//div[@x-placement='bottom-start']/div[1]/div[1]/ul/li[18]");   
+        if (IsVisible(ht_VAR))
+        {	
+		Log("ht");	
+        Click(ht_VAR);
+        }//end ht_VAR	
+		
+	    Wait(2);
+				
+        SolveCaptcha_RightSquare_Function(); //call
+	
+	    Wait(2);
+		
+        Claim_Function(); //call
+
+        if (GetBoolSetting("UserCustomTimeLimitFaucet_CheckBox"))
+        {		
+          var customTime = CustomReturn_Faunction();
+          if (customTime > 0) 
+          {
+              return customTime;
+          }	 				
+        }// end  UserCustomTimeLimitFaucet_CheckBox	
+		
+		}// GetBoolSetting - ht
+        //=========//	
+			
+		//======//
+		//usdc//
+		//======//
+        if (GetBoolSetting("usdc"))
+        {
+        FaucetButton_Function(); //call
+			
+        Menu_Function(); //call
+
+	    Wait(2);
+			
+        var usdc_VAR = ElementByXPath("//div[@x-placement='bottom-start']/div[1]/div[1]/ul/li[19]");   
+        if (IsVisible(usdc_VAR))
+        {	
+		Log("usdc");	
+        Click(usdc_VAR);
+        }//end usdc_VAR	
+		
+	    Wait(2);
+				
+        SolveCaptcha_RightSquare_Function(); //call
+	
+	    Wait(2);
+		
+        Claim_Function(); //call
+
+        if (GetBoolSetting("UserCustomTimeLimitFaucet_CheckBox"))
+        {		
+          var customTime = CustomReturn_Faunction();
+          if (customTime > 0) 
+          {
+              return customTime;
+          }	 				
+        }// end  UserCustomTimeLimitFaucet_CheckBox	
+		
+		}// GetBoolSetting - usdc
+        //=========//	
+			
+		//======//
+		//tusd//
+		//======//
+        if (GetBoolSetting("tusd"))
+        {
+        FaucetButton_Function(); //call
+			
+        Menu_Function(); //call
+
+	    Wait(2);
+			
+        var tusd_VAR = ElementByXPath("//div[@x-placement='bottom-start']/div[1]/div[1]/ul/li[20]");   
+        if (IsVisible(tusd_VAR))
+        {	
+		Log("tusd");	
+        Click(tusd_VAR);
+        }//end tusd_VAR	
+		
+	    Wait(2);
+				
+        SolveCaptcha_RightSquare_Function(); //call
+	    
+	    Wait(2);
+		
+        Claim_Function(); //call
+
+        if (GetBoolSetting("UserCustomTimeLimitFaucet_CheckBox"))
+        {		
+          var customTime = CustomReturn_Faunction();
+          if (customTime > 0) 
+          {
+              return customTime;
+          }	 		 		
+        }// end  UserCustomTimeLimitFaucet_CheckBox	
+		
+		}// GetBoolSetting - tusd
+        //=========//	
+			
+		//======//
+		//pax//
+		//======//
+        if (GetBoolSetting("pax"))
+        {
+        FaucetButton_Function(); //call
+			
+        Menu_Function(); //call
+
+	    Wait(2);
+			
+        var pax_VAR = ElementByXPath("//div[@x-placement='bottom-start']/div[1]/div[1]/ul/li[21]");   
+        if (IsVisible(pax_VAR))
+        {	
+		Log("pax");	
+        Click(pax_VAR);
+        }//end pax_VAR	
+		
+	    Wait(2);
+				
+        SolveCaptcha_RightSquare_Function(); //call
+	
+	    Wait(2);
+		
+        Claim_Function(); //call
+
+        if (GetBoolSetting("UserCustomTimeLimitFaucet_CheckBox"))
+        {		
+          var customTime = CustomReturn_Faunction();
+          if (customTime > 0) 
+          {
+              return customTime;
+          }	 		 		
+        }// end  UserCustomTimeLimitFaucet_CheckBox	
+		
+		}// GetBoolSetting - pax
+        //=========//	
+		
+     }// end AllCoinsFaucets 
+
+
+	
+ 		 //================//
+         //Menus Vars AllGames
+		 //================//
+         //AllGames_Menu
+         var AllGames_Menu_Var = GetSetting("AllGames_Menu");  	
+		
+		 //AllGames - none	
+		 if(AllGames_Menu_Var=="none")
+         {
+			//we return after specific time  
+			Log("AllGames: none ");
+            //ad = true; //we return after 55 min
+		 }
+		//===========================//
+
+		 //Slot - slotsOfAmerica	
+         if(AllGames_Menu_Var=="Slot - slotsOfAmerica")
+         {		
+          Log("Slot - slotsOfAmerica");
+		  
+	      GoToUrl("https://luckyfish.io/slotsOfAmerica");		
+		
+          Wait();	
+          Wait(3);				
+          
+		  AllSlotsGames_Function(); //call 
+
+         }//end Slot - slotsOfAmerica
+         //=======================//	
+
+		 //Slot - slotsOfChina	
+         if(AllGames_Menu_Var=="Slot - slotsOfChina")
+         {		
+          Log("Slot - slotsOfChina");
+		  
+	      GoToUrl("https://luckyfish.io/slotsOfChina");		
+		
+          Wait();	
+          Wait(3);				
+          
+		  AllSlotsGames_Function(); //call 
+
+         }//end Slot - slotsOfChina
+         //=======================//	
+
+		 //Slot - slotsOfOZ	
+         if(AllGames_Menu_Var=="Slot - slotsOfOZ")
+         {		
+          Log("Slot - slotsOfOZ");
+		  
+	      GoToUrl("https://luckyfish.io/slotsOfOZ");		
+		
+          Wait();	
+          Wait(3);				
+          
+		  AllSlotsGames_Function(); //call 
+
+         }//end Slot - slotsOfOZ
+         //=======================//	
+
+		 //Slot - slotsOfAlice	
+         if(AllGames_Menu_Var=="Slot - slotsOfAlice")
+         {		
+          Log("Slot - slotsOfAlice");
+		  
+	      GoToUrl("https://luckyfish.io/slotsOfAlice");		
+		
+          Wait();	
+          Wait(3);				
+          
+		  AllSlotsGames_Function(); //call 
+
+         }//end Slot - slotsOfAlice
+         //=======================//	
+
+		 //Slot - slotsOfRedHat	
+         if(AllGames_Menu_Var=="Slot - slotsOfRedHat")
+         {		
+          Log("Slot - slotsOfRedHat");
+		  
+	      GoToUrl("https://luckyfish.io/slotsOfRedHat");		
+		
+          Wait();	
+          Wait(3);				
+          
+		  AllSlotsGames_Function(); //call 
+
+         }//end Slot - slotsOfRedHat
+         //=======================//	
+
+		 //Slot - slotsOfCandy	
+         if(AllGames_Menu_Var=="Slot - slotsOfCandy")
+         {		
+          Log("Slot - slotsOfCandy");
+		  
+	      GoToUrl("https://luckyfish.io/slotsOfCandy");		
+		
+          Wait();	
+          Wait(3);				
+          
+		  AllSlotsGames_Function(); //call 
+
+         }//end Slot - slotsOfCandy
+         //=======================//	
+
+		 //Slot - slotsOfCinderella	
+         if(AllGames_Menu_Var=="Slot - slotsOfCinderella")
+         {		
+          Log("Slot - slotsOfCinderella");
+		  
+	      GoToUrl("https://luckyfish.io/slotsOfCinderella");		
+		
+          Wait();	
+          Wait(3);				
+          
+		  AllSlotsGames_Function(); //call 
+
+         }//end Slot - slotsOfCinderella
+         //=======================//	
+
+		ad = true;    // if i do true - it report as succeed // only one time no multi and also required -> return GetWaitSetting();	
+        //return GetWaitSetting();	
+	
+	
+        //We are good to continue
+        return base.DoSolveFaucet();
+ }
+//==============//
+//DoSolveFaucet
+//==============///
+	
+	
+	
+	
+	
+//==============//
+//AfterSolveFaucet
+//==============//
+  public override int AfterSolveFaucet()
+  {
+
+   //This faucet has nothing to do here. We will let Faucet Collector handle it.
+   return base.AfterSolveFaucet();
+   
+  }
+	
+//==============//
+//AfterSolveFaucet
+//==============//
+
+
+
+    /// <summary>
+    /// This method gets called in the end after the BeforeSolveFaucet/DoSolveFaucet and AfterSolveFaucet methods were done.
+    /// The base.CheckFaucetResult will try to find a visible element on the page using the XPath from SuccessXPath and FailXPath (see the Start method)
+    /// These properties should contain XPath expressions to find certain elements on the page.
+    /// For example if it finds one of the elements from the SuccessXPath, and it is visible, then it will flag the claim attempt as a success.
+    /// Or if it finds one of the elements from the FailXPath, and it is visible, then it will flag the claim attempt as a failure.
+    /// </summary>
+    public override int CheckFaucetResult()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.CheckFaucetResult();
+    }
+
+
+        //=========//
+        //FaucetButton_Function
+		//=========//
+        public void FaucetButton_Function()
+        {	
+        var ButtonLog = ElementByXPath("//li[@class='left faucet']/span[@class='iconfont']");
+        Click(ButtonLog);
+		
+		Wait(2);		
+		}//end FaucetButton_Function
+		//=========//
+		
+		
+        //=========//
+        //Menu_Function
+		//=========//
+        public void Menu_Function()
+        {	
+        Log("Menu_Function");		
+        var MenuVAR = ElementByXPath("//body/section/div/div[1]/div[2]/div/div/div[@class='el-input el-input--suffix']");       			
+        Click(MenuVAR);
+		}//end Menu_Function
+		//=========//
+		
+		
+        //=========//
+        //Claim_Function
+		//=========//
+        public void Claim_Function()
+        {			
+        Log("Claim_Function");
+		
+        var CheckboxRequired = ElementByXPath("//span[@class='el-checkbox__inner'] ");   
+	    if (IsVisible(CheckboxRequired))
+	    { 
+		Log("CheckboxRequired");
+		Click(CheckboxRequired);
+		}
+		
+		Wait(2);
+		
+        var ClaimVAR = ElementByXPath("//div[@class='claim true']");   
+        if (IsVisible(ClaimVAR))
+        {	
+        Log("Claim_Function");	
+        Click(ClaimVAR);
+        }//end ClaimVAR
+		
+		}//end Claim_Function
+		//=========//
+		
+
+    public bool SeeIfThereisColor(Bitmap Image)
+    {
+        bool ContainsColor = false;
+        for(int i = 0; i < Image.Width && ! ContainsColor; i++)
+        {
+            for(int j = 0; j < Image.Height; j++)
+            {
+                if(Image.GetPixel(i,j)!=Color.FromArgb(0,0,0) && Image.GetPixel(i,j)!=Color.FromArgb(255, 255, 255))
+                {
+                    ContainsColor = true;
+                    break;
+                }
+            }
+        }
+
+        return ContainsColor;
+
+    }
+	
+	
+    private IWebElement FindCorrectArrow()
+    {
+        var Arrows = ElementsByXPath("//div[@class='verify-gap']");
+        int n = 0;
+        foreach(var arrow in Arrows)
+        {
+            if(SeeIfThereisColor(TakeScreenshot(Base.Captcha.CaptchaService.Manual,arrow)))
+            {
+                Log("Element is" + n.ToString());
+                return arrow;
+
+            }
+            n++;
+
+        }
+        return null;
+
+    }
+	
+
+        //=========//
+        //SolveCaptcha_RightSquare_Function
+		//=========//
+        public void SolveCaptcha_RightSquare_Function()
+        {	
+		
+        Log("SolveCaptcha_RightSquare_Function");
+		
+        /*
+        GetestCaptchaUtilities.GetestCaptcha getestCaptcha = new GetestCaptchaUtilities.GetestCaptcha(this);
+        bool res2=  getestCaptcha.DoInitSolve();
+        */
+
+        var Arrow = FindCorrectArrow();
+        if(IsVisible(Arrow))
+		{
+            Log("SolveCaptcha_RightSquare_Function - Arrow");	
+
+            var ToMove = ElementByXPath("//div[@class='verify-sub-block']");
+            if (IsVisible(ToMove))
+            {
+                Log("SolveCaptcha_RightSquare_Function - ToMove");	
+                Actions actions = new Actions(Driver);
+                actions.DragAndDrop(ToMove, Arrow).Build().Perform();
+                Wait();
+
+			}
+        }
+	
+		}// end SolveCaptcha_RightSquare_Function
+		//=========//
+
+
+       //=============//
+       //MenuCoins_Faunction
+       //=============// 
+        public void MenuCoins_Faunction()
+        {
+        var MenuCoins = ElementByXPath("//div[1]/div/div/div[@class='el-input el-input--suffix']");   		
+        Click(MenuCoins);	
+		}// end MenuCoins_Faunction
+		//=============// 
+
+       //=============//
+       //MenuCoins_2_Faunction
+       //=============// 
+        public void MenuCoins_2_Faunction()
+        {
+        var MenuCoins = ElementByXPath("//div[2]/div/div[@class='el-input el-input--suffix']");   		
+        Click(MenuCoins);	
+		}// end MenuCoins_2_Faunction
+		//=============// 
+		
+		
+       //=============//
+       //WithdrawEndButton_Faunction
+       //=============// 
+        public void WithdrawEndButton_Faunction()
+        {
+        var WithdrawEndButton = ElementByXPath ("//div[@class='button' and contains(text(),'WITHDRAW') ]"); 
+        Click(WithdrawEndButton);	
+		}// end WithdrawEndButton_Faunction
+		//=============// 	
+
+ 
+       //=============//
+       //CustomReturn_Faunction
+       //=============// 
+        public int CustomReturn_Faunction()
+        {
+			
+        var TextTimeError = ElementByXPath("//p[@class='el-message__content' and contains(text(),'Please') ] "); 
+	    if (IsVisible(TextTimeError))     
+	    {
+		 Log("return UserCustomTimeLimitFaucet");
+         int MyCustomTimeINT;
+         MyCustomTimeINT = GetIntSetting("UserCustomTimeLimitFaucet_input") * 60; 
+         return MyCustomTimeINT;
+	    }		
+		
+		 return 0; // *importent* (otherwise it will not working)
+		 
+		}// end CustomReturn_Faunction
+		//=============// 
+
+
+
+      //=============//
+      //Menu_HomeMainCoinsChoose_Faunction
+      //=============// 
+      public void Menu_HomeMainCoinsChoose_Faunction()
+      {
+
+       var MenuCoinsVAR = GetSetting("MenuDefaultCoin"); 
+	  
+       if(MenuCoinsVAR=="btc")
+       {			
+        MenuCoins_2_Faunction(); //call
+        Wait(2);
+        var btc_w_VAR = ElementByXPath("//div[6]/div[1]/div[1]/ul/li[1]/span");  
+        Click(btc_w_VAR);
+        Wait(2);
+       }
+	   
+       if(MenuCoinsVAR=="doge")
+       {		   
+        MenuCoins_2_Faunction(); //call	
+        Wait(2);	
+        var doge_w_VAR = ElementByXPath("//div[6]/div[1]/div[1]/ul/li[2]/span");   
+        Click(doge_w_VAR);	
+        Wait(2);
+       }
+
+       if(MenuCoinsVAR=="ltc")
+       {	   
+        MenuCoins_2_Faunction(); //call	
+        Wait(2);	
+        var ltc_w_VAR = ElementByXPath("//div[6]/div[1]/div[1]/ul/li[3]/span");   
+        Click(ltc_w_VAR);	
+        Wait(2);
+       }
+	   
+       if(MenuCoinsVAR=="eth")
+       {	   
+        MenuCoins_2_Faunction(); //call	
+        Wait(2);	
+        var eth_w_VAR = ElementByXPath("//div[6]/div[1]/div[1]/ul/li[4]/span");   
+        Click(eth_w_VAR);	
+        Wait(2);
+       }
+	   
+       if(MenuCoinsVAR=="bch")
+       {  
+        MenuCoins_2_Faunction(); //call
+        Wait(2);
+        var bch_w_VAR = ElementByXPath("//div[6]/div[1]/div[1]/ul/li[5]/span");  
+        Click(bch_w_VAR);	
+        Wait(2);
+       }
+	   
+       if(MenuCoinsVAR=="xlm")
+       { 	   
+        MenuCoins_2_Faunction(); //call
+        Wait(2);
+        var xlm_w_VAR = ElementByXPath("//div[6]/div[1]/div[1]/ul/li[6]/span");   
+        Click(xlm_w_VAR);	
+        Wait(2);
+       }
+	   
+       if(MenuCoinsVAR=="xrp")
+       { 	   
+        MenuCoins_2_Faunction(); //call
+        Wait(2);
+        var eos_w_VAR = ElementByXPath("//div[6]/div[1]/div[1]/ul/li[7]/span");   
+        Click(eos_w_VAR);	
+        Wait(2);
+       }
+	   
+       if(MenuCoinsVAR=="dash")
+       { 	   
+        MenuCoins_2_Faunction(); //call
+        Wait(2);
+        var xrp_w_VAR = ElementByXPath("//div[6]/div[1]/div[1]/ul/li[8]/span");   
+        Click(xrp_w_VAR);	
+        Wait(2);
+       }
+	   
+       if(MenuCoinsVAR=="zec")
+       { 	   
+        MenuCoins_2_Faunction(); //call
+        Wait(2);
+        var dash_w_VAR = ElementByXPath("//div[6]/div[1]/div[1]/ul/li[9]/span");   
+        Click(dash_w_VAR);	
+        Wait(2);
+       }
+	   
+       if(MenuCoinsVAR=="usdt")
+       { 	   
+        MenuCoins_2_Faunction(); //call
+        Wait(2);
+        var zec_w_VAR = ElementByXPath("//div[6]/div[1]/div[1]/ul/li[10]/span");   
+        Click(zec_w_VAR);	
+        Wait(2);
+       }
+	   
+       if(MenuCoinsVAR=="bsv")
+       { 	   
+        MenuCoins_2_Faunction(); //call
+        Wait(2);
+        var usdt_w_VAR = ElementByXPath("//div[6]/div[1]/div[1]/ul/li[11]/span"); 
+        Click(usdt_w_VAR);	
+        Wait(2);
+       }
+	   
+       if(MenuCoinsVAR=="btg")
+       { 	   
+        MenuCoins_2_Faunction(); //call
+        Wait(2);
+        var bsv_w_VAR = ElementByXPath("//div[6]/div[1]/div[1]/ul/li[12]/span");  
+        Click(bsv_w_VAR);	
+        Wait(2);
+       }
+	   
+       if(MenuCoinsVAR=="eos")
+       { 	   
+        MenuCoins_2_Faunction(); //call
+        Wait(2);
+        var btg_w_VAR = ElementByXPath("//div[6]/div[1]/div[1]/ul/li[13]/span"); 
+        Click(btg_w_VAR);	
+        Wait(2);
+       }
+	   
+       if(MenuCoinsVAR=="link")
+       { 	   
+        MenuCoins_2_Faunction(); //call
+        Wait(2);
+        var bat_w_VAR = ElementByXPath("//div[6]/div[1]/div[1]/ul/li[14]/span"); 
+        Click(bat_w_VAR);	
+        Wait(2);
+       }
+	   
+       if(MenuCoinsVAR=="bat")
+       { 	   
+        MenuCoins_2_Faunction(); //call
+        Wait(2);
+        var hot_w_VAR = ElementByXPath("//div[6]/div[1]/div[1]/ul/li[15]/span"); 
+        Click(hot_w_VAR);	
+        Wait(2);
+       }
+	   
+       if(MenuCoinsVAR=="omg")
+       { 	   
+        MenuCoins_2_Faunction(); //call
+        Wait(2);
+        var link_w_VAR = ElementByXPath("//div[6]/div[1]/div[1]/ul/li[16]/span"); 
+        Click(link_w_VAR);	
+        Wait(2);
+       }
+	   
+       if(MenuCoinsVAR=="hot")
+       { 	   
+        MenuCoins_2_Faunction(); //call
+        Wait(2);
+        var omg_w_VAR = ElementByXPath("//div[6]/div[1]/div[1]/ul/li[17]/span"); 
+        Click(omg_w_VAR);	
+        Wait(2);
+       }
+	   
+       if(MenuCoinsVAR=="ht")
+       { 	   
+        MenuCoins_2_Faunction(); //call
+        Wait(2);
+        var ht_w_VAR = ElementByXPath("//div[6]/div[1]/div[1]/ul/li[18]/span"); 
+        Click(ht_w_VAR);	
+        Wait(2);
+       }
+	   
+       if(MenuCoinsVAR=="usdc")
+       { 	   
+        MenuCoins_2_Faunction(); //call
+        Wait(2);
+        var usdc_w_VAR = ElementByXPath("//div[6]/div[1]/div[1]/ul/li[19]/span"); 
+        Click(usdc_w_VAR);	
+        Wait(2);
+       }
+	   
+       if(MenuCoinsVAR=="tusd")
+       { 	   
+        MenuCoins_2_Faunction(); //call
+        Wait(2);
+        var tusd_w_VAR = ElementByXPath("//div[6]/div[1]/div[1]/ul/li[20]/span"); 
+        Click(tusd_w_VAR);	
+        Wait(2);
+       }
+	   
+       if(MenuCoinsVAR=="pax")
+       { 	   
+        MenuCoins_2_Faunction(); //call
+        Wait(2);
+        var pax_w_VAR = ElementByXPath("//div[6]/div[1]/div[1]/ul/li[21]/span"); 
+        Click(pax_w_VAR);	
+        Wait(2);
+       }
+	   
+      } // end Menu_HomeMainCoinsChoose_Faunction
+	   
+
+
+       //=============//
+       //AllSlotsGames_Function
+       //=============// 
+        public void AllSlotsGames_Function()
+        {
+
+        Menu_HomeMainCoinsChoose_Faunction(); // call to main Menu_HomeMainCoinsChoose_Faunction to Choose default coin
+
+		Wait();		
+		Wait(2);			
+        var HotKeys_Start = ElementByXPath ("//span[@class='iconfont four']");  
+	    if (IsVisible(HotKeys_Start))     
+	    {
+        Click(HotKeys_Start);
+        Log("HotKeys_Start");		
+		}
+		
+		Wait();		
+		Wait(2);
+		
+        var HotKeys_Enable = ElementByXPath ("//span[@class='el-switch__label el-switch__label--right is-active']");  
+        var HotKeys_Disable = ElementByXPath ("//span[@class='el-switch__label el-switch__label--right']");        
+		var HotKeys_Button = ElementByXPath ("//span[@class='el-switch__core']");  
+		var HotKeys_CloseWindow = ElementByXPath ("//span[@class='el-switch__core']");  
+
+	    if (IsVisible(HotKeys_Enable)) //if already active 
+	    {
+         Log("HotKeys_Enable - already acrive/Enable");	
+		}		
+
+	    if (IsVisible(HotKeys_Disable)) //if already active 
+	    {
+         Click(HotKeys_Button); 
+         Log("HotKeys_Disable - Clice on the HotKeys_Button to Enable the HotKeys");
+		}	
+		
+		//Wait(2);
+	    //Click(HotKeys_CloseWindow); 
+        //Log("HotKeys_CloseWindow");
+		
+		Wait();			
+		Wait(2);	
+		
+		Driver.Navigate().Refresh();
+		
+		Wait(2);
+
+        var Slot_Amount_VAR = ElementByXPath("//input[@id='bet_amount']") ; //Slot_Amount - default set to 0.00000001
+        SetText(Slot_Amount_VAR, GetSetting("Slot_Amount"));
+        Log("Slot_Amount_VAR");		
+		
+		Wait(2);
+
+        var Slot_Lines_VAR = ElementByXPath("//input[@id='numHands']") ; //Slot_Lines - default set to 1
+        SetText(Slot_Lines_VAR, GetSetting("Slot_Lines"));					
+        Log("Slot_Lines_VAR");
+		
+		
+        //========//
+        //Click - Enter Keyboard
+        //========//
+        var ElementToEnter = ElementByClass("input-2VB9rf");
+        Actions BuilderAct = new Actions(Driver);
+        BuilderAct.MoveToElement(ElementToEnter).Build().Perform(); 
+        Wait(3);
+        BuilderAct.SendKeys(Keys.Space).Build().Perform();  // space
+        Log("ElementToEnter");
+		
+		Wait();		
+		Wait(2);	
+		
+		}// end WithdrawEndButton_Faunction
+		//=============// 	
+
+	
+} //end public class
+

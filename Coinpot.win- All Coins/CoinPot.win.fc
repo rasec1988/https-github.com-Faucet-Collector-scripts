@@ -1,0 +1,3250 @@
+﻿
+//============================//
+// * CoinPot.win - script made * //
+//============================//
+
+//==========//
+//first time: by ••cgerabit•• 
+//•Menu style (ClaimFaucet - menu with standby time separately
+//•Menu Time (Claim every 15/30/60) 
+//•write the all solutions of Captchas
+//==========//
+
+//==========//
+//last time update: by ••AviramDayan••
+//•Deep style Checkbox (ClaimFaucet - One after a nother) + features  
+//•Auto Game - all coins
+//•Auto Exchange - all coins to Bitcoin 
+//•Auto Withdraw - Bitcoin (when the account reaches to 10000 Satoshi)
+//•AutoDisableScript
+//==========//
+
+//================//
+//================//
+
+
+using System;
+using System.Drawing;
+using System.IO;
+using FaucetCollector.Script;
+using OpenQA.Selenium;
+using OpenQA.Selenium.Interactions;
+
+public class Coinpot : FaucetScript
+{
+    /// <summary>
+    /// List of Settings that will be shown in the bot when selecting this Faucet in the bot.
+    /// You can get the value the user entered with the methods: GetSetting("[Name of the FaucetSetting]"), GetBoolSetting and GetDateTimeSetting
+    /// You can also create a new setting value using SetSetting("[Name you want to use]", "value")
+    /// </summary>
+    public override FaucetSettings Settings
+    {
+        get
+        {
+            return new FaucetSettings("http://coinpot.win/")
+            {
+               new FaucetSetting(){Name="User",Display="Username",Type=EditorType.TextBox,Required=true },
+               new FaucetSetting(){Name="Pass",Display="Password",Type=EditorType.Password,Required=true},		   
+               new FaucetSetting(){Name="AutoDisableScript",Display="Auto Disable script - if its checked the script automatically Disabled",Type=EditorType.CheckBox,Default=false},
+ 
+               new FaucetSetting(){Name="ExchangeAllCoinsToBitcoin",Display="Auto Exchange - all coins to Bitcoin",Type=EditorType.CheckBox,Default=true},
+               //new FaucetSetting(){Name="AutoWithdrawBitcoin",Display="Auto Withdraw Bitcoin - (when your account reaches to 10000 Satoshi)",Type=EditorType.CheckBox,Default=true},
+				   
+               new FaucetSetting(){Name="Time",Display="Claim every",Type=EditorType.ComboBox,Default="15 minutes",Items=new System.Collections.Generic.List<string>{"15 minutes","30 minutes","60 minutes"} },
+		
+               new FaucetSetting(){Name="FaucetClaim Bitcore",Display="Faucet Claim - Bitcore",Type=EditorType.CheckBox,Default=true},
+               new FaucetSetting(){Name="FaucetClaim Potcoin",Display="Faucet Claim - Potcoin",Type=EditorType.CheckBox,Default=true},
+               new FaucetSetting(){Name="FaucetClaim Bitcoin",Display="Faucet Claim - Bitcoin",Type=EditorType.CheckBox,Default=true},
+               new FaucetSetting(){Name="FaucetClaim Dogecoin",Display="Faucet Claim - Dogecoin",Type=EditorType.CheckBox,Default=true},
+               new FaucetSetting(){Name="FaucetClaim Dashcoin",Display="Faucet Claim - Dashcoin",Type=EditorType.CheckBox,Default=true},
+               new FaucetSetting(){Name="FaucetClaim Blackcoin",Display="Faucet Claim - Blackcoin",Type=EditorType.CheckBox,Default=true},
+               new FaucetSetting(){Name="FaucetClaim Peercoin",Display="Faucet Claim - Peercoin",Type=EditorType.CheckBox,Default=true},
+               new FaucetSetting(){Name="FaucetClaim Primecoin",Display="Faucet Claim - Primecoin",Type=EditorType.CheckBox,Default=true},
+               new FaucetSetting(){Name="FaucetClaim Litecoin",Display="Faucet Claim - Litecoin",Type=EditorType.CheckBox,Default=true},
+               new FaucetSetting(){Name="FaucetClaim Ethereum",Display="Faucet Claim - Ethereum",Type=EditorType.CheckBox,Default=true},
+               new FaucetSetting(){Name="FaucetClaim BitcoinCash",Display="Faucet Claim - BitcoinCash",Type=EditorType.CheckBox,Default=true},
+
+               new FaucetSetting(){Name="AutSpinGame Bitcore",Display="Auto Spin Game - 2 spins - Bitcore",Type=EditorType.CheckBox,Default=false},
+               new FaucetSetting(){Name="AutSpinGame Potcoin",Display="Auto Spin Game - 2 spins - Potcoin",Type=EditorType.CheckBox,Default=false},
+               new FaucetSetting(){Name="AutSpinGame Bitcoin",Display="Auto Spin Game - 2 spins - Bitcoin",Type=EditorType.CheckBox,Default=false},
+               new FaucetSetting(){Name="AutSpinGame Dogecoin",Display="Auto Spin Game - 2 spins - Dogecoin",Type=EditorType.CheckBox,Default=false},
+               new FaucetSetting(){Name="AutSpinGame Dashcoin",Display="Auto Spin Game - 2 spins - Dashcoin",Type=EditorType.CheckBox,Default=false},
+               new FaucetSetting(){Name="AutSpinGame Blackcoin",Display="Auto Spin Game - 2 spins - Blackcoin",Type=EditorType.CheckBox,Default=false},
+               new FaucetSetting(){Name="AutSpinGame Peercoin",Display="Auto Spin Game - 2 spins - Peercoin",Type=EditorType.CheckBox,Default=false},
+               new FaucetSetting(){Name="AutSpinGame Primecoin",Display="Auto Spin Game - 2 spins - Primecoin",Type=EditorType.CheckBox,Default=false},
+               new FaucetSetting(){Name="AutSpinGame Litecoin",Display="Auto Spin Game - 2 spins - Litecoin",Type=EditorType.CheckBox,Default=false},
+               new FaucetSetting(){Name="AutSpinGame Ethereum",Display="Auto Spin Game - 2 spins - Ethereum",Type=EditorType.CheckBox,Default=false},
+               new FaucetSetting(){Name="AutSpinGame BitcoinCash",Display="Auto Spin Game - 2 spins - BitcoinCash",Type=EditorType.CheckBox,Default=false},
+			   
+
+			   
+                //insert user settings here
+                //new FaucetSetting { 
+                //    Name = "Name of your setting", 
+                //    Display = "Display shown in Faucet Collector", 
+                //    Type = EditorType.TextBox | EditorType.Password | EditorType.CheckBox | EditorType.Wallet | EditorType.Numeric | EditorType.ComboBox | EditorType.CheckComboBox, 
+                //    Required = true | false, 
+                //    Default = "Optionally a default value" | true | false | null.
+                //    Items = new List<string> { "item1", "item2" } (only valid for ComboBox or CheckComboBox)
+                //} 
+            };
+        }
+    }
+	
+	
+
+    /// <summary>
+    /// This method gets called when the faucet is enabled and the GO button is clicked
+    /// </summary>
+    public override void Start()
+    {
+        //Title that shows in the browser. Is used to identify and close popup windows
+        Title = "CoinPOT";
+
+        //After we did try to claim on the faucet we search for these elements to determine if it was a success or a fail
+        SuccessXPath = "//div[@class='alert alert-success']";
+        FailXPath = "//div[@class='alert alert-warning']";
+
+		TimerIsCountingUp = true;
+		
+        //Let Faucet Collector start up everything
+        base.Start();
+    }
+
+	
+
+	
+	//loop
+    public static bool cs;
+	
+	
+
+	
+	
+    /// <summary>
+    /// This is the first method to run after the browser is opened and the first page is loaded.
+    /// </summary>
+	
+    public override int DoInit()
+    {
+        cs = false;
+        //Let Faucet Collector continue.
+        return base.DoInit();
+    }
+
+
+
+//==================//
+//save Login Cookies 
+//==================//
+    public override bool IsLoggedIn()
+    {
+//when you are logout - if the button "PAYMENT ORDER" not found
+//so 
+//when you are login //save login Cookies
+   return ElementByXPath("//span[@class='badge top-left']") != null;
+    }
+//==================//
+//save Login Cookies 
+//==================//
+
+	
+	
+	
+	
+    /// <summary>
+    /// This method gets called if IsLoggedIn returned false, right before the DoLogin method is called.
+    /// </summary>
+    public override int BeforeLogin()
+    {
+		
+		//Auto Disable script - if its checked the script automatically Disabled
+	    if (GetBoolSetting("AutoDisableScript"))
+        {
+        Disable();
+        return 1;
+        }
+		
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeLogin();
+    }
+
+	
+	
+	
+	
+    /// <summary>
+    /// This method gets called after BeforeLogin, but only if IsLoggedIn returned false.
+    /// It can be used to actually login the user/enter wallet details in the faucet
+    /// </summary>
+    /// <returns></returns>
+    public override int DoLogin()
+    {
+
+        GoToUrl("http://coinpot.win/login");
+
+        Wait();
+		
+        var Box_user = ElementByXPath("//input[@placeholder='Email or Username']");
+        if (!IsVisible(Box_user))
+        {
+            return Fail("Box user not visible");
+        }
+        SetText(Box_user, GetSetting("User"));
+		
+        var Box_pass = ElementByXPath("//input[@placeholder='Password']");
+        if (!IsVisible(Box_pass))
+        {
+            return Fail("Pass box not visible");
+        }
+        SetText(Box_pass, GetPassword("Pass"));
+		
+        Wait();
+		
+        var result = DoSolveCaptcha();
+        if (result > 0)
+        {
+            return Fail("Fail solve captcha");
+        }
+		
+        Wait();
+
+        var ButtonLogin = ElementByXPath("//input[@class='btn btn-lg btn-default btn-icon-text waves-effect']");
+        if (!IsVisible(ButtonLogin))
+        {
+            return Fail("Button not found");
+        }
+        Click(ButtonLogin);
+		
+
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoLogin();
+    }
+
+	
+	
+    /// <summary>
+    /// This method gets called after the DoLogin method.
+    /// </summary>
+    public override int AfterLogin()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterLogin();
+    }
+	
+	
+	
+	
+    /// <summary>
+    /// This method gets called after the login methods are successful, so we are logged into the faucet.
+    /// If the faucet is not yet ready to claim you should return a TimeStamp value to return how long it takes before the Faucet claim can be done.
+    /// This is used to pause the script while the faucet its timer runs out.
+    /// </summary>
+    public override int GetFaucetWaitTime()
+    {
+
+		//Faucet Collector - will wait 1 hour - 3600 sec - for next claim
+        if (cs)
+        {
+
+            return 36 * 60;
+        }
+
+        //0 mean let Faucet Collector continue.
+        return 0;
+		
+		//let Faucet Collector continue.
+        return base.GetFaucetWaitTime();
+    }
+
+	
+	
+	
+    /// <summary>
+    /// This method is called right before a captcha will be solved. 
+    /// If you call SolveCaptcha() in other methods it will start this flow and tries to solve the captcha on the page.
+    /// </summary>
+    public override int BeforeSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeSolveCaptcha();
+    }
+
+	
+	
+    /// <summary>
+    /// This method gets called after BeforeSolveCaptcha and it does the actual captcha solving
+    /// It will automatically try to see if there is a SolveMedia captcha active or a reCAPTCHA active. 
+    /// If it finds either one it will then use the selected method on the Captcha tab of FaucetCollector to solve the Captcha.
+    /// </summary>
+    public override int DoSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoSolveCaptcha();
+    }
+
+	
+	
+	
+    /// <summary>
+    /// This method will get called after DoSolveCaptcha returned it was a success.
+    /// </summary>
+    /// <returns></returns>
+    public override int AfterSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterSolveCaptcha();
+    }
+
+	
+	
+	
+	
+//==================//
+//Start BeforeSolveFaucet
+//==================//
+ public override int BeforeSolveFaucet()
+ {
+
+
+
+		
+ //This faucet has nothing to do here. We will let Faucet Collector handle it.
+ return base.BeforeSolveCaptcha();
+ }
+//==================//
+//end BeforeSolveFaucet
+//==================//
+	
+	
+	
+	
+	
+	
+	
+	
+//==================//
+//Start DoSolveFaucet
+//==================//
+ public override int DoSolveFaucet()
+ {
+	 
+    //==========================//
+    //General time checks
+    var kkc_sec = ElementByXPath("//span[@class='kkcount-down-1 one-day']//span[@class='kkcountdown-box']//span[@class='kkc-sec']");
+    var kkc_min = ElementByXPath("//span[@class='kkcount-down-1 one-day']//span[@class='kkcountdown-box']//span[@class='kkc-min']");
+    var kkc_hr = ElementByXPath("//span[@class='kkcount-down-1 one-day']//span[@class='kkcountdown-box']//span[@class='kkc-godz']");
+
+    //general menu time 15/30/60 min
+    var minutes = GetSetting("Time");
+    //==========================//
+
+    //==========================//
+	//* Faucet Claim - Bitcore * //
+	//==========================//
+    if (GetBoolSetting("FaucetClaim Bitcore"))
+    {
+		
+    GoToUrl("http://coinpot.win/faucet/bitcore");
+	Log("Bitcore Faucet - go to page");
+	Wait(8);
+	
+	
+	   //=============================================//
+	   //only apper here in - Bitcore - Faucet Claim //
+	   //=============================================//
+      // * catch the time if it apper * //
+      if(IsVisible(kkc_sec) && IsVisible(kkc_min) && IsVisible(kkc_hr))
+      {
+	   
+       try 
+	   {
+       var sec = Convert.ToInt32(kkc_sec.Text);
+       var min = Convert.ToInt32(kkc_min.Text) * 60;
+       var hr = Convert.ToInt32(kkc_hr.Text) * 3600;
+       return sec + min + hr;
+       }
+	
+       catch (Exception)
+       {
+	   Log("Bitcore Faucet - wait - we return after 15 min, or less.");   
+       return 900;
+       }
+
+      }
+	  //==================//
+  
+  
+      //* menu time 15/30/60 min * //
+      if(minutes=="15 minutes")
+      {
+      var toggle = ElementByXPath("//a[@class='btn btn-default dropdown-toggle']");
+      Click(toggle);
+      Wait();
+      var m15 = ElementByXPath("//a[contains(text(),'15 minutes')]");
+	  Log("Bitcore Faucet - click on the menu 15 min");  
+      Click(m15);
+      }
+		
+      if(minutes=="30 minutes")
+      {
+      var toggle = ElementByXPath("//a[@class='btn btn-default dropdown-toggle']");
+      Click(toggle);
+      Wait();
+      var m30 = ElementByXPath("//a[contains(text(),'30 minutes')]");
+	  Log("Bitcore Faucet - click on the menu 30 min");  
+      Click(m30);
+      }
+		
+      if(minutes=="60 minutes")
+      {
+      var toggle = ElementByXPath("//a[@class='btn btn-default dropdown-toggle']");
+      Click(toggle);
+      Wait();
+      var m60 = ElementByXPath("//a[contains(text(),'60 minutes')]");
+	  Log("Bitcore Faucet - click on the menu 60 min");  
+      Click(m60);
+      }
+	  //==================//
+	
+	
+	  Wait(8);
+	    
+		  
+		//====================//
+		// "SolveMedia" Captcha
+		//====================//
+        var capt = ElementByXPath("//div[@id='adcopy-outer']");
+        if (IsVisible(capt))
+        {
+
+            Wait();
+	        Log("Bitcore Faucet - solve - SolveMedia or ReCaptcha"); 
+            var result = SolveCaptcha();
+            if (result > 0)
+            {
+                return Fail("Fail Solve faucet");
+            }
+        }
+		//====================//
+		
+	
+		//====================//
+		// "Slider" Captcha 
+		//====================//		
+        else
+        {
+			
+		Wait(7);
+
+            var slider = ElementByXPath("//div[@id='captchmeslider']");
+            if (IsVisible(slider))
+            {
+	            Log("Bitcore Faucet - solve - Slider Captcha"); 
+                Actions move = new Actions(Driver).DragAndDropToOffset(slider, 200, 0);
+                move.Perform();
+            }
+            else
+            {
+                return Fail("Bitcore Faucet - Fail to solve - Slider Captcha");
+            }
+
+        }
+		//====================//
+		
+		
+        Wait(7);
+		
+		
+		//====================//
+		// "Solve Icon" Captcha
+		//====================//
+        var icon_c = ElementByXPath("//div[@id='captcha-holder']");
+        if (IsVisible(icon_c))
+        {
+            bool result_2 = Solveicon();	            
+			Log("Bitcore Faucet - solve - Solve Icon Captcha"); 
+            if (result_2)
+            {
+                var button2 = ElementByXPath("//*[@id='captcha_display']/p/input"); //input[@type='submit']
+			    Log("Bitcore Faucet - Click on the Faucet Button"); 
+                Wait(2, 5);
+                Wait(1,3);
+                Click(button2);
+                Wait(2, 5);
+            }
+            else
+            {
+                return Fail("Bitcore Faucet - Fail to solve - Solve Icon Captcha");
+            }
+        }
+		//====================//
+
+	
+		//else - Click on the Faucet Button
+        else
+        {
+            Wait(2, 5);
+			Log("Bitcore Faucet - Click on the Faucet Button"); 
+            var button2 = ElementByXPath("//*[@id='captcha_display']/p/input"); //input[@type='submit']
+            Click(button2);
+            Wait(2, 5);
+        }
+		//====================//
+
+	} // end Bitcore
+	//======================//
+	
+	
+
+
+    //==========================//
+	//* Faucet Claim - Potcoin * //
+	//==========================//
+    if (GetBoolSetting("FaucetClaim Potcoin"))
+    {
+		
+    GoToUrl("http://coinpot.win/faucet/potcoin");
+	Log("Potcoin Faucet - go to page");
+	Wait(8);
+
+  
+      //* menu time 15/30/60 min * //
+      if(minutes=="15 minutes")
+      {
+      var toggle = ElementByXPath("//a[@class='btn btn-default dropdown-toggle']");
+      Click(toggle);
+      Wait();
+      var m15 = ElementByXPath("//a[contains(text(),'15 minutes')]");
+	  Log("Potcoin Faucet - click on the menu 15 min");  
+      Click(m15);
+      }
+		
+      if(minutes=="30 minutes")
+      {
+      var toggle = ElementByXPath("//a[@class='btn btn-default dropdown-toggle']");
+      Click(toggle);
+      Wait();
+      var m30 = ElementByXPath("//a[contains(text(),'30 minutes')]");
+	  Log("Potcoin Faucet - click on the menu 30 min");  
+      Click(m30);
+      }
+		
+      if(minutes=="60 minutes")
+      {
+      var toggle = ElementByXPath("//a[@class='btn btn-default dropdown-toggle']");
+      Click(toggle);
+      Wait();
+      var m60 = ElementByXPath("//a[contains(text(),'60 minutes')]");
+	  Log("Potcoin Faucet - click on the menu 60 min");  
+      Click(m60);
+      }
+	  //==================//
+	
+	
+	  Wait(8);
+	    
+		  
+		//====================//
+		// "SolveMedia" Captcha
+		//====================//
+        var capt = ElementByXPath("//div[@id='adcopy-outer']");
+        if (IsVisible(capt))
+        {
+
+            Wait();
+	        Log("Potcoin Faucet - solve - SolveMedia or ReCaptcha"); 
+            var result = SolveCaptcha();
+            if (result > 0)
+            {
+                return Fail("Fail Solve faucet");
+            }
+        }
+		//====================//
+		
+	
+		//====================//
+		// "Slider" Captcha 
+		//====================//		
+        else
+        {
+			
+		Wait(7);
+
+            var slider = ElementByXPath("//div[@id='captchmeslider']");
+            if (IsVisible(slider))
+            {
+	            Log("Potcoin Faucet - solve - Slider Captcha"); 
+                Actions move = new Actions(Driver).DragAndDropToOffset(slider, 200, 0);
+                move.Perform();
+            }
+            else
+            {
+                return Fail("Potcoin Faucet - Fail to solve - Slider Captcha");
+            }
+
+        }
+		//====================//
+		
+		
+        Wait(7);
+		
+		
+		//====================//
+		// "Solve Icon" Captcha
+		//====================//
+        var icon_c = ElementByXPath("//div[@id='captcha-holder']");
+        if (IsVisible(icon_c))
+        {
+            bool result_2 = Solveicon();	            
+			Log("Potcoin Faucet - solve - Solve Icon Captcha"); 
+            if (result_2)
+            {
+                var button2 = ElementByXPath("//*[@id='captcha_display']/p/input"); //input[@type='submit']
+			    Log("Potcoin Faucet - Click on the Faucet Button"); 
+                Wait(2, 5);
+                Wait(1,3);
+                Click(button2);
+                Wait(2, 5);
+            }
+            else
+            {
+                return Fail("Potcoin Faucet - Fail to solve - Solve Icon Captcha");
+            }
+        }
+		//====================//
+
+	
+		//else - Click on the Faucet Button
+        else
+        {
+            Wait(2, 5);
+			Log("Potcoin Faucet - Click on the Faucet Button"); 
+            var button2 = ElementByXPath("//*[@id='captcha_display']/p/input"); //input[@type='submit']
+            Click(button2);
+            Wait(2, 5);
+        }
+		//====================//
+
+	} // end Potcoin
+	//======================//
+	
+
+
+    //==========================//
+	//* Faucet Claim - Bitcoin * //
+	//==========================//
+    if (GetBoolSetting("FaucetClaim Bitcoin"))
+    {
+		
+    GoToUrl("http://coinpot.win/faucet/bitcoin");
+	Log("Bitcoin Faucet - go to page");
+	Wait(8);
+
+  
+      //* menu time 15/30/60 min * //
+      if(minutes=="15 minutes")
+      {
+      var toggle = ElementByXPath("//a[@class='btn btn-default dropdown-toggle']");
+      Click(toggle);
+      Wait();
+      var m15 = ElementByXPath("//a[contains(text(),'15 minutes')]");
+	  Log("Bitcoin Faucet - click on the menu 15 min");  
+      Click(m15);
+      }
+		
+      if(minutes=="30 minutes")
+      {
+      var toggle = ElementByXPath("//a[@class='btn btn-default dropdown-toggle']");
+      Click(toggle);
+      Wait();
+      var m30 = ElementByXPath("//a[contains(text(),'30 minutes')]");
+	  Log("Bitcoin Faucet - click on the menu 30 min");  
+      Click(m30);
+      }
+		
+      if(minutes=="60 minutes")
+      {
+      var toggle = ElementByXPath("//a[@class='btn btn-default dropdown-toggle']");
+      Click(toggle);
+      Wait();
+      var m60 = ElementByXPath("//a[contains(text(),'60 minutes')]");
+	  Log("Bitcoin Faucet - click on the menu 60 min");  
+      Click(m60);
+      }
+	  //==================//
+	
+	
+	  Wait(8);
+	    
+		  
+		//====================//
+		// "SolveMedia" Captcha
+		//====================//
+        var capt = ElementByXPath("//div[@id='adcopy-outer']");
+        if (IsVisible(capt))
+        {
+
+            Wait();
+	        Log("Bitcoin Faucet - solve - SolveMedia or ReCaptcha"); 
+            var result = SolveCaptcha();
+            if (result > 0)
+            {
+                return Fail("Fail Solve faucet");
+            }
+        }
+		//====================//
+		
+	
+		//====================//
+		// "Slider" Captcha 
+		//====================//		
+        else
+        {
+			
+		Wait(7);
+
+            var slider = ElementByXPath("//div[@id='captchmeslider']");
+            if (IsVisible(slider))
+            {
+	            Log("Bitcoin Faucet - solve - Slider Captcha"); 
+                Actions move = new Actions(Driver).DragAndDropToOffset(slider, 200, 0);
+                move.Perform();
+            }
+            else
+            {
+                return Fail("Bitcoin Faucet - Fail to solve - Slider Captcha");
+            }
+
+        }
+		//====================//
+		
+		
+        Wait(7);
+		
+		
+		//====================//
+		// "Solve Icon" Captcha
+		//====================//
+        var icon_c = ElementByXPath("//div[@id='captcha-holder']");
+        if (IsVisible(icon_c))
+        {
+            bool result_2 = Solveicon();	            
+			Log("Bitcoin Faucet - solve - Solve Icon Captcha"); 
+            if (result_2)
+            {
+                var button2 = ElementByXPath("//*[@id='captcha_display']/p/input"); //input[@type='submit']
+			    Log("Bitcoin Faucet - Click on the Faucet Button"); 
+                Wait(2, 5);
+                Wait(1,3);
+                Click(button2);
+                Wait(2, 5);
+            }
+            else
+            {
+                return Fail("Bitcoin Faucet - Fail to solve - Solve Icon Captcha");
+            }
+        }
+		//====================//
+
+	
+		//else - Click on the Faucet Button
+        else
+        {
+            Wait(2, 5);
+			Log("Bitcoin Faucet - Click on the Faucet Button"); 
+            var button2 = ElementByXPath("//*[@id='captcha_display']/p/input"); //input[@type='submit']
+            Click(button2);
+            Wait(2, 5);
+        }
+		//====================//
+
+	} // end Bitcoin
+	//======================//
+
+
+    //==========================//
+	//* Faucet Claim - Dogecoin * //
+	//==========================//
+    if (GetBoolSetting("FaucetClaim Dogecoin"))
+    {
+		
+    GoToUrl("http://coinpot.win/faucet/dogecoin");
+	Log("Dogecoin Faucet - go to page");
+	Wait(8);
+
+  
+      //* menu time 15/30/60 min * //
+      if(minutes=="15 minutes")
+      {
+      var toggle = ElementByXPath("//a[@class='btn btn-default dropdown-toggle']");
+      Click(toggle);
+      Wait();
+      var m15 = ElementByXPath("//a[contains(text(),'15 minutes')]");
+	  Log("Dogecoin Faucet - click on the menu 15 min");  
+      Click(m15);
+      }
+		
+      if(minutes=="30 minutes")
+      {
+      var toggle = ElementByXPath("//a[@class='btn btn-default dropdown-toggle']");
+      Click(toggle);
+      Wait();
+      var m30 = ElementByXPath("//a[contains(text(),'30 minutes')]");
+	  Log("Dogecoin Faucet - click on the menu 30 min");  
+      Click(m30);
+      }
+		
+      if(minutes=="60 minutes")
+      {
+      var toggle = ElementByXPath("//a[@class='btn btn-default dropdown-toggle']");
+      Click(toggle);
+      Wait();
+      var m60 = ElementByXPath("//a[contains(text(),'60 minutes')]");
+	  Log("Dogecoin Faucet - click on the menu 60 min");  
+      Click(m60);
+      }
+	  //==================//
+	
+	
+	  Wait(8);
+	    
+		  
+		//====================//
+		// "SolveMedia" Captcha
+		//====================//
+        var capt = ElementByXPath("//div[@id='adcopy-outer']");
+        if (IsVisible(capt))
+        {
+
+            Wait();
+	        Log("Dogecoin Faucet - solve - SolveMedia or ReCaptcha"); 
+            var result = SolveCaptcha();
+            if (result > 0)
+            {
+                return Fail("Fail Solve faucet");
+            }
+        }
+		//====================//
+		
+	
+		//====================//
+		// "Slider" Captcha 
+		//====================//		
+        else
+        {
+			
+		Wait(7);
+
+            var slider = ElementByXPath("//div[@id='captchmeslider']");
+            if (IsVisible(slider))
+            {
+	            Log("Dogecoin Faucet - solve - Slider Captcha"); 
+                Actions move = new Actions(Driver).DragAndDropToOffset(slider, 200, 0);
+                move.Perform();
+            }
+            else
+            {
+                return Fail("Dogecoin Faucet - Fail to solve - Slider Captcha");
+            }
+
+        }
+		//====================//
+		
+		
+        Wait(7);
+		
+		
+		//====================//
+		// "Solve Icon" Captcha
+		//====================//
+        var icon_c = ElementByXPath("//div[@id='captcha-holder']");
+        if (IsVisible(icon_c))
+        {
+            bool result_2 = Solveicon();	            
+			Log("Dogecoin Faucet - solve - Solve Icon Captcha"); 
+            if (result_2)
+            {
+                var button2 = ElementByXPath("//*[@id='captcha_display']/p/input"); //input[@type='submit']
+			    Log("Dogecoin Faucet - Click on the Faucet Button"); 
+                Wait(2, 5);
+                Wait(1,3);
+                Click(button2);
+                Wait(2, 5);
+            }
+            else
+            {
+                return Fail("Dogecoin Faucet - Fail to solve - Solve Icon Captcha");
+            }
+        }
+		//====================//
+
+	
+		//else - Click on the Faucet Button
+        else
+        {
+            Wait(2, 5);
+			Log("Dogecoin Faucet - Click on the Faucet Button"); 
+            var button2 = ElementByXPath("//*[@id='captcha_display']/p/input"); //input[@type='submit']
+            Click(button2);
+            Wait(2, 5);
+        }
+		//====================//
+
+	} // end Dogecoin
+	//======================//
+ 
+
+    //==========================//
+	//* Faucet Claim - Dashcoin * //
+	//==========================//
+    if (GetBoolSetting("FaucetClaim Dashcoin"))
+    {
+		
+    GoToUrl("http://coinpot.win/faucet/dashcoin");
+	Log("Dashcoin Faucet - go to page");
+	Wait(8);
+
+  
+      //* menu time 15/30/60 min * //
+      if(minutes=="15 minutes")
+      {
+      var toggle = ElementByXPath("//a[@class='btn btn-default dropdown-toggle']");
+      Click(toggle);
+      Wait();
+      var m15 = ElementByXPath("//a[contains(text(),'15 minutes')]");
+	  Log("Dashcoin Faucet - click on the menu 15 min");  
+      Click(m15);
+      }
+		
+      if(minutes=="30 minutes")
+      {
+      var toggle = ElementByXPath("//a[@class='btn btn-default dropdown-toggle']");
+      Click(toggle);
+      Wait();
+      var m30 = ElementByXPath("//a[contains(text(),'30 minutes')]");
+	  Log("Dashcoin Faucet - click on the menu 30 min");  
+      Click(m30);
+      }
+		
+      if(minutes=="60 minutes")
+      {
+      var toggle = ElementByXPath("//a[@class='btn btn-default dropdown-toggle']");
+      Click(toggle);
+      Wait();
+      var m60 = ElementByXPath("//a[contains(text(),'60 minutes')]");
+	  Log("Dashcoin Faucet - click on the menu 60 min");  
+      Click(m60);
+      }
+	  //==================//
+	
+	
+	  Wait(8);
+	    
+		  
+		//====================//
+		// "SolveMedia" Captcha
+		//====================//
+        var capt = ElementByXPath("//div[@id='adcopy-outer']");
+        if (IsVisible(capt))
+        {
+
+            Wait();
+	        Log("Dashcoin Faucet - solve - SolveMedia or ReCaptcha"); 
+            var result = SolveCaptcha();
+            if (result > 0)
+            {
+                return Fail("Fail Solve faucet");
+            }
+        }
+		//====================//
+		
+	
+		//====================//
+		// "Slider" Captcha 
+		//====================//		
+        else
+        {
+			
+		Wait(7);
+
+            var slider = ElementByXPath("//div[@id='captchmeslider']");
+            if (IsVisible(slider))
+            {
+	            Log("Dashcoin Faucet - solve - Slider Captcha"); 
+                Actions move = new Actions(Driver).DragAndDropToOffset(slider, 200, 0);
+                move.Perform();
+            }
+            else
+            {
+                return Fail("Dashcoin Faucet - Fail to solve - Slider Captcha");
+            }
+
+        }
+		//====================//
+		
+		
+        Wait(7);
+		
+		
+		//====================//
+		// "Solve Icon" Captcha
+		//====================//
+        var icon_c = ElementByXPath("//div[@id='captcha-holder']");
+        if (IsVisible(icon_c))
+        {
+            bool result_2 = Solveicon();	            
+			Log("Dashcoin Faucet - solve - Solve Icon Captcha"); 
+            if (result_2)
+            {
+                var button2 = ElementByXPath("//*[@id='captcha_display']/p/input"); //input[@type='submit']
+			    Log("Dashcoin Faucet - Click on the Faucet Button"); 
+                Wait(2, 5);
+                Wait(1,3);
+                Click(button2);
+                Wait(2, 5);
+            }
+            else
+            {
+                return Fail("Dashcoin Faucet - Fail to solve - Solve Icon Captcha");
+            }
+        }
+		//====================//
+
+	
+		//else - Click on the Faucet Button
+        else
+        {
+            Wait(2, 5);
+			Log("Dashcoin Faucet - Click on the Faucet Button"); 
+            var button2 = ElementByXPath("//*[@id='captcha_display']/p/input"); //input[@type='submit']
+            Click(button2);
+            Wait(2, 5);
+        }
+		//====================//
+
+	} // end Dashcoin
+	//======================//
+
+
+
+    //==========================//
+	//* Faucet Claim - Blackcoin * //
+	//==========================//
+    if (GetBoolSetting("FaucetClaim Blackcoin"))
+    {
+		
+    GoToUrl("http://coinpot.win/faucet/blackcoin");
+	Log("Blackcoin Faucet - go to page");
+	Wait(8);
+
+  
+      //* menu time 15/30/60 min * //
+      if(minutes=="15 minutes")
+      {
+      var toggle = ElementByXPath("//a[@class='btn btn-default dropdown-toggle']");
+      Click(toggle);
+      Wait();
+      var m15 = ElementByXPath("//a[contains(text(),'15 minutes')]");
+	  Log("Blackcoin Faucet - click on the menu 15 min");  
+      Click(m15);
+      }
+		
+      if(minutes=="30 minutes")
+      {
+      var toggle = ElementByXPath("//a[@class='btn btn-default dropdown-toggle']");
+      Click(toggle);
+      Wait();
+      var m30 = ElementByXPath("//a[contains(text(),'30 minutes')]");
+	  Log("Blackcoin Faucet - click on the menu 30 min");  
+      Click(m30);
+      }
+		
+      if(minutes=="60 minutes")
+      {
+      var toggle = ElementByXPath("//a[@class='btn btn-default dropdown-toggle']");
+      Click(toggle);
+      Wait();
+      var m60 = ElementByXPath("//a[contains(text(),'60 minutes')]");
+	  Log("Blackcoin Faucet - click on the menu 60 min");  
+      Click(m60);
+      }
+	  //==================//
+	
+	
+	  Wait(8);
+	    
+		  
+		//====================//
+		// "SolveMedia" Captcha
+		//====================//
+        var capt = ElementByXPath("//div[@id='adcopy-outer']");
+        if (IsVisible(capt))
+        {
+
+            Wait();
+	        Log("Blackcoin Faucet - solve - SolveMedia or ReCaptcha"); 
+            var result = SolveCaptcha();
+            if (result > 0)
+            {
+                return Fail("Fail Solve faucet");
+            }
+        }
+		//====================//
+		
+	
+		//====================//
+		// "Slider" Captcha 
+		//====================//		
+        else
+        {
+			
+		Wait(7);
+
+            var slider = ElementByXPath("//div[@id='captchmeslider']");
+            if (IsVisible(slider))
+            {
+	            Log("Blackcoin Faucet - solve - Slider Captcha"); 
+                Actions move = new Actions(Driver).DragAndDropToOffset(slider, 200, 0);
+                move.Perform();
+            }
+            else
+            {
+                return Fail("Blackcoin Faucet - Fail to solve - Slider Captcha");
+            }
+
+        }
+		//====================//
+		
+		
+        Wait(7);
+		
+		
+		//====================//
+		// "Solve Icon" Captcha
+		//====================//
+        var icon_c = ElementByXPath("//div[@id='captcha-holder']");
+        if (IsVisible(icon_c))
+        {
+            bool result_2 = Solveicon();	            
+			Log("Blackcoin Faucet - solve - Solve Icon Captcha"); 
+            if (result_2)
+            {
+                var button2 = ElementByXPath("//*[@id='captcha_display']/p/input"); //input[@type='submit']
+			    Log("Blackcoin Faucet - Click on the Faucet Button"); 
+                Wait(2, 5);
+                Wait(1,3);
+                Click(button2);
+                Wait(2, 5);
+            }
+            else
+            {
+                return Fail("Blackcoin Faucet - Fail to solve - Solve Icon Captcha");
+            }
+        }
+		//====================//
+
+	
+		//else - Click on the Faucet Button
+        else
+        {
+            Wait(2, 5);
+			Log("Blackcoin Faucet - Click on the Faucet Button"); 
+            var button2 = ElementByXPath("//*[@id='captcha_display']/p/input"); //input[@type='submit']
+            Click(button2);
+            Wait(2, 5);
+        }
+		//====================//
+
+	} // end Blackcoin
+	//======================//
+
+
+    //==========================//
+	//* Faucet Claim - Peercoin * //
+	//==========================//
+    if (GetBoolSetting("FaucetClaim Peercoin"))
+    {
+		
+    GoToUrl("http://coinpot.win/faucet/peercoin");
+	Log("Peercoin Faucet - go to page");
+	Wait(8);
+
+  
+      //* menu time 15/30/60 min * //
+      if(minutes=="15 minutes")
+      {
+      var toggle = ElementByXPath("//a[@class='btn btn-default dropdown-toggle']");
+      Click(toggle);
+      Wait();
+      var m15 = ElementByXPath("//a[contains(text(),'15 minutes')]");
+	  Log("Peercoin Faucet - click on the menu 15 min");  
+      Click(m15);
+      }
+		
+      if(minutes=="30 minutes")
+      {
+      var toggle = ElementByXPath("//a[@class='btn btn-default dropdown-toggle']");
+      Click(toggle);
+      Wait();
+      var m30 = ElementByXPath("//a[contains(text(),'30 minutes')]");
+	  Log("Peercoin Faucet - click on the menu 30 min");  
+      Click(m30);
+      }
+		
+      if(minutes=="60 minutes")
+      {
+      var toggle = ElementByXPath("//a[@class='btn btn-default dropdown-toggle']");
+      Click(toggle);
+      Wait();
+      var m60 = ElementByXPath("//a[contains(text(),'60 minutes')]");
+	  Log("Peercoin Faucet - click on the menu 60 min");  
+      Click(m60);
+      }
+	  //==================//
+	
+	
+	  Wait(8);
+	    
+		  
+		//====================//
+		// "SolveMedia" Captcha
+		//====================//
+        var capt = ElementByXPath("//div[@id='adcopy-outer']");
+        if (IsVisible(capt))
+        {
+
+            Wait();
+	        Log("Peercoin Faucet - solve - SolveMedia or ReCaptcha"); 
+            var result = SolveCaptcha();
+            if (result > 0)
+            {
+                return Fail("Fail Solve faucet");
+            }
+        }
+		//====================//
+		
+	
+		//====================//
+		// "Slider" Captcha 
+		//====================//		
+        else
+        {
+			
+		Wait(7);
+
+            var slider = ElementByXPath("//div[@id='captchmeslider']");
+            if (IsVisible(slider))
+            {
+	            Log("Peercoin Faucet - solve - Slider Captcha"); 
+                Actions move = new Actions(Driver).DragAndDropToOffset(slider, 200, 0);
+                move.Perform();
+            }
+            else
+            {
+                return Fail("Peercoin Faucet - Fail to solve - Slider Captcha");
+            }
+
+        }
+		//====================//
+		
+		
+        Wait(7);
+		
+		
+		//====================//
+		// "Solve Icon" Captcha
+		//====================//
+        var icon_c = ElementByXPath("//div[@id='captcha-holder']");
+        if (IsVisible(icon_c))
+        {
+            bool result_2 = Solveicon();	            
+			Log("Peercoin Faucet - solve - Solve Icon Captcha"); 
+            if (result_2)
+            {
+                var button2 = ElementByXPath("//*[@id='captcha_display']/p/input"); //input[@type='submit']
+			    Log("Peercoin Faucet - Click on the Faucet Button"); 
+                Wait(2, 5);
+                Wait(1,3);
+                Click(button2);
+                Wait(2, 5);
+            }
+            else
+            {
+                return Fail("Peercoin Faucet - Fail to solve - Solve Icon Captcha");
+            }
+        }
+		//====================//
+
+	
+		//else - Click on the Faucet Button
+        else
+        {
+            Wait(2, 5);
+			Log("Peercoin Faucet - Click on the Faucet Button"); 
+            var button2 = ElementByXPath("//*[@id='captcha_display']/p/input"); //input[@type='submit']
+            Click(button2);
+            Wait(2, 5);
+        }
+		//====================//
+
+	} // end Peercoin
+	//======================// 
+ 
+
+
+    //==========================//
+	//* Faucet Claim - Primecoin * //
+	//==========================//
+    if (GetBoolSetting("FaucetClaim Primecoin"))
+    {
+		
+    GoToUrl("http://coinpot.win/faucet/primecoin");
+	Log("Primecoin Faucet - go to page");
+	Wait(8);
+
+  
+      //* menu time 15/30/60 min * //
+      if(minutes=="15 minutes")
+      {
+      var toggle = ElementByXPath("//a[@class='btn btn-default dropdown-toggle']");
+      Click(toggle);
+      Wait();
+      var m15 = ElementByXPath("//a[contains(text(),'15 minutes')]");
+	  Log("Primecoin Faucet - click on the menu 15 min");  
+      Click(m15);
+      }
+		
+      if(minutes=="30 minutes")
+      {
+      var toggle = ElementByXPath("//a[@class='btn btn-default dropdown-toggle']");
+      Click(toggle);
+      Wait();
+      var m30 = ElementByXPath("//a[contains(text(),'30 minutes')]");
+	  Log("Primecoin Faucet - click on the menu 30 min");  
+      Click(m30);
+      }
+		
+      if(minutes=="60 minutes")
+      {
+      var toggle = ElementByXPath("//a[@class='btn btn-default dropdown-toggle']");
+      Click(toggle);
+      Wait();
+      var m60 = ElementByXPath("//a[contains(text(),'60 minutes')]");
+	  Log("Primecoin Faucet - click on the menu 60 min");  
+      Click(m60);
+      }
+	  //==================//
+	
+	
+	  Wait(8);
+	    
+		  
+		//====================//
+		// "SolveMedia" Captcha
+		//====================//
+        var capt = ElementByXPath("//div[@id='adcopy-outer']");
+        if (IsVisible(capt))
+        {
+
+            Wait();
+	        Log("Primecoin Faucet - solve - SolveMedia or ReCaptcha"); 
+            var result = SolveCaptcha();
+            if (result > 0)
+            {
+                return Fail("Fail Solve faucet");
+            }
+        }
+		//====================//
+		
+	
+		//====================//
+		// "Slider" Captcha 
+		//====================//		
+        else
+        {
+			
+		Wait(7);
+
+            var slider = ElementByXPath("//div[@id='captchmeslider']");
+            if (IsVisible(slider))
+            {
+	            Log("Primecoin Faucet - solve - Slider Captcha"); 
+                Actions move = new Actions(Driver).DragAndDropToOffset(slider, 200, 0);
+                move.Perform();
+            }
+            else
+            {
+                return Fail("Primecoin Faucet - Fail to solve - Slider Captcha");
+            }
+
+        }
+		//====================//
+		
+		
+        Wait(7);
+		
+		
+		//====================//
+		// "Solve Icon" Captcha
+		//====================//
+        var icon_c = ElementByXPath("//div[@id='captcha-holder']");
+        if (IsVisible(icon_c))
+        {
+            bool result_2 = Solveicon();	            
+			Log("Primecoin Faucet - solve - Solve Icon Captcha"); 
+            if (result_2)
+            {
+                var button2 = ElementByXPath("//*[@id='captcha_display']/p/input"); //input[@type='submit']
+			    Log("Primecoin Faucet - Click on the Faucet Button"); 
+                Wait(2, 5);
+                Wait(1,3);
+                Click(button2);
+                Wait(2, 5);
+            }
+            else
+            {
+                return Fail("Primecoin Faucet - Fail to solve - Solve Icon Captcha");
+            }
+        }
+		//====================//
+
+	
+		//else - Click on the Faucet Button
+        else
+        {
+            Wait(2, 5);
+			Log("Primecoin Faucet - Click on the Faucet Button"); 
+            var button2 = ElementByXPath("//*[@id='captcha_display']/p/input"); //input[@type='submit']
+            Click(button2);
+            Wait(2, 5);
+        }
+		//====================//
+
+	} // end Primecoin
+	//======================//
+	
+
+
+    //==========================//
+	//* Faucet Claim - Litecoin * //
+	//==========================//
+    if (GetBoolSetting("FaucetClaim Litecoin"))
+    {
+		
+    GoToUrl("http://coinpot.win/faucet/litecoin");
+	Log("Litecoin Faucet - go to page");
+	Wait(8);
+
+  
+      //* menu time 15/30/60 min * //
+      if(minutes=="15 minutes")
+      {
+      var toggle = ElementByXPath("//a[@class='btn btn-default dropdown-toggle']");
+      Click(toggle);
+      Wait();
+      var m15 = ElementByXPath("//a[contains(text(),'15 minutes')]");
+	  Log("Litecoin Faucet - click on the menu 15 min");  
+      Click(m15);
+      }
+		
+      if(minutes=="30 minutes")
+      {
+      var toggle = ElementByXPath("//a[@class='btn btn-default dropdown-toggle']");
+      Click(toggle);
+      Wait();
+      var m30 = ElementByXPath("//a[contains(text(),'30 minutes')]");
+	  Log("Litecoin Faucet - click on the menu 30 min");  
+      Click(m30);
+      }
+		
+      if(minutes=="60 minutes")
+      {
+      var toggle = ElementByXPath("//a[@class='btn btn-default dropdown-toggle']");
+      Click(toggle);
+      Wait();
+      var m60 = ElementByXPath("//a[contains(text(),'60 minutes')]");
+	  Log("Litecoin Faucet - click on the menu 60 min");  
+      Click(m60);
+      }
+	  //==================//
+	
+	
+	  Wait(8);
+	    
+		  
+		//====================//
+		// "SolveMedia" Captcha
+		//====================//
+        var capt = ElementByXPath("//div[@id='adcopy-outer']");
+        if (IsVisible(capt))
+        {
+
+            Wait();
+	        Log("Litecoin Faucet - solve - SolveMedia or ReCaptcha"); 
+            var result = SolveCaptcha();
+            if (result > 0)
+            {
+                return Fail("Fail Solve faucet");
+            }
+        }
+		//====================//
+		
+	
+		//====================//
+		// "Slider" Captcha 
+		//====================//		
+        else
+        {
+			
+		Wait(7);
+
+            var slider = ElementByXPath("//div[@id='captchmeslider']");
+            if (IsVisible(slider))
+            {
+	            Log("Litecoin Faucet - solve - Slider Captcha"); 
+                Actions move = new Actions(Driver).DragAndDropToOffset(slider, 200, 0);
+                move.Perform();
+            }
+            else
+            {
+                return Fail("Litecoin Faucet - Fail to solve - Slider Captcha");
+            }
+
+        }
+		//====================//
+		
+		
+        Wait(7);
+		
+		
+		//====================//
+		// "Solve Icon" Captcha
+		//====================//
+        var icon_c = ElementByXPath("//div[@id='captcha-holder']");
+        if (IsVisible(icon_c))
+        {
+            bool result_2 = Solveicon();	            
+			Log("Litecoin Faucet - solve - Solve Icon Captcha"); 
+            if (result_2)
+            {
+                var button2 = ElementByXPath("//*[@id='captcha_display']/p/input"); //input[@type='submit']
+			    Log("Litecoin Faucet - Click on the Faucet Button"); 
+                Wait(2, 5);
+                Wait(1,3);
+                Click(button2);
+                Wait(2, 5);
+            }
+            else
+            {
+                return Fail("Litecoin Faucet - Fail to solve - Solve Icon Captcha");
+            }
+        }
+		//====================//
+
+	
+		//else - Click on the Faucet Button
+        else
+        {
+            Wait(2, 5);
+			Log("Litecoin Faucet - Click on the Faucet Button"); 
+            var button2 = ElementByXPath("//*[@id='captcha_display']/p/input"); //input[@type='submit']
+            Click(button2);
+            Wait(2, 5);
+        }
+		//====================//
+
+	} // end Litecoin
+	//======================//
+	
+
+    //==========================//
+	//* Faucet Claim - Ethereum * //
+	//==========================//
+    if (GetBoolSetting("FaucetClaim Ethereum"))
+    {
+		
+    GoToUrl("http://coinpot.win/faucet/ethereum");
+	Log("Ethereum Faucet - go to page");
+	Wait(8);
+
+  
+      //* menu time 15/30/60 min * //
+      if(minutes=="15 minutes")
+      {
+      var toggle = ElementByXPath("//a[@class='btn btn-default dropdown-toggle']");
+      Click(toggle);
+      Wait();
+      var m15 = ElementByXPath("//a[contains(text(),'15 minutes')]");
+	  Log("Ethereum Faucet - click on the menu 15 min");  
+      Click(m15);
+      }
+		
+      if(minutes=="30 minutes")
+      {
+      var toggle = ElementByXPath("//a[@class='btn btn-default dropdown-toggle']");
+      Click(toggle);
+      Wait();
+      var m30 = ElementByXPath("//a[contains(text(),'30 minutes')]");
+	  Log("Ethereum Faucet - click on the menu 30 min");  
+      Click(m30);
+      }
+		
+      if(minutes=="60 minutes")
+      {
+      var toggle = ElementByXPath("//a[@class='btn btn-default dropdown-toggle']");
+      Click(toggle);
+      Wait();
+      var m60 = ElementByXPath("//a[contains(text(),'60 minutes')]");
+	  Log("Ethereum Faucet - click on the menu 60 min");  
+      Click(m60);
+      }
+	  //==================//
+	
+	
+	  Wait(8);
+	    
+		  
+		//====================//
+		// "SolveMedia" Captcha
+		//====================//
+        var capt = ElementByXPath("//div[@id='adcopy-outer']");
+        if (IsVisible(capt))
+        {
+
+            Wait();
+	        Log("Ethereum Faucet - solve - SolveMedia or ReCaptcha"); 
+            var result = SolveCaptcha();
+            if (result > 0)
+            {
+                return Fail("Fail Solve faucet");
+            }
+        }
+		//====================//
+		
+	
+		//====================//
+		// "Slider" Captcha 
+		//====================//		
+        else
+        {
+			
+		Wait(7);
+
+            var slider = ElementByXPath("//div[@id='captchmeslider']");
+            if (IsVisible(slider))
+            {
+	            Log("Ethereum Faucet - solve - Slider Captcha"); 
+                Actions move = new Actions(Driver).DragAndDropToOffset(slider, 200, 0);
+                move.Perform();
+            }
+            else
+            {
+                return Fail("Ethereum Faucet - Fail to solve - Slider Captcha");
+            }
+
+        }
+		//====================//
+		
+		
+        Wait(7);
+		
+		
+		//====================//
+		// "Solve Icon" Captcha
+		//====================//
+        var icon_c = ElementByXPath("//div[@id='captcha-holder']");
+        if (IsVisible(icon_c))
+        {
+            bool result_2 = Solveicon();	            
+			Log("Ethereum Faucet - solve - Solve Icon Captcha"); 
+            if (result_2)
+            {
+                var button2 = ElementByXPath("//*[@id='captcha_display']/p/input"); //input[@type='submit']
+			    Log("Ethereum Faucet - Click on the Faucet Button"); 
+                Wait(2, 5);
+                Wait(1,3);
+                Click(button2);
+                Wait(2, 5);
+            }
+            else
+            {
+                return Fail("Ethereum Faucet - Fail to solve - Solve Icon Captcha");
+            }
+        }
+		//====================//
+
+	
+		//else - Click on the Faucet Button
+        else
+        {
+            Wait(2, 5);
+			Log("Ethereum Faucet - Click on the Faucet Button"); 
+            var button2 = ElementByXPath("//*[@id='captcha_display']/p/input"); //input[@type='submit']
+            Click(button2);
+            Wait(2, 5);
+        }
+		//====================//
+
+	} // end Ethereum
+	//======================//
+
+
+
+    //==========================//
+	//* Faucet Claim - BitcoinCash * //
+	//==========================//
+    if (GetBoolSetting("FaucetClaim BitcoinCash"))
+    {
+		
+    GoToUrl("http://coinpot.win/faucet/bitcoincash");
+	Log("BitcoinCash Faucet - go to page");
+	Wait(8);
+
+  
+      //* menu time 15/30/60 min * //
+      if(minutes=="15 minutes")
+      {
+      var toggle = ElementByXPath("//a[@class='btn btn-default dropdown-toggle']");
+      Click(toggle);
+      Wait();
+      var m15 = ElementByXPath("//a[contains(text(),'15 minutes')]");
+	  Log("BitcoinCash Faucet - click on the menu 15 min");  
+      Click(m15);
+      }
+		
+      if(minutes=="30 minutes")
+      {
+      var toggle = ElementByXPath("//a[@class='btn btn-default dropdown-toggle']");
+      Click(toggle);
+      Wait();
+      var m30 = ElementByXPath("//a[contains(text(),'30 minutes')]");
+	  Log("BitcoinCash Faucet - click on the menu 30 min");  
+      Click(m30);
+      }
+		
+      if(minutes=="60 minutes")
+      {
+      var toggle = ElementByXPath("//a[@class='btn btn-default dropdown-toggle']");
+      Click(toggle);
+      Wait();
+      var m60 = ElementByXPath("//a[contains(text(),'60 minutes')]");
+	  Log("BitcoinCash Faucet - click on the menu 60 min");  
+      Click(m60);
+      }
+	  //==================//
+	
+	
+	  Wait(8);
+	    
+		  
+		//====================//
+		// "SolveMedia" Captcha
+		//====================//
+        var capt = ElementByXPath("//div[@id='adcopy-outer']");
+        if (IsVisible(capt))
+        {
+
+            Wait();
+	        Log("BitcoinCash Faucet - solve - SolveMedia or ReCaptcha"); 
+            var result = SolveCaptcha();
+            if (result > 0)
+            {
+                return Fail("Fail Solve faucet");
+            }
+        }
+		//====================//
+		
+	
+		//====================//
+		// "Slider" Captcha 
+		//====================//		
+        else
+        {
+			
+		Wait(7);
+
+            var slider = ElementByXPath("//div[@id='captchmeslider']");
+            if (IsVisible(slider))
+            {
+	            Log("BitcoinCash Faucet - solve - Slider Captcha"); 
+                Actions move = new Actions(Driver).DragAndDropToOffset(slider, 200, 0);
+                move.Perform();
+            }
+            else
+            {
+                return Fail("BitcoinCash Faucet - Fail to solve - Slider Captcha");
+            }
+
+        }
+		//====================//
+		
+		
+        Wait(7);
+		
+		
+		//====================//
+		// "Solve Icon" Captcha
+		//====================//
+        var icon_c = ElementByXPath("//div[@id='captcha-holder']");
+        if (IsVisible(icon_c))
+        {
+            bool result_2 = Solveicon();	            
+			Log("BitcoinCash Faucet - solve - Solve Icon Captcha"); 
+            if (result_2)
+            {
+                var button2 = ElementByXPath("//*[@id='captcha_display']/p/input"); //input[@type='submit']
+			    Log("BitcoinCash Faucet - Click on the Faucet Button"); 
+                Wait(2, 5);
+                Wait(1,3);
+                Click(button2);
+                Wait(2, 5);
+            }
+            else
+            {
+                return Fail("BitcoinCash Faucet - Fail to solve - Solve Icon Captcha");
+            }
+        }
+		//====================//
+
+	
+		//else - Click on the Faucet Button
+        else
+        {
+            Wait(2, 5);
+			Log("BitcoinCash Faucet - Click on the Faucet Button"); 
+            var button2 = ElementByXPath("//*[@id='captcha_display']/p/input"); //input[@type='submit']
+            Click(button2);
+            Wait(2, 5);
+        }
+		//====================//
+
+	} // end BitcoinCash
+	//======================//
+ 
+ 
+ //This faucet has nothing to do here. We will let Faucet Collector handle it.
+ return base.DoSolveFaucet();
+ }
+//==================//
+//end DoSolveFaucet
+//==================//
+	
+
+	
+	
+	
+	
+	
+//==================//
+//Start AfterSolveFaucet
+//==================//
+ public override int AfterSolveFaucet()
+ {
+	 
+   //============================//
+   //General - AutSpinGame - SpinButton
+   var SpinButton = ElementByXPath("//button[@id='slots_spin_button']");
+   //General - AutSpinGame - BalanceZero
+   var BalanceZero = ElementByXPath("//strong[text()='0']");
+   //============================//
+ 
+ 
+   //============================//
+   // * AutSpinGame Bitcore * //
+   //============================//
+   if (GetBoolSetting("AutSpinGame Bitcore"))
+   { 
+      //go to AutSpinGameBitcore click 5 spins
+      GoToUrl("http://coinpot.win/game/slots/bitcore"); 
+
+	  //if the balance Zero 0
+      if (IsVisible(BalanceZero))
+      {
+	  Log("AutSpinGame - Balance Zero 0 - return after 15 min "); 
+      return 15*60; //return after 15 min 
+	  }	
+	
+	
+	  //if the balance not Zero 0
+      if (!IsVisible(BalanceZero))
+      {
+	     //click on up bet +1 satusi
+		 Log("AutSpinGame - Click +1 satusi"); 
+	     Click(ElementByXPath("//div[@class='input-group']//button[@class='btn btn-primary']"));
+		
+  	     Wait(2);
+		 
+         //click spin 1 
+		 Log("AutSpinGame - Click on SpinButton 1"); 
+         Click(SpinButton);
+		
+  	     Wait(2);
+	
+	     //click on down bet - minimum satusi
+		 Log("AutSpinGame - Click on down bet -1 "); 
+	     Click(ElementByXPath("//div[@class='input-group']//button[@class='btn btn-info']"));
+
+	   	 Wait(5);
+	  
+         //click spin 2
+		 Log("AutSpinGame - Click on SpinButton 2"); 
+         Click(SpinButton);
+	  }
+   
+   } //End AutSpinGame Bitcore   
+   //============================//
+ 
+ 
+   //============================//
+   // * AutSpinGame Potcoin * //
+   //============================//
+   if (GetBoolSetting("AutSpinGame Potcoin"))
+   {
+   //go to AutSpinGamePotcoin click 5 spins
+   GoToUrl("http://coinpot.win/game/slots/potcoin");   
+
+	  //if the balance Zero 0
+      if (IsVisible(BalanceZero))
+      {
+	  Log("AutSpinGame - Balance Zero 0 - return after 15 min "); 
+      return 15*60; //return after 15 min 
+	  }	
+	
+	
+	  //if the balance not Zero 0
+      if (!IsVisible(BalanceZero))
+      {
+	     //click on up bet +1 satusi
+		 Log("AutSpinGame - Click +1 satusi"); 
+	     Click(ElementByXPath("//div[@class='input-group']//button[@class='btn btn-primary']"));
+		
+  	     Wait(2);
+		 
+         //click spin 1 
+		 Log("AutSpinGame - Click on SpinButton 1"); 
+         Click(SpinButton);
+		
+  	     Wait(2);
+	
+	     //click on down bet - minimum satusi
+		 Log("AutSpinGame - Click on down bet -1 "); 
+	     Click(ElementByXPath("//div[@class='input-group']//button[@class='btn btn-info']"));
+
+	   	 Wait(5);
+	  
+         //click spin 2
+		 Log("AutSpinGame - Click on SpinButton 2"); 
+         Click(SpinButton);
+	  }
+   
+   } //End AutSpinGame Potcoin   
+   //============================//
+
+   
+   //============================//
+   // * AutSpinGame Bitcoin * //
+   //============================//
+   if (GetBoolSetting("AutSpinGame Bitcoin"))
+   {
+   //go to AutSpinGameBitcoin click 5 spins
+   GoToUrl("http://coinpot.win/game/slots/bitcoin");  
+
+	  //if the balance Zero 0
+      if (IsVisible(BalanceZero))
+      {
+	  Log("AutSpinGame - Balance Zero 0 - return after 15 min "); 
+      return 15*60; //return after 15 min 
+	  }	
+	
+	
+	  //if the balance not Zero 0
+      if (!IsVisible(BalanceZero))
+      {
+	     //click on up bet +1 satusi
+		 Log("AutSpinGame - Click +1 satusi"); 
+	     Click(ElementByXPath("//div[@class='input-group']//button[@class='btn btn-primary']"));
+		
+  	     Wait(2);
+		 
+         //click spin 1 
+		 Log("AutSpinGame - Click on SpinButton 1"); 
+         Click(SpinButton);
+		
+  	     Wait(2);
+	
+	     //click on down bet - minimum satusi
+		 Log("AutSpinGame - Click on down bet -1 "); 
+	     Click(ElementByXPath("//div[@class='input-group']//button[@class='btn btn-info']"));
+
+	   	 Wait(5);
+	  
+         //click spin 2
+		 Log("AutSpinGame - Click on SpinButton 2"); 
+         Click(SpinButton);
+	  }
+   
+   } //End AutSpinGame Bitcoin   
+   //============================//
+   
+   
+   //============================//
+   // * AutSpinGame Dogecoin * //
+   //============================//
+   if (GetBoolSetting("AutSpinGame Dogecoin"))
+   {
+   //go to AutSpinGameDogecoin click 5 spins
+   GoToUrl("http://coinpot.win/game/slots/dogecoin");   
+
+	  //if the balance Zero 0
+      if (IsVisible(BalanceZero))
+      {
+	  Log("AutSpinGame - Balance Zero 0 - return after 15 min "); 
+      return 15*60; //return after 15 min 
+	  }	
+	
+	
+	  //if the balance not Zero 0
+      if (!IsVisible(BalanceZero))
+      {
+	     //click on up bet +1 satusi
+		 Log("AutSpinGame - Click +1 satusi"); 
+	     Click(ElementByXPath("//div[@class='input-group']//button[@class='btn btn-primary']"));
+		
+  	     Wait(2);
+		 
+         //click spin 1 
+		 Log("AutSpinGame - Click on SpinButton 1"); 
+         Click(SpinButton);
+		
+  	     Wait(2);
+	
+	     //click on down bet - minimum satusi
+		 Log("AutSpinGame - Click on down bet -1 "); 
+	     Click(ElementByXPath("//div[@class='input-group']//button[@class='btn btn-info']"));
+
+	   	 Wait(5);
+	  
+         //click spin 2
+		 Log("AutSpinGame - Click on SpinButton 2"); 
+         Click(SpinButton);
+	  }
+   
+   } //End AutSpinGame Dogecoin   
+   //============================//
+   
+   
+   //============================//
+   // * AutSpinGame Dashcoin * //
+   //============================//
+   if (GetBoolSetting("AutSpinGame Dashcoin"))
+   {
+   //go to AutSpinGameDashcoin click 5 spins
+   GoToUrl("http://coinpot.win/game/slots/dashcoin"); 
+
+	  //if the balance Zero 0
+      if (IsVisible(BalanceZero))
+      {
+	  Log("AutSpinGame - Balance Zero 0 - return after 15 min "); 
+      return 15*60; //return after 15 min 
+	  }	
+	
+	
+	  //if the balance not Zero 0
+      if (!IsVisible(BalanceZero))
+      {
+	     //click on up bet +1 satusi
+		 Log("AutSpinGame - Click +1 satusi"); 
+	     Click(ElementByXPath("//div[@class='input-group']//button[@class='btn btn-primary']"));
+		
+  	     Wait(2);
+		 
+         //click spin 1 
+		 Log("AutSpinGame - Click on SpinButton 1"); 
+         Click(SpinButton);
+		
+  	     Wait(2);
+	
+	     //click on down bet - minimum satusi
+		 Log("AutSpinGame - Click on down bet -1 "); 
+	     Click(ElementByXPath("//div[@class='input-group']//button[@class='btn btn-info']"));
+
+	   	 Wait(5);
+	  
+         //click spin 2
+		 Log("AutSpinGame - Click on SpinButton 2"); 
+         Click(SpinButton);
+	  }
+   
+   } //End AutSpinGame Dashcoin   
+   //============================//
+
+   
+   //============================//
+   // * AutSpinGame Blackcoin * //
+   //============================//
+   if (GetBoolSetting("AutSpinGame Blackcoin"))
+   {
+   //go to AutSpinGameBlackcoin click 5 spins
+   GoToUrl("http://coinpot.win/game/slots/blackcoin");
+
+	  //if the balance Zero 0
+      if (IsVisible(BalanceZero))
+      {
+	  Log("AutSpinGame - Balance Zero 0 - return after 15 min "); 
+      return 15*60; //return after 15 min 
+	  }	
+	
+	
+	  //if the balance not Zero 0
+      if (!IsVisible(BalanceZero))
+      {
+	     //click on up bet +1 satusi
+		 Log("AutSpinGame - Click +1 satusi"); 
+	     Click(ElementByXPath("//div[@class='input-group']//button[@class='btn btn-primary']"));
+		
+  	     Wait(2);
+		 
+         //click spin 1 
+		 Log("AutSpinGame - Click on SpinButton 1"); 
+         Click(SpinButton);
+		
+  	     Wait(2);
+	
+	     //click on down bet - minimum satusi
+		 Log("AutSpinGame - Click on down bet -1 "); 
+	     Click(ElementByXPath("//div[@class='input-group']//button[@class='btn btn-info']"));
+
+	   	 Wait(5);
+	  
+         //click spin 2
+		 Log("AutSpinGame - Click on SpinButton 2"); 
+         Click(SpinButton);
+	  }
+   
+   } //End AutSpinGame Blackcoin  
+   //============================//
+   
+   
+   //============================//
+   // * AutSpinGame Peercoin * //
+   //============================//
+   if (GetBoolSetting("AutSpinGame Peercoin"))
+   {
+   //go to AutSpinGamePeercoin click 5 spins
+   GoToUrl("http://coinpot.win/game/slots/peercoin");  
+
+	  //if the balance Zero 0
+      if (IsVisible(BalanceZero))
+      {
+	  Log("AutSpinGame - Balance Zero 0 - return after 15 min "); 
+      return 15*60; //return after 15 min 
+	  }	
+	
+	
+	  //if the balance not Zero 0
+      if (!IsVisible(BalanceZero))
+      {
+	     //click on up bet +1 satusi
+		 Log("AutSpinGame - Click +1 satusi"); 
+	     Click(ElementByXPath("//div[@class='input-group']//button[@class='btn btn-primary']"));
+		
+  	     Wait(2);
+		 
+         //click spin 1 
+		 Log("AutSpinGame - Click on SpinButton 1"); 
+         Click(SpinButton);
+		
+  	     Wait(2);
+	
+	     //click on down bet - minimum satusi
+		 Log("AutSpinGame - Click on down bet -1 "); 
+	     Click(ElementByXPath("//div[@class='input-group']//button[@class='btn btn-info']"));
+
+	   	 Wait(5);
+	  
+         //click spin 2
+		 Log("AutSpinGame - Click on SpinButton 2"); 
+         Click(SpinButton);
+	  }
+   
+   } //End AutSpinGame Peercoin  
+   //============================//
+
+   
+   //============================//
+   // * AutSpinGame Primecoin * //
+   //============================//  
+   if (GetBoolSetting("AutSpinGame Primecoin"))
+   {
+   //go to AutSpinGamePrimecoin click 5 spins
+   GoToUrl("http://coinpot.win/game/slots/primecoin");
+
+	  //if the balance Zero 0
+      if (IsVisible(BalanceZero))
+      {
+	  Log("AutSpinGame - Balance Zero 0 - return after 15 min "); 
+      return 15*60; //return after 15 min 
+	  }	
+	
+	
+	  //if the balance not Zero 0
+      if (!IsVisible(BalanceZero))
+      {
+	     //click on up bet +1 satusi
+		 Log("AutSpinGame - Click +1 satusi"); 
+	     Click(ElementByXPath("//div[@class='input-group']//button[@class='btn btn-primary']"));
+		
+  	     Wait(2);
+		 
+         //click spin 1 
+		 Log("AutSpinGame - Click on SpinButton 1"); 
+         Click(SpinButton);
+		
+  	     Wait(2);
+	
+	     //click on down bet - minimum satusi
+		 Log("AutSpinGame - Click on down bet -1 "); 
+	     Click(ElementByXPath("//div[@class='input-group']//button[@class='btn btn-info']"));
+
+	   	 Wait(5);
+	  
+         //click spin 2
+		 Log("AutSpinGame - Click on SpinButton 2"); 
+         Click(SpinButton);
+	  }
+   
+   }  //End AutSpinGame Primecoin 
+   //============================//
+   
+   
+   //============================//
+   // * AutSpinGame Litecoin * //
+   //============================//
+   if (GetBoolSetting("AutSpinGame Litecoin"))
+   {
+   //go to AutSpinGameLitecoin click 5 spins
+   GoToUrl("http://coinpot.win/game/slots/litecoin"); 
+
+	  //if the balance Zero 0
+      if (IsVisible(BalanceZero))
+      {
+	  Log("AutSpinGame - Balance Zero 0 - return after 15 min "); 
+      return 15*60; //return after 15 min 
+	  }	
+	
+	
+	  //if the balance not Zero 0
+      if (!IsVisible(BalanceZero))
+      {
+	     //click on up bet +1 satusi
+		 Log("AutSpinGame - Click +1 satusi"); 
+	     Click(ElementByXPath("//div[@class='input-group']//button[@class='btn btn-primary']"));
+		
+  	     Wait(2);
+		 
+         //click spin 1 
+		 Log("AutSpinGame - Click on SpinButton 1"); 
+         Click(SpinButton);
+		
+  	     Wait(2);
+	
+	     //click on down bet - minimum satusi
+		 Log("AutSpinGame - Click on down bet -1 "); 
+	     Click(ElementByXPath("//div[@class='input-group']//button[@class='btn btn-info']"));
+
+	   	 Wait(5);
+	  
+         //click spin 2
+		 Log("AutSpinGame - Click on SpinButton 2"); 
+         Click(SpinButton);
+	  }
+   
+   }  //End AutSpinGame Litecoin 
+   //============================//
+   
+   
+   
+   //============================//
+   // * AutSpinGame Ethereum * //
+   //============================//
+   
+   if (GetBoolSetting("AutSpinGame Ethereum"))
+   {
+   //go to AutSpinGameEtherum click 5 spins
+   GoToUrl("http://coinpot.win/game/slots/ethereum");   
+
+	  //if the balance Zero 0
+      if (IsVisible(BalanceZero))
+      {
+	  Log("AutSpinGame - Balance Zero 0 - return after 15 min "); 
+      return 15*60; //return after 15 min 
+	  }	
+	
+	
+	  //if the balance not Zero 0
+      if (!IsVisible(BalanceZero))
+      {
+	     //click on up bet +1 satusi
+		 Log("AutSpinGame - Click +1 satusi"); 
+	     Click(ElementByXPath("//div[@class='input-group']//button[@class='btn btn-primary']"));
+		
+  	     Wait(2);
+		 
+         //click spin 1 
+		 Log("AutSpinGame - Click on SpinButton 1"); 
+         Click(SpinButton);
+		
+  	     Wait(2);
+	
+	     //click on down bet - minimum satusi
+		 Log("AutSpinGame - Click on down bet -1 "); 
+	     Click(ElementByXPath("//div[@class='input-group']//button[@class='btn btn-info']"));
+
+	   	 Wait(5);
+	  
+         //click spin 2
+		 Log("AutSpinGame - Click on SpinButton 2"); 
+         Click(SpinButton);
+	  }
+
+   } //End AutSpinGame Ethereum
+   //============================// 
+	
+
+   
+   //============================//
+   // * AutSpinGame BitcoinCash * //
+   //============================//
+
+   if (GetBoolSetting("AutSpinGame BitcoinCash"))
+   {
+   //go to AutSpinGameBitcoinCash click 5 spins
+   GoToUrl("http://coinpot.win/game/slots/bitcoincash");   
+
+	  //if the balance Zero 0
+      if (IsVisible(BalanceZero))
+      {
+	  Log("AutSpinGame - Balance Zero 0 - return after 15 min "); 
+      return 15*60; //return after 15 min 
+	  }	
+	
+	
+	  //if the balance not Zero 0
+      if (!IsVisible(BalanceZero))
+      {
+	     //click on up bet +1 satusi
+		 Log("AutSpinGame - Click +1 satusi"); 
+	     Click(ElementByXPath("//div[@class='input-group']//button[@class='btn btn-primary']"));
+		
+  	     Wait(2);
+		 
+         //click spin 1 
+		 Log("AutSpinGame - Click on SpinButton 1"); 
+         Click(SpinButton);
+		
+  	     Wait(2);
+	
+	     //click on down bet - minimum satusi
+		 Log("AutSpinGame - Click on down bet -1 "); 
+	     Click(ElementByXPath("//div[@class='input-group']//button[@class='btn btn-info']"));
+
+	   	 Wait(5);
+	  
+         //click spin 2
+		 Log("AutSpinGame - Click on SpinButton 2"); 
+         Click(SpinButton);
+
+	  }
+	  
+   }//End AutSpinGame BitcoinCash
+   //============================//
+ 
+ 
+ 
+ 
+//===========================//
+//ExchangeAllCoinsToBitcoin//
+//=========================//
+
+   if (GetBoolSetting("ExchangeAllCoinsToBitcoin"))
+   {
+	
+	
+ 	 //=======//
+	 //bitcore
+ 	 //=======//
+	 
+	 //first go to Exchange page
+     GoToUrl("http://coinpot.win/exchange/bitcore"); 
+	 Log("AutoExchange: go to page - bitcore");
+	 
+	 //var balance bitcore
+     var BalanceZeroExchangeBitcore = ElementByXPath("//*[@id='balance']//span[text()='0']");  //*[@id='content']/div/div[2]/div/div[2]/div[2]/div/center/div/div/table/tr[1]/td[4]//span[starts-with(text(),'0 ')]   //span[text()=' 0 sat']
+	 Log("AutoExchange: we are checking - bitcore page");
+	  
+	  
+	 //if balance balance 0 don't do nothing
+     if (IsVisible(BalanceZeroExchangeBitcore))
+     { 
+	 Log("AutoExchange: balance 0 - bitcore");
+	 //don't do nothing
+     }
+
+	 
+	 //if balance NOT 0 it mean full - do stuff
+     if (!IsVisible(BalanceZeroExchangeBitcore))
+     {
+		 	 
+      //Log
+	  Log("AutoExchange: we Exchange - bitcore");
+
+      Wait();
+
+	  //click on ConvertAllButton
+	  var ConvertAllButton_bitcore = ElementByXPath("//*[@id='select_all_balance']");	
+	  Log("AutoExchange: click on ConvertAllButton_bitcore");
+      Click(ConvertAllButton_bitcore);
+			
+      Wait(5);	
+	  
+	  //click on MenuGeneralConvert
+	  var MenuGeneralConvert_bitcore = ElementByXPath("//a[@class-name='btn btn-default dropdown-toggle']");	
+	  Log("AutoExchange: click on MenuGeneralConvert_bitcore");
+      Click(MenuGeneralConvert_bitcore);
+			
+      Wait(5);	
+	  
+	  //click on ConvertToBitcoin
+	  var ConvertToBitcoin_bitcore = ElementByXPath("//a[@data-name='bitcoin']");	
+	  Log("AutoExchange: click on ConvertToBitcoin_bitcore");
+      Click(ConvertToBitcoin_bitcore);
+			
+      Wait(5);	
+	  
+	  //click on ExchangeNowButton
+	  var ExchangeNowButton_bitcore = ElementByXPath("//input[@value='Exchange now!']");	
+	  Log("AutoExchange: click on ExchangeNowButton_bitcore");
+      Click(ExchangeNowButton_bitcore);
+	  
+      Wait(2);
+	  
+	  //info Warning_OR_Success_AlertMessage
+	  var Warning_OR_Success_AlertMessage = ElementByXPath("//div[@class='alert alert-warning'] | //div[@class='alert alert-success']");	
+	  Log(Warning_OR_Success_AlertMessage.Text);
+
+     }
+
+	 
+
+ 	 //=======//
+	 //potcoin
+ 	 //=======//
+	 
+	 //first go to Exchange page
+     GoToUrl("http://coinpot.win/exchange/potcoin"); 
+	 Log("AutoExchange: go to page - potcoin");
+	 
+	 //var balance potcoin
+     var BalanceZeroExchangePotcoin = ElementByXPath("//*[@id='balance']//span[text()='0']");  //*[@id='content']/div/div[2]/div/div[2]/div[2]/div/center/div/div/table/tr[1]/td[4]//span[starts-with(text(),'0 ')]   //span[text()=' 0 sat']
+	 Log("AutoExchange: we are checking - potcoin page");
+	  
+	  
+	 //if balance balance 0 don't do nothing
+     if (IsVisible(BalanceZeroExchangePotcoin))
+     { 
+	 Log("AutoExchange: balance 0 - potcoin");
+	 //don't do nothing
+     }
+
+	 
+	 //if balance NOT 0 it mean full - do stuff
+     if (!IsVisible(BalanceZeroExchangePotcoin))
+     {
+		 	 
+      //Log
+	  Log("AutoExchange: we Exchange - potcoin");
+
+      Wait();
+
+	  //click on ConvertAllButton
+	  var ConvertAllButton_potcoin = ElementByXPath("//*[@id='select_all_balance']");	
+	  Log("AutoExchange: click on ConvertAllButton_potcoin");
+      Click(ConvertAllButton_potcoin);
+			
+      Wait(5);	
+	  
+	  //click on MenuGeneralConvert
+	  var MenuGeneralConvert_potcoin = ElementByXPath("//a[@class-name='btn btn-default dropdown-toggle']");	
+	  Log("AutoExchange: click on MenuGeneralConvert_potcoin");
+      Click(MenuGeneralConvert_potcoin);
+			
+      Wait(5);	
+	  
+	  //click on ConvertToBitcoin
+	  var ConvertToBitcoin_potcoin = ElementByXPath("//a[@data-name='bitcoin']");	
+	  Log("AutoExchange: click on ConvertToBitcoin_potcoin");
+      Click(ConvertToBitcoin_potcoin);
+			
+      Wait(5);	
+	  
+	  //click on ExchangeNowButton
+	  var ExchangeNowButton_potcoin = ElementByXPath("//input[@value='Exchange now!']");	
+	  Log("AutoExchange: click on ExchangeNowButton_potcoin");
+      Click(ExchangeNowButton_potcoin);
+	  
+      Wait(2);
+	  
+	  //info Warning_OR_Success_AlertMessage
+	  var Warning_OR_Success_AlertMessage = ElementByXPath("//div[@class='alert alert-warning'] | //div[@class='alert alert-success']");	
+	  Log(Warning_OR_Success_AlertMessage.Text);
+
+     }
+
+
+	 
+ 	 //=======//
+	 //dogecoin
+ 	 //=======//
+	 
+	 //first go to Exchange page
+     GoToUrl("http://coinpot.win/exchange/dogecoin"); 
+	 Log("AutoExchange: go to page - dogecoin");
+	 
+	 //var balance dogecoin
+     var BalanceZeroExchangeDogecoin = ElementByXPath("//*[@id='balance']//span[text()='0']");  //*[@id='content']/div/div[2]/div/div[2]/div[2]/div/center/div/div/table/tr[1]/td[4]//span[starts-with(text(),'0 ')]   //span[text()=' 0 sat']
+	 Log("AutoExchange: we are checking - dogecoin page");
+	  
+	  
+	 //if balance balance 0 don't do nothing
+     if (IsVisible(BalanceZeroExchangeDogecoin))
+     { 
+	 Log("AutoExchange: balance 0 - dogecoin");
+	 //don't do nothing
+     }
+
+	 
+	 //if balance NOT 0 it mean full - do stuff
+     if (!IsVisible(BalanceZeroExchangeDogecoin))
+     {
+		 	 
+      //Log
+	  Log("AutoExchange: we Exchange - dogecoin");
+
+      Wait();
+
+	  //click on ConvertAllButton
+	  var ConvertAllButton_dogecoin = ElementByXPath("//*[@id='select_all_balance']");	
+	  Log("AutoExchange: click on ConvertAllButton_dogecoin");
+      Click(ConvertAllButton_dogecoin);
+			
+      Wait(5);	
+	  
+	  //click on MenuGeneralConvert
+	  var MenuGeneralConvert_dogecoin = ElementByXPath("//a[@class-name='btn btn-default dropdown-toggle']");	
+	  Log("AutoExchange: click on MenuGeneralConvert_dogecoin");
+      Click(MenuGeneralConvert_dogecoin);
+			
+      Wait(5);	
+	  
+	  //click on ConvertToBitcoin
+	  var ConvertToBitcoin_dogecoin = ElementByXPath("//a[@data-name='bitcoin']");	
+	  Log("AutoExchange: click on ConvertToBitcoin_dogecoin");
+      Click(ConvertToBitcoin_dogecoin);
+			
+      Wait(5);	
+	  
+	  //click on ExchangeNowButton
+	  var ExchangeNowButton_dogecoin = ElementByXPath("//input[@value='Exchange now!']");	
+	  Log("AutoExchange: click on ExchangeNowButton_dogecoin");
+      Click(ExchangeNowButton_dogecoin);
+	  
+      Wait(2);
+	  
+	  //info Warning_OR_Success_AlertMessage
+	  var Warning_OR_Success_AlertMessage = ElementByXPath("//div[@class='alert alert-warning'] | //div[@class='alert alert-success']");	
+	  Log(Warning_OR_Success_AlertMessage.Text);
+
+     }
+ 
+
+	 
+ 	 //=======//
+	 //dashcoin
+ 	 //=======//
+	 
+	 //first go to Exchange page
+     GoToUrl("http://coinpot.win/exchange/dashcoin"); 
+	 Log("AutoExchange: go to page - dashcoin");
+	 
+	 //var balance dashcoin
+     var BalanceZeroExchangeDashcoin = ElementByXPath("//*[@id='balance']//span[text()='0']");  //*[@id='content']/div/div[2]/div/div[2]/div[2]/div/center/div/div/table/tr[1]/td[4]//span[starts-with(text(),'0 ')]   //span[text()=' 0 sat']
+	 Log("AutoExchange: we are checking - dashcoin page");
+	  
+	  
+	 //if balance balance 0 don't do nothing
+     if (IsVisible(BalanceZeroExchangeDashcoin))
+     { 
+	 Log("AutoExchange: balance 0 - dashcoin");
+	 //don't do nothing
+     }
+
+	 
+	 //if balance NOT 0 it mean full - do stuff
+     if (!IsVisible(BalanceZeroExchangeDashcoin))
+     {
+		 	 
+      //Log
+	  Log("AutoExchange: we Exchange - dashcoin");
+
+      Wait();
+
+	  //click on ConvertAllButton
+	  var ConvertAllButton_dashcoin = ElementByXPath("//*[@id='select_all_balance']");	
+	  Log("AutoExchange: click on ConvertAllButton_dashcoin");
+      Click(ConvertAllButton_dashcoin);
+			
+      Wait(5);	
+	  
+	  //click on MenuGeneralConvert
+	  var MenuGeneralConvert_dashcoin = ElementByXPath("//a[@class-name='btn btn-default dropdown-toggle']");	
+	  Log("AutoExchange: click on MenuGeneralConvert_dashcoin");
+      Click(MenuGeneralConvert_dashcoin);
+			
+      Wait(5);	
+	  
+	  //click on ConvertToBitcoin
+	  var ConvertToBitcoin_dashcoin = ElementByXPath("//a[@data-name='bitcoin']");	
+	  Log("AutoExchange: click on ConvertToBitcoin_dashcoin");
+      Click(ConvertToBitcoin_dashcoin);
+			
+      Wait(5);	
+	  
+	  //click on ExchangeNowButton
+	  var ExchangeNowButton_dashcoin = ElementByXPath("//input[@value='Exchange now!']");	
+	  Log("AutoExchange: click on ExchangeNowButton_dashcoin");
+      Click(ExchangeNowButton_dashcoin);
+	  
+      Wait(2);
+	  
+	  //info Warning_OR_Success_AlertMessage
+	  var Warning_OR_Success_AlertMessage = ElementByXPath("//div[@class='alert alert-warning'] | //div[@class='alert alert-success']");	
+	  Log(Warning_OR_Success_AlertMessage.Text);
+
+     }
+	 
+	
+ 	 //=======//
+	 //blackcoin
+ 	 //=======//
+	 
+	 //first go to Exchange page
+     GoToUrl("http://coinpot.win/exchange/blackcoin"); 
+	 Log("AutoExchange: go to page - blackcoin");
+	 
+	 //var balance blackcoin
+     var BalanceZeroExchangeBlackcoin = ElementByXPath("//*[@id='balance']//span[text()='0']");  //*[@id='content']/div/div[2]/div/div[2]/div[2]/div/center/div/div/table/tr[1]/td[4]//span[starts-with(text(),'0 ')]   //span[text()=' 0 sat']
+	 Log("AutoExchange: we are checking - blackcoin page");
+	  
+	  
+	 //if balance balance 0 don't do nothing
+     if (IsVisible(BalanceZeroExchangeBlackcoin))
+     { 
+	 Log("AutoExchange: balance 0 - blackcoin");
+	 //don't do nothing
+     }
+
+	 
+	 //if balance NOT 0 it mean full - do stuff
+     if (!IsVisible(BalanceZeroExchangeBlackcoin))
+     {
+		 	 
+      //Log
+	  Log("AutoExchange: we Exchange - blackcoin");
+
+      Wait();
+
+	  //click on ConvertAllButton
+	  var ConvertAllButton_blackcoin = ElementByXPath("//*[@id='select_all_balance']");	
+	  Log("AutoExchange: click on ConvertAllButton_blackcoin");
+      Click(ConvertAllButton_blackcoin);
+			
+      Wait(5);	
+	  
+	  //click on MenuGeneralConvert
+	  var MenuGeneralConvert_blackcoin = ElementByXPath("//a[@class-name='btn btn-default dropdown-toggle']");	
+	  Log("AutoExchange: click on MenuGeneralConvert_blackcoin");
+      Click(MenuGeneralConvert_blackcoin);
+			
+      Wait(5);	
+	  
+	  //click on ConvertToBitcoin
+	  var ConvertToBitcoin_blackcoin = ElementByXPath("//a[@data-name='bitcoin']");	
+	  Log("AutoExchange: click on ConvertToBitcoin_blackcoin");
+      Click(ConvertToBitcoin_blackcoin);
+			
+      Wait(5);	
+	  
+	  //click on ExchangeNowButton
+	  var ExchangeNowButton_blackcoin = ElementByXPath("//input[@value='Exchange now!']");	
+	  Log("AutoExchange: click on ExchangeNowButton_blackcoin");
+      Click(ExchangeNowButton_blackcoin);
+	  
+      Wait(2);
+	  
+	  //info Warning_OR_Success_AlertMessage
+	  var Warning_OR_Success_AlertMessage = ElementByXPath("//div[@class='alert alert-warning'] | //div[@class='alert alert-success']");	
+	  Log(Warning_OR_Success_AlertMessage.Text);
+
+     }
+
+	 
+	 
+ 	 //=======//
+	 //peercoin
+ 	 //=======//
+	 
+	 //first go to Exchange page
+     GoToUrl("http://coinpot.win/exchange/peercoin"); 
+	 Log("AutoExchange: go to page - peercoin");
+	 
+	 //var balance peercoin
+     var BalanceZeroExchangePeercoin = ElementByXPath("//*[@id='balance']//span[text()='0']");  //*[@id='content']/div/div[2]/div/div[2]/div[2]/div/center/div/div/table/tr[1]/td[4]//span[starts-with(text(),'0 ')]   //span[text()=' 0 sat']
+	 Log("AutoExchange: we are checking - peercoin page");
+	  
+	  
+	 //if balance balance 0 don't do nothing
+     if (IsVisible(BalanceZeroExchangePeercoin))
+     { 
+	 Log("AutoExchange: balance 0 - peercoin");
+	 //don't do nothing
+     }
+
+	 
+	 //if balance NOT 0 it mean full - do stuff
+     if (!IsVisible(BalanceZeroExchangePeercoin))
+     {
+		 	 
+      //Log
+	  Log("AutoExchange: we Exchange - peercoin");
+
+      Wait();
+
+	  //click on ConvertAllButton
+	  var ConvertAllButton_peercoin = ElementByXPath("//*[@id='select_all_balance']");	
+	  Log("AutoExchange: click on ConvertAllButton_peercoin");
+      Click(ConvertAllButton_peercoin);
+			
+      Wait(5);	
+	  
+	  //click on MenuGeneralConvert
+	  var MenuGeneralConvert_peercoin = ElementByXPath("//a[@class-name='btn btn-default dropdown-toggle']");	
+	  Log("AutoExchange: click on MenuGeneralConvert_peercoin");
+      Click(MenuGeneralConvert_peercoin);
+			
+      Wait(5);	
+	  
+	  //click on ConvertToBitcoin
+	  var ConvertToBitcoin_peercoin = ElementByXPath("//a[@data-name='bitcoin']");	
+	  Log("AutoExchange: click on ConvertToBitcoin_peercoin");
+      Click(ConvertToBitcoin_peercoin);
+			
+      Wait(5);	
+	  
+	  //click on ExchangeNowButton
+	  var ExchangeNowButton_peercoin = ElementByXPath("//input[@value='Exchange now!']");	
+	  Log("AutoExchange: click on ExchangeNowButton_peercoin");
+      Click(ExchangeNowButton_peercoin);
+	  
+      Wait(2);
+	  
+	  //info Warning_OR_Success_AlertMessage
+	  var Warning_OR_Success_AlertMessage = ElementByXPath("//div[@class='alert alert-warning'] | //div[@class='alert alert-success']");	
+	  Log(Warning_OR_Success_AlertMessage.Text);
+
+     }
+
+
+	 
+ 	 //=======//
+	 //primecoin
+ 	 //=======//
+	 
+	 //first go to Exchange page
+     GoToUrl("http://coinpot.win/exchange/primecoin"); 
+	 Log("AutoExchange: go to page - primecoin");
+	 
+	 //var balance primecoin
+     var BalanceZeroExchangePrimecoin = ElementByXPath("//*[@id='balance']//span[text()='0']");  //*[@id='content']/div/div[2]/div/div[2]/div[2]/div/center/div/div/table/tr[1]/td[4]//span[starts-with(text(),'0 ')]   //span[text()=' 0 sat']
+	 Log("AutoExchange: we are checking - primecoin page");
+	  
+	  
+	 //if balance balance 0 don't do nothing
+     if (IsVisible(BalanceZeroExchangePrimecoin))
+     { 
+	 Log("AutoExchange: balance 0 - primecoin");
+	 //don't do nothing
+     }
+
+	 
+	 //if balance NOT 0 it mean full - do stuff
+     if (!IsVisible(BalanceZeroExchangePrimecoin))
+     {
+		 	 
+      //Log
+	  Log("AutoExchange: we Exchange - primecoin");
+
+      Wait();
+
+	  //click on ConvertAllButton
+	  var ConvertAllButton_primecoin = ElementByXPath("//*[@id='select_all_balance']");	
+	  Log("AutoExchange: click on ConvertAllButton_primecoin");
+      Click(ConvertAllButton_primecoin);
+			
+      Wait(5);	
+	  
+	  //click on MenuGeneralConvert
+	  var MenuGeneralConvert_primecoin = ElementByXPath("//a[@class-name='btn btn-default dropdown-toggle']");	
+	  Log("AutoExchange: click on MenuGeneralConvert_primecoin");
+      Click(MenuGeneralConvert_primecoin);
+			
+      Wait(5);	
+	  
+	  //click on ConvertToBitcoin
+	  var ConvertToBitcoin_primecoin = ElementByXPath("//a[@data-name='bitcoin']");	
+	  Log("AutoExchange: click on ConvertToBitcoin_primecoin");
+      Click(ConvertToBitcoin_primecoin);
+			
+      Wait(5);	
+	  
+	  //click on ExchangeNowButton
+	  var ExchangeNowButton_primecoin = ElementByXPath("//input[@value='Exchange now!']");	
+	  Log("AutoExchange: click on ExchangeNowButton_primecoin");
+      Click(ExchangeNowButton_primecoin);
+	  
+      Wait(2);
+	  
+	  //info Warning_OR_Success_AlertMessage
+	  var Warning_OR_Success_AlertMessage = ElementByXPath("//div[@class='alert alert-warning'] | //div[@class='alert alert-success']");	
+	  Log(Warning_OR_Success_AlertMessage.Text);
+
+     }
+
+
+	 
+ 	 //=======//
+	 //litecoin
+ 	 //=======//
+	 
+	 //first go to Exchange page
+     GoToUrl("http://coinpot.win/exchange/litecoin"); 
+	 Log("AutoExchange: go to page - litecoin");
+	 
+	 //var balance litecoin
+     var BalanceZeroExchangeLitecoin = ElementByXPath("//*[@id='balance']//span[text()='0']");  //*[@id='content']/div/div[2]/div/div[2]/div[2]/div/center/div/div/table/tr[1]/td[4]//span[starts-with(text(),'0 ')]   //span[text()=' 0 sat']
+	 Log("AutoExchange: we are checking - litecoin page");
+	  
+	  
+	 //if balance balance 0 don't do nothing
+     if (IsVisible(BalanceZeroExchangeLitecoin))
+     { 
+	 Log("AutoExchange: balance 0 - litecoin");
+	 //don't do nothing
+     }
+
+	 
+	 //if balance NOT 0 it mean full - do stuff
+     if (!IsVisible(BalanceZeroExchangeLitecoin))
+     {
+		 	 
+      //Log
+	  Log("AutoExchange: we Exchange - litecoin");
+
+      Wait();
+
+	  //click on ConvertAllButton
+	  var ConvertAllButton_litecoin = ElementByXPath("//*[@id='select_all_balance']");	
+	  Log("AutoExchange: click on ConvertAllButton_litecoin");
+      Click(ConvertAllButton_litecoin);
+			
+      Wait(5);	
+	  
+	  //click on MenuGeneralConvert
+	  var MenuGeneralConvert_litecoin = ElementByXPath("//a[@class-name='btn btn-default dropdown-toggle']");	
+	  Log("AutoExchange: click on MenuGeneralConvert_litecoin");
+      Click(MenuGeneralConvert_litecoin);
+			
+      Wait(5);	
+	  
+	  //click on ConvertToBitcoin
+	  var ConvertToBitcoin_litecoin = ElementByXPath("//a[@data-name='bitcoin']");	
+	  Log("AutoExchange: click on ConvertToBitcoin_litecoin");
+      Click(ConvertToBitcoin_litecoin);
+			
+      Wait(5);	
+	  
+	  //click on ExchangeNowButton
+	  var ExchangeNowButton_litecoin = ElementByXPath("//input[@value='Exchange now!']");	
+	  Log("AutoExchange: click on ExchangeNowButton_litecoin");
+      Click(ExchangeNowButton_litecoin);
+	  
+      Wait(2);
+	  
+	  //info Warning_OR_Success_AlertMessage
+	  var Warning_OR_Success_AlertMessage = ElementByXPath("//div[@class='alert alert-warning'] | //div[@class='alert alert-success']");	
+	  Log(Warning_OR_Success_AlertMessage.Text);
+
+     }
+
+
+	 
+ 	 //=======//
+	 //ethereum
+ 	 //=======//
+	 
+	 //first go to Exchange page
+     GoToUrl("http://coinpot.win/exchange/ethereum"); 
+	 Log("AutoExchange: go to page - ethereum");
+	 
+	 //var balance ethereum
+     var BalanceZeroExchangeEthereum = ElementByXPath("//*[@id='balance']//span[text()='0']");  //*[@id='content']/div/div[2]/div/div[2]/div[2]/div/center/div/div/table/tr[1]/td[4]//span[starts-with(text(),'0 ')]   //span[text()=' 0 sat']
+	 Log("AutoExchange: we are checking - ethereum page");
+	  
+	  
+	 //if balance balance 0 don't do nothing
+     if (IsVisible(BalanceZeroExchangeEthereum))
+     { 
+	 Log("AutoExchange: balance 0 - ethereum");
+	 //don't do nothing
+     }
+
+	 
+	 //if balance NOT 0 it mean full - do stuff
+     if (!IsVisible(BalanceZeroExchangeEthereum))
+     {
+		 	 
+      //Log
+	  Log("AutoExchange: we Exchange - ethereum");
+
+      Wait();
+
+	  //click on ConvertAllButton
+	  var ConvertAllButton_ethereum = ElementByXPath("//*[@id='select_all_balance']");	
+	  Log("AutoExchange: click on ConvertAllButton_ethereum");
+      Click(ConvertAllButton_ethereum);
+			
+      Wait(5);	
+	  
+	  //click on MenuGeneralConvert
+	  var MenuGeneralConvert_ethereum = ElementByXPath("//a[@class-name='btn btn-default dropdown-toggle']");	
+	  Log("AutoExchange: click on MenuGeneralConvert_ethereum");
+      Click(MenuGeneralConvert_ethereum);
+			
+      Wait(5);	
+	  
+	  //click on ConvertToBitcoin
+	  var ConvertToBitcoin_ethereum = ElementByXPath("//a[@data-name='bitcoin']");	
+	  Log("AutoExchange: click on ConvertToBitcoin_ethereum");
+      Click(ConvertToBitcoin_ethereum);
+			
+      Wait(5);	
+	  
+	  //click on ExchangeNowButton
+	  var ExchangeNowButton_ethereum = ElementByXPath("//input[@value='Exchange now!']");	
+	  Log("AutoExchange: click on ExchangeNowButton_ethereum");
+      Click(ExchangeNowButton_ethereum);
+	  
+      Wait(2);
+	  
+	  //info Warning_OR_Success_AlertMessage
+	  var Warning_OR_Success_AlertMessage = ElementByXPath("//div[@class='alert alert-warning'] | //div[@class='alert alert-success']");	
+	  Log(Warning_OR_Success_AlertMessage.Text);
+
+     }
+
+
+	 
+ 	 //=======//
+	 //bitcoincash
+ 	 //=======//
+	 
+	 //first go to Exchange page
+     GoToUrl("http://coinpot.win/exchange/bitcoincash"); 
+	 Log("AutoExchange: go to page - bitcoincash");
+	 
+	 //var balance bitcoincash
+     var BalanceZeroExchangeBitcoinCash = ElementByXPath("//*[@id='balance']//span[text()='0']");  //*[@id='content']/div/div[2]/div/div[2]/div[2]/div/center/div/div/table/tr[1]/td[4]//span[starts-with(text(),'0 ')]   //span[text()=' 0 sat']
+	 Log("AutoExchange: we are checking - bitcoincash page");
+	  
+	  
+	 //if balance balance 0 don't do nothing
+     if (IsVisible(BalanceZeroExchangeBitcoinCash))
+     { 
+	 Log("AutoExchange: balance 0 - bitcoincash");
+	 //don't do nothing
+     }
+
+	 
+	 //if balance NOT 0 it mean full - do stuff
+     if (!IsVisible(BalanceZeroExchangeBitcoinCash))
+     {
+		 	 
+      //Log
+	  Log("AutoExchange: we Exchange - bitcoincash");
+
+      Wait();
+
+	  //click on ConvertAllButton
+	  var ConvertAllButton_bitcoincash = ElementByXPath("//*[@id='select_all_balance']");	
+	  Log("AutoExchange: click on ConvertAllButton_bitcoincash");
+      Click(ConvertAllButton_bitcoincash);
+			
+      Wait(5);	
+	  
+	  //click on MenuGeneralConvert
+	  var MenuGeneralConvert_bitcoincash = ElementByXPath("//a[@class-name='btn btn-default dropdown-toggle']");	
+	  Log("AutoExchange: click on MenuGeneralConvert_bitcoincash");
+      Click(MenuGeneralConvert_bitcoincash);
+			
+      Wait(5);	
+	  
+	  //click on ConvertToBitcoin
+	  var ConvertToBitcoin_bitcoincash = ElementByXPath("//a[@data-name='bitcoin']");	
+	  Log("AutoExchange: click on ConvertToBitcoin_bitcoincash");
+      Click(ConvertToBitcoin_bitcoincash);
+			
+      Wait(5);	
+	  
+	  //click on ExchangeNowButton
+	  var ExchangeNowButton_bitcoincash = ElementByXPath("//input[@value='Exchange now!']");	
+	  Log("AutoExchange: click on ExchangeNowButton_bitcoincash");
+      Click(ExchangeNowButton_bitcoincash);
+	  
+      Wait(2);
+	  
+	  //info Warning_OR_Success_AlertMessage
+	  var Warning_OR_Success_AlertMessage = ElementByXPath("//div[@class='alert alert-warning'] | //div[@class='alert alert-success']");	
+	  Log(Warning_OR_Success_AlertMessage.Text);
+
+     }
+ 
+ 
+       // go to bitcoin page to check balance
+	   GoToUrl("http://coinpot.win/exchange/bitcoin");
+	   var BitcoinBalanceInfo = ElementByXPath("//*[@id='balance']");	
+	   Log(BitcoinBalanceInfo.Text);
+       //=============================//
+	 
+	 
+   } //end ExchangeAllCoinsToBitcoin
+
+   //This faucet has nothing to do here. We will let Faucet Collector handle it.
+   return base.AfterSolveFaucet();
+ }
+//==================//
+//end AfterSolveFaucet
+//==================//
+	
+	
+	
+	
+
+
+    /// <summary>
+    /// This method gets called in the end after the BeforeSolveFaucet/DoSolveFaucet and AfterSolveFaucet methods were done.
+    /// The base.CheckFaucetResult will try to find a visible element on the page using the XPath from SuccessXPath and FailXPath (see the Start method)
+    /// These properties should contain XPath expressions to find certain elements on the page.
+    /// For example if it finds one of the elements from the SuccessXPath, and it is visible, then it will flag the claim attempt as a success.
+    /// Or if it finds one of the elements from the FailXPath, and it is visible, then it will flag the claim attempt as a failure.
+    /// </summary>
+    public override int CheckFaucetResult()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.CheckFaucetResult();
+    }
+	
+	
+	
+	
+	//==============//
+	//bool Solveicon
+	//==============//
+    private bool Solveicon()
+    {
+
+        Wait();
+        int solution = getIconCaptchaSol();
+        if (solution == -1)
+        {
+            return false;
+        }
+        solution--;
+
+        Wait();
+        try
+        {
+            ExecuteScript("var a=document.getElementsByClassName('captcha-image');var element =a[0];element.addEventListener('mouseover', function() {console.log('Event triggered');});var event = new MouseEvent('mouseover', {'view': window,'bubbles': true,'cancelable': true});element.dispatchEvent(event);a[" + solution + "].click();");
+        }
+        catch (Exception)
+        {
+            return false;
+        }
+        Wait(7, 10);
+        var ttl = ElementByXPath("//div[@class='captcha-modal__icons-title']");
+        if (!IsVisible(ttl))
+        {
+            return false;
+        }
+        if (ttl.Text.Contains("Great"))
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+
+    }
+	
+	
+	
+    private Bitmap GetElementScreenShort(IWebDriver driver, IWebElement element, string name)
+    {
+        Actions actions = new Actions(driver);
+        actions.MoveToElement(element);
+        actions.Perform();
+        Screenshot sc = ((ITakesScreenshot)driver).GetScreenshot();
+        var img = Image.FromStream(new MemoryStream(sc.AsByteArray)) as Bitmap;
+        var x = ExecuteScript("let coords = arguments[0].getBoundingClientRect();return coords.left;", element);
+        var y = ExecuteScript("let coords = arguments[0].getBoundingClientRect();return coords.top;", element);
+        int x2 = Convert.ToInt32(x);
+        int y2 = Convert.ToInt32(y);
+        var width = ExecuteScript("let coords = arguments[0].getBoundingClientRect();return coords.width;", element);
+        var height = ExecuteScript("let coords = arguments[0].getBoundingClientRect();return coords.height;", element);
+        int width2 = Convert.ToInt32(width);
+        int height2 = Convert.ToInt32(height);
+
+        if (Convert.ToInt32(name) != 4)
+        {
+            img = img.Clone(new Rectangle(x2, y2, width2 - 1, height2), img.PixelFormat);
+        }
+        else
+        {
+            img = img.Clone(new Rectangle(x2, y2, width2, height2), img.PixelFormat);
+        }
+
+        return img;
+    }
+	
+	
+	
+	
+    private int getIconCaptchaSol()
+    {
+
+        Wait();
+        int sol = 0;
+
+
+
+        Bitmap[] icons = new Bitmap[5];
+
+
+
+
+        var Icons = Driver.FindElements(By.ClassName("captcha-image"));
+        int cont = 0;
+
+        //   foreach (var icon in Icons)
+        //     {
+        foreach (var icon in Icons)
+        {
+
+            Wait();
+            icons[cont] = GetElementScreenShort(Driver, icon, cont.ToString());
+            cont++;
+
+
+        }
+
+
+        //   }
+        int one_two, one_three, one_four, one_five;
+
+        one_two = CompareImage(icons[0], icons[1]);
+
+        one_three = CompareImage(icons[0], icons[2]);
+
+        one_four = CompareImage(icons[0], icons[3]);
+
+        one_five = CompareImage(icons[0], icons[4]);
+
+
+
+
+        int m = one_two;
+        int one_one = (one_five + one_four + one_two + one_three) / 4;
+        if (one_one > 2200)
+        {
+            sol = 1;
+            return sol;
+        }
+        if (m < one_three)
+        {
+            m = one_three;
+        }
+        if (m < one_four)
+        {
+            m = one_four;
+        }
+        if (m < one_five)
+        {
+            m = one_five;
+        }
+        if (m == one_two)
+        {
+            sol = 2;
+        }
+        else if (m == one_three)
+        {
+            sol = 3;
+        }
+        else if (m == one_four)
+        {
+            sol = 4;
+        }
+        else if (m == one_five)
+        {
+            sol = 5;
+        }
+
+        return sol;
+
+
+    }
+	
+	
+	
+	
+    private int CompareImage(Bitmap image1, Bitmap image2)
+    {
+        int cont = 0;
+        for (int i = 0; i < image1.Height; i++)
+        {
+            for (int j = 0; j < image1.Width; j++)
+            {
+                if (image1.GetPixel(j, i) != image2.GetPixel(j, i))
+                {
+
+                    cont++;
+
+                }
+            }
+        }
+
+        return cont;
+    }
+
+	
+
+}// end class Coinpot

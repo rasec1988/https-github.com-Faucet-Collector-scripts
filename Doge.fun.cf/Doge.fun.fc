@@ -1,0 +1,170 @@
+﻿using System;
+using FaucetCollector.Script;
+
+public class dogefunScript : FaucetScript {
+    
+    public override FaucetSettings Settings {
+        get {
+            return new FaucetSettings("https://doge.fun") {
+                new FaucetSetting {
+                    Name = "doge",
+                    Display = "DOGE wallet address",
+                    Type = EditorType.Wallet,
+                    Required = true,
+                    Default = null
+               }
+            };
+        }
+    }
+
+    
+    public override void Start() {
+        Title = "doge.fun";
+
+        SuccessXPath = "//*[@id='result']";
+
+        FailXPath = "//div[contains(@class, 'alert-danger')]";
+
+        base.Start();
+    }
+
+
+    public override bool IsLoggedIn() {
+        return IsVisible(ElementByLinkText("Faucet"));
+    }
+
+    
+    public override int BeforeLogin() {	
+		return base.BeforeLogin();
+    }
+
+   
+    public override int DoLogin() {
+		
+		var logout = ElementById("logout");
+		if(IsVisible(logout)){
+			Click(logout);
+			Wait(3);
+		}
+		
+		var addressInput = ElementById("go_address");
+        if (addressInput == null) {
+            return Fail("DOGE address input not found.");
+        }
+
+        SetText(addressInput, GetSetting("doge"));
+
+		var elstartButton = ElementById("go_enter");
+        if (elstartButton == null)
+        {           
+            return Fail("Start button not found.");
+        }
+		
+		Click(elstartButton);
+		
+		Wait(2);
+		
+		return base.DoLogin();
+    }
+
+   
+    public override int AfterLogin() {
+        return base.AfterLogin();
+    }
+
+    
+    public override int GetFaucetWaitTime()
+    {
+		var timerCheck = ElementById("timer");
+        if (!IsVisible(timerCheck))
+        {
+            //no time remaining element, so we are good to go.
+            return 0;
+        }
+
+        var timer = Convert.ToString(ExecuteScript("return $('#timer')[0].innerText;"));
+        var minutes = timer.Split(':')[0];
+        var seconds = timer.Split(':')[1];
+        if (string.IsNullOrEmpty(seconds) || string.IsNullOrEmpty(minutes))
+        {
+            return 0;
+        }
+
+        var min = Convert.ToInt32(minutes.Trim());
+        var sec = Convert.ToInt32(seconds.Trim());
+        //return the total wait time in seconds
+        return (min * 60) + sec;
+    }
+
+    
+   
+    public override int BeforeSolveCaptcha() {
+        return base.BeforeSolveCaptcha();
+    }
+
+    
+    public override int DoSolveCaptcha() {
+        return base.DoSolveCaptcha();
+    }
+
+    
+    public override int AfterSolveCaptcha() {
+        return base.AfterSolveCaptcha();
+    }
+
+    
+    public override int BeforeSolveFaucet() {
+        
+        var faucetLink = ElementByLinkText("Faucet");
+        if(!IsVisible(faucetLink)){
+            Fail("Faucet Link not found");
+        }
+
+        Click(faucetLink);
+        
+
+        return base.BeforeSolveFaucet();
+    }
+    
+    
+    public override int DoSolveFaucet() {
+        var submitButton = ElementById("go_roll");
+		
+		var result1 = GetFaucetWaitTime();
+        if( result1 > 0 ) {
+			return result1;
+		}
+		
+        if (!IsVisible(submitButton))
+        {
+            return Fail("Submit button not found or not visible.");
+        }
+
+        var result = SolveCaptcha();
+        if (result > 0)
+        {
+            //Unable to solve the captcha - return the failure
+            return result;
+        }
+
+        Click(submitButton);
+
+        return base.DoSolveFaucet();
+    }
+
+    
+    public override int AfterSolveFaucet() {
+        return base.AfterSolveFaucet();
+    }
+
+   
+    public override int CheckFaucetResult() {
+        var result = base.CheckFaucetResult();
+        if (IsSuccess) {
+            result = GetWaitSetting();
+            Reload = true;
+        }
+
+        return result;
+    }
+}

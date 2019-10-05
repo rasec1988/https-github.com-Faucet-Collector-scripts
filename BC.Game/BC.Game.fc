@@ -1,0 +1,1086 @@
+﻿
+
+//==================//
+//script Written by: ••AviramDayan•• 30/04/2019 21:09PM - Version 1
+//Last Update: 25/07/2019 22:00PM - Version 20
+//==================//
+
+using System;
+using FaucetCollector.Script;
+using OpenQA.Selenium;
+using OpenQA.Selenium.Interactions;
+//css_inc recaptchaUtilities
+
+public class winspotz : FaucetScript
+{
+    /// <summary>
+    /// List of Settings that will be shown in the bot when selecting this Faucet in the bot.
+    /// You can get the value the user entered with the methods: GetSetting("[Name of the FaucetSetting]"), GetBoolSetting and GetDateTimeSetting
+    /// You can also create a new setting value using SetSetting("[Name you want to use]", "value")
+    /// </summary>
+    public override FaucetSettings Settings
+    {
+        get
+        {	
+            return new FaucetSettings("https://bc.game/")
+            {
+                new FaucetSetting(){Name="UserName",Display="UserName",Type=EditorType.TextBox,Required=false},
+                new FaucetSetting(){Name="Pass",Display="Password",Type=EditorType.Password,Required=false},
+                //new FaucetSetting(){Name="DeleteCookies",Display="Delete Cookies - Sometimes solves problems (in login) if you have (Recommended)",Type=EditorType.CheckBox,Default=false},
+                
+				new FaucetSetting(){Name="MenuCoins",Display="MenuCoins - Select Favorite Coins",Type=EditorType.ComboBox,Default="JB",Items=new System.Collections.Generic.List<string>{"TRTL","EOS","TRX","VSYS","BCG","BKBT","DOGE","LTC","JB"}},
+                
+				new FaucetSetting() { Name = "3rd_DailyTasks_ClaimBonus", Display = "3rd_DailyTasks_ClaimBonus - ON/OFF", Type = EditorType.CheckBox, Default = true},		
+                new FaucetSetting() { Name = "RollingTheLucky", Display = "RollingTheLucky - ON/OFF", Type = EditorType.CheckBox, Default = true},	
+                new FaucetSetting() { Name = "RollDaily", Display = "RollDaily - ON/OFF", Type = EditorType.CheckBox, Default = true},	
+                new FaucetSetting() { Name = "WhereIsCOCOBonus", Display = "WhereIsCOCOBonus - ON/OFF - Every 6 hours will Appears randomly in 3 different methods for 10 min ", Type = EditorType.CheckBox, Default = true},	
+                new FaucetSetting() { Name = "Agent_Commissions_Reward", Display = "Agent_Commissions_Reward - ON/OFF ", Type = EditorType.CheckBox, Default = true},	
+
+				new FaucetSetting() { Name = "Rain_AirDrop_Chat", Display = "Rain_AirDrop_Chat - ON/OFF", Type = EditorType.CheckBox, Default = false},		
+                new FaucetSetting(){Name="MessageChat",Display="Your Message In Chat - only need to be active to get any rain",Default = ".",Type=EditorType.TextBox,Required=false},
+
+ 	            new FaucetSetting(){Name="AllGames_Menu",Display="AllGames_Menu - Select Favorite Game (Correctly available only 'ATM' Games)",Type=EditorType.ComboBox,Default="none",Items=new System.Collections.Generic.List<string>{"none","ATM","Dice - NOT available yet"}},
+                
+				//ATM
+ 	            new FaucetSetting(){Name="ATM_Multiplication_Division_Menu",Display="ATM - Select if you want to Multiplication OR Division OR MAX OR MIN - Bet",Type=EditorType.ComboBox,Default="none",Items=new System.Collections.Generic.List<string>{"none","Max","Min","/2","x2"}},
+				//new FaucetSetting() { Name = "BetAmount", Display = "Bet Amount", Type = EditorType.Numeric, Default = 1 },				
+				new FaucetSetting() { Name = "ATM_NumbersOfClaim", Display = "Numbers Of Claim ", Type = EditorType.Numeric, Default = 3 },				
+                new FaucetSetting() { Name = "ATM_SecondToWait", Display = "Second To Wait (before stop the bet) ", Type = EditorType.Numeric, Default = 2 },
+					
+                //new FaucetSetting(){Name="NumbersOfClaim",Display="Numbers of claims",Type=EditorType.TextBox,Default="10"},
+                //new FaucetSetting(){Name="YourText",Display="YourText",Default="mytext1",Type=EditorType.TextBox,Required=false},
+
+				
+            };
+        }
+    }
+
+	
+//============================================================//
+//the number of "successes" in the script - when are finished  
+//============================================================//
+    public override void Start()
+    {
+        ad = false;
+       
+        //Title that shows in the browser. Is used to identify and close popup windows
+        Title = "bc.game";
+
+		SuccessXPath = "//*";  //*[@id='']
+        FailXPath = "//*"; //*[@id='']
+	
+        //TimerIsCountingUp = true;
+		
+        //Let Faucet Collector start up everything
+        base.Start();
+    }
+//============================================================//
+//the number of "successes" in the script - when are finished  
+//============================================================//
+
+	
+    bool ad; //custom bool
+
+
+    public override int DoInit()
+    {
+			
+		//if it's Checked
+       if (GetBoolSetting("DeleteCookies"))
+       {
+		//Delete Cookies
+		 Log("DeleteCookies - Checked");
+         Driver.Manage().Cookies.DeleteAllCookies();
+       } 
+		
+        //Let Faucet Collector continue.
+        return base.DoInit();
+    }
+
+
+	
+//==================//
+//save Login Cookies 
+//==================//
+    public override bool IsLoggedIn()
+    {
+	    //save Login Cookies - Check if the "Logout" exist
+        return ElementByXPath("//div[@class='user']") != null;
+	 
+        //return base.IsLoggedIn();
+    }
+//==================//
+//save Login Cookies 
+//==================//	
+
+
+
+
+//=============//
+//BeforeLogin
+//=============//
+    public override int BeforeLogin()
+    {
+		
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeLogin();
+    }
+//=============//
+//BeforeLogin
+//=============//
+
+	
+
+	
+//========//
+//DoLogin
+//========//
+    public override int DoLogin()
+    {
+	
+     var ExitButton = ElementByXPath("//div[@class='user']"); //user login panel - 1 Unique
+
+	
+	 //if i NOT Login - go to Login Page
+	 if (!IsVisible(ExitButton))
+	 {
+	
+		//GoToUrl("https://dogeads.top/login");
+		Wait();		
+		Wait(2);
+		
+        var LoginLightBox = ElementByXPath("//span[@class='login-label']");		 
+        Click(LoginLightBox);
+		
+		Wait();		
+		Wait(2);
+		 
+        var box_user = ElementByXPath("//input[@placeholder='Email']");
+        SetText(box_user, GetSetting("UserName"));
+		
+		Wait(2);
+		
+        var box_pass = ElementByXPath("//input[@placeholder='Password']");
+        SetText(box_pass, GetPassword("Pass"));
+		
+		Wait(2);
+			
+        var ButtonLog = ElementByXPath("//button[@class='xbutton xbutton-big xbutton-full' and contains(text(),'LOGIN' | 'Login')]");
+        Click(ButtonLog);
+		
+		Wait(1);
+
+
+		
+        var Error_1_Message = ElementByXPath("//div[@class='xmessage-content'] | //div[@class='xmessage-content' and contains(text(),'verify' | 'VERIFY' )] | //div[@class='xmessage-content' and contains(text(),'error')] ");
+        if (IsVisible(Error_1_Message))
+        {
+          //solve Captcha X2 XPath (1 = captcha image | 2 = input text )
+          var result = DoSolveImageCaptcha(ElementByXPath ("//label[@class='xinput captcha']/div/img"),ElementByXPath("//input[@placeholder='Verification Code']") ); 
+          if (result > 0)
+          {
+          return Fail("Error_1_Message - Fail login --- captcha failed");
+          }
+		  
+		  Wait(5);
+		  
+          var Button_2_Log = ElementByXPath("//button[@class='xbutton xbutton-big xbutton-full' and contains(text(),'Login' | 'Login')]");
+          Click(Button_2_Log);
+		
+		  Wait(1);
+        }
+		
+		
+        var Error_2_Message = ElementByXPath("//div[@class='xmessage-content'] | //div[@class='xmessage-content' and contains(text(),'verify' | 'VERIFY' )] | //div[@class='xmessage-content' and contains(text(),'error' | 'ERROR')] ");
+        if (IsVisible(Error_2_Message))
+        {
+          Log("Error_2_Message - Appear - we return after 1 min ");
+		  Driver.Close();  // Close specific chrome window
+          Driver.Quit();  // also Close the console app, that was used to kick off the chrome window
+          Driver.Dispose();  // Close the chromedriver.exe
+          return 2*60; //we return after 1 min	
+        }	
+		
+		Wait();	
+
+	 } // end ExitButton
+
+        
+       return base.DoLogin();
+    }
+//========//
+//DoLogin
+//========//
+ 
+
+
+//========//
+//AfterLogin
+//========//
+ public override int AfterLogin()
+ {
+ 
+  
+    //we are good to continue
+    return base.AfterLogin();
+
+ }
+//========//
+//AfterLogin
+//========//
+
+
+	
+
+//================//
+//GetFaucetWaitTime
+//================//
+    public override int GetFaucetWaitTime()
+    {
+
+        if (ad)
+        {
+		    //Log("return ad");
+			ad=false;
+			Driver.Close();  // Close specific chrome window
+            Driver.Quit();  // also Close the console app, that was used to kick off the chrome window
+            Driver.Dispose();  // Close the chromedriver.exe
+            return GetWaitSetting();
+        }
+
+		//let Faucet Collector continue.
+        return base.GetFaucetWaitTime();
+    }
+//================//
+//GetFaucetWaitTime
+//================//
+
+
+
+    public override int BeforeSolveCaptcha()
+    {
+ 
+        //Return we are ready to proceed
+        return base.BeforeSolveFaucet();
+    }
+
+	
+    public override int DoSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoSolveCaptcha();
+    }
+
+	
+    public override int AfterSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterSolveCaptcha();
+    }
+
+	
+    public override int BeforeSolveFaucet()
+    {
+        //Return we can continue
+        return base.BeforeSolveFaucet();
+    }
+  
+	
+	
+	
+//==============//
+//DoSolveFaucet
+//==============//
+ public override int DoSolveFaucet()
+  {
+
+	Coins_Function();  //first call to choose coin
+	
+    Wait();
+    Wait(2);
+
+    Driver.Navigate().Refresh(); //RefrashPage	
+
+    Wait();
+    Wait(2);
+	
+    //var BalanceVAR = ElementByXPath("//div[4]/div/span[1] | //div[5]/div/span[1] | //div[6]/div/span[1] | //div[7]/div/span[1] | //div[8]/div/span[1] | //div[9]/div/span[1] | //div[10]/div/span[1] | //div[11]/div/span[1] | //div[12]/div/span[1]");
+
+    //double BalanceDOUBLE; 
+    //double.TryParse(BalanceVAR.Text.Trim(), out BalanceDOUBLE); //decimals  0.1  1.1  2.2  etc
+	
+    //int BalanceINT = Convert.ToInt32(BalanceVAR.Text.Trim().Split(' ')[0]); //--> "Balance: 3921"  Balance: = [0] 3921 = [1]  take only the number -> 3921          
+
+	
+    //if (BalanceDOUBLE > 0 || BalanceINT > 0) // the Default Limit to withdraw is 1000
+    //{
+
+
+          //=======================//
+		  //Agent_Commissions_Reward
+          //=======================//		  
+          if (GetBoolSetting("Agent_Commissions_Reward"))
+          { 
+	  
+           GoToUrl("https://bc.game/");
+           Log("Agent_Commissions_Reward - go to");
+		   
+           Wait();
+		   Wait(2); 
+		   
+		   var BoxTasksTop = ElementByXPath("//button[@class='magic-button active'] | //button[@class='magic-button'] ");
+           if (IsVisible(BoxTasksTop)) 
+           { 
+             Log("Agent_Commissions_Reward - click - BoxTasksTop");
+ 
+             Click(BoxTasksTop);
+		     Wait(); 
+ 		     Wait(2);
+			 
+		     var Reward_1_Claim = ElementByXPath("//*[@id='user-bonus']/div/div[1]/button");
+             if (IsVisible(Reward_1_Claim)) 
+             { 
+             Click(Reward_1_Claim);
+             Log("Agent_Commissions_Reward - Reward_1_Claim");
+		     Wait(2); 
+			 }
+			 
+		     var Reward_2_Claim = ElementByXPath("//*[@id='user-bonus']/div/div[2]/button");
+             if (IsVisible(Reward_2_Claim)) 
+             { 
+             Click(Reward_2_Claim);
+             Log("Agent_Commissions_Reward - Reward_2_Claim");
+		     Wait(2); 
+			 }	
+			 
+		     var Reward_3_Claim = ElementByXPath("//*[@id='user-bonus']/div/div[3]/button");
+             if (IsVisible(Reward_3_Claim)) // click to open & do stuff
+             { 
+             Click(Reward_3_Claim);
+             Log("Agent_Commissions_Reward - Reward_3_Claim");
+		     Wait(2); 	 
+			 }	
+			 
+		     var Reward_4_Claim = ElementByXPath("//*[@id='user-bonus']/div/div[4]/button");
+             if (IsVisible(Reward_4_Claim)) // click to open & do stuff
+             { 
+             Click(Reward_4_Claim);
+             Log("Agent_Commissions_Reward - Reward_4_Claim");
+		     Wait(2); 	 
+			 }	
+			 
+		     var Reward_5_Claim = ElementByXPath("//*[@id='user-bonus']/div/div[5]/button");
+             if (IsVisible(Reward_5_Claim)) // click to open & do stuff
+             { 
+             Click(Reward_5_Claim);
+             Log("Agent_Commissions_Reward - Reward_5_Claim");
+		     Wait(2); 	 
+			 }	
+			 
+		     var Reward_6_Claim = ElementByXPath("//*[@id='user-bonus']/div/div[6]/button");
+             if (IsVisible(Reward_6_Claim)) // click to open & do stuff
+             { 
+             Click(Reward_6_Claim);
+             Log("Agent_Commissions_Reward - Reward_6_Claim");
+		     Wait(2); 	 
+			 }	
+			 
+		     var Reward_7_Claim = ElementByXPath("//*[@id='user-bonus']/div/div[7]/button");
+             if (IsVisible(Reward_7_Claim)) // click to open & do stuff
+             { 
+             Click(Reward_7_Claim);
+             Log("Agent_Commissions_Reward - Reward_7_Claim");
+		     Wait(2); 	 
+			 }	
+			 
+		     var Reward_8_Claim = ElementByXPath("//*[@id='user-bonus']/div/div[8]/button");
+             if (IsVisible(Reward_8_Claim)) // click to open & do stuff
+             { 
+             Click(Reward_8_Claim);
+             Log("Agent_Commissions_Reward - Reward_8_Claim");
+		     Wait(2); 	 
+			 }	
+			 
+		     var Reward_9_Claim = ElementByXPath("//*[@id='user-bonus']/div/div[9]/button");
+             if (IsVisible(Reward_9_Claim)) // click to open & do stuff
+             { 
+             Click(Reward_9_Claim);
+             Log("Agent_Commissions_Reward - Reward_9_Claim");
+		     Wait(2); 	 
+			 }	
+			 
+		     var Reward_10_Claim = ElementByXPath("//*[@id='user-bonus']/div/div[10]/button");
+             if (IsVisible(Reward_10_Claim)) // click to open & do stuff
+             { 
+             Click(Reward_10_Claim);
+             Log("Agent_Commissions_Reward - Reward_10_Claim");
+		     Wait(2); 	 
+			 }	
+			 
+           } //END BoxTasksTop
+		   
+	       WhereIsCOCOBonus_Function(); //call
+		   Log("Rain_AirDrop_Chat: General Check");	
+		   
+          }// END Agent_Commissions_Reward
+          //=======================//
+
+
+          //=======================//
+		  //3rd_DailyTasks_ClaimBonus
+          //=======================//	
+        if (GetBoolSetting("3rd_DailyTasks_ClaimBonus"))
+        {  
+	
+           GoToUrl("https://bc.game/bonus");
+           Log("3rd_DailyTasks_ClaimBonus - go to");
+		   
+           Wait();
+		   Wait(2); 
+
+		   var Open_3rd_DailyTasks_VAR = ElementByXPath("//a[@href='/user/task']");
+           if (IsVisible(Open_3rd_DailyTasks_VAR)) // click to open & do stuff
+           { 
+           Click(Open_3rd_DailyTasks_VAR);
+           Log("Open_3rd_DailyTasks_VAR");
+           }
+		   
+           Wait();
+		   Wait(2); 
+	   
+		   var DailySignIN_VAR = ElementByXPath("//div[1]/button[@class='xbutton action taskover' and contains(text(),'Claim' | 'CLAIM')]");
+		   var BetOnce_VAR = ElementByXPath("//div[2]/button[@class='xbutton action taskover' and contains(text(),'Claim' | 'CLAIM' )]");
+		   var Bet_2_Once_GoBet_VAR = ElementByXPath("//div[2]/button[@class='xbutton action' and contains(text(),'Go' | 'go' | 'GO' | 'BET' | 'Bet' | 'bet' )]");
+		   var Relief_VAR = ElementByXPath("//div[3] /button[@class='xbutton action taskover' and contains(text(),'Claim' | 'CLAIM' )] | //div[4] /button[@class='xbutton action taskover' and contains(text(),'Claim' | 'CLAIM')]"); // if JB balance is less than 50
+
+		   var DailySignIN_NOT_VAR = ElementByXPath("//div[1]/button[@class='xbutton action xbutton-disabled']");		   
+		   var BetOnce_NOT_VAR = ElementByXPath("//div[2]/button[@class='xbutton action xbutton-disabled']");
+		   var Relief_NOT_VAR = ElementByXPath("//div[3]/button[@class='xbutton action xbutton-disabled']");
+	   
+		   
+		   //===========//		   
+		   //Visible//
+		   //===========//
+           if (IsVisible(DailySignIN_VAR))
+           {
+           Click(DailySignIN_VAR);
+		   Log("3rd_DailyTasks_ClaimBonus: click on DailySignIN_VAR - Success");			 		   
+           Wait();
+		   Wait(2);  
+		   }
+			 
+           if (IsVisible(BetOnce_VAR))
+           {
+           Click(BetOnce_VAR);
+		   Log("3rd_DailyTasks_ClaimBonus: click on BetOnce_VAR - Success");			   
+           Wait();
+		   Wait(2);   
+		   }
+		
+		 
+           if (IsVisible(Relief_VAR))
+           {
+           Click(Relief_VAR);
+		   Log("3rd_DailyTasks_ClaimBonus: click on Relief_VAR - Success");			 		   
+           Wait();
+		   Wait(2);   
+		   }	
+
+              //DONT ADD IT GIVE A LOT OF PROBLEMS//
+		     /*
+		     if (IsVisible(Bet_2_Once_GoBet_VAR)) //if text "Bet" apper need to click on "Bet" once,and after go to https://nanogames.io/crash to click again on "Bet" | only then the "Claim" will appear always for free
+             {
+			 
+               Click(Bet_2_Once_GoBet_VAR);
+		       Log("3rd_DailyTasks_ClaimBonus: click on - Bet_2_Once_GoBet_VAR - 'Bet' once");	
+               Wait();
+		       Wait(2);   
+
+               ATM_Shorter_Function(); //CALL
+
+             }//end Bet_2_Once_VAR
+		     */
+			 //=================================//
+		   
+		   //===========//		   
+		   //NOT Visible//
+		   //===========//
+           if (IsVisible(DailySignIN_NOT_VAR))
+           {
+           Wait();
+		   Wait(2);
+		   Log("3rd_DailyTasks_ClaimBonus: DailySignIN_VAR - Not available");			 		      
+		   }
+			 
+           if (IsVisible(BetOnce_NOT_VAR))
+           {
+           Wait();
+		   Wait(2);
+		   Log("3rd_DailyTasks_ClaimBonus: BetOnce_VAR - Not available");			 		    
+		   }
+			 
+           if (IsVisible(Relief_NOT_VAR))
+           {
+           Wait();
+		   Wait(2); 
+		   Log("3rd_DailyTasks_ClaimBonus: Relief_VAR - Not available");			 		      
+		   }
+
+           Driver.Navigate().Refresh(); //RefrashPage	
+
+           Wait();
+           Wait(2);	
+	   
+	       WhereIsCOCOBonus_Function(); //call
+		   Log("Rain_AirDrop_Chat: General Check");	
+		   
+        }// end 3rd_DailyTasks_ClaimBonus
+        //=======================//	
+		  
+		
+        //================//
+		//RollingTheLucky
+        //================//		
+        if (GetBoolSetting("RollingTheLucky"))
+        {  
+           Log("Balance > 0 success");	
+		
+           GoToUrl("https://bc.game/bonus");
+		   Log("RollingTheLucky: Go to bonus page");		
+		
+           Wait();
+		   Wait(2);
+		
+		   var OneWindowsVAR = ElementByXPath("//a[@href='/user/lottery']");	
+           Click(OneWindowsVAR);
+		   Log("RollingTheLucky: click on OneWindows");	
+		
+		   Wait(2);
+		
+		   var RollingTheLuckyVAR = ElementByXPath("//div[@class='spin']");	
+           Click(RollingTheLuckyVAR);
+		   Log("RollingTheLucky: click on RollingTheLuckyVAR spin");	
+		
+		   Wait(2);
+
+           Driver.Navigate().Refresh(); //RefrashPage	
+
+           Wait();
+           Wait(2);	
+	   
+	       WhereIsCOCOBonus_Function(); //call
+		   Log("Rain_AirDrop_Chat: General Check");	
+		   
+        }// end RollingTheLucky
+        //================//	
+		
+		
+        //=============//
+		//RollDaily
+        //=============//		   
+        if (GetBoolSetting("RollDaily"))
+        {  
+           Log("Balance > 0 success");	
+		
+           GoToUrl("https://bc.game/bonus");
+		   Log("RollDaily: Go to bonus page");		
+		
+           Wait();
+		   Wait(2);
+		
+		   var OneWindowsVAR = ElementByXPath("//a[@href='/bonus/roll']");	
+           Click(OneWindowsVAR);
+		   Log("RollDaily: click on OneWindows");	
+		
+		   Wait(2);
+		   
+           var Time_RollDaily = ElementByXPath("//div[@class='roll-time']");
+           if (!IsVisible(Time_RollDaily))
+           {
+			   
+		   var RollDailyVAR = ElementByXPath("//div[@class='roll-butwrap']/button"); //button[contains(text(),'ROLL')]
+           Click(RollDailyVAR);
+		   Log("RollDaily: click on RollDaily Success");	
+		
+		   Wait(2);			   
+
+           Driver.Navigate().Refresh(); //RefrashPage	
+
+           Wait();
+           Wait(2);	  
+           } 			   
+ 		   
+        }// end RollDaily
+        //================//	
+ 
+ 
+        //================//
+		//WhereIsCOCOBonus
+        //================//	 
+        if (GetBoolSetting("WhereIsCOCOBonus"))
+        {  
+	
+	       WhereIsCOCOBonus_Function(); //call
+   
+        }// end WhereIsCOCOBonus
+        //================//
+ 
+ 
+        //================//
+		//Rain_AirDrop_Chat
+        //================//	
+        if (GetBoolSetting("Rain_AirDrop_Chat"))
+        {  
+
+           GoToUrl("https://bc.game/");
+		   Log("Rain_AirDrop_Chat: Go to bonus Chat");	
+		   
+           var ChatAlready_Open = ElementByXPath("//div[@class='xapp has-chat']"); //ChatAlready_Open
+           var ChatAlready_Close = ElementByXPath("//div[@class='xapp']"); //ChatAlready_Close
+		   
+           var ChatButton = ElementByXPath("//button[@class='xbutton head-button has-border chat-button xbutton-gray xbadge-wrap']"); //ChatAlready_Close
+
+           if (IsVisible(ChatAlready_Close))
+           {
+           Click(ChatButton);
+		   Log("Rain_AirDrop_Chat: click on ChatAlready_Close - to open the chat");
+		   } 	
+		   
+           if (IsVisible(ChatAlready_Open))
+           {
+			Log("Rain_AirDrop_Chat: ChatAlready_Open");
+		   }    
+   
+	       Wait();
+		   Wait(2);		
+
+           var ChatInput_VAR = ElementByXPath("//input[@placeholder='Your Message']"); //ChatInput_VAR
+           SetText(ChatInput_VAR, GetSetting("MessageChat"));
+		   
+	       Wait();
+		   Wait(2);			   
+
+           Driver.Navigate().Refresh(); //RefrashPage	
+
+           Wait();
+           Wait(2);				   
+	   
+	       WhereIsCOCOBonus_Function(); //call
+		   Log("Rain_AirDrop_Chat: General Check");	
+		   
+        }// end Rain_AirDrop_Chat
+         //================//
+ 
+ 
+ 
+ 		//================//
+        //Menus Vars AllGames
+		//================//
+        //AllGames_Menu
+        var AllGames_Menu_Var = GetSetting("AllGames_Menu");  	
+		
+		//===========================//
+		//AllGames - none
+		//===========================//
+		
+		 if(AllGames_Menu_Var=="none")
+         {
+			Log("none - no game here ");
+		 }	
+		
+		 if(AllGames_Menu_Var=="ATM")
+         {
+			 ATM_GAME_Function(); //CALL TO ATM_GAME_Function
+	     }
+		 
+		 if(AllGames_Menu_Var=="Dice - NOT available yet")
+         {
+			 Log("Dice - NOT available yet");
+	     }		
+		//===========================//
+ 
+ 
+ 
+   // }//end BalanceDOUBLE > 0
+
+ 	
+     ad = true;    // if i do true - it report as succeed // only one time no multi and also required -> return GetWaitSetting();	
+	 //CheckFaucetResult(); //skip all actions - and call to --> CheckFaucetResult - to make sure That FC mark as "Payout" before
+     //return GetWaitSetting();	
+	
+	
+        //We are good to continue
+        return base.DoSolveFaucet();
+ }
+//==============//
+//DoSolveFaucet
+//==============///
+	
+	
+	
+	
+	
+//==============//
+//AfterSolveFaucet
+//==============//
+  public override int AfterSolveFaucet()
+  {
+
+   //This faucet has nothing to do here. We will let Faucet Collector handle it.
+   return base.AfterSolveFaucet();
+   
+  }
+	
+//==============//
+//AfterSolveFaucet
+//==============//
+
+
+
+    /// <summary>
+    /// This method gets called in the end after the BeforeSolveFaucet/DoSolveFaucet and AfterSolveFaucet methods were done.
+    /// The base.CheckFaucetResult will try to find a visible element on the page using the XPath from SuccessXPath and FailXPath (see the Start method)
+    /// These properties should contain XPath expressions to find certain elements on the page.
+    /// For example if it finds one of the elements from the SuccessXPath, and it is visible, then it will flag the claim attempt as a success.
+    /// Or if it finds one of the elements from the FailXPath, and it is visible, then it will flag the claim attempt as a failure.
+    /// </summary>
+    public override int CheckFaucetResult()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.CheckFaucetResult();
+    }
+	
+ 
+
+//====================//	
+//Coins_Function
+//====================//	
+ private bool Coins_Function()
+ {
+      Wait();
+      Wait(2);
+	  
+      var OpenTabCoins = ElementByXPath("//div[@class='xselect currency-select']"); 
+      Log("click - OpenTabCoins");
+      Click(OpenTabCoins);
+		
+      Wait();
+      Wait(2);
+		 
+      var MenuCoinsVAR = GetSetting("MenuCoins"); 
+	  
+      if(MenuCoinsVAR=="TRTL")
+      {
+      var TRTL_coin_VAR = ElementByXPath("//span[@class='coin-name' and contains(text(),'TRTL')]"); 
+      Log("click - TRTL_coin_VAR");
+      Click(TRTL_coin_VAR);
+	  }// end TRTL
+	  
+      if(MenuCoinsVAR=="EOS")
+      {
+      var EOS_coin_VAR = ElementByXPath("//span[@class='coin-name' and contains(text(),'EOS')]"); 
+      Log("click - EOS_coin_VAR");
+      Click(EOS_coin_VAR);
+	  }// end EOS
+	  
+      if(MenuCoinsVAR=="TRX")
+      {
+      var TRX_coin_VAR = ElementByXPath("//span[@class='coin-name' and contains(text(),'TRX')]"); 
+      Log("click - TRX_coin_VAR");
+      Click(TRX_coin_VAR);
+	  }// end TRX	
+	  
+      if(MenuCoinsVAR=="VSYS")
+      {
+      var VSYS_coin_VAR = ElementByXPath("//span[@class='coin-name' and contains(text(),'VSYS')]"); 
+      Log("click - VSYS_coin_VAR");
+      Click(VSYS_coin_VAR);
+	  }// end VSYS  
+	  
+	  if(MenuCoinsVAR=="BCG")
+      {
+      var BCG_coin_VAR = ElementByXPath("//span[@class='coin-name' and contains(text(),'BCG')]"); 
+      Log("click - BCG_coin_VAR");
+      Click(BCG_coin_VAR);
+	  }// end BCG  
+	  
+	  if(MenuCoinsVAR=="BKBT")
+      {
+      var BKBT_coin_VAR = ElementByXPath("//span[@class='coin-name' and contains(text(),'BKBT')]"); 
+      Log("click - BKBT_coin_VAR");
+      Click(BKBT_coin_VAR);
+	  }// end BKBT 
+
+	  if(MenuCoinsVAR=="DOGE")
+      {
+      var DOGE_coin_VAR = ElementByXPath("//span[@class='coin-name' and contains(text(),'DOGE')]"); 
+      Log("click - DOGE_coin_VAR");
+      Click(DOGE_coin_VAR);
+	  }// end DOGE  
+
+	  if(MenuCoinsVAR=="LTC")
+      {
+      var LTC_coin_VAR = ElementByXPath("//span[@class='coin-name' and contains(text(),'LTC')]"); 
+      Log("click - LTC_coin_VAR");
+      Click(LTC_coin_VAR);
+	  }// end LTC   
+	  
+	  if(MenuCoinsVAR=="JB")
+      {
+      var JB_coin_VAR = ElementByXPath("//span[@class='coin-name' and contains(text(),'JB')]"); 
+      Log("click - JB_coin_VAR");
+      Click(JB_coin_VAR);
+	  }// end JB  
+	   
+	
+ return true;
+ }//end Coins_Function
+//====================//
+	
+
+	
+	
+   //====================//	
+   //ATM_GAME_Function
+   //====================//	
+   public void ATM_GAME_Function()
+   {
+				
+        GoToUrl("https://bc.game/atm");
+        Log("ATM_GAME_Function - go to https://bc.game/atm - Game - to click once on 'Bet' button "); 
+        Wait();
+	    Wait(2);   			 
+        Coins_Function(); //call to open coin			 
+
+        Wait();
+	    Wait(2); 
+	
+        var BalanceVar = ElementByXPath("//div[2]/div[1]/div/div[1]/div/div/span[1 and @class='coin-amount']"); //JB COIN ONLY
+        int balance;
+        int.TryParse(BalanceVar.Text, out balance);  //<<< normal way - ".Text" get the text of ElementByXPath
+
+        if (balance <=0)         //  ( <=0 - it mean Less and = 0 )  ( ==50 - it mean = 50 )  ( >50 <50 - it Above or less from 50 ) //
+        {
+          //do not do nothing
+           Log("ATM_GAME_Function - <= 0"); 
+        }  
+		
+        if (balance  > 1)         //  ( <=0 - it mean Less and = 0 )  ( ==50 - it mean = 50 )  ( >50 <50 - it Above or less from 50 ) //
+        {
+                   Log("ATM_GAME_Function - balance > 1 - Great"); 
+
+                   /*
+	               //BetAmount - NORMAL
+                   var BetAmountVAR = ElementByXPath("//label[@class='xinput xinput-mini']/input");
+                   SetText(BetAmountVAR, GetSetting("BetAmount"));	
+                   */
+				   
+	               //BetAmount - MENU	       
+                   var ATM_Multiplication_Division_Var = GetSetting("ATM_Multiplication_Division_Menu");  	
+
+		           if(ATM_Multiplication_Division_Var=="none")
+                   {
+                    Log("ATM_Multiplication_Division_Var - none");
+				   }					
+		           if(ATM_Multiplication_Division_Var=="Max")
+                   {
+                    var Max_VAR = ElementByXPath("//button[@class='xbutton xbutton-hole' and contains(text(),'Max' | 'MAX' )]");
+                    Log("ATM_Multiplication_Division_Var - Click on - Max_VAR");
+                    Click(Max_VAR);					   
+				   }						
+		           if(ATM_Multiplication_Division_Var=="Min")
+                   {
+                    var Min_VAR = ElementByXPath("//button[@class='xbutton xbutton-hole' and contains(text(),'Min' | 'MIN' )]");
+                    Log("ATM_Multiplication_Division_Var - Click on - Min_VAR");
+                    Click(Min_VAR);	  
+				   }	
+		           if(ATM_Multiplication_Division_Var=="/2")
+                   {
+                    var Division_2_VAR = ElementByXPath("//button[@class='xbutton xbutton-hole' and contains(text(),'/2')]");
+                    Log("ATM_Multiplication_Division_Var - Click on - Division_2_VAR");
+                    Click(Division_2_VAR);	      
+				   }	
+		           if(ATM_Multiplication_Division_Var=="x2")
+                   {
+                    var Multiplication_2_VAR = ElementByXPath("//button[@class='xbutton xbutton-hole' and contains(text(),'x2')]");
+                    Log("ATM_Multiplication_Division_Var - Click on - Multiplication_2_VAR");
+                    Click(Multiplication_2_VAR);	   
+				   }
+
+		   
+				   //=============//
+				   //ATM Function Loop
+				   //=============//
+                   int Claims;      
+                   Claims = Convert.ToInt32(GetSetting("ATM_NumbersOfClaim"));
+                   int Count = 0;
+				   
+                   bool BackToCount;
+                   BackToCount = false;
+				   
+                   while (!BackToCount) // "!WhileBack" mean - if WhileBack NOT false = true
+	               {
+					   
+		            Count++; //	important to put Count++ in start - Count OR store - Similar to the clock begins to count	
+                    Log("Count start");				
+
+                      var Bet_Game_Once_VAR = ElementByXPath("//button[@id='crash-bet']");
+		              while (!IsVisible(Bet_Game_Once_VAR)) //if text "Bet" apper need to click on "Bet" once,and after go to https://bc.game/atm to click again on "Bet" | only then the "Claim" will appear always for free
+					  //if (!IsVisible(Bet_Game_Once_VAR))                     
+					  {
+				
+					     Wait(); //so Wait until the button visible						  
+						 Log("3rd_DailyTasks_ClaimBonus: click on - Bet_Game_Once_VAR - wait for");	
+						 
+                         var Bet_Game_Once_2_VAR = ElementByXPath("//button[@id='crash-bet']");		             		 						
+		                 if (IsVisible(Bet_Game_Once_2_VAR)) //if text "Bet" apper need to click on "Bet" once,and after go to https://bc.game/atm to click again on "Bet" | only then the "Claim" will appear always for free
+                         {
+		                 Log("3rd_DailyTasks_ClaimBonus: click on - Bet_Game_Once_2_VAR - now we click on Game 'Bet' - Success");	 
+                         Click(Bet_Game_Once_2_VAR);	   					     
+                         Wait(4); //so Wait until the button visible	
+			             } //end Bet_Game_Once_2_VAR
+						 
+						 
+                         var Stop_Bet = ElementByXPath("//button[@id='crash-escape']");
+			             if (IsVisible(Stop_Bet)) //if text "Bet" apper need to click on "Bet" once,and after go to https://bc.game/atm to click again on "Bet" | only then the "Claim" will appear always for free
+                         {
+		                 Log("3rd_DailyTasks_ClaimBonus: click on - wait for - Bet_Game_Stop_While - 'Stop' ");	        
+					     // user wait
+					     int SecondToWaitVAR;
+					     int.TryParse(GetSetting("ATM_SecondToWait"), out SecondToWaitVAR);   
+					     Wait(SecondToWaitVAR);						   
+   
+                         Click(Stop_Bet);
+		                 Log("3rd_DailyTasks_ClaimBonus: click on - Bet_Game_Stop_2_While - now we click on 'Stop' bet quickly to succeed");	    
+
+                         } //end Stop_Bet
+
+                         BackToCount = true; //back to the Count++; 
+						 
+			          } //end while Visible
+
+                         if (Count >= Claims)  //IsVisible(YourTextVAR) && 
+	                     {	
+	                     Log("break NumbersOfClaim");
+		    	         CheckFaucetResult(); //skip all actions - and call to --> CheckFaucetResult - to make sure That FC mark as "Payout" before									 
+	                     //return CheckFaucetResult(); 
+						 break; //after break the while
+	                     }	
+
+                   } //end  while (true)		 
+					 
+
+
+        }//end balance >0
+
+					 
+   }//end ATM_GAME_Function
+    //====================//	
+    //====================//	
+	
+	
+	
+	
+            //====================//	
+            //ATM_Shorter_Function
+            //====================//	
+            public void ATM_Shorter_Function()
+            {
+                   GoToUrl("https://bc.game/atm");
+                   Log("ATM_Shorter_Function - go to https://bc.game/atm - Game - to click once on 'Bet' button "); 
+                   Wait();
+		           Wait(2);   			 
+			       Coins_Function(); //call to open coin			 
+
+				   Wait();
+		           Wait(2); 
+				   
+				   var Min_VAR = ElementByXPath("//button[@class='xbutton xbutton-hole' and contains(text(),'Min' | 'MIN')]");
+                   Log("ATM_Multiplication_Division_Var - Click on - Min_VAR");
+                   Click(Min_VAR);	  
+
+                      var Bet_Game_Once_VAR = ElementByXPath("//button[@id='crash-bet']");
+		              //while (!IsVisible(Bet_Game_Once_VAR)) //if text "Bet" apper need to click on "Bet" once,and after go to https://bc.game/atm to click again on "Bet" | only then the "Claim" will appear always for free
+					  if (!IsVisible(Bet_Game_Once_VAR))                     
+					  {
+				
+					     Wait(); //so Wait until the button visible						  
+						 Log("ATM_Shorter_Function: click on - Bet_Game_Once_VAR - wait for");	
+						 
+                         var Bet_Game_Once_2_VAR = ElementByXPath("//button[@id='crash-bet']");		             		 						
+		                 if (IsVisible(Bet_Game_Once_2_VAR)) //if text "Bet" apper need to click on "Bet" once,and after go to https://bc.game/atm to click again on "Bet" | only then the "Claim" will appear always for free
+                         {
+		                 Log("ATM_Shorter_Function: click on - Bet_Game_Once_2_VAR - now we click on Game 'Bet' - Success");	 
+                         Click(Bet_Game_Once_2_VAR);	   					     
+                         Wait(4); //so Wait until the button visible	
+			             } //end Bet_Game_Once_2_VAR
+						 
+						 
+                         var Stop_Bet = ElementByXPath("//button[@id='crash-escape']");
+			             if (IsVisible(Stop_Bet)) //if text "Bet" apper need to click on "Bet" once,and after go to https://bc.game/atm to click again on "Bet" | only then the "Claim" will appear always for free
+                         {
+		                 Log("ATM_Shorter_Function: click on - wait for - Bet_Game_Stop_While - 'Stop' ");	        
+					     // user wait
+					     int SecondToWaitVAR;
+					     int.TryParse(GetSetting("ATM_SecondToWait"), out SecondToWaitVAR);   
+					     Wait(SecondToWaitVAR);						   
+   
+                         Click(Stop_Bet);
+		                 Log("ATM_Shorter_Function: click on - Bet_Game_Stop_2_While - now we click on 'Stop' bet quickly to succeed");	    
+
+                         } //end Stop_Bet
+ 
+						 
+			          } //end while Visible
+            }//end ATM_Shorter_Function
+           //====================//	
+           //====================//						  
+					  
+
+         //====================//	
+         //WhereIsCOCOBonus_Function
+         //====================//	
+         public void WhereIsCOCOBonus_Function()
+         {		
+           //GoToUrl("https://bc.game/");
+		   Log("WhereIsCOCOBonus: Go to home page");		
+           Wait();		
+		   Wait(2);	 	
+		   
+           var COCO_1_RightTop = ElementByXPath("//div[@id='where-coco']/div[@class='right-top']/img[@class='cocoimg' and contains(@style,'top') ]");
+           if (IsVisible(COCO_1_RightTop))
+           {		   
+           Click(COCO_1_RightTop);
+		   Log("WhereIsCOCOBonus: click on COCO_1_RightTop Success");
+           Wait();		
+		   Wait(2);	 		   
+           } 				   
+
+           var COCO_2_LeftBot = ElementByXPath("//div[@id='where-coco']/div[@class='left-bot']/img[@class='lbimg_1' and contains(@style,'bottom') ]");
+           if (IsVisible(COCO_2_LeftBot))
+           {		   
+           Click(COCO_2_LeftBot);
+		   Log("WhereIsCOCOBonus: click on COCO_2_LeftBot Success");
+           Wait();		
+		   Wait(2);	 		   
+           } 	
+
+           var COCO_3_RightBot = ElementByXPath("//div[@id='where-coco']/div[@class='right-bot']/img[contains(@style,'bottom') ]");
+           if (IsVisible(COCO_3_RightBot))
+           {		   
+           Click(COCO_3_RightBot);
+		   Log("WhereIsCOCOBonus: click on COCO_3_RightBot Success");
+           Wait();		
+		   Wait(2);	 		   
+           } 
+
+           Wait();
+           Wait(2);		   
+		   
+         }// end WhereIsCOCOBonus_Function
+
+
+	
+	
+} //end public class
+

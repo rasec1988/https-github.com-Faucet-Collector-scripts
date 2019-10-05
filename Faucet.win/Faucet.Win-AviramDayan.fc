@@ -1,0 +1,430 @@
+﻿
+
+//=========================================================//
+//Script Rewritten (with new way) by: AviramDayan 20/10/18 18:00PM 
+//=========================================================//
+
+using System;
+using FaucetCollector.Script;
+using OpenQA.Selenium;
+
+
+public class FaucetWin : FaucetScript
+{
+    /// <summary>
+    /// List of Settings that will be shown in the bot when selecting this Faucet in the bot.
+    /// You can get the value the user entered with the methods: GetSetting("[Name of the FaucetSetting]"), GetBoolSetting and GetDateTimeSetting
+    /// </summary>
+    public override FaucetSettings Settings
+    {
+        get
+        {
+            return new FaucetSettings("https://faucet.win/?ref=AviramDayan")
+            {
+                new FaucetSetting() { Name = "Username", Display = "Username", Type = EditorType.TextBox, Required = true },           
+                new FaucetSetting() { Name = "Password", Display = "Password", Type = EditorType.Password, Required = true },
+				
+                //new FaucetSetting() { Name = "YourWallet", Display = "Your Wallet", Type = EditorType.TextBox, Required = true },  
+                new FaucetSetting(){Name="AutoWithdraw",Display="Auto Withdraw",Type=EditorType.CheckBox,Default=true},				
+                new FaucetSetting(){Name="ClaimFaucet",Display="Claim Faucet - Every 15 minutes",Type=EditorType.CheckBox,Default=true},
+                //new FaucetSetting(){Name="Roll",Display="Roll - Claim Every 60 minutes",Type=EditorType.CheckBox,Default=true},
+               
+            };
+        }
+    }
+
+	
+	
+	
+//============================================================//
+//the number of "successes" in the script - when are finished  
+//============================================================//
+    public override void Start()
+    {
+        //Title that shows in the browser. Is used to close popups
+        Title = "faucet.win";
+
+        SuccessXPath = "//div[starts-with(text(),'Your claim was successfully')]"; //div[@class='alert alert-success']
+        FailXPath = "//*[text()='']";
+		
+        TimerIsCountingUp = true;
+		
+        //Let Faucet Collector start up everything
+        base.Start();
+    }
+//============================================================//
+//the number of "successes" in the script - when are finished  
+//============================================================//
+
+
+
+	//loop
+    public static bool cs;
+
+	
+	
+    /// <summary>
+    /// This is the first method to run after the browser is opened and the first page is loaded.
+    /// </summary>
+    public override int DoInit()
+    {
+        cs = false;
+        //Let Faucet Collector continue.
+        return base.DoInit();
+    }
+
+	
+	
+	
+	
+//==================//
+//save Login Cookies 
+//==================//	
+    public override bool IsLoggedIn()
+    {
+        //In here we can check for the presence of an element that is only present when you are logged in.
+        //In this case we check for en element with the class "loggedIn"
+	 return ElementByXPath("//a[@href='?logout']") != null;  	
+    }
+//==================//
+//save Login Cookies 
+//==================//	
+
+	
+	
+	
+
+//==========//		
+//BeforeLogin
+//==========//		
+    public override int BeforeLogin()
+    {
+		
+	 //var checks logout
+     var ExitButton =ElementByXPath("//a[@href='?logout']"); //SIGN OUT
+	 
+	 //if i already Login - go to "bonus"	 
+	 if (IsVisible(ExitButton))
+	 {
+        //if we already login go to here
+        GoToUrl("https://faucet.win/");
+	 }		
+		
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeLogin();
+    }
+//==========//		
+//BeforeLogin
+//==========//	
+	
+	
+	
+	
+	
+//=======//	
+//DoLogin	
+//=======//	
+
+public override int DoLogin()
+ {
+
+  //var checks login
+  var LoginButton =ElementByXPath("//a[@href='login']"); //Login
+
+		
+  //if i NOT Login - go to Login Page
+  if (IsVisible(LoginButton))
+  {
+    GoToUrl("http://faucet.win/login");
+	
+    Wait(); 
+	
+    var signInUser = ElementByXPath("//input[@id='username']");
+    SetText(signInUser, GetSetting("Username"));
+	
+    Wait(2);
+	
+    var signInPassword = ElementByXPath("//input[@id='password']");
+    SetText(signInPassword, GetPassword("Password"));
+	
+    Wait(2);
+   
+    //ReCaptcha if apper
+    var result = DoSolveCaptcha();
+    if (result > 0)
+    {
+    return result;
+    }
+    Wait();	
+    ExecuteScript("___grecaptcha_cfg.clients[0].aa.l.callback('" + Context.CaptchaResult.Result + "');");
+
+    Wait(2);	
+	
+	//login
+    var loginButton = ElementByXPath("//input[@placeholder='Submit']");
+    Click(loginButton);
+
+  } // end login
+	
+       
+    return base.DoLogin();
+ }
+	
+//=======//	
+//DoLogin	
+//=======//
+	
+	
+	
+	
+	
+	
+	
+//===========//	
+//AfterLogin
+//===========//
+ public override int AfterLogin()
+ {
+
+    /*
+ 
+    //==========================//
+    //set Your Wallet - in profile
+    //==========================//
+  
+    //var general check - Wallet - Value = none
+	var InputWallet =ElementByXPath("//*[@id='last_used_wallet']");	
+	var ChangeAddressButton =ElementByXPath("//*[@id='duh']/div/form[3]/input");	
+    //==========================//
+
+    //go to - edit profile Settings
+	Log("Wallet: go to - edit profile Settings");		
+	GoToUrl("http://faucet.win/edit-profile");
+	
+    Wait(2);
+	
+	Log("Wallet: set Your Wallet");
+	Click(InputWallet);
+	SetText(InputWallet,"");
+	SetText(InputWallet, GetSetting("YourWallet"));
+	
+    Wait(2);
+	
+	Log("Wallet: click on - ChangeAddressButton");
+    Click(ChangeAddressButton);
+	
+    Wait(2);
+  //===============//
+
+  */
+  
+ return base.AfterLogin();
+ }
+ 
+//===========//	
+//AfterLogin
+//===========//
+	
+	
+	
+	
+	
+//===========//
+//GetFaucetWaitTime
+//===========//
+ public override int GetFaucetWaitTime()
+ {
+
+   //let Faucet Collector continue.
+   return base.GetFaucetWaitTime();
+		
+ }
+
+	
+
+    public override int BeforeSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeSolveCaptcha();
+    }
+
+
+    public override int DoSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoSolveCaptcha();
+    }
+	
+
+    public override int AfterSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterSolveCaptcha();
+    }
+
+
+    public override int BeforeSolveFaucet()
+    {
+     //This faucet has nothing to do here. We will let Faucet Collector handle it.
+     return base.BeforeSolveCaptcha();
+ 
+    }
+
+
+	
+//============//
+//DoSolveFaucet
+//============//
+ public override int DoSolveFaucet()
+ {
+
+    //============//   
+    //AutoWithdraw
+    //============//   
+    if (GetBoolSetting("AutoWithdraw"))
+    {
+
+       //if the colect balance not 0 - we return after 60 min
+        var BalanceVar = ElementByXPath("//*[@id='showsatoshi']/a/b");
+        int balance;
+        int.TryParse(BalanceVar.Text, out balance); 
+        
+        if (balance >1000)  
+        {
+           GoToUrl("https://btcdrizzle.com/index?withdraw_all");
+           Wait();	
+		   var SatoshiInfo = ElementByXPath("//div[@class='alert alert-dismissable alert-info']");
+           Log(SatoshiInfo.Text);
+        }
+
+        if (balance <1000)        
+        {
+          //Do not do anything
+           Log("AutoWithdraw: There is not enough balance ");	  
+        }        
+
+    } // end AutoWithdraw
+	
+
+	
+	/*
+   //=====//
+   //Roll
+   //=====//
+
+   if (GetBoolSetting("Roll"))
+   {
+
+   //first go to Roll Page	   
+   Log("Roll: go to Roll Page");
+   GoToUrl("http://faucet.win/roll");	   
+  
+   //General var
+   var RollButton = ElementByXPath("//input[@value='Roll']");  
+    
+   //if RollButton visible
+   if (IsVisible(RollButton))
+   {
+   Wait();
+   
+   //click		
+   Log("Roll: click on - RollButton"); 
+   Click(RollButton);
+   }
+
+   }
+  	*/
+
+
+ 
+    //============//   
+    //ClaimFaucet
+    //============//  
+    if (GetBoolSetting("ClaimFaucet"))
+    {
+
+		//first go to faucet page
+		Log("ClaimFaucet: go to faucet page");		
+		GoToUrl("https://faucet.win/index");
+		
+       //General var//
+	   var FaucetWaitText = ElementByXPath("//h3[text()='You can claim now.']");	
+       //============//	   
+  
+  	
+        //if FaucetWaitText Not visible
+        if (!IsVisible(FaucetWaitText))
+        {
+        Log("Roll: we return after 16 min (Calculated time - Roll & ClaimFaucet)");   
+        return 16*60;   //we return after 13 min (Calculated time - Roll & ClaimFaucet)
+        } 
+		
+  
+	    //if FaucetButton IsVisible & Text claim - do things
+        if (IsVisible(FaucetWaitText))
+        {
+			
+        Wait(3);
+		
+		//solve captcha
+        var result = SolveCaptcha();
+        if (result > 0)
+        {
+            //Unable to solve the captcha - return the failure
+            return result;
+        }
+        //============//
+		
+        Wait(2);
+		
+        //click on FaucetButton
+        var FaucetButton = ElementByXPath("//a[@class='btn btn-lg btn-primary']");	 
+		Log("ClaimFaucet: click on - FaucetButton");
+        Click(FaucetButton);
+
+        }
+		 
+ 
+    } // end ClaimFaucet
+      //===========//  
+	  
+	  
+       //Let Faucet Collector continue its work
+       return base.DoSolveFaucet();
+ }
+	
+//============//
+//DoSolveFaucet
+//============//
+	
+	
+	
+	
+
+	
+	
+
+public override int AfterSolveFaucet()
+ {
+	
+   //Let Faucet Collector continue
+   return base.AfterSolveFaucet();
+ }
+
+
+    /// <summary>
+    /// This method gets called in the end after the BeforeSolveFaucet/DoSolveFaucet and AfterSolveFaucet methods were done.
+    /// The base.CheckFaucetResult will try to find a visible element on the page using the XPath from SuccessXPath and FailXPath (see the Start method)
+    /// These properties should contain XPath expressions to find certain elements on the page.
+    /// For example if it finds one of the elements from the SuccessXPath, and it is visible, then it will flag the claim attempt as a success.
+    /// Or if it finds one of the elements from the FailXPath, and it is visible, then it will flag the claim attempt as a failure.
+    /// </summary>
+    public override int CheckFaucetResult()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.CheckFaucetResult();
+    }
+ 
+ 
+ 
+} //END public class 

@@ -1,0 +1,249 @@
+
+//=============================================//
+//AviramDayan - Withdraw+Faucet (edit) 03/10/2019
+//=============================================//
+
+using System;
+using FaucetCollector.Script;
+
+public class freeLitecoinScript : FaucetScript
+{
+    public override FaucetSettings Settings
+    {
+        get
+        {
+            return new FaucetSettings("https://www.free-litecoin.com/")
+            {
+                new FaucetSetting() { Name = "Email", Display = "Email Address", Type = EditorType.TextBox, Required = true },
+                new FaucetSetting() { Name = "ps", Display = "password", Type = EditorType.Wallet, Required = true },
+                new FaucetSetting() { Name = "LimitWithdraw", Display = "LimitWithdraw ", Type = EditorType.Numeric, Default = 100 },
+            };
+        }
+    }
+
+    public override void Start()
+    {
+        Title = "Free-Litecoin.com";
+        
+        SuccessXPath = "//h2[@id='info']";
+        FailXPath = "//h1[@id='numberroll' and contains(@style, 'red')]";
+
+        base.Start();
+    }
+
+    public override bool IsLoggedIn()
+    {
+
+        return IsVisible(ElementByXPath("//a[contains(@href,'logout.php')]"));
+    }
+
+    public override int BeforeLogin()
+    {
+
+
+        return base.BeforeLogin();
+    }
+
+    public override int DoLogin()
+    {
+
+        var signInUser = ElementById("usr");
+        if (!IsVisible(signInUser))
+        {
+
+            return Fail("Email input not found.");
+        }
+
+        var signInPassword = ElementById("usr2");
+        if (!IsVisible(signInPassword))
+        {
+
+            return Fail("Password input not found.");
+        }
+
+        SetText(signInUser, GetSetting("Email"));
+        Wait();
+        SetText(signInPassword, GetSetting("ps"));
+
+        var loginButton = ElementByXPath("//button[contains(@class, 'btn-succes')]");
+        if (!IsVisible(loginButton))
+        {
+ 
+            return Fail("Login button not found.");
+        }
+
+        Wait();
+
+        //Solve the captcha
+        var result = SolveCaptcha();
+        if (result > 0)
+        {
+
+            return result;
+        }
+
+        Wait(3);
+
+
+        Click(loginButton);
+
+
+        return base.DoLogin();
+    }
+
+    public override int AfterLogin()
+    {
+		var body = ElementByXPath("//body");
+		
+		Wait();
+		//open the popup
+		Click(body);
+		
+        return base.AfterLogin();
+    }
+
+    public override int GetFaucetWaitTime()
+    {
+        var timerCheck = ElementById("clock");
+        if (!IsVisible(timerCheck))
+        {
+            //no time remaining element, so we are good to go.
+            return 0;
+        }
+
+        var minutes = Convert.ToString(ExecuteScript("return $('#clock .countdown_amount')[0].innerText"));
+        var seconds = Convert.ToString(ExecuteScript("return $('#clock .countdown_amount')[1].innerText"));
+        if (string.IsNullOrEmpty(seconds) || string.IsNullOrEmpty(minutes))
+        {
+            return 0;
+        }
+
+        var min = Convert.ToInt32(minutes.Trim());
+        var sec = Convert.ToInt32(seconds.Trim());
+        //return the total wait time in seconds
+        return (min * 60) + sec;
+    }
+
+    public override int BeforeSolveCaptcha()
+    {
+
+        return base.BeforeSolveCaptcha();
+    }
+
+    public override int DoSolveCaptcha()
+    {
+
+        return base.DoSolveCaptcha();
+    }
+
+    public override int AfterSolveCaptcha()
+    {
+
+        return base.AfterSolveCaptcha();
+    }
+
+
+
+
+    public override int BeforeSolveFaucet()
+    {
+	
+
+        return base.BeforeSolveFaucet();
+    }
+
+
+
+//============//
+//DoSolveFaucet//
+//============//
+    public override int DoSolveFaucet()
+    {
+		
+        //Withdraw
+
+        var balanceVAR = ElementByXPath("//a[@id='money']");
+        string BalanceSTRING = balanceVAR.Text.Trim().Split('.')[1];
+        int BalanceINT = Convert.ToInt32(BalanceSTRING);
+
+        int MyAmount;
+        Int32.TryParse(GetSetting("LimitWithdraw"), out MyAmount);
+
+        if (BalanceINT < MyAmount) // - 100
+        {
+            Log("LimitWithdraw - Under <");
+        }
+
+        if (BalanceINT > MyAmount && MyAmount != 0)
+        {
+            Log("LimitWithdraw - Above >");
+            GoToUrl("https://www.free-litecoin.com/withdraw"); 
+            Wait();
+            Wait(2);
+            SetSetting("MyBalance", balanceVAR.Text); //Store
+            var InputWallet = ElementByXPath("//input[@id='moneywithdraw']");
+            SetText(InputWallet, GetSetting("MyBalance")); //set stored text
+
+            var result_1 = DoSolveCaptcha();
+            if (result_1 > 0)
+            {
+               return Fail("fail not solve"); //if something wrong
+            }
+            
+            var ButtonWithdraw = ElementByXPath("//button[@id='buttonwithdraw']");
+            Click(ButtonWithdraw);
+            Wait();
+            Wait(4);
+        }
+
+
+        //faucet
+
+        GoToUrl("https://www.free-litecoin.com");
+        Wait();
+        Wait(2);
+        var rollNumberBtn = ElementByXPath("//button[@id='roll']");
+        if (!IsVisible(rollNumberBtn))
+        {
+            return Fail("Roll number not visible.");
+        }
+
+        //Solve the captcha
+        var result_2 = DoSolveCaptcha();
+        if (result_2 > 0)
+        {
+           return Fail("fail not solve"); //if something wrong
+        }
+        Wait(3);
+        Click(rollNumberBtn);
+		
+        return base.DoSolveFaucet();
+    }
+//============//
+//DoSolveFaucet//
+//============//
+
+
+
+
+    public override int AfterSolveFaucet()
+    {
+
+        return base.AfterSolveFaucet();
+    }
+
+
+
+    public override int CheckFaucetResult()
+    {
+        var result = base.CheckFaucetResult();
+        if (IsSuccess)
+        {
+
+            Reload = true;
+        }
+
+        return result;
+    }
+
+}

@@ -1,0 +1,444 @@
+﻿
+//==================//
+//script Written by: ••AviramDayan•• 05/12/2018 06:00AM
+//==================//
+
+using System;
+using System.Text.RegularExpressions;
+using FaucetCollector.Script;
+using OpenQA.Selenium;
+using OpenQA.Selenium.Interactions;
+
+
+public class fbsub : FaucetScript
+{
+    /// <summary>
+    /// List of Settings that will be shown in the bot when selecting this Faucet in the bot.
+    /// You can get the value the user entered with the methods: GetSetting("[Name of the FaucetSetting]"), GetBoolSetting and GetDateTimeSetting
+    /// You can also create a new setting value using SetSetting("[Name you want to use]", "value")
+    /// </summary>
+    public override FaucetSettings Settings
+    {
+        get
+        {
+            return new FaucetSettings("https://freelotto.com/")
+            {
+                new FaucetSetting(){Name="Email",Display="Email",Type=EditorType.TextBox,Required=true},
+                new FaucetSetting(){Name="Pass",Display="Password",Type=EditorType.Password,Required=true},
+		
+                new FaucetSetting(){Name="AutoFreeLotto",Display="AutoFreeLotto - on/off - every 1 day",Type=EditorType.CheckBox,Default=true},	
+				new FaucetSetting(){Name="DeleteCookies",Display="Delete Cookies - Sometimes solves problems (Recommended)",Type=EditorType.CheckBox,Default=false},
+
+
+                //insert user settings here
+                //new FaucetSetting { 
+                //    Name = "Name of your setting", 
+                //    Display = "Display shown in Faucet Collector", 
+                //    Type = EditorType.TextBox | EditorType.Password | EditorType.CheckBox | EditorType.Wallet | EditorType.Numeric | EditorType.ComboBox | EditorType.CheckComboBox, 
+                //    Required = true | false, 
+                //    Default = "Optionally a default value" | true | false | null.
+                //    Items = new List<string> { "item1", "item2" } (only valid for ComboBox or CheckComboBox)
+                //} 
+            };
+        }
+    }
+
+	
+	
+	
+	
+	
+	
+//============================================================//
+//the number of "successes" in the script - when are finished  
+//============================================================//
+    public override void Start()
+    {
+        //Title that shows in the browser. Is used to identify and close popup windows
+        Title = "FreeLotto";
+
+        //After we did try to claim on the faucet we search for these elements to determine if it was a success or a fail
+        SuccessXPath = "//*";   //*[text()='']
+        FailXPath = "//*";
+
+        //Let Faucet Collector start up everything
+        base.Start();
+    }
+//============================================================//
+//the number of "successes" in the script - when are finished  
+//============================================================//
+	
+	
+	
+	
+	
+    public override int DoInit()
+    {
+		
+		//if it's Checked
+       if (GetBoolSetting("DeleteCookies"))
+       {
+		//Delete Cookies
+		 Log("DeleteCookies - Checked");
+         Driver.Manage().Cookies.DeleteAllCookies();
+       } 
+	   
+        //Let Faucet Collector continue.
+        return base.DoInit();
+    }
+
+	
+	
+	
+//==================//
+//save Login Cookies 
+//==================//
+    public override bool IsLoggedIn()
+    {
+		 //return ElementByXPath("//button[@name='gettkn']") != null;
+		 return ElementByXPath("//a[@href='/logout']") != null;
+		
+        //return base.IsLoggedIn();
+	
+    }
+//==================//
+//save Login Cookies 
+//==================//
+	
+	
+	
+	
+	
+    /// <summary>
+    /// This method gets called if IsLoggedIn returned false, right before the DoLogin method is called.
+    /// </summary>
+    public override int BeforeLogin()
+    {
+
+     var ExitButton = ElementByXPath("//a[@href='/logout']"); //SIGN OUT
+	
+	 //if i already Login - go to "bonus"	 
+	 if (IsVisible(ExitButton))
+	 {
+        //if we already login go to here
+        GoToUrl("https://www.freelotto.com/");
+	 }	
+	 
+	 
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeLogin();
+    }
+
+
+	
+//=============//
+//start DoLogin
+//=============//
+    public override int DoLogin()
+    {
+
+	
+	 //var checks login or exit
+     var LoginButton = ElementByXPath("//a[@href='/login']"); //login
+
+		
+	 //if i NOT Login - go to Login Page
+	 if (IsVisible(LoginButton))
+	 {
+		
+        //else go to normal login
+		GoToUrl("https://www.freelotto.com/login");
+		
+        var box_user = ElementByXPath("//input[@id='input_username']");
+        SetText(box_user, GetSetting("Email"));
+		
+        Wait(2);
+		
+        var box_pass = ElementByXPath("//input[@id='input_password']");
+        SetText(box_pass, GetPassword("Pass"));
+		
+        Wait(5);		
+		
+        var ButtonGetToken = ElementByXPath("//input[@type='submit']");
+        Click(ButtonGetToken);		
+
+	 }
+	 
+		
+        return base.DoLogin();
+    }
+//=============//
+//start DoLogin
+//=============//
+	
+
+	
+	
+	
+	
+//==========//
+//AfterLogin
+//=========//
+ public override int AfterLogin()
+ {
+
+		
+		 
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterLogin();
+ }
+//==========//
+//AfterLogin
+//=========//
+	
+	
+	
+
+	
+//=============//
+//GetFaucetWaitTime
+//=============//
+    public override int GetFaucetWaitTime()
+    {
+		
+		
+		
+        //let Faucet Collector continue.
+        return base.GetFaucetWaitTime();
+    }
+//=============//
+//GetFaucetWaitTime
+//=============//
+	
+	
+	
+	
+
+    public override int BeforeSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeSolveCaptcha();
+    }
+
+
+    public override int DoSolveCaptcha()
+    {
+
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoSolveCaptcha();
+    }
+
+
+    public override int AfterSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterSolveCaptcha();
+    }
+	
+	
+
+    public override int BeforeSolveFaucet()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeSolveCaptcha();
+    }
+	
+	
+	
+
+
+//=============//
+//DoSolveFaucet
+//=============//
+    public override int DoSolveFaucet()
+    {
+		
+	//==========//
+		//AutoFreeLotto 
+		//==========//
+        if (GetBoolSetting("AutoFreeLotto"))
+        {
+         GoToUrl("https://www.freelotto.com/");
+			
+		 Wait();
+		 
+		 //home game 1
+         var FreeLotto1Game = ElementByXPath("//div[1]/div/a[text()='Play now!']");
+	     if (IsVisible(FreeLotto1Game))
+	     {
+			 Log("DoSolveFaucet - home game 1"); 
+             Click(FreeLotto1Game);	
+	     }
+	
+		 //home game 2
+         var FreeLotto2Game = ElementByXPath("//div[2]/div/a[text()='Play now!']");
+	     if (IsVisible(FreeLotto2Game))
+	     {
+			 Log("DoSolveFaucet - home game 2");  
+             Click(FreeLotto2Game);	
+	     }
+		 
+		 //home game 3
+         var FreeLotto3Game = ElementByXPath("//div[3]/div/a[text()='Play now!']");
+	     if (IsVisible(FreeLotto3Game))
+	     {
+			 Log("DoSolveFaucet - home game 3"); 
+             Click(FreeLotto3Game);	
+	     } 
+		 
+		 //home game 4
+         var FreeLotto4Game = ElementByXPath("//div[4]/div/a[text()='Play now!']");
+	     if (IsVisible(FreeLotto4Game))
+	     {
+			 Log("DoSolveFaucet - home game 4"); 
+             Click(FreeLotto4Game);	
+	     }		 
+
+		 //home game 5
+         var FreeLotto5Game = ElementByXPath("//div[5]/div/a[text()='Play now!']");
+	     if (IsVisible(FreeLotto5Game))
+	     {
+			 Log("DoSolveFaucet - home game 5"); 
+             Click(FreeLotto5Game);	
+	     }
+
+		 //home game 6
+         var FreeLotto6Game = ElementByXPath("//div[6]/div/a[text()='Play now!']");
+	     if (IsVisible(FreeLotto6Game))
+	     {
+			 Log("DoSolveFaucet - home game 6"); 
+             Click(FreeLotto6Game);	
+	     }
+		 
+		  Wait(); 
+		  
+          AutoFormFunction(); // call to all Forms Function 
+
+          Wait(3);
+
+          Log("OneTime_6_LottoGame - nothing at the moment - we return after specific time"); 	
+          Driver.Close();  // Close specific chrome window
+          Driver.Quit();  // also Close the console app, that was used to kick off the chrome window
+          Driver.Dispose();  // Close the chromedriver.exe 			
+          return GetWaitSetting(); 
+  
+		 
+        } //end AutoFreeLotto
+
+
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+
+        return base.DoSolveFaucet();
+    }	
+	
+
+
+	
+	
+    public override int AfterSolveFaucet()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterSolveFaucet();
+    }
+	
+	
+	
+
+    /// <summary>
+    /// This method gets called in the end after the BeforeSolveFaucet/DoSolveFaucet and AfterSolveFaucet methods were done.
+    /// The base.CheckFaucetResult will try to find a visible element on the page using the XPath from SuccessXPath and FailXPath (see the Start method)
+    /// These properties should contain XPath expressions to find certain elements on the page.
+    /// For example if it finds one of the elements from the SuccessXPath, and it is visible, then it will flag the claim attempt as a success.
+    /// Or if it finds one of the elements from the FailXPath, and it is visible, then it will flag the claim attempt as a failure.
+    /// </summary>
+    public override int CheckFaucetResult()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.CheckFaucetResult();
+    }
+	
+
+	
+        private bool AutoFormFunction()
+        {
+           Log("AutoFormFunction - inside "); 
+
+		 //form game 1
+          Log("OneTime_6_LottoGame - call to game 1 function"); 
+          OneTimeFunction(); //call 1
+		  
+		 //form game 2
+          var Form2Confirm = ElementByXPath("//form[@action='/game-two-confirm']");
+ 	      if (IsVisible(Form2Confirm))
+	      {
+          Log("OneTime_6_LottoGame - call to game 2 function"); 
+          OneTimeFunction(); //call 2
+		  }
+		  
+		 //form game 3
+          var Form3Confirm = ElementByXPath("//form[@action='/game-three-confirm']");
+ 	      if (IsVisible(Form3Confirm))
+	      {
+          Log("OneTime_6_LottoGame - call to game 3 function"); 
+          OneTimeFunction(); //call 3
+		  }
+		  
+		 //form game 4
+          var Form4Confirm = ElementByXPath("//form[@action='/game-four-confirm']");
+ 	      if (IsVisible(Form4Confirm))
+	      {
+          Log("OneTime_6_LottoGame - call to game 4 function"); 
+          OneTimeFunction(); //call 4
+		  }
+		  
+		 //form game 5
+          var Form5Confirm = ElementByXPath("//form[@action='/game-five-confirm']");
+ 	      if (IsVisible(Form5Confirm))
+	      {
+          Log("OneTime_6_LottoGame - call to game 5 function"); 
+          OneTimeFunction(); //call 5
+		  }
+		  
+		 //form game 6
+          var Form6Confirm = ElementByXPath("//form[@action='/game-six-confirm']");
+ 	      if (IsVisible(Form6Confirm))
+	      {
+          Log("OneTime_6_LottoGame - call to game 6 function"); 
+          OneTimeFunction(); //call 6
+		  }
+		   
+           return true;
+        }
+
+
+	
+        private bool OneTimeFunction()
+        {
+           Log("OneTimeFunction - inside "); 
+
+           var QuickPickButtonGeneral = ElementByXPath("//*[@id='game_submit']/div/div[3]/button[text()='Use QuickPick']");
+		   
+	       if (IsVisible(QuickPickButtonGeneral))
+	       {
+             Click(QuickPickButtonGeneral);	
+             Wait(2);	
+             Click(QuickPickButtonGeneral);	
+             Wait(3);	
+             Click(QuickPickButtonGeneral);		
+             Wait(4);	
+			 
+             var PlayNowButtonGeneral = ElementByXPath("//*[@id='game_submit']/button[text()='Play now!']");		
+             Click(PlayNowButtonGeneral);	
+			 
+             Wait(15);	
+
+             var PlayNextButtonGeneral = ElementByXPath("//input[@data-label='Play next game!']");			
+             Click(PlayNextButtonGeneral);	
+		   }
+		   
+           return true;
+        }
+	
+
+
+} //public class bitnyx

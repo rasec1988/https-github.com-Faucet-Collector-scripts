@@ -1,0 +1,373 @@
+﻿
+
+//==================//
+//script Written by: ••AviramDayan•• 06/06/2019 18:00PM 
+//Last Update: 28/06/2019 18:00PM - Version 1
+//==================//
+
+using System;
+using FaucetCollector.Script;
+using OpenQA.Selenium;
+using OpenQA.Selenium.Interactions;
+//css_inc recaptchaUtilities
+
+public class mobilemonkey : FaucetScript
+{
+    /// <summary>
+    /// List of Settings that will be shown in the bot when selecting this Faucet in the bot.
+    /// You can get the value the user entered with the methods: GetSetting("[Name of the FaucetSetting]"), GetBoolSetting and GetDateTimeSetting
+    /// You can also create a new setting value using SetSetting("[Name you want to use]", "value")
+    /// </summary>
+    public override FaucetSettings Settings
+    {
+        get
+        {
+			
+            return new FaucetSettings("https://mobilemonkey.com/")
+            {
+                new FaucetSetting(){Name="Email",Display="Email",Type=EditorType.TextBox,Required=false},
+                new FaucetSetting(){Name="Password",Display="Password",Type=EditorType.Password,Required=false},
+                new FaucetSetting() { Name = "GetActivity", Display = "GetActivity - on/off (it's recommended to set the time every 360 min '6 hours') ", Type = EditorType.CheckBox, Default = true},				
+				
+                //new FaucetSetting() { Name = "FaucetClaim", Display = "FaucetClaim", Type = EditorType.CheckBox, Default = true},	
+ 
+				
+            };
+        }
+    }
+
+	
+//============================================================//
+//the number of "successes" in the script - when are finished  
+//============================================================//
+    public override void Start()
+    {
+        ad = false;
+       
+        //Title that shows in the browser. Is used to identify and close popup windows
+        Title = "MobileMonkey"; 
+
+		SuccessXPath = "//*";  //*[@id='']
+        FailXPath = "//*"; //*[@id='']
+	
+        //TimerIsCountingUp = true;
+		
+        //Let Faucet Collector start up everything
+        base.Start();
+    }
+//============================================================//
+//the number of "successes" in the script - when are finished  
+//============================================================//
+
+	
+    bool ad; //custom bool
+
+
+    public override int DoInit()
+    {
+			
+
+		
+        //Let Faucet Collector continue.
+        return base.DoInit();
+    }
+
+	
+//==================//
+//save Login Cookies 
+//==================//
+    public override bool IsLoggedIn()
+    {
+	    //save Login Cookies - Check if the "Logout" exist
+        return ElementByXPath("//div[2]/div[2 and @class='bot-builder-sidebar']") != null;
+	 
+        //return base.IsLoggedIn();
+    }
+//==================//
+//save Login Cookies 
+//==================//	
+
+
+
+
+//=============//
+//BeforeLogin
+//=============//
+    public override int BeforeLogin()
+    {
+		
+
+     GoToUrl("https://app.mobilemonkey.com/login");
+
+
+		
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeLogin();
+    }
+//=============//
+//BeforeLogin
+//=============//
+
+	
+
+
+
+	
+//========//
+//DoLogin
+//========//
+    public override int DoLogin()
+    {
+	
+      var ExitButton = ElementByXPath("//div[2]/div[2 and @class='bot-builder-sidebar']");
+
+	
+	 //if i NOT Login - go to Login Page
+	 if (!IsVisible(ExitButton))
+	 {
+   
+        Title = "Facebook"; 
+		GoToUrl("https://www.facebook.com/login.php?skip_api_login=1&api_key=2015199145383303");
+		Wait();		
+		Wait(2);
+
+        var box_user = ElementByXPath("//input[@id='email']");
+	    if (IsVisible(box_user))
+        {
+        SetText(box_user, GetSetting("Email"));	
+		}
+		
+		Wait(2);
+		
+        var box_pass = ElementByXPath("//input[@id='pass']");
+	    if (IsVisible(box_pass))
+        {
+        SetText(box_pass, GetPassword("Password"));
+		}
+		
+		Wait(2);	
+		
+        var ButtonLog = ElementByXPath("//input[@name='login']");
+	    if (IsVisible(ButtonLog))
+        {  
+		Click(ButtonLog);	
+		Log("ButtonLog - facebbok 1");
+		}
+		
+		Wait();		
+		Wait(4);
+
+        //first go to here
+		Title = "Facebook"; 
+		GoToUrl("https://www.facebook.com/v2.12/dialog/oauth?app_id=2015199145383303&auth_type=rerequest&channel_url=https%3A%2F%2Fstaticxx.facebook.com%2Fconnect%2Fxd_arbiter.php%3Fversion%3D44%23cb%3Df29fa2cb7d973bc%26domain%3Dapp.mobilemonkey.com%26origin%3Dhttps%253A%252F%252Fapp.mobilemonkey.com%252Ff30ff1a265578a4%26relation%3Dopener&client_id=2015199145383303&display=popup&domain=app.mobilemonkey.com&e2e=%7B%7D&enable_profile_selector=true&fallback_redirect_uri=https%3A%2F%2Fapp.mobilemonkey.com%2Flogin&locale=en_US&origin=1&redirect_uri=https%3A%2F%2Fstaticxx.facebook.com%2Fconnect%2Fxd_arbiter.php%3Fversion%3D44%23cb%3Df26d2d32c11421c%26domain%3Dapp.mobilemonkey.com%26origin%3Dhttps%253A%252F%252Fapp.mobilemonkey.com%252Ff30ff1a265578a4%26relation%3Dopener%26frame%3Df14c45f475011b4&response_type=token%2Csigned_request&return_scopes=true&scope=public_profile%2Cemail%2Cpages_show_list%2Cads_read%2Cread_page_mailboxes%2Cbusiness_management%2Cmanage_pages%2Cpages_messaging%2Cpages_messaging_subscriptions%2Cbusiness_management%2Cads_management&sdk=joey&version=v2.12");
+	  
+        var ContinueVAR = ElementByXPath  ("//button[@type='submit' and contains(text(),'Continue as')]");
+	    if (IsVisible(ContinueVAR))
+	    {
+			
+		Click(ContinueVAR);	
+		Log("ButtonLog - facebbok 1");	
+
+		Wait();		
+		Wait(4);
+		
+        var OkVAR = ElementByXPath ("//button[@type='submit' and contains(text(),'OK')]");
+		Click(OkVAR);	
+		Log("OkVAR - facebbok 1");
+		
+		Wait();		
+		Wait(2);
+
+
+	    } //ContinueVAR
+
+		
+		Wait();		
+		Wait(2);
+
+		Title = "MobileMonkey"; 
+		GoToUrl("https://app.mobilemonkey.com/login");
+		
+		Wait();		
+		Wait(2);
+
+        var SigInWithFacebook = ElementByXPath ("//button[@type='button' and contains(text(),'Sign in with Facebook')]");
+	    if (IsVisible(SigInWithFacebook))
+	    {
+		Click(SigInWithFacebook);	
+		Log("SigInWithFacebook - facebbok 1");	
+		}
+
+		Wait();		
+
+	 } // end ExitButton
+
+        
+       return base.DoLogin();
+    }
+//========//
+//DoLogin
+//========//
+ 
+ 
+ 
+
+
+//========//
+//AfterLogin
+//========//
+ public override int AfterLogin()
+ {
+ 
+  
+    //we are good to continue
+    return base.AfterLogin();
+
+ }
+//========//
+//AfterLogin
+//========//
+
+
+	
+
+//================//
+//GetFaucetWaitTime
+//================//
+    public override int GetFaucetWaitTime()
+    {
+
+        if (ad)
+        {
+		    //Log("return ad");
+			ad=false;
+			Driver.Close();  // Close specific chrome window
+            Driver.Quit();  // also Close the console app, that was used to kick off the chrome window
+            Driver.Dispose();  // Close the chromedriver.exe
+            return GetWaitSetting();
+        }
+
+		//let Faucet Collector continue.
+        return base.GetFaucetWaitTime();
+    }
+//================//
+//GetFaucetWaitTime
+//================//
+
+
+
+    public override int BeforeSolveCaptcha()
+    {
+ 
+        //Return we are ready to proceed
+        return base.BeforeSolveFaucet();
+    }
+
+	
+    public override int DoSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoSolveCaptcha();
+    }
+
+	
+    public override int AfterSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterSolveCaptcha();
+    }
+
+	
+    public override int BeforeSolveFaucet()
+    {
+        //Return we can continue
+        return base.BeforeSolveFaucet();
+    }
+  
+
+
+
+
+
+
+
+
+	
+	
+//==============//
+//DoSolveFaucet
+//==============//
+ public override int DoSolveFaucet()
+  {
+
+		//==============//
+		//GetActivityToken//
+		//==============//
+        if (GetBoolSetting("GetActivityToken"))
+        {
+
+        GoToUrl("https://app.mobilemonkey.com/");
+		Log("GetActivityToken - Go to promotions , we just waiting 30 seconds, to act normal and get the bounos daily");	
+		
+        Wait();
+        Wait(30);
+        }	
+		
+		ad = true;    // if i do true - it report as succeed // only one time no multi and also required -> return GetWaitSetting();	
+        //return GetWaitSetting();	
+
+
+        //We are good to continue
+        return base.DoSolveFaucet();
+ }
+//==============//
+//DoSolveFaucet
+//==============///
+
+
+
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+//==============//
+//AfterSolveFaucet
+//==============//
+  public override int AfterSolveFaucet()
+  {
+
+   //This faucet has nothing to do here. We will let Faucet Collector handle it.
+   return base.AfterSolveFaucet();
+   
+  }
+	
+//==============//
+//AfterSolveFaucet
+//==============//
+
+
+
+    /// <summary>
+    /// This method gets called in the end after the BeforeSolveFaucet/DoSolveFaucet and AfterSolveFaucet methods were done.
+    /// The base.CheckFaucetResult will try to find a visible element on the page using the XPath from SuccessXPath and FailXPath (see the Start method)
+    /// These properties should contain XPath expressions to find certain elements on the page.
+    /// For example if it finds one of the elements from the SuccessXPath, and it is visible, then it will flag the claim attempt as a success.
+    /// Or if it finds one of the elements from the FailXPath, and it is visible, then it will flag the claim attempt as a failure.
+    /// </summary>
+    public override int CheckFaucetResult()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.CheckFaucetResult();
+    }
+	
+	
+
+	
+} //end public class
+

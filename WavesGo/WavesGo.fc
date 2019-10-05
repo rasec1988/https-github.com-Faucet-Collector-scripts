@@ -1,0 +1,126 @@
+﻿using System;
+using FaucetCollector.Script;
+
+public class WavesGoScript : FaucetScript
+{
+    /// <summary>
+    /// List of Settings that will be shown in the bot when selecting this Faucet in the bot.
+    /// You can get the value the user entered with the methods: GetSetting("[Name of the FaucetSetting]"), GetBoolSetting and GetDateTimeSetting
+    /// </summary>
+    public override FaucetSettings Settings
+    {
+        get
+        {
+            return new FaucetSettings("http://www.wavesgo.com/faucet")
+            {
+                new FaucetSetting {
+                    Name = "Waves",
+                    Display = "Waves wallet address",
+                    Type = EditorType.Wallet,
+                    Required = true,
+                    Default = null
+                }
+            };
+        }
+    }
+
+    /// <summary>
+    /// This method gets called when the faucet is enabled and the GO button is clicked
+    /// </summary>
+    public override void Start()
+    {
+        //Title that shows in the browser. Is used to close popups
+        Title = "wavesgo";
+
+        //After we did try to claim on the faucet we search for these elements to determine if it was a success or a fail
+        SuccessXPath = "//*[contains(@class, 'toast-success')]";
+        FailXPath = "//*[contains(@class, 'toast-error')]";
+
+        //Let Faucet Collector start up everything
+        base.Start();
+    }
+
+    public override bool IsLoggedIn()
+    {
+        //we are always logged in here
+        return true;
+    }
+
+    public override int GetFaucetWaitTime()
+    {
+        //we can claim once every hour, retreive from the settings how long the previous claim was
+        var previous = GetDateTimeSetting("ClaimTime");
+        if (!previous.HasValue)
+        {
+            //we haven't claimed before, we store 30 minutes ago, so in case the first one fails we will try again in 30 minutes
+            SetSetting("ClaimTime", DateTime.Now.AddMinutes(-30));
+        }
+        else
+        {
+            if (previous.Value.AddHours(1) > DateTime.Now)
+            {
+                //it was still less than an hour ago, return the remaingin time in seconds
+                return (int)(previous.Value.AddHours(1) - DateTime.Now).TotalSeconds;
+            }
+        }
+
+        //we don't need to wait
+        return 0;
+    }
+
+    public override int BeforeSolveFaucet()
+    {
+        //fill in the waves address
+        var address = ElementByXPath("//input[@ng-model='address']");
+        if (!IsVisible(address))
+        {
+            return Fail("Unable to locate the Waves address input.");
+        }
+
+        SetText(address, GetSetting("Waves"));
+        return 0;
+    }
+     public override int DoSolveCaptcha()
+    {
+        
+        return base.DoSolveCaptcha();
+    }
+    public override int DoSolveFaucet()
+    {
+	Wait();
+        //try to find the claim button
+        var claimButton = ElementByXPath("//button[@type='submit']");
+        if (!IsVisible(claimButton))
+        {
+            return Fail("Claim button not found or not visible.");
+        }
+
+        //solve the reCATPCHA
+        var result =  DoSolveCaptcha();
+        if (result > 0)
+        {
+            return result;
+        }
+
+        //click the button
+        Click(claimButton);
+
+        //return we have succeeded
+        return 0;
+    }
+
+    public override int CheckFaucetResult()
+    {
+        //Let FaucetCollector check if the attempt is succesfull or not
+        var result = base.CheckFaucetResult();
+
+        if (IsSuccess)
+        {
+            //we successfully claimed, update the time when we claimed so we won't try it again within an hour.
+            //see the GetFaucetWaitTime method
+            SetSetting("ClaimTime", DateTime.Now);
+        }
+
+        return result;
+    }
+}

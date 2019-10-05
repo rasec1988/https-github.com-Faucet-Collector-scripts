@@ -1,0 +1,428 @@
+﻿
+
+//==================//
+//script Written by: ••AviramDayan•• 10/06/2019 16:00PM
+//Last Update: 30/07/2019 22:09PM - Version 8
+//==================//
+
+using System;
+using FaucetCollector.Script;
+using OpenQA.Selenium;
+using OpenQA.Selenium.Interactions;
+//css_inc recaptchaUtilities
+
+public class firebitcoinfaucettech : FaucetScript
+{
+    /// <summary>
+    /// List of Settings that will be shown in the bot when selecting this Faucet in the bot.
+    /// You can get the value the user entered with the methods: GetSetting("[Name of the FaucetSetting]"), GetBoolSetting and GetDateTimeSetting
+    /// You can also create a new setting value using SetSetting("[Name you want to use]", "value")
+    /// </summary>
+    public override FaucetSettings Settings
+    {
+        get
+        {
+			
+            return new FaucetSettings("http://firebitcoinfaucet.tech/")
+            {
+                new FaucetSetting(){Name="Address",Display="bitcoin Address",Type=EditorType.TextBox,Required=true},
+	            
+                new FaucetSetting() { Name = "SolveMedia_ReCaptcha", Display = "SolveMedia (ON/Checked) ReCaptcha (OFF/UnChecked)", Type = EditorType.CheckBox, Default = true},   
+                new FaucetSetting() { Name = "AutoDisableScript", Display = "AutoDisableScript - ON/OFF - if the owner without balance to pay", Type = EditorType.CheckBox, Default = false}, 				
+				
+				
+                //new FaucetSetting(){Name="Email",Display="Email",Type=EditorType.TextBox,Required=false},
+                //new FaucetSetting(){Name="Password",Display="Password",Type=EditorType.Password,Required=false},
+				
+                //new FaucetSetting() { Name = "FaucetClaim", Display = "FaucetClaim", Type = EditorType.CheckBox, Default = true},	
+ 
+				
+            };
+        }
+    }
+
+	
+//============================================================//
+//the number of "successes" in the script - when are finished  
+//============================================================//
+    public override void Start()
+    {
+        ad = false;
+       
+        //Title that shows in the browser. Is used to identify and close popup windows
+        Title = "Fire bitcoin Faucet";
+
+		SuccessXPath = "//*";  //*[@id='']
+        FailXPath = "//*"; //*[@id='']
+	
+        //TimerIsCountingUp = true;
+		
+        //Let Faucet Collector start up everything
+        base.Start();
+    }
+//============================================================//
+//the number of "successes" in the script - when are finished  
+//============================================================//
+
+	
+	
+    bool ad; //custom bool
+
+
+
+    public override int DoInit()
+    {
+
+      //=======//
+	  //Protection
+	  //=======//
+      var ProtectionVAR = ElementByXPath("//div[1]/p[1 and contains (text(), 'Balance: N') ]  | //div[1]/p[1 and text()='Balance: 0 BITCOIN'] "); // 
+				
+      if(IsVisible(ProtectionVAR))
+      {	  
+	        Log("ProtectionVAR - the faucet are empty");  
+			Driver.Close();  // Close specific chrome window
+            Driver.Quit();  // also Close the console app, that was used to kick off the chrome window
+            Driver.Dispose();  // Close the chromedriver.exe
+            return GetWaitSetting();  
+	  }
+	  //=======//
+ 
+ 
+ 
+         //=======//
+	     //Timer
+	     //=======//
+		 
+         var MinuteVAR = ElementByXPath("//div[1]/p[3 and contains(text(),'wait' )]");		
+         if(IsVisible(MinuteVAR)) //not Visible
+         {
+           var TimeVAR = Time_Function();
+           if (TimeVAR > 0) 
+           {
+               return TimeVAR;
+           }
+		 }// END MinuteVAR
+		   
+	     //=======//
+		
+			
+        //Let Faucet Collector continue.
+        return base.DoInit();
+    }
+
+
+
+//==================//
+//save Login Cookies 
+//==================//
+    public override bool IsLoggedIn()
+    {
+	    //save Login Cookies - Check if the "Logout" exist
+        return ElementByXPath("//div[1]/p[3]") != null;
+	 
+        //return base.IsLoggedIn();
+    }
+//==================//
+//save Login Cookies 
+//==================//	
+
+
+
+
+//=============//
+//BeforeLogin
+//=============//
+    public override int BeforeLogin()
+    {
+  
+	  
+	 //var checks login or exit
+     var ExitButton = ElementByXPath("//div[1]/p[3]");
+	 
+	 //if i already Login - go to "bonus"	 
+	 if (IsVisible(ExitButton))
+	 {
+        //if we already login go to here
+        GoToUrl("http://www.firebitcoinfaucet.tech/");
+		Log("we are login "); 
+	 }	
+	
+		
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeLogin();
+    }
+//=============//
+//BeforeLogin
+//=============//
+
+	
+
+	
+//========//
+//DoLogin
+//========//
+    public override int DoLogin()
+    {
+
+
+      var ExitButton = ElementByXPath("//div[1]/p[3]");
+	
+	 //if i NOT Login - go to Login Page
+	 if (!IsVisible(ExitButton))
+	 {
+	
+		GoToUrl("http://www.firebitcoinfaucet.tech/");
+		Log("Go to Login "); 
+
+		Wait();		
+		Wait(2);
+
+        if (GetBoolSetting("SolveMedia_ReCaptcha"))
+        {
+		Log("Go to SolveMedia");		
+		GoToUrl("http://firebitcoinfaucet.tech/?cc=SolveMedia");		
+        }
+
+        if (!GetBoolSetting("SolveMedia_ReCaptcha"))
+        {
+		Log("Go to ReCaptcha");
+		GoToUrl("http://firebitcoinfaucet.tech/?cc=reCaptcha");		
+        }
+		
+		Wait(2);
+	
+       //SolveCaptcha if apper
+        var result = DoSolveCaptcha();
+        if (result > 0)
+        {
+            return Fail("Fail solving captcha");
+        }
+		
+		Wait(2);
+		
+        var AddressVAR = ElementByXPath("//form/div[1]/div/input");
+	    if (IsVisible(AddressVAR))
+	    { 
+        SetText(AddressVAR, GetSetting("Address"));
+		}
+	
+		Wait(2);
+
+        var ButtonLog = ElementByXPath("//input[@type='submit' and contains(text(),'Get reward!')]");
+	    if (IsVisible(ButtonLog))
+	    { 
+        Click(ButtonLog);
+		}
+
+		Wait(4);	
+
+        Driver.Navigate().Refresh(); //RefrashPage
+
+		Wait();	
+
+	 } // end ExitButton
+
+        
+       return base.DoLogin();
+    }
+//========//
+//DoLogin
+//========//
+ 
+
+
+//========//
+//AfterLogin
+//========//
+ public override int AfterLogin()
+ {
+ 
+  
+    //we are good to continue
+    return base.AfterLogin();
+
+ }
+//========//
+//AfterLogin
+//========//
+
+
+	
+
+//================//
+//GetFaucetWaitTime
+//================//
+    public override int GetFaucetWaitTime()
+    {
+
+        if (ad)
+        {
+			
+		 ad=false;
+
+         //=======//
+	     //Timer
+	     //=======//
+           var TimeVAR = Time_Function();
+           if (TimeVAR > 0) 
+           {
+               return TimeVAR;
+           }
+	     //=======//
+			
+        }
+		
+
+		//let Faucet Collector continue.
+        return base.GetFaucetWaitTime();
+    }
+//================//
+//GetFaucetWaitTime
+//================//
+
+
+
+    public override int BeforeSolveCaptcha()
+    {
+ 
+        //Return we are ready to proceed
+        return base.BeforeSolveFaucet();
+    }
+
+	
+    public override int DoSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoSolveCaptcha();
+    }
+
+	
+    public override int AfterSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterSolveCaptcha();
+    }
+
+	
+    public override int BeforeSolveFaucet()
+    {
+        //Return we can continue
+        return base.BeforeSolveFaucet();
+    }
+  
+	
+	
+//==============//
+//DoSolveFaucet
+//==============//
+ public override int DoSolveFaucet()
+  {
+
+        //================//
+		//AutoDisableScript
+        //================//
+        if (GetBoolSetting("AutoDisableScript"))
+        {
+          var ProtectionVAR = ElementByXPath("//div[@class='alert alert-danger' and contains(text(),'please try again' | 'insufficient funds to send') ]");			
+          if(IsVisible(ProtectionVAR))
+          {	 
+		  Log("AutoDisableScript - No balance");
+          Disable();
+          return 1;
+		  }
+		  
+        }
+        //================//
+	  
+		Wait(10);	
+		
+		ad = true;    // if i do true - it report as succeed // only one time no multi and also required -> return GetWaitSetting();	
+        //return GetWaitSetting();	
+	
+        //We are good to continue
+        return base.DoSolveFaucet();
+ }
+//==============//
+//DoSolveFaucet
+//==============///
+	
+	
+	
+	
+	
+//==============//
+//AfterSolveFaucet
+//==============//
+  public override int AfterSolveFaucet()
+  {
+
+   //This faucet has nothing to do here. We will let Faucet Collector handle it.
+   return base.AfterSolveFaucet();
+   
+  }
+	
+//==============//
+//AfterSolveFaucet
+//==============//
+
+
+
+    /// <summary>
+    /// This method gets called in the end after the BeforeSolveFaucet/DoSolveFaucet and AfterSolveFaucet methods were done.
+    /// The base.CheckFaucetResult will try to find a visible element on the page using the XPath from SuccessXPath and FailXPath (see the Start method)
+    /// These properties should contain XPath expressions to find certain elements on the page.
+    /// For example if it finds one of the elements from the SuccessXPath, and it is visible, then it will flag the claim attempt as a success.
+    /// Or if it finds one of the elements from the FailXPath, and it is visible, then it will flag the claim attempt as a failure.
+    /// </summary>
+    public override int CheckFaucetResult()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.CheckFaucetResult();
+    }
+	
+	
+
+        //=================//
+		//Time_Function
+        //=================//
+        public int Time_Function()
+        {
+	
+         //=======//
+	     //Timer
+	     //=======//
+		 
+         var MinuteVAR = ElementByXPath("//div[1]/p[3 and contains(text(),'wait' )]");
+			
+         if(!IsVisible(MinuteVAR)) //not Visible
+         {
+         Driver.Close();  // Close specific chrome window
+         Driver.Quit();  // also Close the console app, that was used to kick off the chrome window
+         Driver.Dispose();  // Close the chromedriver.exe
+		 return GetWaitSetting();
+	     }	
+			
+         if(IsVisible(MinuteVAR)) //Visible
+         {
+	     Log("MinuteVAR");  
+         //int MinuteINT = Convert.ToInt32(MinuteVAR.Text)*60;	
+         int MinuteINT = Convert.ToInt32(MinuteVAR.Text.Trim().Split(' ')[4])*60;	 // need [4] for example if we have Existing text "You have to wait 15 minutes"  it mean = You[0] have[1] to[2] wait[3] 15[4] minutes[5] 
+				
+         Driver.Close();  // Close specific chrome window
+         Driver.Quit();  // also Close the console app, that was used to kick off the chrome window
+         Driver.Dispose();  // Close the chromedriver.exe
+		 //return GetWaitSetting();
+         return MinuteINT;
+	     }
+         //=======//
+		 
+		 return 0; //continue
+		 
+        }//	Time_Function
+        //=================//	
+		
+
+	
+} //end public class
+

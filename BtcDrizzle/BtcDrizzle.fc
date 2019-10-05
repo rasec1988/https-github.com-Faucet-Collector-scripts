@@ -1,0 +1,1064 @@
+﻿
+
+//=========================================================//
+//Script Rewritten  - DoShortLink by: cgerabit 21/10/18 10:35AM
+//Script Rewritten (with new way) by: AviramDayan 21/10/18 10:35AM
+//=========================================================//
+
+using System;
+using FaucetCollector.Script;
+using OpenQA.Selenium;
+
+
+public class DrizzleScript : FaucetScript
+{
+    /// <summary>
+    /// List of Settings that will be shown in the bot when selecting this Faucet in the bot.
+    /// You can get the value the user entered with the methods: GetSetting("[Name of the FaucetSetting]"), GetBoolSetting and GetDateTimeSetting
+    /// </summary>
+    public override FaucetSettings Settings
+    {
+        get
+        {
+            return new FaucetSettings("https://btcdrizzle.com")
+            {
+                new FaucetSetting() { Name = "Username", Display = "Username", Type = EditorType.TextBox, Required = true },           
+                new FaucetSetting() { Name = "Password", Display = "Password", Type = EditorType.Password, Required = true },
+				new FaucetSetting(){Name="DoSh",Display="DoShortLink",Type=EditorType.CheckBox,Default=false},
+                new FaucetSetting(){Name="ClaimFaucet",Display="Claim Faucet - Every 60 minutes",Type=EditorType.CheckBox,Default=true},
+                new FaucetSetting(){Name="AutoWithdraw",Display="Auto Withdraw",Type=EditorType.CheckBox,Default=true},		
+				
+                //new FaucetSetting() { Name = "YourWallet", Display = "Your Wallet", Type = EditorType.TextBox, Required = true },  
+    
+               
+            };
+        }
+    }
+
+	
+	
+	
+//============================================================//
+//the number of "successes" in the script - when are finished  
+//============================================================//
+    public override void Start()
+    {
+        //Title that shows in the browser. Is used to close popups
+        Title = "BTC|Faucet";
+
+        SuccessXPath = "//div[starts-with(text(),'Your claim was successfully')]"; //div[@class='alert alert-success']
+        FailXPath = "//*[text()='']";
+		
+        TimerIsCountingUp = true;
+		
+        //Let Faucet Collector start up everything
+        base.Start();
+    }
+//============================================================//
+//the number of "successes" in the script - when are finished  
+//============================================================//
+
+
+
+	//loop
+    public static bool cs;
+
+	
+	
+    /// <summary>
+    /// This is the first method to run after the browser is opened and the first page is loaded.
+    /// </summary>
+    public override int DoInit()
+    {
+        cs = false;
+        //Let Faucet Collector continue.
+        return base.DoInit();
+    }
+
+	
+	
+	
+	
+//==================//
+//save Login Cookies 
+//==================//	
+    public override bool IsLoggedIn()
+    {
+        //In here we can check for the presence of an element that is only present when you are logged in.
+        //In this case we check for en element with the class "loggedIn"
+	 return ElementByXPath("//a[@href='?logout']") != null;  	
+    }
+//==================//
+//save Login Cookies 
+//==================//	
+
+	
+	
+
+//=======//	
+//BeforeLogin	
+//=======//	
+ public override int BeforeLogin()
+ {
+		
+	 //var checks logout
+     var ExitButton =ElementByXPath("//a[@href='?logout']"); //SIGN OUT
+	 
+	 //if i already Login - go to "bonus"	 
+	 if (IsVisible(ExitButton))
+	 {
+        //if we already login go to here
+        GoToUrl("https://btcdrizzle.com/");
+	 }	 
+	 
+    //This faucet has nothing to do here. We will let Faucet Collector handle it.
+    return base.BeforeLogin();
+ }
+//=======//	
+//BeforeLogin	
+//=======//	
+	
+	
+	
+//=======//	
+//DoLogin	
+//=======//	
+
+public override int DoLogin()
+ {
+
+  //var checks login
+  var LoginButton =ElementByXPath("//a[@href='login']"); //Login
+
+		
+  //if i NOT Login - go to Login Page
+  if (IsVisible(LoginButton))
+  {
+    GoToUrl("http://btcdrizzle.com/login");
+	
+    Wait(); 
+	
+    var signInUser = ElementByXPath("//input[@id='username']");
+    SetText(signInUser, GetSetting("Username"));
+	
+    Wait(2);
+	
+    var signInPassword = ElementByXPath("//input[@id='password']");
+    SetText(signInPassword, GetPassword("Password"));
+	
+    Wait(2);
+   
+    //ReCaptcha if apper
+    var result = DoSolveCaptcha();
+    if (result > 0)
+    {
+    return result;
+    }
+    Wait();	
+    ExecuteScript("___grecaptcha_cfg.clients[0].aa.l.callback('" + Context.CaptchaResult.Result + "');");
+
+    Wait(2);	
+	
+	//login
+    var loginButton = ElementByXPath("//input[@placeholder='Submit']");
+    Click(loginButton);
+
+  } // end login
+	
+       
+    return base.DoLogin();
+ }
+	
+//=======//	
+//DoLogin	
+//=======//
+	
+	
+	
+	
+	
+	
+	
+//===========//	
+//AfterLogin
+//===========//
+ public override int AfterLogin()
+ {
+   
+  
+ return base.AfterLogin();
+ }
+
+//===========//	
+//AfterLogin
+//===========//
+
+
+
+
+
+
+//===========//
+//GetFaucetWaitTime
+//===========//
+public override int GetFaucetWaitTime()
+ {
+
+   //let Faucet Collector continue.
+   return base.GetFaucetWaitTime();
+		
+ }
+//===========//
+//GetFaucetWaitTime
+//===========//
+	
+	
+	
+	
+	
+
+    public override int BeforeSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeSolveCaptcha();
+    }
+
+    public override int DoSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoSolveCaptcha();
+    }
+	
+    public override int AfterSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterSolveCaptcha();
+    }
+
+    public override int BeforeSolveFaucet()
+    {
+       //This faucet has nothing to do here. We will let Faucet Collector handle it.
+      return base.BeforeSolveCaptcha();
+    }
+
+	
+	
+	
+	
+	
+//============//
+//DoSolveFaucet
+//============//
+ public override int DoSolveFaucet()
+ {
+	 
+	 
+    //============//   
+    //AutoWithdraw
+    //============//   
+    if (GetBoolSetting("AutoWithdraw"))
+    {
+
+       //if the colect balance not 0 - we return after 60 min
+        var BalanceVar = ElementByXPath("//*[@id='showsatoshi']/a/b");
+        int balance;
+        int.TryParse(BalanceVar.Text, out balance); 
+        
+        if (balance >1000)  
+        {
+           GoToUrl("https://btcdrizzle.com/index?withdraw_all");
+           Wait();	
+		   var SatoshiInfo = ElementByXPath("//div[@class='alert alert-dismissable alert-info']");
+           Log(SatoshiInfo.Text);
+        }
+
+        if (balance <1000)        
+        {
+          //Do not do anything
+           Log("AutoWithdraw: There is not enough balance ");	  
+        }        
+
+    } // end AutoWithdraw
+	
+	
+	 
+		
+    //============//   
+    //ClaimFaucet
+    //============//  
+    if (GetBoolSetting("ClaimFaucet"))
+    {
+	
+		//first go to faucet page
+		Log("ClaimFaucet: go to faucet page");		
+		GoToUrl("https://btcdrizzle.com/index");
+		
+       //General var//
+	   var FaucetWaitText = ElementByXPath("//h3[text()='You can claim now.']");	
+       //============//	   
+  
+	    //if FaucetButton IsVisible & Text claim - do things
+        if (IsVisible(FaucetWaitText))
+        {
+			
+        Wait(5);
+		
+		//solve captcha
+        var result = DoSolveCaptcha();
+        if (result > 0)
+        {
+            //Unable to solve the captcha - return the failure
+            return result;
+        }
+        //============//
+		
+        Wait(2);
+		
+        if (!GetBoolSetting("DoSh"))
+        {
+         var Link = ElementByXPath("//input[@name='link']");
+         Click(Link);
+         Wait();
+        }
+		
+        //click on FaucetButton
+        var FaucetButton = ElementByXPath("//a[@class='btn btn-lg btn-primary']");	 
+		Log("ClaimFaucet: click on - FaucetButton");
+        Click(FaucetButton);
+
+        if (!Driver.Url.Contains("btcdrizzle"))
+         {
+           doShortLink("btcdrizzle");
+         }
+          Wait();
+
+        }
+		 
+	
+        //if FaucetWaitText Not visible
+        if (!IsVisible(FaucetWaitText))
+        {
+        Log("Roll: we return after 13 min (Calculated time - Roll & ClaimFaucet)");   
+        return 60*60;   //we return after 13 min (Calculated time - Roll & ClaimFaucet)
+        } 
+    
+  
+    } //end ClaimFaucet
+	
+       //Let Faucet Collector continue its work
+       return base.DoSolveFaucet();
+ }
+
+public override int AfterSolveFaucet()
+ {
+	
+ 
+  
+ 
+   //Let Faucet Collector continue
+   return base.AfterSolveFaucet();
+ }
+	
+//============//
+//AfterSolveFaucet
+//============//
+	
+	
+	
+	
+
+    /// <summary>
+    /// This method gets called in the end after the BeforeSolveFaucet/DoSolveFaucet and AfterSolveFaucet methods were done.
+    /// The base.CheckFaucetResult will try to find a visible element on the page using the XPath from SuccessXPath and FailXPath (see the Start method)
+    /// These properties should contain XPath expressions to find certain elements on the page.
+    /// For example if it finds one of the elements from the SuccessXPath, and it is visible, then it will flag the claim attempt as a success.
+    /// Or if it finds one of the elements from the FailXPath, and it is visible, then it will flag the claim attempt as a failure.
+    /// </summary>
+    public override int CheckFaucetResult()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.CheckFaucetResult();
+    }
+ 
+
+ 
+ 
+ 
+    public bool doShortLink(string url)
+    {
+        // VERSION 2.4.2 Last updated 19/10/2018 
+
+        bool iscorrect = true;
+        DateTime t1;
+        int cont = 0;
+        bool bypassed = false;
+        Wait(4);
+        string url_a = Driver.Url;
+
+        do
+        {
+            Title += "|" + Driver.Title;
+            Wait();
+            try
+            {
+                int cont2 = 0;
+                while (true)
+                {
+                    Driver.SwitchTo().Frame(cont2);
+                    var b_deny = ElementById("B1");
+                    if (IsVisible(b_deny))
+                    {
+                        Click(b_deny);
+                        Wait(1);
+                    }
+
+                    cont2++;
+                    Driver.SwitchTo().DefaultContent();
+                }
+            }
+            catch (Exception)
+            {
+                Driver.SwitchTo().DefaultContent();
+            }
+            Wait();
+            if (Driver.Url.Contains("dwindly.io"))
+            {
+                Wait();
+                var but = Driver.FindElement(By.Id("btd1"));
+                Click(but);
+                Wait(12);
+                var but2 = Driver.FindElement(By.Id("btd"));
+
+                Click(but);
+
+            }
+
+            else if (Driver.Url.Contains("faucetcrypto.com/faucet/short/"))
+            {
+
+                while (IsVisible(ElementByXPath("//a[@class='btn btn-accent btn-block disabled waves-effect waves-light']")) && !IsVisible(ElementByXPath("//a[@class='btn btn-accent btn-block waves-effect waves-light']")))
+                {
+                    Wait();
+                }
+                Wait();
+                var button = ElementByXPath("//a[@class='btn btn-accent btn-block waves-effect waves-light']");
+                Click(button);
+            }
+            else if (Driver.Url.Contains("http://ouo.io"))
+            {
+                Wait();
+                DoSolveCaptcha();
+                string g_key = Context.CaptchaResult.Result;
+                var elem = ElementByXPath("//span[@class='desc']//a");
+                Click(elem);
+                Wait();
+                var g_area = ElementByXPath("//textarea[@id='g-recaptcha-response']");
+                SetText(g_area, g_key);
+                Wait();
+                var button____ = ElementByXPath("//input[@value='Submit']");
+                Click(button____);
+                Wait(2);
+                DateTime twait = DateTime.Now.AddSeconds(16);
+                while (!IsVisible(ElementByXPath("//button[@id='btn-main']")))
+                {
+                    Wait();
+                    if (DateTime.Now > twait)
+                    {
+                        break;
+                    }
+                }
+                var button_fouo = ElementByXPath("//button[@id='btn-main']");
+                if (IsVisible(button_fouo))
+                {
+                    Click(button_fouo);
+                }
+                Wait();
+            }
+            else if (Driver.Url.Contains("linkshrink.net"))
+            {
+                Wait();
+                var button = ElementByXPath("//a[@id='btd']");
+                if (button != null)
+                {
+                    while (!button.Enabled)
+                    {
+                        Wait();
+                    }
+
+                    Click(button, false);
+                    Wait(3, 4);
+                    CheckForPopups();
+                }
+            }
+            else if (Driver.Url.Contains("zap.in"))
+            {
+                ExecuteScript("var v = document.getElementsByClassName('btn btn-primary'); v[0].click();");
+                var result = SolveCaptcha();
+
+                Wait(5);
+                ExecuteScript("var v = document.getElementsByClassName('btn btn-primary'); v[1].click();");
+
+
+            }
+            else
+            {
+
+                bool clicked = false;
+                Wait();
+                var button = ElementById("invisibleCaptchaShortlink");
+                if (IsVisible(button))
+                {
+                    var img = ElementById("adcopy-outer-captchaShortlink");
+                    var text = ElementById("adcopy_response-captchaShortlink");
+                    if (img != null && text != null)
+                    {
+                        var result = DoSolveImageCaptcha(img, text);
+                    }
+                    else
+                    {
+                        var result = SolveCaptcha();
+                        try
+                        {
+                            ExecuteScript("try{window.grecaptcha.getResponse = function(nr) { return '" + Context.CaptchaResult.Result + "'; }}catch(Exception){};");
+                        }
+                        catch (Exception)
+                        {
+
+                        }
+                    }
+                    Wait(2, 3);
+                    button = ElementById("invisibleCaptchaShortlink");
+                    if (button.Enabled == true)
+                    {
+                        button = ElementById("invisibleCaptchaShortlink");
+                        Click(button);
+                        clicked = true;
+                        Wait();
+                    }
+                    else
+                    {
+                        ExecuteScript("var but=document.getElementById(\"invisibleCaptchaShortlink\");but.outerHTML=but.outerHTML.replace('disabled=\"disabled\"','');");
+                        Wait(3);
+                        button = ElementById("invisibleCaptchaShortlink");
+                        Click(button);
+                        clicked = true;
+
+
+                    }
+                }
+                else
+                {
+                    var button_2 = Driver.FindElements(By.TagName("button"));
+                    foreach (var _button_2 in button_2)
+                    {
+                        if (_button_2.Text.ToLower().Contains("continue"))
+                        {
+                            if (_button_2.Enabled == true)
+                            {
+                                Click(_button_2);
+                                clicked = true;
+                                Wait();
+                                break;
+                            }
+                            else
+                            {
+                                ExecuteScript("var but=document.getElementsByTagName('button');for(i=0;i<but.length;i++){if(but[i].outerHTML.search('continue')!=-1){but[i].outerHTML=but[i].outerHTML.replace('disabled=\"disabled\"','');break;}}");
+                                Wait(3);
+                                Click(_button_2);
+                                clicked = true;
+                                break;
+                            }
+                        }
+                    }
+
+                }
+                if (!clicked)
+                {
+                    var button__ = ElementByXPath("//button[@id='invisibleCaptchaShortlink']");
+                    var form = ElementByXPath("//form[@id='link-view']");
+                    if (button__ != null && !IsVisible(button__) && form != null && ElementByXPath("//iframe[contains(@src,'google.com/recaptcha')]") != null)
+                    {
+                        DoSolveCaptcha();
+                        Wait();
+                        ExecuteScript("var but=document.getElementById('invisibleCaptchaShortlink');but.outerHTML='';var form=document.getElementById('link-view');form.submit();");
+                        Wait();
+                        clicked = true;
+                    }
+                }
+                if (!clicked)
+                {
+                    if (ElementByXPath("//div[@id='loading']") != null && ElementByXPath("//div[@id='loadingdone']") != null && ElementByXPath("//input[@value='Skip Ad']") != null)
+                    {
+                        DateTime T_w = DateTime.Now.AddSeconds(16);
+                        while (IsVisible(ElementByXPath("//input[@value='Skip Ad']")) && !IsVisible(ElementByXPath("//input[@value='Skip Ad']")))
+                        {
+
+                            Wait();
+                            if (DateTime.Now > T_w)
+                            {
+                                break;
+                            }
+                        }
+                        var button_skip = ElementByXPath("//input[@value='Skip Ad']");
+                        if (button_skip != null)
+                        {
+                            Click(button_skip);
+                            clicked = true;
+                        }
+
+                        Wait(3);
+                    }
+                }
+                if (!clicked)
+                {
+                    if (IsVisible(ElementByXPath("//img[@src='http://cdn.ay.gy/static/image/logo.png']")) && IsVisible(ElementByXPath("//a[@style='color:#FFFFFF;']")))
+                    {
+                        Wait(6);
+                        var but = ElementByXPath("//a[@style='color:#FFFFFF;']");
+                        if (IsVisible(but))
+                        {
+                            Click(but);
+                            Wait();
+
+                            clicked = true;
+                        }
+
+                    }
+                }
+                if (!clicked)
+                {
+                    var but = ElementById("btn1");
+                    if (IsVisible(but))
+                    {
+                        Click(but);
+                        Wait();
+                        var img = ElementById("adcopy-outer-captchaShortlink");
+                        var text = ElementById("adcopy_response-captchaShortlink");
+                        if (img != null && text != null)
+                        {
+                            var result = DoSolveImageCaptcha(img, text);
+                        }
+                        else
+                        {
+                            var result = SolveCaptcha();
+                            try
+                            {
+                                ExecuteScript("try{window.grecaptcha.getResponse = function(nr) { return '" + Context.CaptchaResult.Result + "'; }}catch(Exception){};");
+                            }
+                            catch (Exception)
+                            {
+
+                            }
+                        }
+                        Wait();
+                        var but1 = ElementByXPath("//a[@class='btn btn-primary']");
+                        Wait();
+                        Click(but1);
+                        var button_p = ElementByXPath("//button[@id='btn2']");
+                        t1 = DateTime.Now.AddMinutes(1);
+                        while (!button_p.Enabled)
+                        {
+                            button_p = ElementByXPath("//button[@id='btn2']");
+                            Wait();
+                            if (DateTime.Now > t1)
+                            {
+                                break;
+                            }
+                        }
+                        Click(button_p);
+                        clicked = true;
+                        Wait();
+
+                    }
+
+                }
+                if (!clicked)
+                {
+                    Wait();
+                    if (IsVisible(ElementByXPath("//div[@id='pause']")) || IsVisible(ElementById("btd1")))
+                    {
+
+
+                        var but = ElementById("btd1");
+                        t1 = DateTime.Now.AddMinutes(1);
+                        while (!IsVisible(but))
+                        {
+                            Wait();
+                            but = ElementById("btd1");
+                            if (DateTime.Now > t1)
+                            {
+                                break;
+                            }
+                        }
+
+                        Click(but);
+                        clicked = true;
+
+                    }
+                }
+                if (!clicked)
+                {
+                    var but_p = ElementByXPath("//div[@class='panel-body']//button[@type='button']");
+                    if (IsVisible(but_p))
+                    {
+                        Click(but_p);
+                        Wait();
+                        DoSolveCaptcha();
+                        Wait();
+                        var verify_but = ElementByXPath("//button[contains(text(),'Verify')]");
+                        if (IsVisible(verify_but))
+                        {
+                            Click(verify_but);
+                        }
+                        Wait();
+                        clicked = true;
+                    }
+                }
+                if (!clicked)
+                {
+                    if (IsVisible(ElementByXPath("//span[@id='timer']")) || IsVisible(ElementByXPath("//span[@id='skip_button']")))
+                    {
+                        DateTime Wait_s = DateTime.Now.AddSeconds(20);
+                        while (IsVisible(ElementByXPath("//span[@id='timer']")))
+                        {
+
+                            Wait();
+                            if (DateTime.Now > Wait_s)
+                            {
+                                break;
+                            }
+                        }
+                        Wait();
+                        var but_skip = ElementByXPath("//span[@id='skip_button']");
+                        Click(but_skip);
+                        clicked = true;
+                        Wait();
+                    }
+                }
+                if (!clicked)
+                {
+                    if (IsVisible(ElementByXPath("//div[@id='LinkDetails']//button[@type='button' and @class='btn btn-primary btn-lg']")))
+                    {
+                        Wait();
+                        DoSolveCaptcha();
+                        Wait();
+                        ExecuteScript("recaptchaCompleted();");
+                        Wait();
+                        var button_click = ElementByXPath("//div[@id='LinkDetails']//button[@type='button']");
+                        if (IsVisible(button_click))
+                        {
+                            Click(button_click);
+                            clicked = true;
+                        }
+
+                    }
+
+                }
+                if (!clicked)
+                {
+                    if (ElementByXPath("//*[contains(@src,'google.com/recaptcha')]") != null && ElementByXPath("//button[@type='submit' and @class='hidden']") != null)
+                    {
+
+                        DoSolveCaptcha();
+                        Wait(2, 3);
+
+                        var button_ = ElementByXPath("//button[@type='submit' and @class='hidden']");
+                        Click(button_);
+                        Wait();
+                        clicked = true;
+                    }
+                }
+                if (!clicked)
+                {
+                    if (ElementByXPath("//*[contains(@src,'google.com/recaptcha')]") != null)
+                    {
+
+                        DoSolveCaptcha();
+                        Wait(2, 3);
+
+                        ExecuteScript("try{___grecaptcha_cfg.clients[0].aa.l.callback('" + Context.CaptchaResult.Result + "');}catch(Exception){___grecaptcha_cfg.clients[0].KR.K.callback('" + Context.CaptchaResult.Result + "');}");
+                        Wait();
+                        clicked = true;
+                    }
+
+
+                }
+                if (!clicked)
+                {
+                    if (IsVisible(ElementByXPath("//input[@class='btn btn-primary']")))
+                    {
+                        Wait();
+                        var but = ElementByXPath("//input[@class='btn btn-primary']");
+                        Click(but);
+                        Wait(2, 3);
+                        var elem_wait = ElementByXPath("//div[@class='row']//div[@class='row']//div[@class='fh5co-intro animate-box fadeInUp animated-fast']");
+                        var t__ = DateTime.Now.AddSeconds(30);
+                        while (IsVisible(elem_wait))
+                        {
+                            Wait();
+                            if (DateTime.Now > t__)
+                            {
+                                break;
+                            }
+                            elem_wait = ElementByXPath("//div[@class='row']//div[@class='row']//div[@class='fh5co-intro animate-box fadeInUp animated-fast']");
+
+                        }
+                        Wait();
+                        var captcha_solvemedia_short = ElementByXPath("//img[@id='adcopy-puzzle-image-image-captchaShortlink']");
+                        if (IsVisible(captcha_solvemedia_short))
+                        {
+                            DoSolveImageCaptcha(captcha_solvemedia_short, ElementByXPath("//input[@id='adcopy_response-captchaShortlink']"));
+
+                        }
+                        else
+                        {
+                            DoSolveCaptcha();
+                        }
+                        Wait();
+                        var button__S = ElementByXPath("//button[@id='invisibleCaptchaShortlink']");
+                        if (IsVisible(button__S))
+                        {
+                            Click(button__S);
+                            clicked = true;
+                        }
+                        Wait();
+
+                    }
+                }
+
+
+                ///// CLICK FIRST BUTTON FINISHED
+                if (clicked)
+                {
+                    bool clicked_2 = false;
+                    var button_skip = ElementByXPath("//a[@class='btn btn-success btn-lg get-link']");
+                    if (IsVisible(ElementByXPath("//a[@class='btn btn-success btn-lg get-link disabled']")) || IsVisible(ElementByXPath("//a[@class='btn btn-success btn-lg get-link']")))
+                    {
+                        t1 = DateTime.Now.AddMinutes(1);
+                        while (button_skip == null)
+                        {
+                            Wait();
+                            button_skip = ElementByXPath("//a[@class='btn btn-success btn-lg get-link']");
+                            if (DateTime.Now > t1)
+                            {
+                                break;
+                            }
+                        }
+                        Click(button_skip);
+                        clicked_2 = true;
+                    }
+
+                    if (!clicked_2)
+                    {
+                        if (IsVisible(ElementByXPath("//div[@class='skip-ad']")) || IsVisible(ElementByXPath("//a[@class='btn']")))
+                        {
+                            var button_skip_a = ElementByXPath("//a[@class='btn']");
+                            t1 = DateTime.Now.AddMinutes(1);
+                            while (button_skip_a == null)
+                            {
+                                Wait();
+                                button_skip_a = ElementByXPath("//a[@class='btn']");
+                                if (DateTime.Now > t1)
+                                {
+                                    break;
+                                }
+                            }
+                            Click(button_skip_a);
+                            clicked_2 = true;
+                        }
+
+                    }
+                    if (!clicked_2)
+                    {
+                        if (IsVisible(ElementByXPath("//a[@class='btn btn-success get-link disabled']")) || IsVisible(ElementByXPath("//a[@class='btn btn-success get-link']")))
+                        {
+                            var button_skip_a = ElementByXPath("//a[@class='btn btn-success get-link']");
+                            t1 = DateTime.Now.AddMinutes(1);
+                            while (button_skip_a == null)
+                            {
+                                Wait();
+                                button_skip_a = ElementByXPath("//a[@class='btn btn-success get-link']");
+                                if (DateTime.Now > t1)
+                                {
+                                    break;
+                                }
+                            }
+                            Click(button_skip_a);
+                            clicked_2 = true;
+                        }
+                    }
+                    if (!clicked_2)
+                    {
+                        if (IsVisible(ElementByXPath("//a[@class='btn btn-primary btn-goo get-link disabled']")) || IsVisible(ElementByXPath("//a[@class='btn btn-primary btn-goo get-link']")))
+                        {
+                            var button_skip_a = ElementByXPath("//a[@cla//a[@class='btn btn-success btn-lg get-link disabled']ss='btn btn-primary btn-goo get-link']");
+                            t1 = DateTime.Now;
+                            while (!IsVisible(button_skip_a))
+                            {
+                                Wait();
+                                button_skip_a = ElementByXPath("//a[@class='btn btn-primary btn-goo get-link']");
+                                if (DateTime.Now > t1)
+                                {
+                                    break;
+                                }
+                            }
+                            try
+                            {
+                                button_skip_a = ElementByXPath("//a[@class='btn btn-primary btn-goo get-link']");
+                                string url___ = button_skip_a.GetAttribute("data-href");
+                                if (url___ != null)
+                                {
+                                    Driver.Navigate().GoToUrl(url___);
+                                    Wait();
+                                }
+                                else
+                                {
+                                    Click(button_skip_a, false);
+                                    try
+                                    {
+                                        Driver.SwitchTo().Alert().Accept();
+                                    }
+                                    catch (Exception)
+                                    {
+
+                                    }
+                                }
+
+
+                            }
+                            catch (Exception)
+                            {
+                                Click(button_skip_a, false);
+                                try
+                                {
+                                    Driver.SwitchTo().Alert().Accept();
+                                }
+                                catch (Exception)
+                                {
+
+                                }
+
+                            }
+                            clicked_2 = true;
+                        }
+                    }
+                    if (!clicked_2)
+                    {
+                        if (ElementByXPath("//a[@id='btn2']") != null)
+                        {
+                            var button_skip_a = ElementByXPath("//a[@id='btn2']");
+                            t1 = DateTime.Now.AddMinutes(1);
+                            while (!button_skip_a.Enabled)
+                            {
+                                Wait();
+                                button_skip_a = ElementByXPath("//a[@id='btn2']");
+                                if (DateTime.Now > t1)
+                                {
+                                    break;
+                                }
+                            }
+                            Click(button_skip_a);
+                            clicked_2 = true;
+                        }
+                    }
+                    if (!clicked_2)
+                    {
+                        if (IsVisible(ElementByXPath("//a[@class='getlinkbtn get-link disabled']")) || IsVisible(ElementByXPath("/a[@class='getlinkbtn get-link']")))
+                        {
+                            var button_skip_a = ElementByXPath("/a[@class='getlinkbtn get-link']");
+                            while (button_skip_a == null)
+                            {
+                                Wait();
+                                button_skip_a = ElementByXPath("/a[@class='getlinkbtn get-link']");
+                            }
+                            Click(button_skip_a);
+                            clicked_2 = true;
+
+                        }
+                    }
+                    if (!clicked_2)
+                    {
+                        if (IsVisible(ElementByXPath("//a[@class='btn btn-material get-link disabled']")) || IsVisible(ElementByXPath("//a[@class='btn btn-material get-link']")))
+                        {
+                            DateTime breaks = DateTime.Now.AddSeconds(30);
+                            while (IsVisible(ElementByXPath("//a[@class='btn btn-material get-link disabled']")) && !IsVisible(ElementByXPath("//a[@class='btn btn-material get-link']")))
+                            {
+
+                                Wait();
+                                if (DateTime.Now > breaks)
+                                {
+                                    break;
+                                }
+                            }
+                            Wait(2, 3);
+                            var but_Click = ElementByXPath("//a[@class='btn btn-material get-link']");
+                            if (IsVisible(but_Click))
+                            {
+                                Click(but_Click);
+                            }
+                            clicked_2 = true;
+                        }
+
+
+                    }
+
+                }
+            }
+            try
+            {
+                Driver.SwitchTo().Alert().Accept();
+            }
+            catch (Exception)
+            {
+
+            }
+
+            if (Driver.Url.Contains(url))//a[@class='btn btn-success btn-lg get-link']
+            {
+                bypassed = true;
+
+                Wait(3, 4);
+            }
+            else
+            {
+                bypassed = false;
+                if (Driver.Url.Contains(url_a))
+                {
+                    Driver.Navigate().Refresh();
+
+                }
+                else
+                {
+                    GoToUrl(url_a);
+                }
+
+            }
+            if (cont >= 3)
+            {
+                if (Driver.Url.Contains(url))
+                {
+                    iscorrect = true;
+                }
+                else
+                {
+                    iscorrect = false;
+                }
+
+                break;
+            }
+            cont++;
+
+        } while (!bypassed);
+        if (!iscorrect)
+        {
+            Log("It is likely that the shortened link that the script just tried to jump is not in this function, please send an email to scripts@faucetcollector.com with this information the url of the shortlink is: " + url_a.ToString());
+        }
+        return iscorrect;
+
+
+    }
+ 
+ 
+ 
+ 
+} //END public class 

@@ -1,0 +1,432 @@
+﻿
+//============================================//
+//script Written first by: cgerabit 22/02/2019
+//last update by: AviramDayan 31/07/2019 19:37PM - Version: 12
+//============================================//
+
+
+using System;
+using FaucetCollector.Script;
+//css_inc ShortLinkUtilitiesV2
+public class IndexBitcoinSript : FaucetScript
+{
+    /// <summary>
+    /// List of Settings that will be shown in the bot when selecting this Faucet in the bot.
+    /// You can get the value the user entered with the methods: GetSetting("[Name of the FaucetSetting]"), GetBoolSetting and GetDateTimeSetting
+    /// You can also create a new setting value using SetSetting("[Name you want to use]", "value")
+    /// </summary>
+    public override FaucetSettings Settings
+    {
+        get
+        {
+            return new FaucetSettings("http://indexbitco.in/")
+            {
+                new FaucetSetting(){Name="User",Display="Username/Email",Type=EditorType.TextBox,Required=true},
+                new FaucetSetting(){Name="Pass",Display="Password",Type=EditorType.Password,Required=true},
+                new FaucetSetting(){Name="UseSolvemedia",Display="UseSolvemedia",Type=EditorType.CheckBox,Default=true},
+                new FaucetSetting(){Name="ClaimFaucet",Display="ClaimFaucet",Type=EditorType.CheckBox,Default=false},
+                new FaucetSetting(){Name="AutoSurfAds",Display="AutoSurfAds",Type=EditorType.CheckBox,Default=false},
+				//new FaucetSetting(){Name="AutoSurfAds_ClaimsNumber",Display="AutoSurfAds_ClaimsNumber",Type=EditorType.TextBox,Default=3},
+
+
+                //insert user settings here
+                //new FaucetSetting { 
+                //    Name = "Name of your setting", 
+                //    Display = "Display shown in Faucet Collector", 
+                //    Type = EditorType.TextBox | EditorType.Password | EditorType.CheckBox | EditorType.Wallet | EditorType.Numeric | EditorType.ComboBox | EditorType.CheckComboBox, 
+                //    Required = true | false, 
+                //    Default = "Optionally a default value" | true | false | null.
+                //    Items = new List<string> { "item1", "item2" } (only valid for ComboBox or CheckComboBox)
+                //} 
+            };
+        }
+    }
+
+
+
+//============================================================//
+//the number of "successes" in the script - when are finished  
+//============================================================//
+    public override void Start()
+    {
+		ad=false;
+		
+        //Title that shows in the browser. Is used to identify and close popup windows
+        Title = "IndexBitcoin";
+
+        //After we did try to claim on the faucet we search for these elements to determine if it was a success or a fail
+        SuccessXPath = "//*"; //strong[contains(text(),'You have successfully claimed ')]
+        FailXPath = "//*"; //font[@color='red']//b[contains(text(),'Error')]
+
+        //Let Faucet Collector start up everything
+        base.Start();
+    }
+//============================================================//
+//the number of "successes" in the script - when are finished  
+//============================================================//
+
+
+//======//
+//DoInit
+//======//
+    public override int DoInit()
+    {
+        //Let Faucet Collector continue.
+        return base.DoInit();
+    }
+//======//
+//DoInit
+//======//
+
+
+
+
+//==================//
+//save Login Cookies 
+//==================//
+    public override bool IsLoggedIn()
+    {
+        //In here we can check for the presence of an element that is only present when you are logged in.
+        //In this case we check for en element with the class "loggedIn"
+        return ElementByXPath("//a[@href='logout']") != null;
+    }
+
+//==================//
+//save Login Cookies 
+//==================//
+
+
+
+
+//===========//
+//BeforeLogin
+//===========//
+    public override int BeforeLogin()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeLogin();
+    }
+//===========//
+//BeforeLogin
+//===========//
+
+
+//=======//
+//DoLogin
+//=======//
+    public override int DoLogin()
+    {
+        if(Driver.Url!= "http://indexbitco.in/login")
+        {
+            GoToUrl("http://indexbitco.in/login");
+        }
+        Wait(1);
+        var UserBox = ElementByXPath("//input[@placeholder='Email or Username']");
+        if (!IsVisible(UserBox))
+        {
+            return Fail("Fail user box is not visible");
+        }
+        SetText(UserBox, GetSetting("User"));
+        var PasswordBox = ElementByXPath("//input[@placeholder='Password']");
+        if (!IsVisible(PasswordBox))
+        {
+            return Fail("Fail password box is not visible");
+        }
+        SetText(PasswordBox, GetPassword("Pass"));
+        var result = DoSolveCaptcha();
+        if (result > 0)
+        {
+            return Fail("Fail solving captcha");
+        }
+        var ButtonLogin = ElementByXPath("//input[@id='sign-in']");
+        if (!IsVisible(ButtonLogin))
+        {
+            return Fail("Button login is not visible");
+        }
+        Click(ButtonLogin);
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoLogin();
+    }
+//=======//
+//DoLogin
+//=======//
+
+
+//==========//
+//AfterLogin
+//==========//
+    public override int AfterLogin()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterLogin();
+    }
+//==========//
+//AfterLogin
+//==========//
+	
+	
+    private bool ad;
+	
+	
+//===============//
+//GetFaucetWaitTime
+//===============//
+    public override int GetFaucetWaitTime()
+    {
+	   
+        if (ad)
+        {
+        Driver.Close();  // Close specific chrome window
+        Driver.Quit();  // also Close the console app, that was used to kick off the chrome window
+        Driver.Dispose();  // Close the chromedriver.exe
+		ad=false; //solve the problem in start - after he return to script again
+        return GetWaitSetting();	
+        }
+		
+        //let Faucet Collector continue.
+        return base.GetFaucetWaitTime();
+    }
+//===============//
+//GetFaucetWaitTime
+//===============//
+
+
+
+    public override int BeforeSolveCaptcha()
+    {
+       
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeSolveCaptcha();
+    }
+
+
+
+    public override int DoSolveCaptcha()
+    {
+        if (Driver.Url.Contains("indexbitco.in"))
+        {
+            if (GetBoolSetting("UseSolvemedia"))
+            {
+                var SwitchSolvemedia = ElementByXPath("//li[contains(text(),'SolveMedia') and not(contains(@class,'active'))]");
+                if (IsVisible(SwitchSolvemedia))
+                {
+                    Click(SwitchSolvemedia);
+                    Wait(1);
+                }
+            }
+            else
+            {
+                var SwitchRecaptcha = ElementByXPath("//li[contains(text(),'Google Recaptcha') and not(contains(@class,'active'))]");
+                if (IsVisible(SwitchRecaptcha))
+                {
+                    Click(SwitchRecaptcha);
+                    Wait(1);
+                }
+            }
+        }
+
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoSolveCaptcha();
+    }
+
+
+
+
+    public override int AfterSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterSolveCaptcha();
+    }
+
+
+    public override int BeforeSolveFaucet()
+    {
+
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeSolveCaptcha();
+    }
+
+
+//============//
+//DoSolveFaucet
+//============//
+    public override int DoSolveFaucet()
+    {
+		
+
+		//============//
+		//ClaimFaucet//
+		//============//
+       if (GetBoolSetting("ClaimFaucet"))
+       {
+            if (!Driver.Url.Contains("http://indexbitco.in/faucet"))
+            {
+                GoToUrl("http://indexbitco.in/faucet");
+            }
+        Wait();
+		
+        var ButtonGo = ElementByXPath("//input[@value='Claim!']");
+        if (!IsVisible(ButtonGo))
+        {
+            return Fail("Fail, button go to shortlink not found");
+        }
+        var result = DoSolveCaptcha();
+        if (result > 0)
+        {
+            return Fail("Fail solving captcha");
+        }
+        ButtonGo = ElementByXPath("//input[@value='Claim!']");
+        if (!IsVisible(ButtonGo))
+        {
+            return Fail("Fail, button go to shortlink not found");
+        }
+        Click(ButtonGo);
+        Wait();
+        var Error = ElementByXPath("//font[@color='red']//b[contains(text(),'Error')]");
+        if (IsVisible(Error))
+        {
+            string ToLog = Error.Text;
+            Driver.Navigate().Refresh();
+            return Fail(ToLog);
+        }
+        ShortLinkBypasser bypasser = new ShortLinkBypasser(this);
+       bool B= bypasser.DoShortLink();
+        if (!B)
+        {
+            Log("Fail bypassing shortlink");
+        }
+        Wait();
+            CheckFaucetResult();
+       }
+	   
+	   
+	
+        if (GetBoolSetting("AutoSurfAds"))
+        {
+
+            GoToUrl("http://indexbitco.in/ptc");
+            Wait(2);
+
+            //if No ad available
+            var SurfAdsGeneralTextCheck = ElementByXPath("//h1/b[contains(text(),'No ad available!')]  | //p/strong[contains(text(),'No ads are available right now')]");
+            if (IsVisible(SurfAdsGeneralTextCheck))
+            {
+                GoToUrl("http://indexbitco.in/dashboard");
+                Wait();
+
+                var BalanceInfo = ElementByXPath("//div[@class='col-md-12 p-4 amk_dashboard_box amk_blue']/p");
+                if (IsVisible(BalanceInfo))
+                {
+                    Log("Balance Info - " + BalanceInfo.Text);
+                }
+				
+                Wait();
+
+                Driver.Close();  // Close specific chrome window
+                Driver.Quit();  // also Close the console app, that was used to kick off the chrome window
+                Driver.Dispose();  // Close the chromedriver.exe
+                return GetWaitSetting();
+            }
+
+            var BtnSuccessStartAd = ElementByXPath("//button[@class='btn btn-primary start-btn']  | //button[@class='btn btn-success start-btn'] "); 
+            while (IsVisible(BtnSuccessStartAd)){
+
+                try
+                {
+                    var BadgeSuccess = ElementByXPath("//h5[@class='badge badge-success']");
+                    if (IsVisible(BadgeSuccess))
+                    {
+                        Log("Seeing another ad.... " + BadgeSuccess.Text);
+                    }
+                    CheckForPopupsEnabled = false;
+                    Click(BtnSuccessStartAd, false);
+                    System.Threading.Thread.Sleep(3000);
+                    Driver.SwitchTo().Window(Driver.WindowHandles[0]);
+                    Wait(3);
+                    DateTime Timeout = DateTime.Now.AddSeconds(60);
+                    var Timer = ElementByXPath("//span[@id='timer']");
+
+                    while (IsVisible(Timer) && DateTime.Now <= Timeout)
+                    {                       
+                        Wait();
+                        Timer = ElementByXPath("//span[@id='timer']");
+						
+						var NoBAL = ElementByXPath("//h1/b[contains(text(),'No ad available!')]  | //p/strong[contains(text(),'No ads are available right now')]");
+                        if (IsVisible(NoBAL))
+                        {	
+			               Log("spins 0 break");				
+                           //break; //if the count of "spins" is 0	
+				           ClaimSuccess(); //Marks the claim as a success
+						   
+                           Driver.Close();
+                           Driver.Quit();
+                           Driver.Dispose();
+                           return 1*60;    				   
+			            }	
+						
+                    }
+
+                    Wait();
+                }
+                finally
+                {
+                    Driver.SwitchTo().Window(Driver.WindowHandles[0]);
+                    CheckForPopupsEnabled = true;
+                    CheckForPopups();
+                   
+                    Wait(2);
+                    BtnSuccessStartAd = ElementByXPath("//button[@class='btn btn-primary start-btn']  | //button[@class='btn btn-success start-btn'] ");
+                }
+            }
+
+        } //end AutoSurfAds
+
+        
+        //if the start button apper
+        ClaimSuccess();
+        //register as success, so the script knows it can close
+        IsSuccess = true;
+        return GetWaitSetting();
+
+		
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoSolveFaucet();
+    }
+//============//
+//DoSolveFaucet
+//============//
+
+
+
+//===============//
+//AfterSolveFaucet
+//===============//
+    public override int AfterSolveFaucet()
+    {
+ 
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterSolveFaucet();
+    }
+//===============//
+//AfterSolveFaucet
+//===============//
+
+
+
+    /// <summary>
+    /// This method gets called in the end after the BeforeSolveFaucet/DoSolveFaucet and AfterSolveFaucet methods were done.
+    /// The base.CheckFaucetResult will try to find a visible element on the page using the XPath from SuccessXPath and FailXPath (see the Start method)
+    /// These properties should contain XPath expressions to find certain elements on the page.
+    /// For example if it finds one of the elements from the SuccessXPath, and it is visible, then it will flag the claim attempt as a success.
+    /// Or if it finds one of the elements from the FailXPath, and it is visible, then it will flag the claim attempt as a failure.
+    /// </summary>
+    public override int CheckFaucetResult()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.CheckFaucetResult();
+    }
+	
+
+	
+	
+} //end class

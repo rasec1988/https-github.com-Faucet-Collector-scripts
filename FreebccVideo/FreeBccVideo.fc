@@ -1,0 +1,657 @@
+﻿using FaucetCollector.Script;
+using OpenQA.Selenium;
+using System;
+using System.Collections.Generic;
+using System.IO;
+//css_inc ShortLinkUtilities
+public class FreeBccScript___ : FaucetScript
+{
+    /// <summary>
+    /// List of Settings that will be shown in the bot when selecting this Faucet in the bot.
+    /// You can get the value the user entered with the methods: GetSetting("[Name of the FaucetSetting]"), GetBoolSetting and GetDateTimeSetting
+    /// You can also create a new setting value using SetSetting("[Name you want to use]", "value")
+    /// </summary>
+    public override FaucetSettings Settings
+    {
+        get
+        {
+            return new FaucetSettings("https://freebcc.org")
+            {
+                new FaucetSetting(){Name="User",Display="Username",Type=EditorType.TextBox,Required=true },
+                new FaucetSetting(){Name="Pass",Display="Password",Type=EditorType.Password,Required=true },
+                       new FaucetSetting(){Name="User2",Display="Google Email",Type=EditorType.TextBox,Required=true},
+               new FaucetSetting(){Name="Pass2",Display="Password of Google",Type=EditorType.Password,Required=true},
+               new FaucetSetting(){Name="See",Type=EditorType.TextBox,Default="1",Display="Number of Views before close"},
+                //insert user settings here
+                //new FaucetSetting { 
+                //    Name = "Name of your setting", 
+                //    Display = "Display shown in Faucet Collector", 
+                //    Type = EditorType.TextBox | EditorType.Password | EditorType.CheckBox | EditorType.Wallet | EditorType.Numeric | EditorType.ComboBox | EditorType.CheckComboBox, 
+                //    Required = true | false, 
+                //    Default = "Optionally a default value" | true | false | null.
+                //    Items = new List<string> { "item1", "item2" } (only valid for ComboBox or CheckComboBox)
+                //} 
+            };
+        }
+    }
+
+    /// <summary>
+    /// This method gets called when the faucet is enabled and the GO button is clicked
+    /// </summary>
+    public override void Start()
+    {
+        //Title that shows in the browser. Is used to identify and close popup windows
+        Title = "freebcc|More";
+
+        //After we did try to claim on the faucet we search for these elements to determine if it was a success or a fail
+        SuccessXPath = "//div[@class='success']";
+        FailXPath = "//div[@class='error']";
+
+        //Let Faucet Collector start up everything
+        base.Start();
+    }
+
+    /// <summary>
+    /// This is the first method to run after the browser is opened and the first page is loaded.
+    /// </summary>
+    public override int DoInit()
+    {
+
+        if (Cleaned)
+        {
+            Cleaned = false;
+            return GetWaitSetting();
+        }
+        //Let Faucet Collector continue.
+        return base.DoInit();
+    }
+
+    /// <summary>
+    /// This method gets called after the Start method, here you need to return if we are logged in or not.
+    /// If you return false then it will call the BeforeLogin, Login and AfterLogin methods so you can login.
+    /// After those Login methods are called it will call this IsLoggedIn method again to see if the login did succeed.
+    /// If you return true Faucet Collector will store all cookies so it will probably be already logged in on the next attempt.
+    /// </summary>
+    public override bool IsLoggedIn()
+    {
+        //In here we can check for the presence of an element that is only present when you are logged in.
+        //In this case we check for en element with the class "loggedIn"
+        return ElementByXPath("//a[@href='/logout']") != null;
+    }
+
+    /// <summary>
+    /// This method gets called if IsLoggedIn returned false, right before the DoLogin method is called.
+    /// </summary>
+    public override int BeforeLogin()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeLogin();
+    }
+
+    /// <summary>
+    /// This method gets called after BeforeLogin, but only if IsLoggedIn returned false.
+    /// It can be used to actually login the user/enter wallet details in the faucet
+    /// </summary>
+    /// <returns></returns>
+    public override int DoLogin()
+    {
+        if (Driver.Url != Url)
+        {
+            GoToUrl(Url);
+            Wait();
+        }
+        IWebElement UserBox = ElementByXPath("//input[@placeholder='Username']");
+        if (!IsVisible(UserBox))
+        {
+            ShortLinkBypasser Bypasser = new ShortLinkBypasser(this);
+            Bypasser.DoShortLink();
+            return Fail("User box is not visible");
+        }
+        SetText(UserBox, GetSetting("User"));
+        IWebElement PasswordBox = ElementByXPath("//input[@id='password']");
+        if (!IsVisible(PasswordBox))
+        {
+            return Fail("Password box is not visible");
+
+
+        }
+        SetText(PasswordBox, GetPassword("Pass"));
+
+        IWebElement ButtonLogin = ElementByXPath("//button[@type='submit']");
+        if (!IsVisible(ButtonLogin))
+        {
+            return Fail("Button login is not visible");
+        }
+        Click(ButtonLogin);
+        Wait();
+        IWebElement Error = ElementByXPath("//div[@class='error']//div");
+        if (IsVisible(Error))
+        {
+            Log(Error.Text);
+        }
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoLogin();
+    }
+
+    /// <summary>
+    /// This method gets called after the DoLogin method.
+    /// </summary>
+    public override int AfterLogin()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterLogin();
+    }
+
+    /// <summary>
+    /// This method gets called after the login methods are successful, so we are logged into the faucet.
+    /// If the faucet is not yet ready to claim you should return a TimeStamp value to return how long it takes before the Faucet claim can be done.
+    /// This is used to pause the script while the faucet its timer runs out.
+    /// Return the number of seconds the bot should wait.
+    /// </summary>
+    public override int GetFaucetWaitTime()
+    {
+        //let Faucet Collector continue.
+        return base.GetFaucetWaitTime();
+    }
+
+    /// <summary>
+    /// This method is called right before a captcha will be solved. 
+    /// If you call SolveCaptcha() in other methods it will start this flow and tries to solve the captcha on the page.
+    /// </summary>
+    public override int BeforeSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeSolveCaptcha();
+    }
+
+    /// <summary>
+    /// This method gets called after BeforeSolveCaptcha and it does the actual captcha solving
+    /// It will automatically try to see if there is a SolveMedia captcha active or a reCAPTCHA active. 
+    /// If it finds either one it will then use the selected method on the Captcha tab of FaucetCollector to solve the Captcha.
+    /// </summary>
+    public override int DoSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoSolveCaptcha();
+    }
+
+    /// <summary>
+    /// This method will get called after DoSolveCaptcha returned it was a success.
+    /// </summary>
+    /// <returns></returns>
+    public override int AfterSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterSolveCaptcha();
+    }
+
+    /// <summary>
+    /// This method is called right before we attempt to claim on the faucet. So we are logged in and good to go.
+    /// Next methods that will be called are DoSolveFaucet, AfterSolveFaucet and CheckFaucetResult.
+    /// </summary>
+    public override int BeforeSolveFaucet()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeSolveCaptcha();
+    }
+
+    private bool Cleaned = false;
+    /// <summary>
+    /// This method gets called after the BeforeSolveFaucet. You can do the actual claiming of the faucet in here.
+    /// </summary>
+    /// <returns></returns>
+    public override int DoSolveFaucet()
+    {
+        if (Driver.Url != "https://freebcc.org/shortlink/list")
+        {
+            GoToUrl("https://freebcc.org/shortlink/list");
+            Wait();
+        }
+
+
+        Wait();
+        int Views;
+        try
+        {
+            Views = Convert.ToInt32(GetSetting("See"));
+        }
+        catch (Exception)
+        {
+            Views = 1;
+        }
+
+
+        int Cont = 0;
+        IWebElement GoVideo = ElementByXPath("//a[contains(@href,'moretvtime')]");
+        if (!IsVisible(GoVideo))
+        {
+            return Fail("Go video not visible");
+        }
+        int NotFunction = 0;
+        int NCaptchasWithoutClaims = 0;
+        string Url_Moretv = GoVideo.GetAttribute("href");
+        if (Url_Moretv == string.Empty)
+        {
+            return Fail("Fail getting Url");
+        }
+        try
+        {
+            while (Cont < Views)
+            {
+                if (!Driver.Url.Contains("moretvtime.com") || NotFunction > 20)
+                {
+                    Log("We are not in moretv site, or site has not correctly charged..... Going to the site");
+                    if (!Driver.Url.Contains(Url_Moretv))
+                    {
+                        GoToUrl(Url_Moretv);
+                    }
+                    NotFunction = 0;
+                    Wait(3);
+                }
+                IWebElement ButtonSocialMedia = ElementByXPath("//div[@id='social-login']//button[@type='button']");
+
+                if (IsVisible(ButtonSocialMedia))
+                {
+
+                    Click(ButtonSocialMedia);
+                    Wait(2);
+                    IWebElement TextBoxLoginGoogle = ElementByXPath("//input[@type='email']");
+                    DateTime AuxTimer = DateTime.Now.AddSeconds(10);
+                    while (!IsVisible(TextBoxLoginGoogle))
+                    {
+                        TextBoxLoginGoogle = ElementByXPath("//input[@type='email']");
+                        Wait();
+
+                        if (DateTime.Now > AuxTimer)
+                        {
+                            break;
+                        }
+                    }
+                    Wait(1);
+                    SetText(TextBoxLoginGoogle, GetSetting("User2"));
+                    IWebElement ButtonNext = ElementByXPath("//div[@id='identifierNext']");
+                    if (IsVisible(ButtonNext))
+                    {
+                        Click(ButtonNext);
+                        Wait(2);
+                        IWebElement PasswordBox = ElementByXPath("//input[@name='password']");
+                        AuxTimer = DateTime.Now.AddSeconds(10);
+                        while (!IsVisible(PasswordBox))
+                        {
+                            Wait();
+                            PasswordBox = ElementByXPath("//input[@name='password']");
+                            if (DateTime.Now > AuxTimer)
+                            {
+                                break;
+                            }
+                        }
+                        Wait(1);
+                        if (IsVisible(PasswordBox))
+                        {
+                            SetText(PasswordBox, GetPassword("Pass2"));
+                        }
+                        //div[@id='passwordNext']
+                        IWebElement ButtonLogin = ElementByXPath("//div[@id='passwordNext']//div[@class='ZFr60d CeoRYc']");
+                        if (IsVisible(ButtonLogin))
+                        {
+                            Click(ButtonLogin);
+                        }
+                        Wait(3);
+                        IWebElement TwoFactor = ElementByXPath("//div[@class='xkfVF']");
+                        if (IsVisible(TwoFactor))
+                        {
+                            Log("Probably failed, Two factor needed to login in your email");
+                        }
+                        if (!Driver.Url.Contains("moretvtime.com"))
+                        {
+                            GoToUrl(Url_Moretv);
+
+                        }
+                    }
+
+
+
+                }
+
+                Wait(3);
+                bool JavsacriptClick = false;
+                Func<List<IWebElement>, int> CalcR = x => { int Count = 0; int Rand = Random(0, x.Count - 1); while (Count < x.Count && !IsVisible(x[Rand])) { Rand = Random(0, x.Count - 1); Count++; } return (x.Count > Count) ? Count : -1; };
+
+
+                while (IsVisible(ElementByXPath("//div[@class='bold-red' and contains(text(),'Click on any image')]")))
+                {
+                    NotFunction = 0;
+                    List<IWebElement> articles = ElementsByXPath("//article//div//a");
+                    int CountArticles;
+                    DateTime t2 = DateTime.Now.AddSeconds(10);
+                    while (articles.Count == 0)
+                    {
+                        articles = ElementsByXPath("//article//div//a");
+
+                        if (DateTime.Now > t2)
+                        {
+                            break;
+                        }
+                        Wait();
+                    }
+                    CountArticles = articles.Count;
+                    if (CountArticles > 0)
+                    {
+                        int RN = CalcR(articles);
+                        if (RN == -1)
+                        {
+                            return Fail("There is a problem with articles");
+                        }
+
+
+                        if (!JavsacriptClick)
+                        {
+                            Click(articles[Random(0, CountArticles - 1)]);
+                        }
+                        else
+                        {
+                            ExecuteScript("arguments[0].click();", articles[RN]);
+                        }
+                    }
+                    else
+                    {
+                        Driver.Navigate().Refresh();
+                    }
+                    CheckForPopups();
+                }
+                bool IsFinished = false;
+                while (!IsFinished)
+                {
+                    IWebElement Progress = ElementByXPath("//div[contains(text(),'Progress')]");
+                    if (IsVisible(Progress))
+                    {
+                        Log(Progress.Text);
+
+                    }
+                    if (NotFunction >= 14 || IsVisible(ElementByXPath("//body[@bgcolor='white']")))
+                    {
+                        break;
+                    }
+                    IWebElement captcha = ElementByXPath("//img[contains(@src,'data:image/png;')]");
+                    IWebElement solution = ElementByXPath("//input[@name='captcha_solution']");
+                    if (IsVisible(captcha) && IsVisible(solution))
+                    {
+                        if (NCaptchasWithoutClaims > 21)
+                        {
+                            Log("Captcha Loop detected. Killing Script, trying to clean your data folder");
+                            Driver.Manage().Cookies.DeleteAllCookies();
+                            string DataFolder = Path.Combine(Directory.GetCurrentDirectory() + "data" + Name);
+                            if (Directory.Exists(DataFolder))
+                            {
+                                Log("Trying delete data folder maybe you will see some error in the log");
+                                try
+                                {
+                                    Driver.Close();
+                                    Driver.Quit();
+                                    Driver.Dispose();
+
+                                    Directory.Delete(DataFolder, true);
+                                    Cleaned = true;
+
+                                }
+                                catch (Exception)
+                                {
+
+                                }
+
+                            }
+                            else
+                            {
+                                Log("DataFolder not found");
+                                Driver.Close();
+                                int s = GetWaitSetting();
+                                if (s > 0)
+                                {
+                                    return s;
+                                }
+                                else
+                                {
+                                    return 1;
+                                }
+                            }
+
+                        }
+                        NCaptchasWithoutClaims++;
+                        NotFunction = 0;
+                        DoSolveImageCaptcha(captcha, solution);
+                        IWebElement buttonSubmit = ElementByXPath("//input[@value='Submit']");
+                        if (IsVisible(buttonSubmit))
+                        {
+                            Click(buttonSubmit);
+                            Wait();
+                        }
+                        if (IsVisible(ElementByXPath("//*[@class='captcha-wrong']")))
+                        {
+
+                            Log("Captcha incorrect trying again");
+                            continue;
+
+                        }
+
+
+                    }
+
+                    else
+                    {
+                        NotFunction++;
+                    }
+                    IWebElement Grecaptcha = ElementByXPath("//div[@class='g-recaptcha']");
+                    if (IsVisible(Grecaptcha))
+                    {
+                        if (NCaptchasWithoutClaims > 21)
+                        {
+                            Log("Captcha Loop detected. Killing Script, trying to clean your data folder");
+                            Driver.Manage().Cookies.DeleteAllCookies();
+                            string DataFolder = Path.Combine(Directory.GetCurrentDirectory() + "data" + Name);
+                            if (Directory.Exists(DataFolder))
+                            {
+                                Log("Trying delete data folder maybe you will see some error in the log");
+                                try
+                                {
+                                    Driver.Close();
+                                    Driver.Quit();
+                                    Driver.Dispose();
+
+                                    Directory.Delete(DataFolder, true);
+                                    Cleaned = true;
+
+                                }
+                                catch (Exception)
+                                {
+
+                                }
+
+                            }
+                            else
+                            {
+                                Log("DataFolder not found");
+                                Driver.Close();
+                                int s = GetWaitSetting();
+                                if (s > 0)
+                                {
+                                    return s;
+                                }
+                                else
+                                {
+                                    return 1;
+                                }
+                            }
+
+                        }
+                        NCaptchasWithoutClaims++;
+                        NotFunction = 0;
+                        int result = DoSolveCaptcha();
+                        if (result > 0)
+                        {
+                            Log("Fail solving recaptcha");
+                        }
+                        IWebElement buttonSubmit = ElementByXPath("//input[@value='Submit']");
+                        if (IsVisible(buttonSubmit))
+                        {
+                            Click(buttonSubmit);
+                            Wait();
+                        }
+                        if (IsVisible(ElementByXPath("//*[@class='captcha-wrong']")))
+                        {
+
+                            Log("Captcha incorrect trying again");
+                            continue;
+
+                        }
+                    }
+                    else
+                    {
+                        NotFunction++;
+                    }
+                    if (IsVisible(ElementByXPath("//p[contains(text(),'Congrats! You just got paid!')]")))
+                    {
+                        NCaptchasWithoutClaims = 0;
+                        NotFunction = 0;
+                        IWebElement Congrats = ElementByXPath("//p[contains(text(),'Congrats! You just got paid!')]");
+                        if (IsVisible(Congrats))
+                        {
+                            Log("Se ha producido una vista exitosa");
+                            CheckFaucetResult();
+                            IWebElement Close = ElementByXPath("//div[@class='modal is-active']//button[@class='delete']");
+                            if (IsVisible(Close))
+                            {
+                                Click(Close);
+                                Wait();
+                            }
+
+                        }
+                        IsFinished = true;
+                        break;
+                    }
+                    else
+                    {
+                        NotFunction++;
+                    }
+
+                    DateTime t1 = DateTime.Now.AddSeconds(10);
+                    while (!IsVisible(ElementByXPath("//button[@title='Play Video']")))
+                    {
+                        if (t1 > DateTime.Now)
+                        {
+                            break;
+                        }
+                        Wait();
+
+                    }
+                    Wait();
+                    IWebElement PlayVideo = ElementByXPath("//button[@title='Play Video']");
+                    if (IsVisible(PlayVideo))
+                    {
+                        NotFunction = 0;
+                        Click(PlayVideo);
+                    }
+                    else
+                    {
+                        NotFunction++;
+                    }
+                    IWebElement ButtonSucess = ElementByXPath("//button[@class='button is-success blinking-button is-medium']");
+                    DateTime timeout = DateTime.Now.AddSeconds(20);
+                    while (!IsVisible(ButtonSucess))
+                    {
+                        Wait();
+                        ButtonSucess = ElementByXPath("//button[@class='button is-success blinking-button is-medium']");
+                        if (DateTime.Now > timeout)
+                        {
+                            break;
+                        }
+                    }
+                    if (IsVisible(ButtonSucess))
+                    {
+                        NotFunction = 0;
+                        Click(ButtonSucess);
+                    }
+                    else
+                    {
+                        NotFunction++;
+                    }
+                    Wait();
+                    IWebElement ex = ElementByXPath("//button[@class='button is-success blinking-button is-large show-popup headclass']");
+                    if (IsVisible(ex))
+                    {
+                        NotFunction = 0;
+                        Click(ex);
+                    }
+                    else
+                    {
+                        NotFunction++;
+                    }
+                    Wait();
+                    if (IsVisible(ElementByXPath("//p[contains(text(),'Congrats! You just got paid!')]")))
+                    {
+                        NCaptchasWithoutClaims = 0;
+                        NotFunction = 0;
+                        IWebElement Congrats = ElementByXPath("//p[contains(text(),'Congrats! You just got paid!')]");
+                        if (IsVisible(Congrats))
+                        {
+                            Log("Se ha producido una vista exitosa");
+                            CheckFaucetResult();
+                            IWebElement Close = ElementByXPath("//div[@class='modal is-active']//button[@class='delete']");
+                            if (IsVisible(Close))
+                            {
+                                Click(Close);
+                                Wait();
+                            }
+
+                        }
+                        IsFinished = true;
+                    }
+                    else
+                    {
+                        NotFunction++;
+                    }
+
+                }
+                Cont++;
+            }
+
+        }
+        finally
+        {
+
+            CheckForPopupsEnabled = true;
+            CheckForPopups();
+            Driver.SwitchTo().Window(Driver.WindowHandles[0]);
+        }
+
+        if (!Cleaned)
+        {
+            return GetWaitSetting();
+        }
+        return base.DoSolveFaucet();
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+
+    }
+
+    /// <summary>
+    /// This method will get called after the DoSolveFaucet is completed and returned it was a success.
+    /// For example you can wait for a processing popup to go away until actual faucet claim result is on the page.
+    /// </summary>
+    public override int AfterSolveFaucet()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterSolveFaucet();
+    }
+
+    /// <summary>
+    /// This method gets called in the end after the BeforeSolveFaucet/DoSolveFaucet and AfterSolveFaucet methods were done.
+    /// The base.CheckFaucetResult will try to find a visible element on the page using the XPath from SuccessXPath and FailXPath (see the Start method)
+    /// These properties should contain XPath expressions to find certain elements on the page.
+    /// For example if it finds one of the elements from the SuccessXPath, and it is visible, then it will flag the claim attempt as a success.
+    /// Or if it finds one of the elements from the FailXPath, and it is visible, then it will flag the claim attempt as a failure.
+    /// </summary>
+    public override int CheckFaucetResult()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.CheckFaucetResult();
+    }
+}

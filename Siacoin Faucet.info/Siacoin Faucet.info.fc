@@ -1,0 +1,156 @@
+using System;
+using FaucetCollector.Script;
+
+public class dashfaucetInfoScript : FaucetScript
+{
+    public override FaucetSettings Settings
+    {
+        get
+        {
+            return new FaucetSettings("https://siacoinfaucet.info")
+            {
+                new FaucetSetting() { Name = "WalletAddress", Display = "Wallet Address", Type = EditorType.TextBox, Required = true, Default = null }
+            };
+        }
+    }
+
+    public override void Start()
+    {
+        Title = "Free";
+        
+        SuccessXPath = "//*[@id='cim']/h2[contains(text(), 'claim')]";
+        FailXPath = "//div[contains(@class,'error')]";
+
+        base.Start();
+    }
+
+    public override bool IsLoggedIn()
+    {
+
+        return true;
+    }
+
+    public override int BeforeLogin()
+    {
+
+
+        return base.BeforeLogin();
+    }
+
+    public override int DoLogin()
+    {
+
+        
+
+        return base.DoLogin();
+    }
+
+    public override int AfterLogin()
+    {
+
+        return base.AfterLogin();
+    }
+
+    public override int GetFaucetWaitTime()
+    {
+		var previous = GetDateTimeSetting("ClaimTime");
+        if (previous.HasValue)
+        {
+            if (previous.Value.AddHours(1) > DateTime.Now)
+            {
+                //it was still less than an hour ago, return the remaingin time in seconds
+                return (int)(previous.Value.AddHours(1) - DateTime.Now).TotalSeconds;
+            }
+        }
+
+        //we don't need to wait
+        return 0;    
+    }
+
+    public override int BeforeSolveCaptcha()
+    {
+
+        return base.BeforeSolveCaptcha();
+    }
+
+    public override int DoSolveCaptcha()
+    {
+
+        return base.DoSolveCaptcha();
+    }
+
+    public override int AfterSolveCaptcha()
+    {
+
+        return base.AfterSolveCaptcha();
+    }
+
+    public override int BeforeSolveFaucet()
+    {
+
+        return base.BeforeSolveFaucet();
+    }
+
+    public override int DoSolveFaucet()
+    {
+		var wAddress = ElementByXPath("//*[@id='address']");
+        if (!IsVisible(wAddress))
+        {
+            return Fail("Address input not found.");
+        }
+
+        SetText(wAddress, GetSetting("WalletAddress"));
+        Wait();
+		
+        var claimBtn = ElementByXPath("//*[@disabled='disabled']");
+        if (!IsVisible(claimBtn) && !IsVisible(ElementByXPath("//*[contains(text(),'Continue')]")))
+        {
+            return Fail("Button not found.");
+        }
+      
+        
+        //Solve the captcha
+        var result = SolveCaptcha();
+        if (result > 0)
+        {
+
+            return result;
+        }
+        DateTime t1 = DateTime.Now.AddSeconds(20);
+      while(IsVisible(ElementByXPath("//*[@disabled='disabled']"))&& !IsVisible(ElementByXPath("//*[contains(text(),'Continue')]"))) 
+        {
+            Wait(1);
+            if (DateTime.Now > t1)
+            {
+                break;
+            }
+        }
+        claimBtn = ElementByXPath("//*[contains(text(),'Continue')]");
+
+        Click(claimBtn);
+
+
+        return base.DoSolveFaucet();
+    }
+
+    public override int AfterSolveFaucet()
+    {
+
+        return base.AfterSolveFaucet();
+    }
+
+    public override int CheckFaucetResult()
+    {
+        var result = base.CheckFaucetResult();
+        if (IsSuccess)
+        {
+            SetSetting("ClaimTime", DateTime.Now);
+            Reload = true;
+        }
+
+        return result;       
+    }
+
+}
+
+

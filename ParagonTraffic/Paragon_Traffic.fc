@@ -1,0 +1,847 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.Drawing.Imaging;
+using System.IO;
+using System.Runtime.InteropServices;
+using FaucetCollector.Script;
+using OpenQA.Selenium;
+using OpenQA.Selenium.Interactions;
+using Image_Procesing;
+public class Paragon_Traffic : FaucetScript
+{
+    /// <summary>
+    /// List of Settings that will be shown in the bot when selecting this Faucet in the bot.
+    /// You can get the value the user entered with the methods: GetSetting("[Name of the FaucetSetting]"), GetBoolSetting and GetDateTimeSetting
+    /// You can also create a new setting value using SetSetting("[Name you want to use]", "value")
+    /// </summary>
+    public override FaucetSettings Settings
+    {
+        get
+        {
+            return new FaucetSettings("http://www.paragontraffic.com/")
+            {
+
+                new FaucetSetting(){Name="User",Display="Username",Type=EditorType.TextBox,Required=true},
+                new FaucetSetting(){Name="Pass",Display="Password",Type=EditorType.Password,Required=true},
+                new FaucetSetting(){Name="N",Display="Nº Claims",Type=EditorType.Numeric,Default=10},
+                //insert user settings here
+                //new FaucetSetting { 
+                //    Name = "Name of your setting", 
+                //    Display = "Display shown in Faucet Collector", 
+                //    Type = EditorType.TextBox | EditorType.Password | EditorType.CheckBox | EditorType.Wallet | EditorType.Numeric | EditorType.ComboBox | EditorType.CheckComboBox, 
+                //    Required = true | false, 
+                //    Default = "Optionally a default value" | true | false | null.
+                //    Items = new List<string> { "item1", "item2" } (only valid for ComboBox or CheckComboBox)
+                //} 
+            };
+        }
+    }
+
+    /// <summary>
+    /// This method gets called when the faucet is enabled and the GO button is clicked
+    /// </summary>
+    public override void Start()
+    {
+        //Title that shows in the browser. Is used to identify and close popup windows
+        Title = "Paragon";
+        cont = 0;
+        cs = false;
+        //After we did try to claim on the faucet we search for these elements to determine if it was a success or a fail
+        SuccessXPath = "//b[contains(text(),'Credited')]";
+        FailXPath = "//b[contains(text(),'Fail Surf, too more captcha incorrect')]";
+
+        //Let Faucet Collector start up everything
+        base.Start();
+    }
+
+    /// <summary>
+    /// This is the first method to run after the browser is opened and the first page is loaded.
+    /// </summary>
+    public override int DoInit()
+    {
+        //Let Faucet Collector continue.
+        return base.DoInit();
+    }
+
+    /// <summary>
+    /// This method gets called after the Start method, here you need to return if we are logged in or not.
+    /// If you return false then it will call the BeforeLogin, Login and AfterLogin methods so you can login.
+    /// After those Login methods are called it will call this IsLoggedIn method again to see if the login did succeed.
+    /// If you return true Faucet Collector will store all cookies so it will probably be already logged in on the next attempt.
+    /// </summary>
+    public override bool IsLoggedIn()
+    {
+        GotoiFimNot("http://www.paragontraffic.com/login.php");
+        if (IsVisible(ElementByXPath("//font[contains(text(),'I will pass at the moment and pay full price insid')]")))
+        {
+            return true;
+        }
+        //In here we can check for the presence of an element that is only present when you are logged in.
+        //In this case we check for en element with the class "loggedIn"
+        return ElementByXPath("//div[@class='login-btn']//a[@href='surfing.php'][contains(text(),'Surf Now')]") != null;
+    }
+
+    /// <summary>
+    /// This method gets called if IsLoggedIn returned false, right before the DoLogin method is called.
+    /// </summary>
+    public override int BeforeLogin()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeLogin();
+    }
+    private bool GotoiFimNot(string url)
+    {
+        if (!Driver.Url.Contains(url))
+        {
+            GoToUrl(url);
+            return true;
+        }
+        return false;
+    }
+    /// <summary>
+    /// This method gets called after BeforeLogin, but only if IsLoggedIn returned false.
+    /// It can be used to actually login the user/enter wallet details in the faucet
+    /// </summary>
+    /// <returns></returns>
+    private static int cont;
+    public override int DoLogin()
+    {
+        GotoiFimNot("http://www.paragontraffic.com/login.php");
+
+        var user_box = ElementByXPath("//input[@name='login']");
+        if (!IsVisible(user_box))
+        {
+            return Fail("User box is not visible");
+        }
+        SetText(user_box, GetSetting("User"));
+        Wait();
+        var password_box = ElementByXPath("//input[@name='password']");
+        if (!IsVisible(password_box))
+        {
+            return Fail("Password box is not visible");
+        }
+        SetText(password_box, GetPassword("Pass"));
+        Wait();
+        var button = ElementByXPath("//input[@value='Login']");
+        if (!IsVisible(button))
+        {
+            return Fail("Button login is not visible");
+        }
+        Click(button);
+        Wait();
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoLogin();
+    }
+
+    /// <summary>
+    /// This method gets called after the DoLogin method.
+    /// </summary>
+    public override int AfterLogin()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterLogin();
+    }
+
+    /// <summary>
+    /// This method gets called after the login methods are successful, so we are logged into the faucet.
+    /// If the faucet is not yet ready to claim you should return a TimeStamp value to return how long it takes before the Faucet claim can be done.
+    /// This is used to pause the script while the faucet its timer runs out.
+    /// Return the number of seconds the bot should wait.
+    /// </summary>
+    public override int GetFaucetWaitTime()
+    {
+        if (cs)
+        {
+            return 3600;
+        }
+        //let Faucet Collector continue.
+        return base.GetFaucetWaitTime();
+    }
+
+    /// <summary>
+    /// This method is called right before a captcha will be solved. 
+    /// If you call SolveCaptcha() in other methods it will start this flow and tries to solve the captcha on the page.
+    /// </summary>
+    public override int BeforeSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeSolveCaptcha();
+    }
+
+    /// <summary>
+    /// This method gets called after BeforeSolveCaptcha and it does the actual captcha solving
+    /// It will automatically try to see if there is a SolveMedia captcha active or a reCAPTCHA active. 
+    /// If it finds either one it will then use the selected method on the Captcha tab of FaucetCollector to solve the Captcha.
+    /// </summary>
+    public override int DoSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoSolveCaptcha();
+    }
+
+    /// <summary>
+    /// This method will get called after DoSolveCaptcha returned it was a success.
+    /// </summary>
+    /// <returns></returns>
+    public override int AfterSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterSolveCaptcha();
+    }
+
+    /// <summary>
+    /// This method is called right before we attempt to claim on the faucet. So we are logged in and good to go.
+    /// Next methods that will be called are DoSolveFaucet, AfterSolveFaucet and CheckFaucetResult.
+    /// </summary>
+    public override int BeforeSolveFaucet()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeSolveCaptcha();
+    }
+
+    /// <summary>
+    /// This method gets called after the BeforeSolveFaucet. You can do the actual claiming of the faucet in here.
+    /// </summary>
+    /// <returns></returns>
+    /// 
+    static bool cs;
+    public override int DoSolveFaucet()
+    {
+        cs = false;
+        GotoiFimNot("http://www.paragontraffic.com/surfing.php");
+        Wait();
+        while (GetIntSetting("N") > cont)
+        {
+         
+            try
+            {
+                
+                GotoiFimNot("http://www.paragontraffic.com/surfing.php");
+                var timer = ElementByXPath("//div[@id='timer']");
+                Wait();
+            
+                DateTime t1 = DateTime.Now.AddSeconds(5);
+                if (IsVisible(timer))
+                {
+                  
+                    while (!timer.Text.Contains("GO"))
+                    {
+                   
+                        if (DateTime.Now > t1)
+                        {
+                            break;
+                        }
+                        Wait();
+                        timer = ElementByXPath("//div[@id='timer']");
+                    }
+               
+                    Wait();
+                    bool solved = Solve_Image();
+                    //  Log("Solved" + solved.ToString());
+                    if (!solved)
+                    {
+                        int random = Random(0, 3);
+                        var other_icons = ElementsByXPath("//img[contains(@onclick,'return surfbar_click(')]");
+                        Click(other_icons[random]);
+                        Wait();
+                    }
+
+
+                }
+                else
+                {
+                    return Fail("You need link a website first");
+                }
+            }
+            catch (Exception)
+            {
+
+            }
+            cont++;
+
+
+        }
+        cs = true;
+
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoSolveCaptcha();
+    }
+
+    /// <summary>
+    /// This method will get called after the DoSolveFaucet is completed and returned it was a success.
+    /// For example you can wait for a processing popup to go away until actual faucet claim result is on the page.
+    /// </summary>
+    /// 
+    public Bitmap ChangeImageSize(Bitmap pImg, int pWidth, int pHeigth)
+    {
+
+        //Creating new bitmap
+
+        Bitmap vBitmap = new Bitmap(pWidth, pHeigth);
+
+        using (Graphics vGraphics = Graphics.FromImage((Image)vBitmap))
+
+        {
+
+            //Specifi interpolation
+
+            vGraphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
+
+            //Draw
+
+            vGraphics.DrawImage(pImg, 0, 0, pWidth, pHeigth);
+
+        }
+
+        //return image
+
+        return vBitmap;
+
+    }
+    private bool Solve_Image()
+    {
+       
+
+        Wait(2, 3);
+    
+        bool IsSolved = false;
+        Bitmap[] icons = new Bitmap[5];
+        icons[0] = TakeScreenshot(Base.Captcha.CaptchaService.Manual, ElementByXPath("//img[contains(@src,'surficon.php?ts=')]"));
+        if (icons[0].Width != 75 || icons[0].Height != 75)
+        {
+            icons[0] = ChangeImageSize(icons[0], 75, 75);
+        }
+        // icons[0].Save("ICONS 0.png");
+
+
+
+        Wait();
+        var other_icons = ElementByXPath("//div[@id='myform']//td");
+        Bitmap Principal_ = TakeScreenshot(Base.Captcha.CaptchaService.Manual, other_icons);
+        int cont = 0;
+        for (int i = 0; i < 4; i++)
+        {
+            icons[i + 1] = Principal_.Clone(new Rectangle(cont, 0, 75, 75),Principal_.PixelFormat);
+            if (icons[i + 1].Width != 75 || icons[i + 1].Height != 75)
+            {
+                icons[i + 1] = ChangeImageSize(icons[i + 1], 75, 75);
+            }
+            cont += 75;
+          
+        }
+        for(int i = 0; i < 5; i++)
+        {
+            icons[i].Save(i.ToString() + ".png");
+        }
+        string assets_d = AssetDir("Other");
+        assets_d += "\\Paragon_Traffic\\";
+        FileStream reader = new FileStream(assets_d + "world.png", FileMode.Open);
+        Bitmap world = new Bitmap(Image.FromStream(reader));
+
+        reader.Close();
+        reader = new FileStream(assets_d + "person.png", FileMode.Open);
+        Bitmap person = new Bitmap(Image.FromStream(reader));
+        reader.Close();
+        reader = new FileStream(assets_d + "food.png", FileMode.Open);
+        Bitmap food = new Bitmap(Image.FromStream(reader));
+        reader.Close();
+        reader = new FileStream(assets_d + "animal.png", FileMode.Open);
+        Bitmap animal = new Bitmap(Image.FromStream(reader));
+        reader.Close();
+        Wait();
+        List<MyImage> Types = new List<MyImage>();
+        
+        MyImage ImageToad = new MyImage(icons[0], Color.Blue);
+        
+        Types.Add(new MyImage(icons[0],Color.Blue));// Main image
+        
+        Types.Add(new MyImage(world,Color.Blue));//World
+
+        Types.Add(new MyImage(person,Color.Blue));//Person
+     
+        Types.Add(new MyImage(food,Color.Blue));//FOOD
+     
+        Types.Add(new MyImage(animal,Color.Blue)); // IS ANIMAL
+  
+
+        ImgCompare CompareFirst = new ImgCompare(Types[0]);
+  
+        for (int i = 1; i < 5; i++)
+        {
+            CompareFirst.AddNewSecundaryImg(Types[i]);
+          
+        }
+        CompareFirst.CalculatePosition();
+      
+
+        int type = CompareFirst.GetPosition()[0];
+        Log(type.ToString());
+        int solution = -1;
+        List<ImgCompare> SecondCompare = new List<ImgCompare>();
+        if (type == 0)
+        {
+
+            for (int j = 1; j < 5; j++)
+            {
+               
+                SecondCompare.Add(new ImgCompare(new MyImage(icons[j], Color.Blue)));
+                for (int i = 1; i <= 2; i++)
+                {
+                    
+
+                    reader = new FileStream(assets_d + "world" + i.ToString() + ".png", FileMode.Open);
+                    Bitmap tocomp = new Bitmap(Image.FromStream(reader));
+                    reader.Close();
+                    SecondCompare[j - 1].AddNewSecundaryImg(new MyImage(tocomp, Color.Blue), true);
+
+                }
+            }
+
+
+        }
+        else if (type == 1)
+        {
+            for (int j = 1; j < 5; j++)
+            {
+                
+                SecondCompare.Add(new ImgCompare(new MyImage(icons[j], Color.Blue)));
+                for (int i = 1; i <= 3; i++)
+                {
+                 
+                
+                    reader = new FileStream(assets_d + "person" + i.ToString() + ".png", FileMode.Open);
+                    Bitmap tocomp = new Bitmap(Image.FromStream(reader));
+                    reader.Close();
+                    SecondCompare[j - 1].AddNewSecundaryImg(new MyImage(tocomp, Color.Blue), true);
+
+                }
+            }
+        }
+        else if (type == 2)
+        {
+            for (int j = 1; j < 5; j++)
+            {
+           
+                SecondCompare.Add(new ImgCompare(new MyImage(icons[j], Color.Blue)));
+                for (int i = 1; i <= 3; i++)
+                {
+                    
+
+                    reader = new FileStream(assets_d + "food" + i.ToString() + ".png", FileMode.Open);
+                    Bitmap tocomp = new Bitmap(Image.FromStream(reader));
+                    reader.Close();
+                    SecondCompare[j - 1].AddNewSecundaryImg(new MyImage(tocomp, Color.Blue), true);
+                    
+
+                }
+            }
+        }
+        else if (type == 3)
+        {
+            for (int j = 1; j < 5; j++)
+            {
+                
+                SecondCompare.Add(new ImgCompare(new MyImage(icons[j], Color.Blue)));
+                for (int i = 1; i <= 3; i++)
+                {
+                    
+                    reader = new FileStream(assets_d + "animal" + i.ToString() + ".png", FileMode.Open);
+                    Bitmap tocomp = new Bitmap(Image.FromStream(reader));
+                    reader.Close();
+                    SecondCompare[j - 1].AddNewSecundaryImg(new MyImage(tocomp, Color.Blue), true);
+
+                }
+            }
+        }
+        int High = 0;
+     for(int i = 0; i < SecondCompare.Count; i++)
+        {
+            if (SecondCompare[i].GetSpecificScore(SecondCompare[i].GetPosition()[0]) > High)
+            {
+                solution = i;
+                High = SecondCompare[i].GetSpecificScore(SecondCompare[i].GetPosition()[0]);
+            }
+        }
+       
+        if (solution != -1)
+        {
+            var elements = ElementsByXPath("//img[contains(@onclick,'return surfbar_click')]");
+            Click(elements[solution]);
+            IsSolved = true;
+        }
+        return IsSolved;
+    }
+
+
+    public override int AfterSolveFaucet()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterSolveFaucet();
+    }
+
+  
+    /// <summary>
+    /// This method gets called in the end after the BeforeSolveFaucet/DoSolveFaucet and AfterSolveFaucet methods were done.
+    /// The base.CheckFaucetResult will try to find a visible element on the page using the XPath from SuccessXPath and FailXPath (see the Start method)
+    /// These properties should contain XPath expressions to find certain elements on the page.
+    /// For example if it finds one of the elements from the SuccessXPath, and it is visible, then it will flag the claim attempt as a success.
+    /// Or if it finds one of the elements from the FailXPath, and it is visible, then it will flag the claim attempt as a failure.
+    /// </summary>
+    public override int CheckFaucetResult()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.CheckFaucetResult();
+    }
+}
+namespace Image_Procesing
+{
+
+   
+    class ImgCompare
+    {
+
+        private bool Comp_argb(Color fr, Color source, double threshold)
+        {
+            int r = fr.R - source.R;
+            int g = fr.G - source.G;
+            int b = fr.B - source.B;
+
+            if (r * r + g * g + b * b > threshold * threshold)
+            {
+                return false;
+            }
+            else
+            {
+                return true;
+            }
+        }
+        private List<int> ScorePercent;
+        private MyImage PrincipalImg;
+        private List<int> Position;
+        private List<MyImage> SecundaryImg;
+        public ImgCompare(MyImage Principal)
+        {
+            ScorePercent = new List<int>();
+            PrincipalImg = Principal;
+            SecundaryImg = new List<MyImage>();
+            Position = new List<int>();
+        }
+       private void AddNewScore(int Score, bool UpdatePosition = false)
+        {
+            ScorePercent.Add(Score);
+            if (UpdatePosition)
+            {
+                CalculatePosition();
+            }
+
+        }
+        public void AddNewSecundaryImg(MyImage img,bool SetPosition=false)
+        {
+            SecundaryImg.Add(img);
+            int ScoreToaD = GetSimilarPoint(PrincipalImg, img);
+            AddNewScore(ScoreToaD,SetPosition);
+
+        }
+        public void CalculatePosition()
+        {
+
+            if (ScorePercent.Count > 0)
+            {
+                Position = new List<int>();
+                bool[] Used = new bool[ScorePercent.Count];
+                for (int i = 0; i < Used.Length; i++)
+                {
+                    Used[i] = false;
+                }
+                for (int i = 0; i < ScorePercent.Count; i++)
+                {
+                    int High = 0;
+                    int option = 0;
+                    for (int j = 0; j < ScorePercent.Count; j++)
+                    {
+                        if (ScorePercent[j] > High && !Used[j])
+                        {
+                            High = ScorePercent[j];
+                            option = j;
+
+
+                        }
+                    }
+                    Used[option] = true;
+                    Position.Add(option);
+                }
+            }
+        }
+        public int GetSpecificScore(int NScore)
+        {
+            if (NScore < ScorePercent.Count)
+            {
+                return ScorePercent[NScore];
+            }
+            return -1;
+        }
+        public List<int> GetList()
+        {
+            return ScorePercent;
+        }
+        public List<int> GetPosition()
+        {
+            return Position;
+        }
+        private int GetSimilarPoint(MyImage Img1, MyImage Img2)
+        {
+           
+            int Similar_P = 0;
+            bool High = false;
+            int Thread_;
+            if (Img1.GetListColors().Count > Img2.GetListColors().Count)
+            {
+                High = true;
+            }
+            int tread = 5;
+
+            if (High)
+            {
+                Thread_ = Img1.TotalLength / 10;
+                for (int i = 0; i < Img1.GetListColors().Count; i++)
+                {
+                    bool Color_enc = false;
+                    for (int j = 0; j < Img2.GetListColors().Count; j++)
+                    {
+                        if (Comp_argb(Img1.GetListColors()[i].GetColor(), Img2.GetListColors()[j].GetColor(), 3))
+                        {
+                            Color_enc = true;
+                            Similar_P += 2;
+                            if ((Img1.GetListColors()[i].GetCount() - Img2.GetListColors()[j].GetCount() <= tread) || (Img2.GetListColors()[j].GetCount() - Img1.GetListColors()[i].GetCount() <= tread))
+                            {
+                                Similar_P++;
+                            }
+                            break;
+
+                        }
+                    }
+                    if (!Color_enc)
+                    {
+                        Similar_P--;
+                        Similar_P--;
+
+                    }
+                }
+
+            }
+            else
+            {
+                Thread_ = Img2.TotalLength / 10;
+                for (int j = 0; j < Img2.GetListColors().Count; j++)
+                {
+                    bool Color_enc = false;
+                    for (int i = 0; i < Img1.GetListColors().Count; i++)
+                    {
+
+                        if (Comp_argb(Img1.GetListColors()[i].GetColor(), Img2.GetListColors()[j].GetColor(), 3))
+                        {
+                            Color_enc = true;
+                            Similar_P += 2;
+                            if ((Img1.GetListColors()[i].GetCount() - Img2.GetListColors()[j].GetCount() <= tread) || (Img2.GetListColors()[j].GetCount() - Img1.GetListColors()[i].GetCount() <= tread))
+                            {
+                                Similar_P++;
+                            }
+                            break;
+                            
+
+                        }
+                    }
+                    if (!Color_enc)
+                    {
+                        Similar_P--;
+                        Similar_P--;
+                    }
+                }
+
+            }
+            int PointsAd = Img1.GetPixelsWithColor() - Img2.GetPixelsWithColor();
+            if (PointsAd < 0)
+            {
+                PointsAd *= -1;
+            }
+           
+            
+            PointsAd =  Thread_- PointsAd;
+            if (PointsAd > 0)
+            {
+                Similar_P += PointsAd;
+            }
+
+            
+
+            //Log(Similar_P.ToString());
+
+            return Similar_P;
+        }
+
+    }
+    public class MyColor
+    {
+        private Color ColorImage;
+        private int ColorCount;
+
+        public MyColor(Color ColorImg, int ColorC)
+        {
+            ColorImage = ColorImg;
+            ColorCount = ColorC;
+        }
+
+        public Color GetColor()
+        {
+
+            return ColorImage;
+        }
+
+        public int GetCount()
+        {
+
+            return ColorCount;
+        }
+
+        public void SetColorCount(int ColorCount)
+        {
+
+            this.ColorCount = ColorCount;
+        }
+
+    }
+
+    public class MyImage
+    {
+        private Bitmap Img;
+        private List<MyColor> ColorImg;
+        private int PixelsWithColor;
+        public int TotalLength;
+        public Bitmap GetBitmap()
+        {
+            return Img;
+        }
+        public List<MyColor> GetListColors()
+        {
+            return ColorImg;
+
+        }
+        public int GetPixelsWithColor()
+        {
+
+            return PixelsWithColor;
+        }
+        private MyImage(Bitmap Img, List<MyColor> ColorImg, int PixelsWithColor)
+        {
+            this.Img = Img;
+            this.ColorImg = ColorImg;
+            this.PixelsWithColor = PixelsWithColor;
+        }
+        public MyImage(Bitmap Img, Color FontColor,int ThreadFont=32)
+        {
+            this.Img = Img;
+            SetAtributeColor_(Img,FontColor, ThreadFont);
+            
+        }
+        public void SetColorImg(List<MyColor> ColorImg)
+        {
+            this.ColorImg = ColorImg;
+        }
+        public void SetPixelsWithColor(int PixelsWithColor)
+        {
+            this.PixelsWithColor = PixelsWithColor;
+        }
+        private void SetAtributeColor_(Bitmap ToExtract, Color FontColor,int ThreadFont)
+        {
+            byte[] byteImage = BitmapToByteArray(ToExtract);
+       
+            List<MyColor> ColorImage_ = new List<MyColor>();
+            int PixelsWithColor = 0;
+            for (int i = 0; i < byteImage.Length - 3; i += 3)
+            {
+                Color ColorCmp = Color.FromArgb(byteImage[i + 2], byteImage[i + 1], byteImage[i]);
+                
+                int num_ = -1;
+                for (int j = 0; j < ColorImage_.Count && num_ == -1; j++)
+                {
+                    if (Comp_argb(ColorCmp, ColorImage_[j].GetColor(), 3))
+                    {
+                        num_ = j;
+
+                    }
+                }
+                if (num_ == -1)
+                {
+                    ColorImage_.Add(new MyColor(ColorCmp, 1));
+                    if (!Comp_argb(ColorCmp, FontColor, ThreadFont))
+                    {
+                        PixelsWithColor++;
+                    }
+
+                }
+                else
+                {
+                    ColorImage_[num_].SetColorCount(ColorImage_[num_].GetCount() + 1);
+                    if (!Comp_argb(ColorCmp, FontColor, ThreadFont))
+                    {
+                        PixelsWithColor++;
+                    }
+                }
+            }
+          
+            ColorImg = ColorImage_;
+      
+
+            this.PixelsWithColor = PixelsWithColor;
+        
+
+            TotalLength = Img.Width + Img.Height;
+         
+
+            //MyImage Img = new MyImage(ToExtract, ColorImage_, PixelsWithColor);
+
+            //return Img;
+        }
+
+        private bool Comp_argb(Color fr, Color source, double threshold)
+        {
+            int r = fr.R - source.R;
+            int g = fr.G - source.G;
+            int b = fr.B - source.B;
+
+            if (r * r + g * g + b * b > threshold * threshold)
+            {
+                return false;
+            }
+            else
+            {
+                return true;
+            }
+        }
+        public byte[] BitmapToByteArray(Bitmap bitmap)
+        {
+            BitmapData bmpdata = null;
+            try
+            {
+                bmpdata = bitmap.LockBits(new Rectangle(0, 0, bitmap.Width, bitmap.Height), ImageLockMode.ReadWrite, bitmap.PixelFormat);
+                int numbytes = Math.Abs(bmpdata.Stride) * bitmap.Height;
+                byte[] bytedata = new byte[numbytes];
+                IntPtr ptr = bmpdata.Scan0;
+
+                Marshal.Copy(ptr, bytedata, 0, numbytes);
+
+                return bytedata;
+            }
+            finally
+            {
+                if (bmpdata != null)
+                    bitmap.UnlockBits(bmpdata);
+            }
+
+        }
+
+    }
+   
+}
+

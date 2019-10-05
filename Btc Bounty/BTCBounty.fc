@@ -1,0 +1,655 @@
+﻿using System;
+using FaucetCollector.Script;
+using OpenQA.Selenium;
+
+public class BtcBounty : FaucetScript
+{
+    /// <summary>
+    /// List of Settings that will be shown in the bot when selecting this Faucet in the bot.
+    /// You can get the value the user entered with the methods: GetSetting("[Name of the FaucetSetting]"), GetBoolSetting and GetDateTimeSetting
+    /// You can also create a new setting value using SetSetting("[Name you want to use]", "value")
+    /// </summary>
+    public override FaucetSettings Settings
+    {
+        get
+        {
+            return new FaucetSettings("http://btcbounty.net/")
+            {
+                new FaucetSetting(){Name="User",Display="Username",Type=EditorType.TextBox,Required=true},
+                new FaucetSetting(){Name="Pass",Display="Password",Type=EditorType.Password,Required=true},
+				
+                new FaucetSetting() { Name = "FaucetClaim", Display = "FaucetClaim (every 15 min)", Type = EditorType.CheckBox, Default = true},	
+                new FaucetSetting() { Name = "DailyBonusMultiple", Display = "Daily Bonus - Multiple (every day)", Type = EditorType.CheckBox, Default = true},	
+
+				
+                //insert user settings here
+                //new FaucetSetting { 
+                //    Name = "Name of your setting", 
+                //    Display = "Display shown in Faucet Collector", 
+                //    Type = EditorType.TextBox | EditorType.Password | EditorType.CheckBox | EditorType.Wallet | EditorType.Numeric | EditorType.ComboBox | EditorType.CheckComboBox, 
+                //    Required = true | false, 
+                //    Default = "Optionally a default value" | true | false | null.
+                //    Items = new List<string> { "item1", "item2" } (only valid for ComboBox or CheckComboBox)
+                //} 
+            };
+        }
+    }
+
+	
+	
+	
+	
+	
+//============================================================//
+//the number of "successes" in the script - when are finished  
+//============================================================//
+    public override void Start()
+    {
+        //Title that shows in the browser. Is used to identify and close popup windows
+        Title = "BtcBounty";
+
+        //FaucetClaim OR DailyBonusMultiple
+        SuccessXPath = "//div[@id='lucky_number'] | //div[@id='partner_bonus']";
+        FailXPath = "//*[text()='']";
+
+        //Let Faucet Collector start up everything
+        base.Start();
+    }
+//============================================================//
+//the number of "successes" in the script - when are finished  
+//============================================================//
+	
+	
+	
+	
+	
+    /// <summary>
+    /// This is the first method to run after the browser is opened and the first page is loaded.
+    /// </summary>
+    public override int DoInit()
+    {
+        //Let Faucet Collector continue.
+        return base.DoInit();
+    }
+
+	
+	
+	
+	
+	
+//==================//
+//save Login Cookies 
+//==================//
+    public override bool IsLoggedIn()
+    {
+
+        //In here we can check for the presence of an element that is only present when you are logged in.
+        //In this case we check for en element with the class "loggedIn"
+        return ElementByXPath("//a[text()='Logout ']")!= null;
+    }
+	
+//==================//
+//save Login Cookies 
+//==================//
+	
+	
+	
+	
+	
+    /// <summary>
+    /// This method gets called if IsLoggedIn returned false, right before the DoLogin method is called.
+    /// </summary>
+    public override int BeforeLogin()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeLogin();
+    }
+
+	
+	
+	
+//======//
+//DoLogin 
+//======//
+ public override int DoLogin()
+ {
+	  
+	    //first go to home to checks
+	    GoToUrl("http://btcbounty.net/");
+	
+	
+	    //general - var checks login or exit
+        var LoginStart = ElementByXPath("//a[text()='Login ']");
+        var LogoutButton = ElementByXPath("//a[text()='Logout ']");		
+ 
+ 
+        //if we in and text logout apper - do not do anything
+        if (IsVisible(LogoutButton))
+        {
+		//do not do anything
+        }
+			
+			
+			
+        //if we out and text login apper - so login
+        if (IsVisible(LoginStart))
+        {
+  
+		Click(LoginStart);
+		
+        Wait(3);
+		
+        var box_email = ElementByXPath("//input[@placeholder='Enter email']");
+        SetText(box_email, GetSetting("User"));
+	
+        Wait(3);
+		
+        var box_password = ElementByXPath("//input[@placeholder='Password']");
+        SetText(box_password, GetPassword("Pass"));
+		
+        Wait(3);
+		
+        var ButtonEnd = ElementByXPath("//button[text()='LOGIN!']");
+		Click(ButtonEnd);
+
+      }
+		
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoLogin();
+    }
+//======//
+//DoLogin 
+//======//
+	
+	
+	
+	
+
+	
+ public override int AfterLogin()
+ {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterLogin();
+ }
+	
+	
+	
+	
+	
+	
+	
+
+    /// <summary>
+    /// This method gets called after the login methods are successful, so we are logged into the faucet.
+    /// If the faucet is not yet ready to claim you should return a TimeStamp value to return how long it takes before the Faucet claim can be done.
+    /// This is used to pause the script while the faucet its timer runs out.
+    /// Return the number of seconds the bot should wait.
+    /// </summary>
+    public override int GetFaucetWaitTime()
+    {
+
+
+        //let Faucet Collector continue.
+        return base.GetFaucetWaitTime();
+    }
+
+	
+	
+	
+	
+	
+	
+    /// <summary>
+    /// This method is called right before a captcha will be solved. 
+    /// If you call SolveCaptcha() in other methods it will start this flow and tries to solve the captcha on the page.
+    /// </summary>
+    public override int BeforeSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeSolveCaptcha();
+    }
+
+    /// <summary>
+    /// This method gets called after BeforeSolveCaptcha and it does the actual captcha solving
+    /// It will automatically try to see if there is a SolveMedia captcha active or a reCAPTCHA active. 
+    /// If it finds either one it will then use the selected method on the Captcha tab of FaucetCollector to solve the Captcha.
+    /// </summary>
+    public override int DoSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoSolveCaptcha();
+    }
+
+    /// <summary>
+    /// This method will get called after DoSolveCaptcha returned it was a success.
+    /// </summary>
+    /// <returns></returns>
+    public override int AfterSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterSolveCaptcha();
+    }
+
+    /// <summary>
+    /// This method is called right before we attempt to claim on the faucet. So we are logged in and good to go.
+    /// Next methods that will be called are DoSolveFaucet, AfterSolveFaucet and CheckFaucetResult.
+    /// </summary>
+    public override int BeforeSolveFaucet()
+    {
+       
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeSolveCaptcha();
+    }
+
+	
+	
+	
+	
+//=============//	
+//DoSolveFaucet
+//=============//	
+ public override int DoSolveFaucet()
+ {
+	
+
+     //================//
+     //DailyBonusMultiple
+     //================//
+
+     if (GetBoolSetting("FaucetClaim"))
+     {  
+
+        //first go to page "DailyBonusMultiple"
+        GoToUrl("http://btcbounty.net/home/bonus");
+		
+        //general var to cahck
+	    var Bonus1Var = ElementByXPath("//a[@href='http://btcbounty.net/home/bonus/1']");
+	    var Bonus2Var = ElementByXPath("//a[@href='http://btcbounty.net/home/bonus/2']");
+	    var Bonus3Var = ElementByXPath("//a[@href='http://btcbounty.net/home/bonus/3']");
+	    var Bonus4Var = ElementByXPath("//a[@href='http://btcbounty.net/home/bonus/4']");
+	    var Bonus5Var = ElementByXPath("//a[@href='http://btcbounty.net/home/bonus/5']");
+	    var Bonus6Var = ElementByXPath("//a[@href='http://btcbounty.net/home/bonus/6']");
+	    var Bonus7Var = ElementByXPath("//a[@href='http://btcbounty.net/home/bonus/7']");
+	    var Bonus8Var = ElementByXPath("//a[@href='http://btcbounty.net/home/bonus/8']");
+	    var Bonus9Var = ElementByXPath("//a[@href='http://btcbounty.net/home/bonus/9']");
+	    var Bonus10Var = ElementByXPath("//a[@href='http://btcbounty.net/home/bonus/10']");
+		
+		
+        //===========//
+        //not visible
+        //===========//	
+        if (!IsVisible(Bonus1Var))
+        {
+        //do not do anything			
+		}
+						
+        if (!IsVisible(Bonus2Var))
+        {
+        //do not do anything			
+		}
+						
+        if (!IsVisible(Bonus3Var))
+        {
+        //do not do anything			
+		}
+						
+        if (!IsVisible(Bonus4Var))
+        {
+        //do not do anything			
+		}
+						
+        if (!IsVisible(Bonus5Var))
+        {
+        //do not do anything			
+		}
+						
+        if (!IsVisible(Bonus6Var))
+        {
+        //do not do anything			
+		}
+						
+        if (!IsVisible(Bonus7Var))
+        {
+        //do not do anything			
+		}
+						
+        if (!IsVisible(Bonus8Var))
+        {
+        //do not do anything			
+		}
+						
+        if (!IsVisible(Bonus9Var))
+        {
+        //do not do anything			
+		}
+						
+        if (!IsVisible(Bonus10Var))
+        {
+        //do not do anything			
+		}
+
+	
+	
+        //=======//
+        //visible
+        //=======//	
+		
+        if (IsVisible(Bonus1Var))
+        {
+		
+		GoToUrl("http://btcbounty.net/home/bonus/1");
+	    Log("DailyBonusMultiple: go to - bonus page 1");
+		
+        Wait(3);
+		
+        //Click on visit button	
+		var VisitButton = ElementByXPath("//a[text()='VISIT']");
+	    Log("DailyBonusMultiple: click on - button bonus page 1");
+		Click(VisitButton);
+		
+        Wait(2);
+
+		//info Success
+        var info1Success = ElementByXPath("//div[@id='partner_bonus']");
+	    Log(info1Success.Text);
+		
+		}
+			
+			
+        if (IsVisible(Bonus2Var))
+        {
+		
+		GoToUrl("http://btcbounty.net/home/bonus/2");
+	    Log("DailyBonusMultiple: go to - bonus page 2");
+		
+        Wait(3);
+		
+        //Click on visit button	
+		var VisitButton = ElementByXPath("//a[text()='VISIT']");
+	    Log("DailyBonusMultiple: click on - button bonus page 2");
+		Click(VisitButton);
+		
+        Wait(2);
+
+		//info Success
+        var info2Success = ElementByXPath("//div[@id='partner_bonus']");
+	    Log(info2Success.Text);
+				
+		}
+			
+			
+        if (IsVisible(Bonus3Var))
+        {
+		
+		GoToUrl("http://btcbounty.net/home/bonus/3");
+	    Log("DailyBonusMultiple: go to - bonus page 3");
+		
+        Wait(3);
+		
+        //Click on visit button	
+		var VisitButton = ElementByXPath("//a[text()='VISIT']");
+	    Log("DailyBonusMultiple: click on - button bonus page 3");
+		Click(VisitButton);
+		
+        Wait(2);
+
+		//info Success
+        var info3Success = ElementByXPath("//div[@id='partner_bonus']");
+	    Log(info3Success.Text);
+				
+		}
+			
+			
+        if (IsVisible(Bonus4Var))
+        {
+		
+		GoToUrl("http://btcbounty.net/home/bonus/4");
+	    Log("DailyBonusMultiple: go to - bonus page 4");
+		
+        Wait(3);
+		
+        //Click on visit button	
+		var VisitButton = ElementByXPath("//a[text()='VISIT']");
+	    Log("DailyBonusMultiple: click on - button bonus page 4");
+		Click(VisitButton);
+		
+        Wait(2);
+
+		//info Success
+        var info4Success = ElementByXPath("//div[@id='partner_bonus']");
+	    Log(info4Success.Text);
+					
+		}
+			
+			
+        if (IsVisible(Bonus5Var))
+        {
+		
+		GoToUrl("http://btcbounty.net/home/bonus/5");
+	    Log("DailyBonusMultiple: go to - bonus page 5");
+		
+        Wait(3);
+		
+        //Click on visit button	
+		var VisitButton = ElementByXPath("//a[text()='VISIT']");
+	    Log("DailyBonusMultiple: click on - button bonus page 5");
+		Click(VisitButton);
+		
+        Wait(2);
+
+		//info Success
+        var info5Success = ElementByXPath("//div[@id='partner_bonus']");
+	    Log(info5Success.Text);
+					
+		}
+			
+			
+        if (IsVisible(Bonus6Var))
+        {
+		
+		GoToUrl("http://btcbounty.net/home/bonus/6");
+	    Log("DailyBonusMultiple: go to - bonus page 6");
+		
+        Wait(3);
+		
+        //Click on visit button	
+		var VisitButton = ElementByXPath("//a[text()='VISIT']");
+	    Log("DailyBonusMultiple: click on - button bonus page 6");
+		Click(VisitButton);
+		
+        Wait(2);
+
+		//info Success
+        var info6Success = ElementByXPath("//div[@id='partner_bonus']");
+	    Log(info6Success.Text);
+				
+		}
+			
+			
+        if (IsVisible(Bonus7Var))
+        {
+		
+		GoToUrl("http://btcbounty.net/home/bonus/7");
+	    Log("DailyBonusMultiple: go to - bonus page 7");
+		
+        Wait(3);
+		
+        //Click on visit button	
+		var VisitButton = ElementByXPath("//a[text()='VISIT']");
+	    Log("DailyBonusMultiple: click on - button bonus page 7");
+		Click(VisitButton);
+		
+        Wait(2);
+
+		//info Success
+        var info7Success = ElementByXPath("//div[@id='partner_bonus']");
+	    Log(info7Success.Text);
+					
+		}
+		
+		
+        if (IsVisible(Bonus8Var))
+        {
+		
+		GoToUrl("http://btcbounty.net/home/bonus/8");
+	    Log("DailyBonusMultiple: go to - bonus page 8");
+		
+        Wait(3);
+		
+        //Click on visit button	
+		var VisitButton = ElementByXPath("//a[text()='VISIT']");
+	    Log("DailyBonusMultiple: click on - button bonus page 8");
+		Click(VisitButton);
+		
+        Wait(2);
+
+		//info Success
+        var info8Success = ElementByXPath("//div[@id='partner_bonus']");
+	    Log(info8Success.Text);
+				
+		}
+		
+		
+        if (IsVisible(Bonus9Var))
+        {
+		
+		GoToUrl("http://btcbounty.net/home/bonus/9");
+	    Log("DailyBonusMultiple: go to - bonus page 9");
+		
+        Wait(3);
+		
+        //Click on visit button	
+		var VisitButton = ElementByXPath("//a[text()='VISIT']");
+	    Log("DailyBonusMultiple: click on - button bonus page 9");
+		Click(VisitButton);
+		
+        Wait(2);
+
+		//info Success
+        var info9Success = ElementByXPath("//div[@id='partner_bonus']");
+	    Log(info9Success.Text);
+				
+		}
+		
+		
+        if (IsVisible(Bonus10Var))
+        {
+		
+		GoToUrl("http://btcbounty.net/home/bonus/10");
+	    Log("DailyBonusMultiple: go to - bonus page 10");
+		
+        Wait(3);
+		
+        //Click on visit button	
+		var VisitButton = ElementByXPath("//a[text()='VISIT']");
+	    Log("DailyBonusMultiple: click on - button bonus page 10");
+		Click(VisitButton);
+		
+        Wait(2);
+
+		//info Success
+        var info10Success = ElementByXPath("//div[@id='partner_bonus']");
+	    Log(info10Success.Text);
+				
+		}
+		
+		
+     } //end DailyBonusMultiple
+	
+
+
+	
+     //=========//
+     //FaucetClaim
+     //==========//
+
+     if (GetBoolSetting("FaucetClaim"))
+     {  
+
+        //first go to page "DailyBonusMultiple"
+        GoToUrl("http://btcbounty.net/home");
+		 
+		 
+        //time 
+        var CountTimeText = ElementByXPath("//h3[@id='countdown_title']");
+		
+		
+		//if CountTimeText visible		
+        if (IsVisible(CountTimeText))
+        {
+            return 15*60;
+        }
+		
+	
+		
+		//if CountTimeText NOT visible
+        if (!IsVisible(CountTimeText))
+        {
+        
+		//SolveCaptcha if apper
+        var result = SolveCaptcha();
+        if (result > 0)
+        {
+            //SolveCaptcha returned there was something wrong - we also need to return that .
+            return result;
+        }
+        ExecuteScript("___grecaptcha_cfg.clients[0].aa.l.callback('" + Context.CaptchaResult.Result + "');");
+		
+        //ExecuteScript("try{window.grecaptcha.getResponse = function(nr) { return '" + Context.CaptchaResult.Result + "'; }}catch(Exception){};");
+		
+        Wait(2);
+		
+        var ButtonFaucetClaim = ElementByXPath("//button[@class='btn btn-lg btn-primary']");
+		Click(ButtonFaucetClaim);
+
+        Wait(2);
+		
+		//info Success
+        var infoSuccessFaucetClaim = ElementByXPath("//div[@id='lucky_number']");
+	    Log(infoSuccessFaucetClaim.Text);
+
+		//we return after 15 min
+		return 15*60;
+		
+        }		
+		
+		
+     }  // end FaucetClaim
+   
+		
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoSolveFaucet();
+ }
+//=============//	
+//DoSolveFaucet
+//=============//	
+	
+	
+	
+	
+    /// <summary>
+    /// This method will get called after the DoSolveFaucet is completed and returned it was a success.
+    /// For example you can wait for a processing popup to go away until actual faucet claim result is on the page.
+    /// </summary>
+    public override int AfterSolveFaucet()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterSolveFaucet();
+    }
+	
+	
+	
+
+    /// <summary>
+    /// This method gets called in the end after the BeforeSolveFaucet/DoSolveFaucet and AfterSolveFaucet methods were done.
+    /// The base.CheckFaucetResult will try to find a visible element on the page using the XPath from SuccessXPath and FailXPath (see the Start method)
+    /// These properties should contain XPath expressions to find certain elements on the page.
+    /// For example if it finds one of the elements from the SuccessXPath, and it is visible, then it will flag the claim attempt as a success.
+    /// Or if it finds one of the elements from the FailXPath, and it is visible, then it will flag the claim attempt as a failure.
+    /// </summary>
+    public override int CheckFaucetResult()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.CheckFaucetResult();
+    }
+}

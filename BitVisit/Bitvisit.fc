@@ -1,0 +1,383 @@
+﻿
+
+//==========//
+//by ••AviramDayan•• 24/10/2018 13:00PM
+//==========//
+
+
+using System;
+using FaucetCollector.Script;
+
+public class TLSC : FaucetScript
+{
+    /// <summary>
+    /// List of Settings that will be shown in the bot when selecting this Faucet in the bot.
+    /// You can get the value the user entered with the methods: GetSetting("[Name of the FaucetSetting]"), GetBoolSetting and GetDateTimeSetting
+    /// You can also create a new setting value using SetSetting("[Name you want to use]", "value")
+    /// </summary>
+    public override FaucetSettings Settings
+    {
+        get
+        {
+            return new FaucetSettings("http://www.bitsvisit.com/")
+            {
+                new FaucetSetting(){Name="User",Display="Username",Type=EditorType.TextBox,Required=true},
+                new FaucetSetting(){Name="Pass",Display="Password",Type=EditorType.Password,Required=true},
+				
+                new FaucetSetting(){Name="AutoViewAds",Display="AutoViewAds",Type=EditorType.CheckBox,Default=true},
+                new FaucetSetting(){Name="DeleteCookies",Display="Delete Cookies - Sometimes solves problems (Recommended)",Type=EditorType.CheckBox,Default=false},
+
+				
+                //insert user settings here
+                //new FaucetSetting { 
+                //    Name = "Name of your setting", 
+                //    Display = "Display shown in Faucet Collector", 
+                //    Type = EditorType.TextBox | EditorType.Password | EditorType.CheckBox | EditorType.Wallet | EditorType.Numeric | EditorType.ComboBox | EditorType.CheckComboBox, 
+                //    Required = true | false, 
+                //    Default = "Optionally a default value" | true | false | null.
+                //    Items = new List<string> { "item1", "item2" } (only valid for ComboBox or CheckComboBox)
+                //} 
+            };
+        }
+    }
+
+	
+	
+//============================================================//
+//the number of "successes" in the script - when are finished  
+//============================================================//
+    public override void Start()
+    {
+        //Title that shows in the browser. Is used to identify and close popup windows
+        Title = "Bitsvisit";
+
+		SuccessXPath = "//*[text()='']";
+        FailXPath = "//*[text()='']";
+
+        //Let Faucet Collector start up everything
+        base.Start();
+    }
+//============================================================//
+//the number of "successes" in the script - when are finished  
+//============================================================//
+
+
+
+
+
+    /// <summary>
+    /// This is the first method to run after the browser is opened and the first page is loaded.
+    /// </summary>
+    public override int DoInit()
+    {
+		
+		//if it's Checked
+       if (GetBoolSetting("DeleteCookies"))
+       {
+
+		//Delete Cookies
+		 Log("DeleteCookies - Checked");
+         Driver.Manage().Cookies.DeleteAllCookies();
+
+       } //end DeleteCookies
+		
+        //Let Faucet Collector continue.
+        return base.DoInit();
+    }
+
+	
+	
+	
+//==================//
+//save Login Cookies 
+//==================//
+    public override bool IsLoggedIn()
+    {
+		
+        //In this case we check for en element with the class "loggedIn"
+		 return ElementByXPath("//a[@href='./index.php?view=logout']/li[text()='Sign Out']") != null;
+
+    }
+//==================//
+//save Login Cookies 
+//==================//
+
+
+
+
+	
+//===========//
+//BeforeLogin
+//===========//
+    public override int BeforeLogin()
+    {
+
+     var ExitButton =ElementByXPath("//a[@href='./index.php?view=logout']/li[text()='Sign Out']"); //SIGN OUT
+
+	 //if i already Login - go to "bonus"	 
+	 if (IsVisible(ExitButton))
+	 {
+        //if we already login go to here
+        GoToUrl("https://www.bitsvisit.com/");
+	 }	
+		
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeLogin();
+    }
+//===========//
+//BeforeLogin
+//===========//
+
+
+	
+	
+	
+//=============//
+//start DoLogin
+//=============//
+    public override int DoLogin()
+    {
+
+	
+	 //var checks login or exit
+	 var LoginStart =ElementByXPath("//a[@href='index.php?view=login']/li[text()='Sign in']"); //Login
+
+		
+	 //if i NOT Login - go to Login Page
+	 if (IsVisible(LoginStart))
+	 {
+	
+        GoToUrl("https://www.bitsvisit.com/index.php?view=login");
+
+        Wait();
+		
+        var user_box = ElementByXPath("//input[@placeholder='Username']");
+        SetText(user_box, GetSetting("User"));
+		
+        Wait(2);
+		
+        var pass_box = ElementByXPath("//input[@placeholder='Password']");
+        SetText(pass_box, GetPassword("Pass"));
+		
+        Wait(2);
+		
+		
+		/*
+        //solve Captcha X2 XPath (1 = captcha image | 2 = input text )
+        var result = DoSolveImageCaptcha(ElementByXPath("//span[@clas='math']"),ElementByXPath("//input[@name='answer_math']")); 
+
+        if (result > 0)
+        {
+        return Fail("Fail login --- captcha failed");
+        }
+		*/		
+		
+
+       
+            string captcha_Text = ExecuteScript("var a =document.getElementsByClassName('math');return a[0].textContent")as string;
+
+		/*
+	    if (!IsVisible(captcha))
+        {
+        return Fail("Fail login --- captcha failed");
+        }
+		*/
+        int result_C;
+        if (captcha_Text.Contains("+"))
+        {
+         
+            int c1=0;
+            int c2=0;
+            int.TryParse(captcha_Text.Replace("\"", "").Replace("=", "").Replace(" ", "").Split('+')[0],out c1);
+            int.TryParse(captcha_Text.Replace("\"", "").Replace("=", "").Replace(" ", "").Split('+')[1], out c2);
+      
+            result_C = c1 + c2;
+           
+        }
+		
+        else
+			
+        {
+          
+            int c1 = 0;
+            int c2 = 0;
+            int.TryParse(captcha_Text.Replace("\"", "").Replace("=", "").Replace(" ", "").Split('-')[0], out c1);
+            int.TryParse(captcha_Text.Replace("\"", "").Replace("=", "").Replace(" ", "").Split('-')[1], out c2);
+   
+            result_C = c1 - c2;
+        }
+		
+        SetText(ElementByXPath("//input[@name='answer_math']"), result_C.ToString());
+		
+
+        Wait(4);
+		
+        var ButtonLog = ElementByXPath("//input[@value='Login']"); //input[@class='wc_inpbut wc_font6']
+        Click(ButtonLog);
+		
+        Wait();
+
+	 } //end login
+		
+		
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoLogin();
+    }
+	
+//=============//
+//start DoLogin
+//=============//
+	
+	
+	
+	
+//=============//
+//AfterLogin
+//=============//
+    public override int AfterLogin()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterLogin();
+    }
+//=============//
+//AfterLogin
+//=============//	
+	
+	
+	
+
+//=============//
+//GetFaucetWaitTime
+//=============//
+    public override int GetFaucetWaitTime()
+    {
+        if (!Driver.Url.Contains("http://www.bitsvisit.com/index.php?view=ads"))
+        {
+            GoToUrl("http://www.bitsvisit.com/index.php?view=ads");
+        }
+        Wait(2, 3);
+        var annonce = ElementsByXPath("//div[contains(@onclick,'viewAds(')]");
+        if (annonce.Count > 0)
+        {
+            return 0;
+        }
+        else
+        {
+            return 3600;
+        }
+        //let Faucet Collector continue.
+        
+    }
+//=============//
+//GetFaucetWaitTime
+//=============//
+	
+	
+	
+
+    public override int BeforeSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeSolveCaptcha();
+    }
+
+
+    public override int DoSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoSolveCaptcha();
+    }
+
+    public override int AfterSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterSolveCaptcha();
+    }
+
+    public override int BeforeSolveFaucet()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeSolveCaptcha();
+    }
+
+	
+	
+	
+	
+//=============//
+//DoSolveFaucet
+//=============//
+ public override int DoSolveFaucet()
+ {
+	
+	 //===============//
+	 //AutoViewAds//
+	 //===============//
+     if (GetBoolSetting("AutoViewAds"))
+     {
+			
+        GoToUrl("http://www.bitsvisit.com/index.php?view=ads");
+		
+        Wait();
+		
+        var annonce = ElementsByXPath("//div[@class='wc_playicon']");
+        while (annonce.Count > 0)
+        {
+            ExecuteScript("arguments[0].click();", annonce[0]);
+            Wait(2);
+            Driver.SwitchTo().Window(Driver.WindowHandles[0]);
+            Wait(2, 3);
+            while (IsVisible(ElementByXPath("//span[contains(@id,'countdowntime')]")))
+            {
+                Wait();
+            }
+            Wait(2);
+            if (!Driver.Url.Contains("http://www.bitsvisit.com/index.php?view=ads"))
+            {
+                GoToUrl("http://www.bitsvisit.com/index.php?view=ads");
+            }
+            else
+            {
+                Driver.Navigate().Refresh();
+            }
+            Wait();
+            annonce = ElementsByXPath("//div[@class='wc_playicon']");
+            CheckForPopups();
+        }
+		
+     }
+		
+		
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoSolveFaucet();
+ }
+//=============//
+//DoSolveFaucet
+//=============//
+
+
+	
+	
+
+    public override int AfterSolveFaucet()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterSolveFaucet();
+    }
+
+    /// <summary>
+    /// This method gets called in the end after the BeforeSolveFaucet/DoSolveFaucet and AfterSolveFaucet methods were done.
+    /// The base.CheckFaucetResult will try to find a visible element on the page using the XPath from SuccessXPath and FailXPath (see the Start method)
+    /// These properties should contain XPath expressions to find certain elements on the page.
+    /// For example if it finds one of the elements from the SuccessXPath, and it is visible, then it will flag the claim attempt as a success.
+    /// Or if it finds one of the elements from the FailXPath, and it is visible, then it will flag the claim attempt as a failure.
+    /// </summary>
+    public override int CheckFaucetResult()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.CheckFaucetResult();
+    }
+	
+	
+	
+} //end public class

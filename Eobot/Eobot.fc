@@ -1,0 +1,431 @@
+﻿using System;
+using FaucetCollector.Script;
+using OpenQA.Selenium;
+using System.Threading.Tasks;
+//css_inc RecaptchaUtilities
+
+public class EobotScript : FaucetScript
+{
+    /// <summary>
+    /// List of Settings that will be shown in the bot when selecting this Faucet in the bot.
+    /// You can get the value the user entered with the methods: GetSetting("[Name of the FaucetSetting]"), GetBoolSetting and GetDateTimeSetting
+    /// You can also create a new setting value using SetSetting("[Name you want to use]", "value")
+    /// </summary>
+    public override FaucetSettings Settings
+    {
+        get
+        {
+			
+            return new FaucetSettings("https://eobot.com")
+            {
+                new FaucetSetting(){Name="Email",Display="Your Email",Type=EditorType.TextBox,Required=true},
+                new FaucetSetting(){Name="Password",Display="Your Password",Type=EditorType.Password,Required=true},
+				
+                new FaucetSetting() { Name = "UseSolveMedia", Display = "ON - Use Solvemedia | OFF - Use Recaptcha", Type = EditorType.CheckBox, Default = true},				
+				
+            };
+        }
+    }
+
+	
+	
+//============================================================//
+//the number of "successes" in the script - when are finished  
+//============================================================//
+    public override void Start()
+    {
+        //Title that shows in the browser. Is used to identify and close popup windows
+        Title = "Eobot.com";
+
+        //*[@id='ctl00_ContentPlaceHolder1_lblFaucet']
+		SuccessXPath = "//span[starts-with(text(),' added for visiting our Faucet page on')]";  
+        FailXPath = "//span[@id='ctl00_ContentPlaceHolder1_lblFaucet' and contains(text(),'You have already received')]";
+
+       
+        TimerIsCountingUp = true;
+		
+        //Let Faucet Collector start up everything
+        base.Start();
+    }
+//============================================================//
+//the number of "successes" in the script - when are finished  
+//============================================================//
+
+
+
+	//loop
+    public bool cs;
+
+
+	
+	
+    /// <summary>
+    /// This is the first method to run after the browser is opened and the first page is loaded.
+    /// </summary>
+	
+    public override int DoInit()
+    {
+
+   
+        //Let Faucet Collector continue.
+        return base.DoInit();
+    }
+
+	
+	
+	
+//==================//
+//save Login Cookies 
+//==================//
+    public override bool IsLoggedIn()
+    {
+	   //save Login Cookies - Check if the "Logout" exist
+       return ElementByXPath("//*[@id='ddmenu']/ul/li[6]/div/div/div/a[8]") != null;
+	   //return IsVisible(ElementByXPath("//*[@id='ddmenu']/ul/li[6]/div/div/div/a[8]")); 
+    }
+//==================//
+//save Login Cookies 
+//==================//	
+
+
+
+
+	
+    /// <summary>
+    /// This method gets called if IsLoggedIn returned false, right before the DoLogin method is called.
+    /// </summary>
+    public override int BeforeLogin()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeLogin();
+    }
+
+
+	
+
+	
+//================================//
+//start DoLogin
+//================================//
+    public override int DoLogin()
+    {
+	
+
+        //login2 SolveMedia
+        if (GetBoolSetting("UseSolveMedia"))
+        {
+            //Log("SolveMedia - LOGIN PAGE 2");
+            GoToUrl("https://www.eobot.com/login2.aspx");
+            Wait();
+        }
+		
+        //login1 ReCAPTCHA
+        if (!GetBoolSetting("UseSolveMedia"))
+        {
+            //Log("ReCAPTCHA - LOGIN PAGE 1");
+            GoToUrl("https://www.eobot.com/login");
+            Wait();
+        }
+
+        Wait(2);
+
+        var Email_Box =ElementByXPath("//input[@placeholder='Email']");
+        if (!IsVisible(Email_Box))
+        {
+        return Fail("Fail login , user box not found");
+        }            
+		SetText(Email_Box, GetSetting("Email"));
+
+ 
+		
+        var Password_Box = ElementByXPath("//input[@placeholder='Password']");
+        if (!IsVisible(Password_Box))
+		{
+            return Fail("Fail login , pass box not found");
+        }
+		SetText(Password_Box, GetPassword("Password")); 
+
+	
+		
+		//SolveCaptcha if apper
+        var result = SolveCaptcha();
+        if (result > 0)
+        {
+
+            return Fail("Fail solving captcha");
+        }
+		
+		Wait();
+
+		//click on the login button
+        var ButtonLogin = ElementByXPath("//input[@id='ctl00_ContentPlaceHolder1_btnLogin']");
+        if (!IsVisible(ButtonLogin))
+        {
+            return Fail("Button not found");
+        }
+        Click(ButtonLogin);
+
+        //Let Faucet Collector continue
+        return base.DoLogin();
+    }
+//================================//
+//end DoLogin
+//================================//
+ 
+
+
+ 
+ 
+	
+//================================//
+//start AfterLogin
+//================================//
+ public override int AfterLogin()
+ {
+
+    //=================//
+    //SecuritySettings
+    //=================/
+  
+  
+    //we are good to continue
+    return base.AfterLogin();
+
+ }
+	
+//================================//
+//end AfterLogin
+//================================//
+	
+	
+	
+	
+	
+	
+	
+    /// <summary>
+    /// This method gets called after the login methods are successful, so we are logged into the faucet.
+    /// If the faucet is not yet ready to claim you should return a TimeStamp value to return how long it takes before the Faucet claim can be done.
+    /// This is used to pause the script while the faucet its timer runs out.
+    /// </summary>
+    public override int GetFaucetWaitTime()
+    {
+        var SettingLastClaim = GetSetting("LastClaim");
+
+        //Faucet Collector - will wait 1 hour - 3600 sec - for next claim
+        if (!string.IsNullOrEmpty(SettingLastClaim))
+        {
+            var SplitedSetting = SettingLastClaim.Split(',');
+            if (SplitedSetting.Length == 2) {
+                DateTime LastClaim;
+                DateTime.TryParse(SplitedSetting[1], out LastClaim);
+                if(DateTime.Now<LastClaim.AddHours(12) && SplitedSetting[0] == GetSetting("User"))
+                {
+
+                    return (int)(LastClaim.AddHours(12) - DateTime.Now).TotalSeconds;
+                }
+
+
+
+              }
+        }
+
+        //0 mean let Faucet Collector continue.
+        //return 0;
+		
+		//let Faucet Collector continue.
+        return base.GetFaucetWaitTime();
+    }
+
+	
+	
+	
+	
+    /// <summary>
+    /// This method is called right before a captcha will be solved. 
+    /// If you call SolveCaptcha() in other methods it will start this flow and tries to solve the captcha on the page.
+    /// </summary>
+    public override int BeforeSolveCaptcha()
+    {
+
+
+        //Return we are ready to proceed
+        return base.BeforeSolveFaucet();
+    }
+	
+	
+	
+
+    /// <summary>
+    /// This method gets called after BeforeSolveCaptcha and it does the actual captcha solving
+    /// It will automatically try to see if there is a SolveMedia captcha active or a reCAPTCHA active. 
+    /// If it finds either one it will then use the selected method on the Captcha tab of FaucetCollector to solve the Captcha.
+    /// </summary>
+    public override int DoSolveCaptcha()
+    {
+        if (!IsVisible(ElementByXPath("//h1[contains(text(),'Log In')]")))
+        {
+
+
+            Task<int> res = Task.Run(() =>
+            {
+                return base.DoReCaptcha();
+
+            });
+
+            Task<int> res2 = Task.Run(() =>
+              {
+                  return base.DoSolveCaptcha();
+
+              });
+     
+
+            Task.WaitAll(res, res2);
+            return res.Result + res2.Result;
+ 
+        }
+        else
+        {
+            return base.DoSolveCaptcha();
+        }
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+         
+		 //return base.DoSolveCaptcha();
+    }
+	
+	
+	
+    /// <summary>
+    /// This method will get called after DoSolveCaptcha returned it was a success.
+    /// </summary>
+    /// <returns></returns>
+    public override int AfterSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterSolveCaptcha();
+    }
+
+	
+	
+	
+	
+//================================//
+//start BeforeSolveFaucet
+//================================//
+
+public override int BeforeSolveFaucet()
+  {
+	  
+		 
+    //Return we can continue
+     return base.BeforeSolveFaucet();
+  }
+  
+//================================//
+//end BeforeSolveFaucet
+//================================//
+	
+
+	
+	
+	
+	
+	
+//================================//
+//start DoSolveFaucet
+//================================//
+ public override int DoSolveFaucet()
+  {
+
+        GoToUrl("https://www.eobot.com/faucet");
+            Wait();
+
+        DateTime timeout = DateTime.Now.AddSeconds(20);
+        while(IsVisible(ElementByXPath("//h1[contains(text(),'Please wait...we will be redirecting you shortly')]")))
+        {
+
+            if (DateTime.Now > timeout)
+            {
+                return Fail("Faucet not available");
+            }
+
+            Wait();
+        }
+
+        var result = DoSolveCaptcha();
+        if (result > 0)
+        {
+            return Fail("Fail solving captcha");
+        }
+ 
+        var ButtonClaim = ElementByXPath("//input[@id='ctl00_ContentPlaceHolder1_btnFaucet']");
+
+        if (!IsVisible(ButtonClaim))
+        {
+            return Fail("Button claim is not visible");
+        }
+
+        Click(ButtonClaim);
+
+        Wait();
+
+
+
+        //We are good to continue
+        return base.DoSolveFaucet();
+ }
+//================================//
+//end DoSolveFaucet
+//================================//
+	
+	
+	
+	
+	
+	
+//================================//
+//start AfterSolveFaucet
+//================================//
+  public override int AfterSolveFaucet()
+  {
+
+   //This faucet has nothing to do here. We will let Faucet Collector handle it.
+   return base.AfterSolveFaucet();
+   
+  }
+	
+//================================//
+//end AfterSolveFaucet
+//================================//
+
+
+
+
+
+    /// <summary>
+    /// This method gets called in the end after the BeforeSolveFaucet/DoSolveFaucet and AfterSolveFaucet methods were done.
+    /// The base.CheckFaucetResult will try to find a visible element on the page using the XPath from SuccessXPath and FailXPath (see the Start method)
+    /// These properties should contain XPath expressions to find certain elements on the page.
+    /// For example if it finds one of the elements from the SuccessXPath, and it is visible, then it will flag the claim attempt as a success.
+    /// Or if it finds one of the elements from the FailXPath, and it is visible, then it will flag the claim attempt as a failure.
+    /// </summary>
+    public override int CheckFaucetResult()
+    {
+        
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+       var succ= base.CheckFaucetResult();
+
+
+        if (IsSuccess)
+        {
+            SetSetting("LastClaim", GetSetting("Email") + "," + DateTime.Now.ToString());
+        }
+        else if(IsVisible(ElementByXPath(FailXPath)))
+        {
+            SetSetting("LastClaim", GetSetting("Email") + "," + DateTime.Now.ToString());
+        }
+
+        return succ;
+    }
+}
+

@@ -1,0 +1,274 @@
+using FaucetCollector.Script;
+using System;
+using System.Collections.Generic;
+//css_inc RecaptchaUtilities
+//css_inc ShortLinkUtilities
+//css_inc BaseUtility
+
+public class cryptomininggameScript_ : FaucetScript
+{
+    public override FaucetSettings Settings
+    {
+        get
+        {
+            return new FaucetSettings("https://cryptomininggame.com/mining")
+            {
+				//Setting for UserName for cryptomininggame.com
+                new FaucetSetting() { Name = "UserName", Display = "UserName", Type = EditorType.TextBox, Required = true },
+				//Setting for Password for cryptomininggame.com
+                new FaucetSetting() { Name = "Password", Display = "Password", Type = EditorType.Password, Required = true },
+				//Allow the user to select an coin option
+                new FaucetSetting() {
+                    Name = "CoinToMine",
+                    Display = "Coin To Mine",
+                    Type = EditorType.ComboBox,
+                    Items = new List<string>
+                    {
+                        "BTC",
+                        "Doge",
+                        "LTC"
+                    },
+                    Default = "BTC"
+                }
+            };
+        }
+    }
+
+    public override void Start()
+    {
+        Title = "CMG|zap|short|Short|BTC.ms|shrink|URL";
+        n = 0;
+        SuccessXPath = "//div[contains(@class, 'alert-success')]/big";
+        FailXPath = "//div[contains(@class, 'alert-warning') and contains(@class, 'fixtop')]//big[ contains(text(), 'enough')]";
+
+        base.Start();
+    }
+
+    public override bool IsLoggedIn()
+    {
+
+        return ElementByXPath("//a[@href='/logout']") != null;
+    }
+
+    public override int BeforeLogin()
+    {
+
+        if (!IsVisible(ElementByXPath("//form[@class='form-horizontal']")))
+        {
+            OpenQA.Selenium.IWebElement loginPanelBtn = ElementByXPath("//button[@type='button']//i[@class='fa fa-sign-in']");
+            if (!IsVisible(loginPanelBtn))
+            {
+                return Fail("Login button not found.");
+            }
+
+            Click(loginPanelBtn);
+        }
+        Wait(1);
+        return base.BeforeLogin();
+    }
+
+    public override int DoLogin()
+    {
+
+        OpenQA.Selenium.IWebElement logInUser = ElementByXPath("//input[@id='username']");
+        if (!IsVisible(logInUser))
+        {
+
+        }
+
+        OpenQA.Selenium.IWebElement logInPassword = ElementByXPath("//input[@id='password']");
+        if (!IsVisible(logInPassword))
+        {
+
+            return Fail("Password input not found.");
+        }
+
+        SetText(logInUser, GetSetting("UserName"));
+        Wait();
+        SetText(logInPassword, GetPassword("Password"));
+        OpenQA.Selenium.IWebElement Type = ElementByXPath("//select[@name='captchatype']");
+        if (IsVisible(Type))
+        {
+            SelectOptionByValue(Type, "g-recaptcha");
+            Wait();
+        }
+        int result = DoSolveCaptcha();
+        if (result > 0)
+        {
+
+            return Fail("Fail solving captcha");
+        }
+        OpenQA.Selenium.IWebElement loginButton = ElementByXPath("//button[@id='_submit']//i[@class='fa fa-sign-in']");
+        if (!IsVisible(loginButton))
+        {
+
+            return Fail("Login button not found.");
+        }
+
+        Wait();
+
+
+        Click(loginButton);
+
+
+        return base.DoLogin();
+    }
+
+    public override int AfterLogin()
+    {
+        GoToUrl(Url);
+
+        return base.AfterLogin();
+    }
+
+    public override int GetFaucetWaitTime()
+    {
+        OpenQA.Selenium.IWebElement waitElement = ElementByXPath("//span[@id='mining_stop_at']");
+
+        if (!IsVisible(waitElement))
+        {
+            //no time remaining element, so we are good to go.
+            return 0;
+        }
+        string waitText = waitElement.Text.ToLower().Trim();
+        if (!string.IsNullOrEmpty(waitText))
+        {
+            TimeSpan interval;
+            if (!TimeSpan.TryParse(waitText, out interval))
+            {
+                //Somethingn went wrong
+                return Fail("Failed to get the time to wait from '" + waitText + "'");
+            }
+            //we need to return the total number of seconds
+            return (int)interval.TotalSeconds;
+        }
+
+        return 0;
+    }
+
+    public override int BeforeSolveCaptcha()
+    {
+
+        return base.BeforeSolveCaptcha();
+    }
+
+    public override int DoSolveCaptcha()
+    {
+        //Let Faucet Collector continue. It will check for SolveMedia and reCAPTCHA.
+        return base.DoSolveCaptcha();
+    }
+
+    public override int AfterSolveCaptcha()
+    {
+
+        return base.AfterSolveCaptcha();
+    }
+
+    public override int BeforeSolveFaucet()
+    {
+
+        return base.BeforeSolveFaucet();
+    }
+
+    private string GetCoinToMinePath(string coinToMine)
+    {
+        switch (coinToMine.ToLower())
+        {
+            case "btc":
+                return "//div[@id='satoshi_mining_panel']//button[@type='submit']";
+            case "doge":
+                return "//div[@id='doge_mining_panel']//button[@type='submit']";
+            case "ltc":
+                return "//div[@id='litoshi_mining_panel']//button[@type='submit']";
+        }
+        return string.Empty;
+    }
+
+    private int n;
+    public override int DoSolveFaucet()
+    {
+        string coinToMineSetting = GetSetting("CoinToMine");
+        string coinToMinePath = GetCoinToMinePath(coinToMineSetting);
+
+        //find the submit button
+        OpenQA.Selenium.IWebElement checkInBtn = ElementByXPath(coinToMinePath);
+
+        if (!IsVisible(checkInBtn))
+        {
+            return Fail("Check in button not found or not visible.");
+        }
+
+        Click(checkInBtn);
+
+        Wait(1);
+
+        //find the antibot button
+        OpenQA.Selenium.IWebElement antiBotBtn = ElementByXPath("//button[@data-target='#modalAntibotLink']");
+        if (IsVisible(antiBotBtn))
+        {
+            Click(antiBotBtn);
+            Wait(1);
+            List<OpenQA.Selenium.IWebElement> Buttons = ElementsByXPath("//button[@class='btn btn-block btn-sm btn-info']");
+
+            if (Buttons.Count > n)
+            {
+                Click(Buttons[n]);
+                ShortLinkBypasser bypasser = new ShortLinkBypasser(this);
+                bool cs = bypasser.DoShortLink(2);
+                if (!cs)
+                {
+                    n++;
+                }
+            }
+
+
+
+            checkInBtn = ElementByXPath(coinToMinePath);
+            if (!IsVisible(checkInBtn))
+            {
+                return Fail("Check in button not found or not visible.");
+            }
+        }
+
+        Click(checkInBtn);
+        Wait(1);
+
+        OpenQA.Selenium.IWebElement failDiv = ElementByXPath("//div[contains(@class, 'alert-warning') and contains(@class, 'fixtop')]//big[ contains(text(), 'enough')]");
+        if (IsVisible(failDiv))
+        {
+            Log(failDiv.Text);
+            //Disable untill user refills crystal
+            Disable();
+            //stop faucet or else will continue to try start mine and beat captcha.
+            Quit();
+        }
+
+        //Let Faucet Collector continue its work
+        return base.DoSolveFaucet();
+    }
+
+    public override int AfterSolveFaucet()
+    {
+        OpenQA.Selenium.IWebElement closeBtn = ElementByXPath("//button[contains(@class,'btn-warning') and contains(text(), 'Close')]");
+
+        if (IsVisible(closeBtn))
+        {
+            Click(closeBtn);
+        }
+
+        return base.AfterSolveFaucet();
+    }
+
+    public override int CheckFaucetResult()
+    {
+        int result = base.CheckFaucetResult();
+        if (IsSuccess)
+        {
+
+            Reload = true;
+        }
+
+        return result;
+    }
+
+}

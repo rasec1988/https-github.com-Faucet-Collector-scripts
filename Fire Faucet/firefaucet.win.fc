@@ -1,0 +1,504 @@
+﻿using System;
+using FaucetCollector.Script;
+
+public class Fire_ : FaucetScript
+{
+    /// <summary>
+    /// List of Settings that will be shown in the bot when selecting this Faucet in the bot.
+    /// You can get the value the user entered with the methods: GetSetting("[Name of the FaucetSetting]"), GetBoolSetting and GetDateTimeSetting
+    /// You can also create a new setting value using SetSetting("[Name you want to use]", "value")
+    /// </summary>
+    public override FaucetSettings Settings
+    {
+        get
+        {
+            return new FaucetSettings("https://firefaucet.win/")
+            {
+				
+new FaucetSetting(){Name="User",Display="Username",Type=EditorType.TextBox,Required=true},
+new FaucetSetting(){Name="Pass",Display="Password",Type=EditorType.Password,Required=true},
+new FaucetSetting(){Name="UseSolvemedia",Display="UseSolvemedia on login",Type=EditorType.CheckBox,Default=true},
+//insert user settings here
+//new FaucetSetting { 
+//    Name = "Name of your setting", 
+//    Display = "Display shown in Faucet Collector", 
+//    Type = EditorType.TextBox | EditorType.Password | EditorType.CheckBox | EditorType.Wallet | EditorType.Numeric | EditorType.ComboBox | EditorType.CheckComboBox, 
+//    Required = true | false, 
+//    Default = "Optionally a default value" | true | false | null.
+//    Items = new List<string> { "item1", "item2" } (only valid for ComboBox or CheckComboBox)
+//} 			
+
+new FaucetSetting(){Name="AutoFaucet",Display="AutoFaucet number of claims",Type=EditorType.Numeric,Default=0 },
+new FaucetSetting(){Name="DailyBonus",Display="Claim - Daily Bonus",Type=EditorType.CheckBox,Default=true },
+			
+
+new FaucetSetting(){Name="withdrawDOGCOIN",Display="withdraw DOGECOIN to faucethub",Type=EditorType.CheckBox,Default=true },
+new FaucetSetting(){Name="withdrawDASHCOIN",Display="withdraw DASHCOIN to faucethub",Type=EditorType.CheckBox,Default=false },
+new FaucetSetting(){Name="withdrawLITECOIN",Display="withdraw LITECOIN to faucethub",Type=EditorType.CheckBox,Default=false },
+new FaucetSetting(){Name="withdrawPOTCOIN",Display="withdraw POTCOIN to faucethub",Type=EditorType.CheckBox,Default=false },
+new FaucetSetting(){Name="withdrawPEERCOIN",Display="withdraw PEERCOIN to faucethub",Type=EditorType.CheckBox,Default=false },
+new FaucetSetting(){Name="withdrawBITCORE",Display="withdraw BITCORE to faucethub",Type=EditorType.CheckBox,Default=false },
+new FaucetSetting(){Name="withdrawBLACKCOIN",Display="withdraw BLACKCOIN to faucethub",Type=EditorType.CheckBox,Default=false },
+new FaucetSetting(){Name="withdrawPRIMECOIN",Display="withdraw PRIMECOIN to faucethub",Type=EditorType.CheckBox,Default=false },
+new FaucetSetting(){Name="withdrawZCash",Display="withdraw ZCash to Direct Wallet",Type=EditorType.CheckBox,Default=false },
+new FaucetSetting(){Name="withdrawMONERO",Display="withdraw MONERO to Direct Wallet",Type=EditorType.CheckBox,Default=false }
+
+
+            };
+        }
+    }
+
+    /// <summary>
+    /// This method gets called when the faucet is enabled and the GO button is clicked
+    /// </summary>
+    public override void Start()
+    {
+        //Title that shows in the browser. Is used to identify and close popup windows
+        Title = "Fire Faucet";
+        cs = false;
+        CD = DateTime.Now;
+        //After we did try to claim on the faucet we search for these elements to determine if it was a success or a fail
+        SuccessXPath = "//b[contains(text(),'50 CLAIMS WERE SUCCESSFULLY ADDED TO YOUR ACCOUNT')]|//b[starts-with(text(),'YOU NEED TO WAIT')]|//b[contains(text(),'minute') and contains(text(),'seconds')]";
+        FailXPath = "//div[@class='site-wrapper-inner']";
+
+        //Let Faucet Collector start up everything
+        base.Start();
+    }
+
+    /// <summary>
+    /// This is the first method to run after the browser is opened and the first page is loaded.
+    /// </summary>
+    public override int DoInit()
+    {
+        Driver.Manage().Cookies.DeleteAllCookies();
+        //Let Faucet Collector continue.
+        return base.DoInit();
+    }
+
+    /// <summary>
+    /// This method gets called after the Start method, here you need to return if we are logged in or not.
+    /// If you return false then it will call the BeforeLogin, Login and AfterLogin methods so you can login.
+    /// After those Login methods are called it will call this IsLoggedIn method again to see if the login did succeed.
+    /// If you return true Faucet Collector will store all cookies so it will probably be already logged in on the next attempt.
+    /// </summary>
+    public override bool IsLoggedIn()
+    {
+        //In here we can check for the presence of an element that is only present when you are logged in.
+        //In this case we check for en element with the class "loggedIn"
+        return ElementByXPath("//a[@href='/logout']") != null;
+    }
+
+    /// <summary>
+    /// This method gets called if IsLoggedIn returned false, right before the DoLogin method is called.
+    /// </summary>
+    public override int BeforeLogin()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeLogin();
+    }
+
+    /// <summary>
+    /// This method gets called after BeforeLogin, but only if IsLoggedIn returned false.
+    /// It can be used to actually login the user/enter wallet details in the faucet
+    /// </summary>
+    /// <returns></returns>
+    public override int DoLogin()
+    {
+        if (Driver.Url.Contains("https://firefaucet.win/"))
+        {
+            GoToUrl("https://firefaucet.win/");
+        }
+        Wait(2, 3);
+        var box_user = ElementByXPath("//input[@placeholder='Username or Email']");
+        
+        if (!IsVisible(box_user))
+        {
+            return Fail("Box user not found");
+        }
+        SetText(box_user, GetSetting("User"));
+        Click(box_user);
+        var box_pass = ElementByXPath("//input[@id='pwd']");
+        if (!IsVisible(box_pass)){
+            return Fail("Box pass not found");
+        }
+        SetText(box_pass, GetPassword("Pass"));
+        var button =ElementByXPath("//button[@value='Login']");
+        if (!IsVisible(button))
+        {
+            return Fail("Button login not visible");
+        }
+        if (GetBoolSetting("UseSolvemedia"))
+        {
+            ExecuteScript("switchCaptcha('SolveMedia')");
+            Wait();
+        }
+        else
+        {
+            ExecuteScript("switchCaptcha('Recaptcha')");
+            Wait();
+        }
+        Wait();
+        var result = DoSolveCaptcha();
+        if (result > 0)
+        {
+            return Fail("Fail solve captcha");
+        }
+        Wait(2, 3);
+        Click(button);
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoLogin();
+    }
+
+    /// <summary>
+    /// This method gets called after the DoLogin method.
+    /// </summary>
+    public override int AfterLogin()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterLogin();
+    }
+
+    /// <summary>
+    /// This method gets called after the login methods are successful, so we are logged into the faucet.
+    /// If the faucet is not yet ready to claim you should return a TimeStamp value to return how long it takes before the Faucet claim can be done.
+    /// This is used to pause the script while the faucet its timer runs out.
+    /// Return the number of seconds the bot should wait.
+    /// </summary>
+    public override int GetFaucetWaitTime()
+    {
+        if (cs)
+        {
+            int s1 = CD.Day * 24 * 60 * 60 + CD.Minute * 60 + CD.Hour * 60 * 60 + CD.Second, s2 = DateTime.Now.Day * 24 * 60 * 60 + DateTime.Now.Minute * 60 + DateTime.Now.Hour * 60 * 60 + DateTime.Now.Second;
+            int tt = s2 - s1;
+            if (tt > 0)
+            {
+                return 1800 - tt;
+
+            }
+        }
+        if (!Driver.Url.Contains("https://firefaucet.win/faucet"))
+        {
+			
+            GoToUrl("https://firefaucet.win/faucet");
+        }
+        var time_element = ElementByXPath("//div[@class='card-panel']//center//h4[@style='color:#e74c3c;']");
+        if (IsVisible(time_element))
+        {
+            return 30 * 60;
+        }
+        Wait(3);
+        if(IsVisible(ElementByXPath("//div[@class='card-panel']//center//h4[@style='color:#27ae60;']")))
+        {
+            return 30 * 60;
+
+        }
+       
+        return 0;
+        //let Faucet Collector continue.
+
+    }
+
+    /// <summary>
+    /// This method is called right before a captcha will be solved. 
+    /// If you call SolveCaptcha() in other methods it will start this flow and tries to solve the captcha on the page.
+    /// </summary>
+    public override int BeforeSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeSolveCaptcha();
+    }
+
+    /// <summary>
+    /// This method gets called after BeforeSolveCaptcha and it does the actual captcha solving
+    /// It will automatically try to see if there is a SolveMedia captcha active or a reCAPTCHA active. 
+    /// If it finds either one it will then use the selected method on the Captcha tab of FaucetCollector to solve the Captcha.
+    /// </summary>
+    public override int DoSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoSolveCaptcha();
+    }
+
+    /// <summary>
+    /// This method will get called after DoSolveCaptcha returned it was a success.
+    /// </summary>
+    /// <returns></returns>
+    public override int AfterSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterSolveCaptcha();
+    }
+
+    /// <summary>
+    /// This method is called right before we attempt to claim on the faucet. So we are logged in and good to go.
+    /// Next methods that will be called are DoSolveFaucet, AfterSolveFaucet and CheckFaucetResult.
+    /// </summary>
+    public override int BeforeSolveFaucet()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeSolveCaptcha();
+    }
+
+    /// <summary>
+    /// This method gets called after the BeforeSolveFaucet. You can do the actual claiming of the faucet in here.
+    /// </summary>
+    /// <returns></returns>
+    public override int DoSolveFaucet()
+    {
+        bool Correct_capthca = false;
+        int Counter = 0;
+        while (!Correct_capthca)
+        {
+            if (!Driver.Url.Contains("https://firefaucet.win/faucet"))
+            {
+                GoToUrl("https://firefaucet.win/faucet");
+            }
+            else if (Counter >= 1)
+            {
+                GoToUrl("https://firefaucet.win/faucet");
+            }
+            Wait(2, 3);
+            ExecuteScript("switchCaptcha('SolveMedia')");
+            Wait(2);
+            var result = DoSolveCaptcha();
+            if (result > 0)
+            {
+                return Fail("Fail solve captcha");
+            }
+            Wait(2, 3);
+            var button = ElementByXPath("//button[@id='claim_btn']");
+            if (!IsVisible(button) && button.Text.Contains("Claim"))
+            {
+                return Fail("Button not found");
+            }
+            Click(button);
+            Wait(2);
+           
+            
+    
+
+            var incorrect_captcha = ElementByXPath("//h4[contains(text(),'Wrong')]");
+            if (IsVisible(incorrect_captcha) && Correct_capthca==false)
+            {
+                Correct_capthca = false;
+            }
+            else 
+            {
+                Correct_capthca = true;
+            }
+            if (Counter >= 3)
+            {
+                break;
+            }
+            Counter++;
+            
+        }
+
+        if (Correct_capthca)
+        {
+            cs = true;
+            CD = DateTime.Now;
+        }
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoSolveFaucet();
+		
+
+    }
+
+
+    static DateTime CD;
+    static bool cs;
+
+//=============================================//
+//Start AfterSolveFaucet
+//=============================================//
+    public override int AfterSolveFaucet()
+    {
+        
+        
+//=============================================//
+//go to auto "Daily Bonus" - check if available
+//=============================================//
+
+ if (GetBoolSetting("DailyBonus"))
+            {
+		GoToUrl("https://firefaucet.win/daily");
+		Wait(4);
+            DoSolveCaptcha();
+            Wait();
+            var Button = ElementByXPath("//button[@type='submit']");
+            if (IsVisible(Button))
+            {
+                Click(Button);
+            }
+            Wait(2, 3);
+            }
+           
+//=============================================//	
+//go to "Auto Faucet" - stay by custom minutes
+//=============================================//
+
+ if (GetIntSetting("AutoFaucet")>0)
+            {
+            int cont = 0;
+            GoToUrl("https://firefaucet.win");
+            var button = ElementByXPath("//button[@id='start-button']");
+            if (IsVisible(button))
+            {
+                Click(button);
+                Wait(2, 3);
+            }
+            do
+            {
+                
+                try
+                {
+                    var seconds_D = ElementByXPath("//span[@id='sec']");
+                    int sec = Convert.ToInt32(seconds_D.Text);
+                    Wait(sec+5);
+
+                    cont++;
+                }
+                catch (Exception)
+                {
+                    //NO POINTS
+                    break;
+                }
+                
+            } while (GetIntSetting("AutoFaucet") > cont);
+            }
+          
+
+
+        //=============================================//	
+        //withdraw: DOGCOIN,DASHCOIN,LITECOIN,POTCOIN,PEERCOIN,BITCORE,BLACKCOIN,PRIMECOIN - to "faucethub" 
+        //OR 
+        //ZCash & MONERO - to "Direct Wallet"
+        //=============================================//
+        GoToUrl("https://firefaucet.win/balance");
+
+        Wait(3);
+        var W_A = ElementsByXPath("//b[contains(@size,'15px')]");
+        if (W_A.Count != 0)
+        {
+            try {
+                bool[] W_AB = new bool[W_A.Count];
+
+                for (int i = 0; i < W_A.Count; i++)
+                {
+                    if (Convert.ToInt32(W_A[i].Text.Replace(".", "")) > 0)
+                    {
+                        W_AB[i] = true;
+                    }
+                    else
+                    {
+                        W_AB[i] = false;
+                    }
+                }
+                if (GetBoolSetting("withdrawDOGCOIN") && W_AB[0])
+                {
+                    GoToUrl("https://firefaucet.win/withdraw?coin=doge");
+                    Wait(1);
+                }
+
+
+                if (GetBoolSetting("withdrawDASHCOIN") && W_AB[1])
+                {
+                    GoToUrl("https://firefaucet.win/withdraw?coin=dash");
+                    Wait(1);
+                }
+
+                if (GetBoolSetting("withdrawLITECOIN") && W_AB[2])
+                {
+                    GoToUrl("https://firefaucet.win/withdraw?coin=ltc");
+                    Wait(1);
+                }
+
+
+                if (GetBoolSetting("withdrawPOTCOIN") && W_AB[3 + 2])
+                {
+                    GoToUrl("https://firefaucet.win/withdraw?coin=pot");
+                    Wait(1);
+                }
+
+
+                if (GetBoolSetting("withdrawPEERCOIN") && W_AB[4 + 2])
+                {
+                    GoToUrl("https://firefaucet.win/withdraw?coin=ppc");
+                    Wait(1);
+                }
+
+
+                if (GetBoolSetting("withdrawBITCORE") && W_AB[5 + 2])
+                {
+                    GoToUrl("https://firefaucet.win/withdraw?coin=btx");
+                    Wait(1);
+                }
+
+
+                if (GetBoolSetting("withdrawBLACKCOIN") && W_AB[6 + 2])
+                {
+                    GoToUrl("https://firefaucet.win/withdraw?coin=blk");
+                    Wait(1);
+                }
+                else
+                {
+                    //GoToUrl("");
+                }
+
+                if (GetBoolSetting("withdrawPRIMECOIN") && W_AB[7 + 2])
+                {
+                    GoToUrl("https://firefaucet.win/withdraw?coin=xpm");
+                    Wait(1);
+                }
+
+
+                if (GetBoolSetting("withdrawZCash") && W_AB[3])
+                {
+                    GoToUrl("https://firefaucet.win/withdraw?coin=zec");
+                    Wait(1);
+                }
+
+
+                if (GetBoolSetting("withdrawMONERO") && W_AB[4])
+                {
+                    GoToUrl("https://firefaucet.win/withdraw?coin=xmr");
+                    Wait(1);
+                }
+
+            }
+            catch (Exception)
+            {
+                Log("Failed Withdraw balance");
+            }
+            }
+		
+		//This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterSolveFaucet();
+    }
+//=============================================//
+//end AfterSolveFaucet
+//=============================================//
+	
+	
+	
+	
+    /// <summary>
+    /// This method gets called in the end after the BeforeSolveFaucet/DoSolveFaucet and AfterSolveFaucet methods were done.
+    /// The base.CheckFaucetResult will try to find a visible element on the page using the XPath from SuccessXPath and FailXPath (see the Start method)
+    /// These properties should contain XPath expressions to find certain elements on the page.
+    /// For example if it finds one of the elements from the SuccessXPath, and it is visible, then it will flag the claim attempt as a success.
+    /// Or if it finds one of the elements from the FailXPath, and it is visible, then it will flag the claim attempt as a failure.
+    /// </summary>
+    public override int CheckFaucetResult()
+    {
+        if (Driver.Url.Contains("https://firefaucet.win/faucet"))
+        {
+            GoToUrl("https://firefaucet.win/faucet");
+        }
+
+	
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.CheckFaucetResult();
+    }
+}

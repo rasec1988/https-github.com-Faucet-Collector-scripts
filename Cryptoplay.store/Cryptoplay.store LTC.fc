@@ -1,0 +1,195 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using FaucetCollector.Script;
+using OpenQA.Selenium;
+
+public class cryptoplaystorescript : FaucetScript
+{
+    /// <summary>
+    /// List of Settings that will be shown in the bot when selecting this Faucet in the bot.
+    /// You can get the value the user entered with the methods: GetSetting("[Name of the FaucetSetting]"), GetBoolSetting and GetDateTimeSetting
+    /// </summary>
+    public override FaucetSettings Settings
+    {
+        get
+        {
+            return new FaucetSettings("https://cryptoplay.store/login")
+            {
+                
+                new FaucetSetting() { Name = "UserName", Display = "UserName", Type = EditorType.TextBox, Required = true },
+                new FaucetSetting() { Name = "Password", Display = "Password", Type = EditorType.Password, Required = true },                
+            };
+        }
+    }
+
+    
+    public override void Start()
+    {
+        
+        Title = "Earn Litecoin|Dashboard";
+
+        
+        SuccessXPath = "//DIV[@class='alert alert-success']";
+        FailXPath = "//DIV[@class='alert alert-danger'][text()='The captcha you entered is not valid.'] || //DIV[@class='alert alert-danger'][text()='It has been less than 10 minutes since your last claim. Take a break, while your limits replenish.']";
+
+        
+        base.Start();
+    }
+
+   
+    public override bool IsLoggedIn()
+    {
+
+        return IsVisible(ElementByXPath("//A[@href='?logout']"));
+    }
+
+   
+    public override int BeforeLogin()
+    {
+
+        return base.BeforeLogin();
+    }
+
+    
+    public override int DoLogin()
+    {
+
+
+        var signInUserName = ElementByXPath("//INPUT[@id='username']");
+        if (signInUserName == null)
+        {
+          
+            return Fail("UserName input not found.");
+        }
+
+        var signInPassword = ElementByXPath("//INPUT[@id='password']");
+        if (signInPassword == null)
+        {
+            
+            return Fail("Signin password input not found.");
+        }
+
+       
+        SetText(signInUserName, GetSetting("UserName"));
+        SetText(signInPassword, GetPassword("Password"));
+        
+       
+        var loginButton = ElementByXPath("//INPUT[@type='submit']");
+        if (loginButton == null)
+        {
+            
+            return Fail("Login button not found.");
+        }
+
+        
+        Click(loginButton);
+
+        return base.DoLogin();
+    }
+
+
+    public override int AfterLogin()
+    {
+
+        return base.AfterLogin();
+    }
+
+
+    public override int GetFaucetWaitTime()
+    {
+        var CLAIMButton = ElementByXPath("//BUTTON[@type='button'][text()='CLAIM']");
+        if (!IsVisible(CLAIMButton))
+        {
+		var previous = GetDateTimeSetting("ClaimTime");
+        if (previous.HasValue)
+        {
+            if (previous.Value.AddMinutes(10) > DateTime.Now)
+            {
+                //it was still less than an hour ago, return the remaingin time in seconds
+                return (int)(previous.Value.AddMinutes(10) - DateTime.Now).TotalSeconds;
+            }
+        }
+        }
+
+        //we don't need to wait
+        return 0;    
+    }
+
+
+    public override int BeforeSolveCaptcha()
+    {
+
+        return base.BeforeSolveCaptcha();
+    }
+
+
+    public override int DoSolveCaptcha()
+    {
+
+
+            return base.DoSolveCaptcha();
+        }
+    
+
+    public override int AfterSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterSolveCaptcha();
+    }
+
+
+    public override int BeforeSolveFaucet()
+    {
+
+       
+        return base.BeforeSolveFaucet();
+    }
+
+    public override int DoSolveFaucet()
+    {
+            
+        var ClaimButton = ElementByXPath("//A[@class='btn btn-lg btn-primary']");
+        if (!IsVisible(ClaimButton))
+        {
+
+            return Fail("Claim button not found or not visible.");
+        }
+
+
+        var result = SolveCaptcha();
+        if (result > 0)
+        {
+            //Unable to solve the captcha - return the failure
+            return result;
+        }
+
+        //The Captcha is solved, click the submit button
+        Click(ClaimButton);
+
+        //Let Faucet Collector continue its work
+        return base.DoSolveFaucet();
+    }
+
+
+    public override int AfterSolveFaucet()
+    {
+        //Let Faucet Collector continue
+        return base.AfterSolveFaucet();
+    }
+
+
+    public override int CheckFaucetResult()
+    {
+       
+        var result = base.CheckFaucetResult();
+
+        if (IsSuccess)
+        {
+            SetSetting("ClaimTime", DateTime.Now);
+            Reload = true;
+        }
+
+        return result;
+    }
+}

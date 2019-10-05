@@ -1,0 +1,432 @@
+﻿
+
+//=========================================================//
+//Script Rewritten (with new way) by: AviramDayan 25/8/18 22:45PM 
+//=========================================================//
+
+using System;
+using FaucetCollector.Script;
+using OpenQA.Selenium;
+
+
+public class CoinbizzcomScript : FaucetScript
+{
+    /// <summary>
+    /// List of Settings that will be shown in the bot when selecting this Faucet in the bot.
+    /// You can get the value the user entered with the methods: GetSetting("[Name of the FaucetSetting]"), GetBoolSetting and GetDateTimeSetting
+    /// </summary>
+    public override FaucetSettings Settings
+    {
+        get
+        {
+            return new FaucetSettings("http://coinbizz.com/")
+            {
+                new FaucetSetting() { Name = "Username", Display = "Username", Type = EditorType.TextBox, Required = true },           
+                new FaucetSetting() { Name = "Password", Display = "Password", Type = EditorType.Password, Required = true },
+				
+                //new FaucetSetting() { Name = "YourWallet", Display = "Your Wallet", Type = EditorType.TextBox, Required = true },  
+                new FaucetSetting(){Name="AutoWithdraw",Display="Auto Withdraw",Type=EditorType.CheckBox,Default=true},				
+                new FaucetSetting(){Name="ClaimFaucet",Display="Claim Faucet - Every 15 minutes",Type=EditorType.CheckBox,Default=true},
+                new FaucetSetting(){Name="Roll",Display="Roll - Claim Every 60 minutes",Type=EditorType.CheckBox,Default=true},
+               
+            };
+        }
+    }
+
+	
+	
+	
+//============================================================//
+//the number of "successes" in the script - when are finished  
+//============================================================//
+    public override void Start()
+    {
+        //Title that shows in the browser. Is used to close popups
+        Title = "COINBIZZ|Faucet";
+
+        SuccessXPath = "//div[starts-with(text(),'Your claim was successfully')]"; //div[@class='alert alert-success']
+        FailXPath = "//div[@class='alert alert-danger']";
+		
+        TimerIsCountingUp = true;
+		
+        //Let Faucet Collector start up everything
+        base.Start();
+    }
+//============================================================//
+//the number of "successes" in the script - when are finished  
+//============================================================//
+
+
+
+	//loop
+    public static bool cs;
+
+	
+	
+    /// <summary>
+    /// This is the first method to run after the browser is opened and the first page is loaded.
+    /// </summary>
+    public override int DoInit()
+    {
+        cs = false;
+        //Let Faucet Collector continue.
+        return base.DoInit();
+    }
+
+	
+	
+	
+	
+//==================//
+//save Login Cookies 
+//==================//	
+    public override bool IsLoggedIn()
+    {
+        //In here we can check for the presence of an element that is only present when you are logged in.
+        //In this case we check for en element with the class "loggedIn"
+	 return ElementByXPath("//a[@href='edit-profile']") != null;  	
+    }
+//==================//
+//save Login Cookies 
+//==================//	
+
+	
+
+	
+    /// <summary>
+    /// This method gets called if IsLoggedIn returned false, right before the DoLogin method is called.
+    /// </summary>
+    public override int BeforeLogin()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeLogin();
+    }
+
+	
+	
+	
+//=======//	
+//DoLogin	
+//=======//	
+
+public override int DoLogin()
+ {
+
+    GoToUrl("http://coinbizz.com/login");
+	 
+    var signInUser = ElementByXPath("//input[@type='text']");
+    SetText(signInUser, GetSetting("Username"));
+	
+    Wait(2);
+	
+    var signInPassword = ElementByXPath("//input[@type='password']");
+    SetText(signInPassword, GetPassword("Password"));
+	
+    Wait(2);
+   
+    var loginButton = ElementByXPath("//input[@type='submit']");
+    Click(loginButton);
+	
+    Wait(2);
+
+       
+    return base.DoLogin();
+ }
+	
+//=======//	
+//DoLogin	
+//=======//
+	
+	
+	
+	
+	
+	
+	
+//===========//	
+//AfterLogin
+//===========//
+ public override int AfterLogin()
+ {
+
+    /*
+ 
+    //==========================//
+    //set Your Wallet - in profile
+    //==========================//
+  
+    //var general check - Wallet - Value = none
+	var InputWallet =ElementByXPath("//*[@id='last_used_wallet']");	
+	var ChangeAddressButton =ElementByXPath("//*[@id='duh']/div/form[3]/input");	
+    //==========================//
+
+    //go to - edit profile Settings
+	Log("Wallet: go to - edit profile Settings");		
+	GoToUrl("http://coinbizz.com/edit-profile");
+	
+    Wait(2);
+	
+	Log("Wallet: set Your Wallet");
+	Click(InputWallet);
+	SetText(InputWallet,"");
+	SetText(InputWallet, GetSetting("YourWallet"));
+	
+    Wait(2);
+	
+	Log("Wallet: click on - ChangeAddressButton");
+    Click(ChangeAddressButton);
+	
+    Wait(2);
+  //===============//
+
+  */
+  
+ return base.AfterLogin();
+ }
+ 
+//===========//	
+//AfterLogin
+//===========//
+	
+	
+	
+	
+	
+
+    /// <summary>
+    /// This method gets called after the login methods are successful, so we are logged into the faucet.
+    /// If the faucet is not yet ready to claim you should return a TimeStamp value to return how long it takes before the Faucet claim can be done.
+    /// This is used to pause the script while the faucet its timer runs out.
+    /// Return the number of seconds the bot should wait.
+    /// </summary>
+ public override int GetFaucetWaitTime()
+ {
+
+   //let Faucet Collector continue.
+   return base.GetFaucetWaitTime();
+		
+ }
+
+	
+	
+	
+	
+	
+
+    /// <summary>
+    /// This method is called right before a captcha will be solved. 
+    /// If you call SolveCaptcha() in other methods it will start this flow and tries to solve the captcha on the page.
+    /// </summary>
+    public override int BeforeSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeSolveCaptcha();
+    }
+
+	
+	
+	
+    /// <summary>
+    /// This method gets called after BeforeSolveCaptcha and it does the actual captcha solving
+    /// It will automatically try to see if there is a SolveMedia captcha active or a reCAPTCHA active. 
+    /// If it finds either one it will then use the selected method on the Captcha tab of FaucetCollector to solve the Captcha.
+    /// </summary>
+    public override int DoSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoSolveCaptcha();
+    }
+	
+	
+	
+
+    /// <summary>
+    /// This method will get called after DoSolveCaptcha returned it was a success.
+    /// </summary>
+    /// <returns></returns>
+    public override int AfterSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterSolveCaptcha();
+    }
+
+	
+		
+//============//
+//BeforeSolveFaucet
+//============//	
+ public override int BeforeSolveFaucet()
+ {
+
+
+		
+ //This faucet has nothing to do here. We will let Faucet Collector handle it.
+ return base.BeforeSolveCaptcha();
+ 
+ }
+ //============//
+//BeforeSolveFaucet
+//============//	
+	
+	
+	
+	
+	
+	
+//============//
+//DoSolveFaucet
+//============//
+ public override int DoSolveFaucet()
+ {
+		
+    //============//   
+    //ClaimFaucet
+    //============//  
+    if (GetBoolSetting("ClaimFaucet"))
+    {
+
+		//first go to faucet page
+		Log("ClaimFaucet: go to faucet page");		
+		GoToUrl("http://coinbizz.com/faucet");
+		
+       //General var//
+	   var FaucetWaitText = ElementByXPath("//h3[text()='You can claim now.']");	
+       //============//	   
+  
+	    //if FaucetButton IsVisible & Text claim - do things
+        if (IsVisible(FaucetWaitText))
+        {
+			
+        Wait(5);
+		
+		//solve captcha
+        var result = SolveCaptcha();
+        if (result > 0)
+        {
+            //Unable to solve the captcha - return the failure
+            return result;
+        }
+        //============//
+		
+        Wait(2);
+		
+        //click on FaucetButton
+        var FaucetButton = ElementByXPath("//a[@class='btn btn-lg btn-primary']");	 
+		Log("ClaimFaucet: click on - FaucetButton");
+        Click(FaucetButton);
+
+        }
+		 
+	
+        //if FaucetWaitText Not visible
+        if (!IsVisible(FaucetWaitText))
+        {
+        Log("Roll: we return after 13 min (Calculated time - Roll & ClaimFaucet)");   
+        return 13*60;   //we return after 13 min (Calculated time - Roll & ClaimFaucet)
+        } 
+ 
+    }
+      //===========//  
+	  
+	  
+       //Let Faucet Collector continue its work
+       return base.DoSolveFaucet();
+ }
+	
+//============//
+//DoSolveFaucet
+//============//
+	
+	
+	
+	
+
+	
+	
+	
+//============//
+//AfterSolveFaucet
+//============//
+public override int AfterSolveFaucet()
+ {
+	
+	
+    //============//   
+    //AutoWithdraw
+    //============//   
+    if (GetBoolSetting("AutoWithdraw"))
+    {
+
+    //var general check - Wallet - Value = none
+	var BalanceZero =ElementByXPath("//span[text()='0.00000000']");	 //*[@id='navbar-main']/ul[2]/li[1]/a/b 
+    //==========================//
+	
+	//if The Balance is not 0 = So go to Withdraw
+    if (!IsVisible(BalanceZero))
+    {
+    //go to Withdraw Page	   
+    Log("Withdraw: go to Withdraw Page");
+    GoToUrl("http://coinbizz.com/index?withdraw_all");	   
+    }	
+
+    } 
+    //===========//   	
+	
+	
+	
+   //=====//
+   //Roll
+   //=====//
+
+   if (GetBoolSetting("Roll"))
+   {
+
+   //first go to Roll Page	   
+   Log("Roll: go to Roll Page");
+   GoToUrl("http://coinbizz.com/roll");
+            Wait(2,3);
+   //General var
+   var RollButton = ElementByXPath("//input[@value='Roll']");  
+    
+   //if RollButton visible
+   if (IsVisible(RollButton))
+   {
+   Wait();
+   
+   //click		
+   Log("Roll: click on - RollButton"); 
+   Click(RollButton);
+   }
+   //=========//
+
+   }
+  //============//   
+  
+ 
+   //Let Faucet Collector continue
+   return base.AfterSolveFaucet();
+ }
+	
+//============//
+//AfterSolveFaucet
+//============//
+	
+	
+	
+	
+
+    /// <summary>
+    /// This method gets called in the end after the BeforeSolveFaucet/DoSolveFaucet and AfterSolveFaucet methods were done.
+    /// The base.CheckFaucetResult will try to find a visible element on the page using the XPath from SuccessXPath and FailXPath (see the Start method)
+    /// These properties should contain XPath expressions to find certain elements on the page.
+    /// For example if it finds one of the elements from the SuccessXPath, and it is visible, then it will flag the claim attempt as a success.
+    /// Or if it finds one of the elements from the FailXPath, and it is visible, then it will flag the claim attempt as a failure.
+    /// </summary>
+    public override int CheckFaucetResult()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.CheckFaucetResult();
+    }
+ 
+ 
+} //END public class CoinbizzcomScript

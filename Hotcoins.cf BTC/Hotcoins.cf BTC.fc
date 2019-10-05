@@ -1,0 +1,215 @@
+﻿using System;
+using System.Threading.Tasks;
+using FaucetCollector.Script;
+
+
+public class hotcoincfBTCScript : FaucetScript
+{
+    
+    public override FaucetSettings Settings
+    {
+        get
+        {
+            return new FaucetSettings("http://hotcoins.cf/faucet")
+            {
+                 new FaucetSetting {
+                    Name = "BTC",
+                    Display = "FaucetHub linked BTC wallet address",
+                    Type = EditorType.Wallet,
+                    Required = true,
+                    Default = null
+                }
+            };
+        }
+    }
+
+    
+    public override void Start()
+    {
+        
+        Title = "Home|Faucet";
+
+        SuccessXPath = "//div[contains(@class,'alert-success')]";
+        FailXPath = "//div[contains(@class,'alert-error')]";
+
+        //Let Faucet Collector start up everything
+        base.Start();
+    }
+    public override int DoInit()
+    {
+        //Enable sending chats without popup
+        ExecuteScript("localStorage.setItem('chat_cost_confirm', true);");
+        //Disable the sounds
+        ExecuteScript("localStorage.setItem('sound_disabled', true);");
+        //Dismiss the cookie banner
+        ExecuteScript("if($('.cc_btn_accept_all').length > 0) { $('.cc_btn_accept_all')[0].click(); }");
+        //Let Faucet Collector continue;
+        return base.DoInit();
+    }
+    
+    public override bool IsLoggedIn()
+    {
+       
+        return IsVisible(ElementByXPath("//a[@href='/functions/logout.php']"));
+    }
+
+    
+    public override int BeforeLogin()
+    {
+
+
+        return base.BeforeLogin();
+    }
+
+   
+    public override int DoLogin()
+    {
+        
+        var signInaddress = ElementByName("address");
+        if (signInaddress == null)
+        {
+            
+            return Fail("Signin address not found.");
+        }
+
+        
+        SetText(signInaddress, GetSetting("BTC"));
+
+        
+        var loginButton = ElementByXPath("//input[@type='submit' and contains(@id, 'playbtn')]");
+        if (loginButton == null)
+        {
+           
+            return Fail("Login button not found.");
+        }
+
+        
+        Click(loginButton);
+
+        
+        return base.DoLogin();
+    }
+
+
+   
+    public override int AfterLogin()
+    {
+                
+        return base.AfterLogin();
+    }
+
+   
+    public override int GetFaucetWaitTime()
+    {
+       
+        
+      var waitElement = ElementByXPath("//*[@id='countdown']");
+        if (!IsVisible(waitElement))
+        {
+            //no time remaining element, so we are good to go.
+            return 0;
+        }
+
+        var waitText = waitElement.Text.ToLower().Trim().Replace("you can claim play in ", "").Replace(" seconds.", "").Trim();
+        int seconds;
+        if (!int.TryParse(waitText, out seconds))
+        {
+            return Fail("Unable to get the remaining time from text '" + waitText + "'.");
+        }
+
+        return seconds;
+    }
+   
+    public override int BeforeSolveCaptcha()
+    {
+
+        return base.BeforeSolveCaptcha();
+    }
+
+   
+     public override int DoSolveCaptcha()
+    {
+        return base.DoSolveCaptcha();
+    }        
+
+
+
+    
+    public override int AfterSolveCaptcha()
+    {
+        return base.AfterSolveCaptcha();
+    }
+
+   
+    public override int BeforeSolveFaucet()
+    {
+
+        ExecuteScript("if($('.cc_btn_accept_all').length > 0) { $('.cc_btn_accept_all')[0].click(); }");
+        var claimButton = ElementByXPath("//BUTTON[@class='btn'][text()='PLAY']");
+        if (!IsVisible(claimButton))
+        {
+            
+            return Fail("Claim button not found or not visible.");
+        }
+        var result = SolveCaptcha();
+        if (result > 0)
+        {
+            
+            return result;
+        }
+
+        Click(claimButton);
+
+        
+        return base.BeforeSolveFaucet();
+    }
+
+  
+    public override int DoSolveFaucet()
+    {
+         var submitButton = ElementByXPath("//INPUT[@id='claimbtn']");
+        if (!IsVisible(submitButton))
+        {
+            
+            return Fail("Submit button not found or not visible.");
+        }
+
+        var extraCaptcha = ElementByXPath("//IMG[@src='/securimage/securimage_show.php']");
+        var extraInput = ElementByName("captcha_code");
+        Task<int> extraTask = null;
+
+         if (!IsVisible(extraCaptcha) || !IsVisible(extraInput))
+           {
+              return Fail("Captcha not found");
+           }
+
+       var result =  DoSolveImageCaptcha(extraCaptcha, extraInput);
+        Click(submitButton);       
+ 
+        return base.DoSolveFaucet();
+    }
+
+
+    
+    public override int AfterSolveFaucet()
+    {
+   
+        
+        return base.AfterSolveFaucet();
+    }
+
+    
+    public override int CheckFaucetResult()
+    {
+       
+        var result = base.CheckFaucetResult();
+
+        if (IsSuccess)
+        {
+            
+            Reload = true;
+        }
+
+        return result;
+    }
+}
