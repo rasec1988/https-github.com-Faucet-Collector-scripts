@@ -1,0 +1,528 @@
+﻿
+
+//==================//
+//script Written by: ••AviramDayan•• 10/03/2019 06:00AM 
+//Last Update: 22/04/2019 00:41PM - Version 8
+//==================//
+
+
+using System;
+using FaucetCollector.Script;
+using OpenQA.Selenium;
+
+
+public class BitcoinFaucetFun : FaucetScript
+{
+    /// <summary>
+    /// List of Settings that will be shown in the bot when selecting this Faucet in the bot.
+    /// You can get the value the user entered with the methods: GetSetting("[Name of the FaucetSetting]"), GetBoolSetting and GetDateTimeSetting
+    /// You can also create a new setting value using SetSetting("[Name you want to use]", "value")
+    /// </summary>
+    public override FaucetSettings Settings
+    {
+        get
+        {
+            return new FaucetSettings("https://bitcoinfaucet.fun/")
+            {
+                new FaucetSetting(){Name="Email",Display="UserName/Email",Type=EditorType.TextBox,Required=true},
+                new FaucetSetting(){Name="Pass",Display="Password",Type=EditorType.Password,Required=true},
+                //new FaucetSetting(){Name="DeleteCookies",Display="Delete Cookies - here is Required to solves problems in Cookies (Recommended)",Type=EditorType.CheckBox,Default=true},
+					
+                new FaucetSetting(){Name="FaucetClaim",Display="FaucetClaim - on/off",Type=EditorType.CheckBox,Default=true},          
+                new FaucetSetting(){Name="AutoWithdraw",Display="AutoWithdraw - on/off",Type=EditorType.CheckBox,Default=false},
+                new FaucetSetting(){Name="AmountToWithdraw",Display="AmountToWithdraw - the default AND limit is 1000",Default="1000",Type=EditorType.TextBox,Required=false},
+
+                new FaucetSetting(){Name="Slot_Game",Display="Slot_Game - on/off",Type=EditorType.CheckBox,Default=false},          
+                new FaucetSetting(){Name="SlotAmount",Display="SlotAmount - the minimum from 3 Satoshi",Default="3",Type=EditorType.Numeric,Required=false},
+				new FaucetSetting(){Name="SpinAmountMenu",Display="SpinAmountMenu - 1 to 5",Type=EditorType.ComboBox,Default="2",Items=new System.Collections.Generic.List<string>{"1","2","3","4","5"}},                
+				
+
+                //insert user settings here
+                //new FaucetSetting { 
+                //    Name = "Name of your setting", 
+                //    Display = "Display shown in Faucet Collector", 
+                //    Type = EditorType.TextBox | EditorType.Password | EditorType.CheckBox | EditorType.Wallet | EditorType.Numeric | EditorType.ComboBox | EditorType.CheckComboBox, 
+                //    Required = true | false, 
+                //    Default = "Optionally a default value" | true | false | null.
+                //    Items = new List<string> { "item1", "item2" } (only valid for ComboBox or CheckComboBox)
+                //} 
+            };
+        }
+    }
+
+	
+
+	
+//============================================================//
+//the number of "successes" in the script - when are finished  
+//============================================================//
+    public override void Start()
+    {
+		ad=false;
+		
+        //Title that shows in the browser. Is used to identify and close popup windows
+        Title = "MultiCoin Faucet";
+
+        //After we did try to claim on the faucet we search for these elements to determine if it was a success or a fail
+        SuccessXPath = "//div[@class='alert alert-success']"; 
+        FailXPath = "//div[@class='alert alert-danger']";
+
+        //Let Faucet Collector start up everything
+        base.Start();
+    }
+//============================================================//
+//the number of "successes" in the script - when are finished  
+//============================================================//
+	
+	
+	
+	bool ad;
+	
+	
+    public override int DoInit()
+    {
+		
+		//if it's Checked
+   
+	   
+        //Let Faucet Collector continue.
+        return base.DoInit();
+    }
+
+	
+	
+	
+//==================//
+//save Login Cookies 
+//==================//
+    public override bool IsLoggedIn()
+    {
+		
+
+		 return ElementByXPath("//a[contains(text(),'Logout')]") != null;
+		//return base.IsLoggedIn();
+    }
+//==================//
+//save Login Cookies 
+//==================//
+	
+	
+	
+	
+	
+//=============//
+//BeforeLogin 
+//=============//
+    public override int BeforeLogin()
+    {
+		
+
+	 //var checks login or exit
+     
+		
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeLogin();
+    }
+//=============//
+//BeforeLogin 
+//=============//
+	
+	
+	
+//=============//
+//start DoLogin
+//=============//
+    public override int DoLogin()
+    {
+		
+	 //var checks login or exit
+     
+
+	 //if i NOT Login - go to Login Page
+
+		
+        //else go to normal login
+		GoToUrl("https://bitcoinfaucet.fun/login");
+	
+        var box_user = ElementByXPath("//input[@name='email']");
+        if (!IsVisible(box_user))
+        {
+            return Fail("Fail Setting user");
+        }
+
+        SetText(box_user, GetSetting("Email"));
+
+		
+        var box_pass = ElementByXPath("//input[@name='pass']");
+        if (!IsVisible(box_pass))
+        {
+            return Fail("Fail box pass not found");
+        }
+        SetText(box_pass, GetPassword("Pass"));
+		
+
+
+       //SolveCaptcha if apper
+        var result = DoSolveCaptcha();
+        if (result > 0)
+        {
+            return Fail("Fail solving captcha");
+        }
+     
+        var ButtonLog = ElementByXPath("//input[@value='Login']");
+        if (!IsVisible(ButtonLog)) { return Fail("Button login not found"); }
+        Click(ButtonLog);
+
+        var Error = ElementByXPath("//div[@class='login-page-header' and contains(text(),'Error')]");
+	 
+		if ( IsVisible (Error))
+		{
+            Log(Error.Text);
+		}
+
+
+        //This faucet has nothing to do here.    
+        return base.DoLogin();
+    }
+//=============//
+//start DoLogin
+//=============//
+	
+
+	
+	
+	
+	
+//==========//
+//AfterLogin
+//=========//
+ public override int AfterLogin()
+ {
+
+
+		 
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterLogin();
+ }
+//==========//
+//AfterLogin
+//=========//
+	
+	
+	
+
+	
+//=============//
+//GetFaucetWaitTime
+//=============//
+ public override int GetFaucetWaitTime()
+ {
+      if(Driver.Url!= "https://bitcoinfaucet.fun/faucet/bitcoin/")
+        {
+            GoToUrl("https://bitcoinfaucet.fun/faucet/bitcoin");
+        }
+        var ReadyToClaim = ElementByXPath("//span[@class='kkcount-down-1 one-day' and contains(text(),'Ready to claim')]");
+        if (IsVisible(ReadyToClaim))
+        {
+            return 0;
+        }
+        var Timer = ElementByXPath("//span[@class='kkcount-down-1 one-day']");
+        if (IsVisible(Timer))
+        {
+            var Hour = ElementByXPath("//span[@class='kkc-godz']");
+            var Minute = ElementByXPath("//span[@class='kkc-min']");
+            var Second = ElementByXPath("//span[@class='kkc-sec']");
+            if(IsVisible(Hour) && IsVisible(Minute) && IsVisible(Second))
+            {
+                int Hour_ = Convert.ToInt32(Hour.Text)*3600;
+                int Minute_ = Convert.ToInt32(Minute.Text)*60;
+                int Second_ = Convert.ToInt32(Second.Text);
+
+                Driver.Close();  // Close specific chrome window
+                Driver.Quit();  // also Close the console app, that was used to kick off the chrome window
+                Driver.Dispose();  // Close the chromedriver.exe
+                return Hour_ + Minute_ + Second_;
+            }
+        }
+
+        var ButtonClaim = ElementByXPath("//input[@value='Claim']");
+        if (!IsVisible(ButtonClaim))
+        {
+            return 600;
+        }
+
+        return base.GetFaucetWaitTime();
+ }
+//=============//
+//GetFaucetWaitTime
+//=============//
+	
+	
+	
+	
+
+    public override int BeforeSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeSolveCaptcha();
+    }
+
+
+    public override int DoSolveCaptcha()
+    {
+
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoSolveCaptcha();
+    }
+
+
+    public override int AfterSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterSolveCaptcha();
+    }
+	
+	
+
+    public override int BeforeSolveFaucet()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeSolveCaptcha();
+    }
+	
+	
+	
+
+
+//=============//
+//DoSolveFaucet
+//=============//
+    public override int DoSolveFaucet()
+    {
+
+        //===========//
+        //AutoWithdraw
+        //===========//
+		
+        if (GetBoolSetting("AutoWithdraw"))
+        {
+      
+			
+         GoToUrl("https://bitcoinfaucet.fun/settings/withdraw");
+					
+
+         var BalanceVar = ElementByXPath("//a[contains(@href,'withdraw/bitcoin')]//span");
+         int balance;
+         int.TryParse(BalanceVar.Text, out balance);
+
+         int mynumber;		
+         int.TryParse(GetSetting("AmountToWithdraw"), out mynumber);
+ 		
+         if (balance > mynumber)   //+10
+         {
+         //do all stuff AutoWithdraw
+		 Log("AutoWithdraw - success"); 
+		 GoToUrl("https://bitcoinfaucet.fun/settings/withdraw/bitcoin");
+         }
+
+         if (balance < mynumber)   //-10
+         {
+		 Log("AutoWithdraw - none - not reached the limit yet"); 
+         }
+
+		}// end AutoWithdraw
+		
+        //===========//
+
+		
+		
+		
+		//==========//
+		//Slot_Game
+		//==========//
+		
+        if (GetBoolSetting("Slot_Game"))
+        {
+		 GoToUrl("https://bitcoinfaucet.fun/game/slots/bitcoin");
+		 Log("Slot_Game - go to page"); 
+         Wait();
+         Wait(2);
+		 
+		 var BalanceVar = ElementByXPath("//strong[(@id='balance')]");
+         int balance;
+         int.TryParse(BalanceVar.Text, out balance);
+
+         if (balance < 3)   //-10
+         {
+		 Log("Slot_Game - you don't have a balance yet - you need above 3 Satoshi"); 
+         }	
+		 
+		 
+         if (balance > 3)   //+10
+         {
+		 Log("Slot_Game - you have balance"); 
+		 var MinButton = ElementByXPath("//button[(@class='btn btn-info')]");
+         Click(MinButton);
+		 
+         Wait(2);
+	
+         var SlotAmountVAR = ElementByXPath("//input[@id='betamount']");
+         SetText(SlotAmountVAR, GetSetting("SlotAmount"));
+		 
+         Wait(2);
+	
+		
+           //SpinAmountMenu
+           var SpinAmountMenu_Var = GetSetting("SpinAmountMenu");    
+
+   
+           if(SpinAmountMenu_Var=="1")
+           {
+                //Security if there are errors
+                var SpinButtonVAR = ElementByXPath("//button[(@id='slots_spin_button')]");
+                
+				Click(SpinButtonVAR);		 
+                Wait(4);	
+           }
+
+           if(SpinAmountMenu_Var=="2")
+           {
+                //Security if there are errors
+                var SpinButtonVAR = ElementByXPath("//button[(@id='slots_spin_button')]");
+                
+				Click(SpinButtonVAR);		 
+                Wait(4);
+                
+				Click(SpinButtonVAR);		 
+                Wait(4);
+           }
+		   
+           if(SpinAmountMenu_Var=="3")
+           {
+                //Security if there are errors
+                var SpinButtonVAR = ElementByXPath("//button[(@id='slots_spin_button')]");
+                
+				Click(SpinButtonVAR);		 
+                Wait(4);
+                
+				Click(SpinButtonVAR);		 
+                Wait(4);
+                
+				Click(SpinButtonVAR);		 
+                Wait(4);	
+           }
+		   
+           if(SpinAmountMenu_Var=="4")
+           {
+                //Security if there are errors
+                var SpinButtonVAR = ElementByXPath("//button[(@id='slots_spin_button')]");
+                
+				Click(SpinButtonVAR);		 
+                Wait(4);
+                
+				Click(SpinButtonVAR);		 
+                Wait(4);
+                
+				Click(SpinButtonVAR);		 
+                Wait(4);	
+                
+				Click(SpinButtonVAR);		 
+                Wait(4);
+           }
+
+           if(SpinAmountMenu_Var=="5")
+           {
+                //Security if there are errors
+                var SpinButtonVAR = ElementByXPath("//button[(@id='slots_spin_button')]");
+                
+				Click(SpinButtonVAR);		 
+                Wait(4);
+                
+				Click(SpinButtonVAR);		 
+                Wait(4);
+                
+				Click(SpinButtonVAR);		 
+                Wait(4);	
+                
+				Click(SpinButtonVAR);		 
+                Wait(4);
+                
+				Click(SpinButtonVAR);		 
+                Wait(4);
+
+           }
+		   
+		 
+         }// end balance ABOVE
+		
+			
+		}// end Slot_Game
+		
+        //===========//
+
+
+
+
+		//=========================//
+		//FaucetClaim - Normal Way//
+		//=========================//
+		
+        if (GetBoolSetting("FaucetClaim"))
+        {
+ 					
+           GoToUrl("https://bitcoinfaucet.fun/faucet/bitcoin");
+           Wait(1);
+
+            var ButtonClaim = ElementByXPath("//input[@value='Claim']");
+            if (!IsVisible(ButtonClaim))
+            {
+                return Fail("Button claim is not visible");
+            }
+			
+            var result = DoSolveCaptcha();
+            if (result > 0)
+            {
+                return Fail("Fail solving captcha");
+
+            }
+
+            Click(ButtonClaim);
+            Wait(1);
+
+
+		}// end FaucetClaim
+		//=========================//
+		
+		
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoSolveFaucet();
+    }
+	
+	
+	
+	
+	
+    public override int AfterSolveFaucet()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterSolveFaucet();
+    }
+	
+		
+
+    /// <summary>
+    /// This method gets called in the end after the BeforeSolveFaucet/DoSolveFaucet and AfterSolveFaucet methods were done.
+    /// The base.CheckFaucetResult will try to find a visible element on the page using the XPath from SuccessXPath and FailXPath (see the Start method)
+    /// These properties should contain XPath expressions to find certain elements on the page.
+    /// For example if it finds one of the elements from the SuccessXPath, and it is visible, then it will flag the claim attempt as a success.
+    /// Or if it finds one of the elements from the FailXPath, and it is visible, then it will flag the claim attempt as a failure.
+    /// </summary>
+    public override int CheckFaucetResult()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.CheckFaucetResult();
+    }
+	
+	
+	
+} //public class 

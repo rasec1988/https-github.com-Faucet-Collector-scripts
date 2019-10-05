@@ -1,0 +1,290 @@
+﻿using System;
+using System.Threading.Tasks;
+using FaucetCollector.Script;
+
+public class GetFreeCoinBCHcript : FaucetScript
+{
+    /// <summary>
+    /// List of Settings that will be shown in the bot when selecting this Faucet in the bot.
+    /// You can get the value the user entered with the methods: GetSetting("[Name of the FaucetSetting]"), GetBoolSetting and GetDateTimeSetting
+    /// </summary>
+    public override FaucetSettings Settings
+    {
+        get
+        {
+            return new FaucetSettings("http://getfree.co.in/bcash/")
+            {
+                 new FaucetSetting {
+                    Name = "BCH",
+                    Display = "FaucetHub linked BCH wallet address",
+                    Type = EditorType.Wallet,
+                    Required = true,
+                    Default = null
+                }
+            };
+        }
+    }
+
+    /// <summary>
+    /// This method gets called when the faucet is enabled and the GO button is clicked
+    /// </summary>
+    public override void Start()
+    {
+        //Title that shows in the browser. Is used to close popups
+        Title = "get free coin|getfree.co.in";
+
+        //After we did try to claim on the faucet we search for these elements to determine if it was a success or a fail
+       
+		SuccessXPath = "//div[contains(@class,'alert-success')]";
+        FailXPath = "//div[contains(@class,'alert-danger')]";
+
+        //Let Faucet Collector start up everything
+        base.Start();
+    }
+
+    /// <summary>
+    /// This method gets called after the Start method, here you need to return if we are logged in or not.
+    /// If you return false then it will call the BeforeLogin, Login and AfterLogin methods so you can login.
+    /// After those Login methods are called it will call this IsLoggedIn method again to see if the login did succeed.
+    /// If you return true Faucet Collector will store all cookies so it will probably be already logged in on the next attempt.
+    /// </summary>
+    public override bool IsLoggedIn()
+    {
+        //Find the wallet input element
+        var walletInput = ElementByXPath("//input[@type='text' and @class='form-control']");
+        if (walletInput != null)
+        {
+            //There is a wallet input -> If the wallet input field has a value (our BCH address) then we are logged in.
+            var hasValue = !string.IsNullOrEmpty(walletInput.GetAttribute("value"));
+            if (hasValue)
+            {
+                return true;
+            }
+        }
+
+        //If the wait time is visible we are also logged in.
+        var waitElement = ElementByXPath("//p[contains(@class,'alert-info')]");
+        if (IsVisible(waitElement))
+        {
+            return true;
+        }
+
+        //If the success payout element is visible we are also logged in.
+        var successElement = ElementByXPath("//div[contains(@class,'alert-success')]");
+        if (IsVisible(successElement))
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// This method gets called if IsLoggedIn returned false, right before the DoLogin method is called.
+    /// </summary>
+    public override int BeforeLogin()
+    {
+        //let Faucet Collector continue.
+        return base.BeforeLogin();
+    }
+
+    /// <summary>
+    /// This method gets called after BeforeLogin if IsLoggedIn returned false.
+    /// It can be used to actually login the user/enter wallet details in the faucet
+    /// </summary>
+    /// <returns></returns>
+    public override int DoLogin()
+    {
+        //Find the input field that holds the email address
+        var addressInput = ElementByXPath("//input[@type='text' and @class='form-control']");
+        if (addressInput == null)
+        {
+            //We couldn't find it. Register it as a fail so it can reload the page and try again in 10-15 seconds.
+            return Fail("BCH address input not found.");
+        }
+
+        //Enter the BCH address from the settings the user entered in Faucet Collector into the address element
+        SetText(addressInput, GetSetting("BCH"));
+Wait();
+        //Now we search for the "get reward" button
+        var rewardButton = ElementByXPath("//input[contains(@value,'Get reward!')]");
+        if (!IsVisible(rewardButton))
+        {
+            //We couldn't find it. Register it as a fail so it can reload the page and try again in 10-15 seconds.
+            return Fail("Get reward button not found.");
+        }
+
+        //We are ready to click the login button.
+        Click(rewardButton);
+
+        //Let Faucet Collector continue
+        return base.DoLogin();
+    }
+
+    /// <summary>
+    /// This method gets called after the DoLogin method.
+    /// </summary>
+    public override int AfterLogin()
+    {
+        //we don't need to do anything here for this faucet - let Faucet Collector do its stuff.
+        return base.AfterLogin();
+    }
+
+    /// <summary>
+    /// This method gets called after the login methods are successful, so we are logged into the faucet.
+    /// If the faucet is not yet ready to claim you should return a TimeStamp value to return how long it takes before the Faucet claim can be done.
+    /// This is used to pause the script while the faucet its timer runs out.
+    /// </summary>
+    public override int GetFaucetWaitTime()
+    {
+        var waitElement = ElementByXPath("//p[contains(@class,'alert-info')]");
+        if (!IsVisible(waitElement))
+        {
+            //no time remaining element, so we are good to go.
+            return 0;
+        }
+
+        var waitText = waitElement.Text.ToLower().Trim().Replace("you have to wait ", "").Replace(" minutes", "").Trim();
+        int minutes;
+        if (!int.TryParse(waitText, out minutes))
+        {
+            return Fail("Unable to get the remaining time from text '" + waitText + "'.");
+        }
+
+        //return the total wait time in seconds
+        return minutes * 60;
+    }
+
+    /// <summary>
+    /// This method is called right before a captcha will be solved.
+    /// </summary>
+    public override int BeforeSolveCaptcha()
+    {
+        //Let Faucet Collector continue
+        return base.BeforeSolveCaptcha();
+    }
+
+    /// <summary>
+    /// This method gets called after BeforeSolveCaptcha and it does the actual captcha solving
+    /// It will automatically try to see if there is a SolveMedia captcha active or a reCAPTCHA active. 
+    /// If it finds either one it will then use the selected method on the Captcha tab of FaucetCollector to solve the Captcha.
+    /// </summary>
+    public override int DoSolveCaptcha()
+    {
+        //There are two captcha's we need to solve. SolveMedia and a calculation captcha.
+        //First we are going to check if the captcha with the calculation is visible.
+        var extraCaptcha = ElementById("captcha");
+        var extraInput = ElementByName("captcha_code");
+        Task<int> extraTask = null;
+        if (IsVisible(extraCaptcha) && IsVisible(extraInput))
+        {
+            //We are going to solve the calculation captcha in a background task, so both captcha's will be solved simultaneously.
+            extraTask = Task.Run(() =>
+            {
+                return DoSolveImageCaptcha(extraCaptcha, extraInput);
+            });
+        }
+
+        //Let Faucet Collector do the SolveMedia captcha.
+        var result = base.DoSolveCaptcha();
+
+        //Check if we started a task for the calculation captcha
+        if (extraTask != null)
+        {
+            //Wait for the task with the calculation captcha to finish.
+            extraTask.Wait();
+
+            //Add the result from the calculation captcha to the solvemedia result
+            result += extraTask.Result;
+        }
+
+        //Return the result
+        return result;
+    }
+
+    /// <summary>
+    /// This method will get called after DoSolveCaptcha returned it was a success.
+    /// </summary>
+    /// <returns></returns>
+    public override int AfterSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterSolveCaptcha();
+    }
+
+    /// <summary>
+    /// This method is called right before we attempt to claim on the faucet. 
+    /// Next methods that will be called are DoSolveFaucet and AfterSolveFaucet and CheckFaucetResult.
+    /// </summary>
+    public override int BeforeSolveFaucet()
+    {
+        //Let Faucet Collector Continue.
+        return base.BeforeSolveFaucet();
+    }
+
+    /// <summary>
+    /// This method gets called after the BeforeSolveFaucet. You can do the actual claiming of the faucet in here.
+    /// </summary>
+    /// <returns></returns>
+    public override int DoSolveFaucet()
+    {
+        //Find the get reward button to claim on the faucet
+        var submitButton = ElementByXPath("//input[contains(@value,'Get reward!')]");
+        if (!IsVisible(submitButton))
+        {
+            //Unable to find the submit button - return the failure.
+            return Fail("Get reward button not found or not visible.");
+        }
+
+        //We need to solve the captcha on this page before clicking the Login button.
+        //We use the SolveCaptcha method for this. SolveCaptcha will call BeforeSolveCaptcha, DoSolveCaptcha and AfterSolveCaptcha
+        //The DoSolveCaptcha method does the actual solving - it checks if there is a SolveMedia Captcha or a reCAPTCHA present on the page 
+        //and will solves that one using the selected method entered in Faucet Collector on the Captcha tab.
+        //In this script we only override BeforeSolveCaptcha (see above) to be able to solve the custom image captcha if its visible.
+        var result = SolveCaptcha();
+        if (result > 0)
+        {
+            //Unable to solve the captcha - return the failure
+            return result;
+        }
+
+        //The Captcha is solved, click the submit button
+        Click(submitButton);
+
+        //Let Faucet Collector continue its work
+        return base.DoSolveFaucet();
+    }
+
+    /// <summary>
+    /// This method will get called after the DoSolveFaucet is completed and returned it was a success.
+    /// This faucet shows a "Processing" window after you click the claim submit button.
+    /// We will have to wait for it to disappear before we can check for the results.
+    /// </summary>
+    public override int AfterSolveFaucet()
+    {
+        //Let Faucet Collector continue
+        return base.AfterSolveFaucet();
+    }
+
+    /// <summary>
+    /// This method gets called in the end after the BeforeSolveFaucet/DoSolveFaucet and AfterSolveFaucet methods were done.
+    /// The base.CheckFaucetResult will try to find a visible element on the page using the lists from SuccessXPaths and FailXPaths (see the Start method)
+    /// These lists should contain XPath expressions to find certain elements on the page.
+    /// For example if it finds one of the elements from the SuccessXPaths, and it is visible, then it will flag the claim attempt as a success.
+    /// Or if it finds one of the elements from the FailXPaths, and it is visible, then it will flag the claim attempt as a failure.
+    /// </summary>
+    public override int CheckFaucetResult()
+    {
+        //Let Faucet Collector handle the result checking.
+        var result = base.CheckFaucetResult();
+
+        if (IsSuccess)
+        {
+            //We successfully claimed on this faucet. 
+            //We are forcing a reload otherwise the claim timings won't be visible.
+            Reload = true;
+        }
+
+        return result;
+    }
+}

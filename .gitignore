@@ -1,0 +1,13 @@
+*
+!.gitattributes
+!.gitignore
+!readme.md
+!*.fc
+!*.zip
+!*.txt
+!*.filters
+!*.crx
+!*.png
+!*.jpg
+!*.jpeg
+!*/

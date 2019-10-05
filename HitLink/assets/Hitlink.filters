@@ -1,0 +1,1 @@
+{"Rules":[{"Host":"*hitlink.com*","Action":"Allow","ProxyName":null,"BlockStatusCode":null,"Type":"Url"},{"Host":"*","Action":"Block","ProxyName":null,"BlockStatusCode":null,"Type":"Url"}]}

@@ -1,0 +1,1484 @@
+﻿
+//==================//
+//script Written by: ••AviramDayan•• 05/11/2018 17:00PM
+//Last update - version 8 - 18/07/2019 03:10AM
+//==================//
+
+using System;
+using FaucetCollector.Script;
+using OpenQA.Selenium;
+using OpenQA.Selenium.Interactions;
+//css_inc RecaptchaUtilities
+
+public class bitsler : FaucetScript
+{
+    /// <summary>
+    /// List of Settings that will be shown in the bot when selecting this Faucet in the bot.
+    /// You can get the value the user entered with the methods: GetSetting("[Name of the FaucetSetting]"), GetBoolSetting and GetDateTimeSetting
+    /// You can also create a new setting value using SetSetting("[Name you want to use]", "value")
+    /// </summary>
+    public override FaucetSettings Settings
+    {
+        get
+        {
+            return new FaucetSettings("https://www.bitsler.com") //https://www.bitsler.com/?ref=AviramDayan
+            {
+				
+                new FaucetSetting(){Name="UserName",Display="UserName",Type=EditorType.TextBox,Required=true},
+                new FaucetSetting(){Name="Pass",Display="Password",Type=EditorType.Password,Required=true},
+                new FaucetSetting(){Name="WalletAddress",Display="Wallet Address (option)",Type=EditorType.TextBox,Required=false},
+                //new FaucetSetting(){Name="DeleteCookies",Display="Delete Cookies - Sometimes solves problems in login area (Recommended)",Type=EditorType.CheckBox,Default=false},
+
+				//new FaucetSetting(){Name="Menu_SiteLanguage",Display="Menu_SiteLanguage - Select Your Language",Type=EditorType.ComboBox,Default="en",Items=new System.Collections.Generic.List<string>{"en","es","fr","br","ru","tr","jp"}},
+
+                new FaucetSetting(){Name="FreeBtc",Display="FreeBtc - if you have 0 in balance",Type=EditorType.CheckBox,Default=false},	
+				new FaucetSetting() { Name = "Rain_AirDrop_Chat", Display = "Rain_AirDrop_Chat - ON/OFF", Type = EditorType.CheckBox, Default = false},		
+                new FaucetSetting(){Name="MessageChat",Display="Your Message In Chat - only need to be active to get any rain",Default = ".",Type=EditorType.TextBox,Required=false},
+
+				
+	            new FaucetSetting(){Name="AllGames_Menu",Display="AllGames_Menu - Select Favorite Game (Correctly available only 'Dice' AND 'Multicolor' Games)",Type=EditorType.ComboBox,Default="none",Items=new System.Collections.Generic.List<string>{"none","Dice","Roulette","Multicolor","CaraYcruz"}},
+				new FaucetSetting(){Name="MenuCoins",Display="MenuCoins - Select Favorite Coins",Type=EditorType.ComboBox,Default="btc",Items=new System.Collections.Generic.List<string>{"btc","eth","ltc","bch","xrp","doge","dash","zec","etc","neo","strat","kmd","burst","btg","lsk","dgb","qtum","waves","bsv","btslr"}},
+				
+				//Dice Game//
+				new FaucetSetting(){Name="Dice_Amount_Input",Display="Dice - Amount",Default="0.00000003",Type=EditorType.TextBox,Required=true},
+				new FaucetSetting(){Name="Dice_PayOut_Input",Display="Dice - Dice PayOut",Default=3,Type=EditorType.Numeric,Required=true},
+				new FaucetSetting(){Name="Dice_Chance_Input",Display="Dice - Dice Chance",Default=33,Type=EditorType.Numeric,Required=true},
+				new FaucetSetting(){Name="Dice_NumberOfRoll",Display="Dice - Number Of Roll",Default=15,Type=EditorType.Numeric,Required=true},
+				new FaucetSetting(){Name="Dice_Roll_UnderOver_Menu",Display="Dice Roll UnderOver - Select if you want to Roll 'Under' OR 'Over'",Type=EditorType.ComboBox,Default="none",Items=new System.Collections.Generic.List<string>{"none","Under","Over"}},
+				new FaucetSetting(){Name="Dice_Speed_Level_Menu",Display="Dice Speed Level - Select Speed Level (4 Level in total) ",Type=EditorType.ComboBox,Default="Level_2",Items=new System.Collections.Generic.List<string>{"none","Level_1","Level_2","Level_3","Level_4"}},
+
+				new FaucetSetting(){Name="Dice_Winning_Menu",Display="Dice | Winning - Select if you want to 'Return to base' OR 'Increase by' ",Type=EditorType.ComboBox,Default="Return to base",Items=new System.Collections.Generic.List<string>{"Return to base","Increase by"}},
+				new FaucetSetting(){Name="Dice_Winning_Increase_Input",Display="Dice | Winning - Increase by",Default=3,Type=EditorType.Numeric,Required=true},
+				new FaucetSetting(){Name="Dice_Losing_Menu",Display="Dice | Losing - Select if you want to 'Return to base' OR 'Increase by' ",Type=EditorType.ComboBox,Default="Return to base",Items=new System.Collections.Generic.List<string>{"Return to base","Increase by"}},
+				new FaucetSetting(){Name="Dice_Losing_Increase_Input",Display="Dice | Losing - Increase by",Default=3,Type=EditorType.Numeric,Required=true},
+	
+				//Multicolor Game//
+                new FaucetSetting(){Name="MulticolorGame_Counter",Display="Counter - Spins | How many times",Default=15,Type=EditorType.Numeric,Required=true},
+
+                new FaucetSetting(){Name="InfoAllCoins",Display="InfoAllCoins - Minimum amount to gamble -> BTC: from 0.00000001, ETH: from 0.00000010, LTC: from 0.00000050, BCH: from 0.00000005, XRP: from 0.00015000, DOGE: from 0.05000000, DASH: from 0.00000020, ZEC: from 0.00000025, ETC: from 0.00000500, NEO: from 0.00000200, STRAT: from 0.00003000, KMD: from 0.00004000, BURST: from 0.10000000, BTG: from 0.00000200, ISK: from 0.00001500, DGB: from 0.10000000, QTUM: from 0.00001000, WAVES: from 0.00003000, BSV: from 0.00000020, BTSLR: from 1.00000000",Default="InfoAllCoins - Minimum amount to gamble",Type=EditorType.TextBox,Required=false},
+				
+                new FaucetSetting(){Name="StarAmount",Display="Star | Amount",Default="0.00000001",Type=EditorType.TextBox,Required=true},
+				new FaucetSetting(){Name="Star",Display="Star - on off",Type=EditorType.CheckBox,Default=false},	
+				
+                new FaucetSetting(){Name="RedAmount",Display="Red | Amount",Default="0.00000001",Type=EditorType.TextBox,Required=true},
+				new FaucetSetting(){Name="Red",Display="Red - on off",Type=EditorType.CheckBox,Default=false},	
+				
+                new FaucetSetting(){Name="BlueAmount",Display="Blue | Amount",Default="0.00000001",Type=EditorType.TextBox,Required=true},
+				new FaucetSetting(){Name="Blue",Display="Blue - on off",Type=EditorType.CheckBox,Default=false},	
+				
+                new FaucetSetting(){Name="YellowAmount",Display="Yellow | Amount",Default="0.00000001",Type=EditorType.TextBox,Required=true},
+				new FaucetSetting(){Name="Yellow",Display="Yellow - on off",Type=EditorType.CheckBox,Default=false},	
+				
+                new FaucetSetting(){Name="GreenAmount",Display="Green | Amount",Default="0.00000001",Type=EditorType.TextBox,Required=true},
+				new FaucetSetting(){Name="Green",Display="Green - on off",Type=EditorType.CheckBox,Default=false},	
+
+                new FaucetSetting() { Name = "AffWithdraw", Display = "AffWithdraw", Type = EditorType.CheckBox, Default = false},	
+
+
+                //insert user settings here
+                //new FaucetSetting { 
+                //    Name = "Name of your setting", 
+                //    Display = "Display shown in Faucet Collector", 
+                //    Type = EditorType.TextBox | EditorType.Password | EditorType.CheckBox | EditorType.Wallet | EditorType.Numeric | EditorType.ComboBox | EditorType.CheckComboBox, 
+                //    Required = true | false, 
+                //    Default = "Optionally a default value" | true | false | null.
+                //    Items = new List<string> { "item1", "item2" } (only valid for ComboBox or CheckComboBox)
+                //} 
+            };
+        }
+    }
+
+	
+
+	
+	
+//============================================================//
+//the number of "successes" in the script - when are finished  
+//============================================================//
+    public override void Start()
+    {
+	   
+	    ad = false;	  
+		
+        //Title that shows in the browser. Is used to identify and close popup windows
+        Title = "bitsler.com";
+
+        //After we did try to claim on the faucet we search for these elements to determine if it was a success or a fail
+        SuccessXPath = "//*";
+        FailXPath = "//*";
+
+        //General user time
+        //TimerIsCountingUp = true;
+        //Let Faucet Collector start up everything
+        base.Start();
+    }
+//============================================================//
+//the number of "successes" in the script - when are finished  
+//============================================================//
+	
+	
+bool ad;
+	
+	
+    public override int DoInit()
+    {	
+	
+		//if it's Checked
+       if (GetBoolSetting("DeleteCookies"))
+       {
+		//Delete Cookies
+		 Log("DeleteCookies - Checked");
+         Driver.Manage().Cookies.DeleteAllCookies();
+       } 
+ 
+        //Let Faucet Collector continue.
+        return base.DoInit();
+    }
+
+	
+		
+	
+//==================//
+//save Login Cookies 
+//==================//
+    public override bool IsLoggedIn()
+    {
+
+        return ElementByXPath("//a[@class='d-none d-md-block btn btn-primary btn-withdraw']") != null;  
+
+        //return base.IsLoggedIn();
+    }
+
+//==================//
+//save Login Cookies 
+//==================//
+	
+	
+	
+	
+	
+    /// <summary>
+    /// This method gets called if IsLoggedIn returned false, right before the DoLogin method is called.
+    /// </summary>
+    public override int BeforeLogin()
+    {
+
+
+	 //var checks login or exit
+     var ExitButton = ElementByXPath("//a[@class='d-none d-md-block btn btn-primary btn-withdraw']");
+
+	 //if i already Login - go to "bonus"	 
+	 if (IsVisible(ExitButton))
+	 {
+        //if we already login go to here
+        GoToUrl("https://www.bitsler.com/dashboard");
+	 }	
+
+	 
+	 //============//
+	 //Site Language
+	 //============//
+	 
+     //var EnglishFlag = ElementByXPath("//a/img[@src='/static/img/en.7762ef48.png']");
+	 
+     var SiteLanguageTAB = ElementByXPath("//*[@id='__BVID__40']"); 
+     Click(SiteLanguageTAB);
+	 Log("Click - SiteLanguageTAB");
+	 
+     var SiteLanguageTABOpen = ElementByXPath("//li[@class='nav-item b-nav-dropdown dropdown show']");	 
+	 if (IsVisible(SiteLanguageTABOpen))
+	 {
+
+       var LanguageEnglish = ElementByXPath("//a[contains(text(),'English')]");
+	   if (IsVisible(LanguageEnglish))
+	   {  
+       Click(LanguageEnglish);
+	   Log("Click - LanguageEnglish"); 
+	   }
+	   
+	 }	
+ 
+	 //============//
+	 
+	
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeLogin();
+    }
+	
+	
+	
+	
+	
+
+	
+//=============//
+//start DoLogin
+//=============//
+    public override int DoLogin()
+    {
+		
+
+     var ExitButton = ElementByXPath("//a[@class='d-none d-md-block btn btn-primary btn-withdraw']");
+
+
+	 //if i NOT Login - go to Login Page
+	 if (!IsVisible(ExitButton))
+	 {
+
+        //else go to normal login
+		GoToUrl("https://www.bitsler.com/login");
+        Wait();	
+        Wait(2);	
+		
+        var box_user = ElementByXPath("//input[@id='lo-username']");
+            if (!IsVisible(box_user))
+            {
+                return Fail("UserBox not found");
+            }
+        SetText(box_user, GetSetting("UserName"));
+		
+        Wait(2);
+		
+        var box_pass = ElementByXPath("//input[@id='lo-password']");
+            if (!IsVisible(box_pass))
+            {
+                return Fail("Box pass not found");
+            }
+        SetText(box_pass, GetPassword("Pass"));
+
+        Wait(3);
+		
+        //Solve ReCaptcha
+        var result = DoSolveCaptcha();
+        if (result > 0)
+        {
+        return result;
+        }
+            var Bypasser = new RecaptchaUtility(this);
+            Bypasser.DoSolve();
+        Wait(4);
+		
+        var ButtonLog = ElementByXPath("//button[contains(text(),'Login')] | //button[contains(text(),'Iniciar Sesión')] | //button[contains(text(),'Entrar')] | //button[contains(text(),'Логин')] | //button[contains(text(),'Giriş')] | //button[contains(text(),'ログイン')]");
+            if (!IsVisible(ButtonLog))
+            {
+                return Fail("Button login not visible");
+            }
+        Click(ButtonLog);
+				
+        Wait();
+		
+	 }
+	 
+		
+        //This faucet has nothing to do here.    
+        return base.DoLogin();
+    }
+//=============//
+//start DoLogin
+//=============//
+	
+
+	
+	
+	
+	
+//==========//
+//AfterLogin
+//=========//
+ public override int AfterLogin()
+ {
+	 
+        //Driver.Navigate().Refresh();
+
+		
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterLogin();
+ }
+//==========//
+//AfterLogin
+//=========//
+	
+
+	
+
+//=============//
+//GetFaucetWaitTime
+//=============//
+public override int GetFaucetWaitTime()
+ {
+        if (ad)
+        {
+			Log("GetFaucetWaitTime close");
+	        //Driver.Close();  // Close specific chrome window
+            //Driver.Quit();  // also Close the console app, that was used to kick off the chrome window
+            //Driver.Dispose();  // Close the chromedriver.exe
+			
+            return GetWaitSetting();
+        }
+        //let Faucet Collector continue.
+        return base.GetFaucetWaitTime();
+ }
+
+//=============//
+//GetFaucetWaitTime
+//=============//
+	
+
+	
+
+	
+    public override int BeforeSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeSolveCaptcha();
+    }
+
+
+    public override int DoSolveCaptcha()
+    {
+
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoSolveCaptcha();
+    }
+
+
+    public override int AfterSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterSolveCaptcha();
+    }
+	
+
+    public override int BeforeSolveFaucet()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeSolveCaptcha();
+    }
+	
+
+
+
+//=============//
+//DoSolveFaucet
+//=============//
+ public override int DoSolveFaucet()
+ {
+	 
+	ad = false;
+    
+
+		
+     //=============//
+     //AffWithdraw
+     //=============// 
+     if (GetBoolSetting("AffWithdraw"))
+     {
+	 
+		Log("AffWithdraw");
+
+		GoToUrl("https://www.bitsler.com/en/affiliate");
+        Wait();	
+        Wait(2);	
+	
+        var btc_w_VAR = ElementByXPath("//tr[1]/td[3]/button[@class='btn btn-primary btn-sm']");   	
+        if (IsVisible(btc_w_VAR))
+        {		
+        Click(btc_w_VAR);
+        Wait(2);
+        WithdrawEndButton_Faunction(); //call
+		Log("WithdrawEndButton - btc");	
+        }
+
+        var eth_w_VAR = ElementByXPath("//tr[2]/td[3]/button[@class='btn btn-primary btn-sm']");   	
+        if (IsVisible(eth_w_VAR))
+        {		
+        Click(eth_w_VAR);
+        Wait(2);
+        WithdrawEndButton_Faunction(); //call
+		Log("WithdrawEndButton - eth");	
+        }
+		
+        var ltc_w_VAR = ElementByXPath("//tr[3]/td[3]/button[@class='btn btn-primary btn-sm']");   	
+        if (IsVisible(ltc_w_VAR))
+        {		
+        Click(ltc_w_VAR);
+        Wait(2);
+        WithdrawEndButton_Faunction(); //call		
+		Log("WithdrawEndButton - ltc");	
+        }
+		
+        var bch_w_VAR = ElementByXPath("//tr[4]/td[3]/button[@class='btn btn-primary btn-sm']");   	
+        if (IsVisible(bch_w_VAR))
+        {		
+        Click(bch_w_VAR);
+        Wait(2);
+        WithdrawEndButton_Faunction(); //call
+		Log("WithdrawEndButton - bch");	
+        }
+
+        var xrp_w_VAR = ElementByXPath("//tr[5]/td[3]/button[@class='btn btn-primary btn-sm']");   	
+        if (IsVisible(xrp_w_VAR))
+        {		
+        Click(xrp_w_VAR);
+        Wait(2);
+        WithdrawEndButton_Faunction(); //call
+		Log("WithdrawEndButton - xrp");	
+        }
+
+        var doge_w_VAR = ElementByXPath("//tr[6]/td[3]/button[@class='btn btn-primary btn-sm']");   	
+        if (IsVisible(doge_w_VAR))
+        {		
+        Click(doge_w_VAR);
+        Wait(2);
+        WithdrawEndButton_Faunction(); //call
+		Log("WithdrawEndButton - doge");	
+        }
+
+        var dash_w_VAR = ElementByXPath("//tr[7]/td[3]/button[@class='btn btn-primary btn-sm']");   	
+        if (IsVisible(dash_w_VAR))
+        {		
+        Click(dash_w_VAR);
+        Wait(2);
+        WithdrawEndButton_Faunction(); //call
+		Log("WithdrawEndButton - dash");	
+        }		
+
+        var zec_w_VAR = ElementByXPath("//tr[8]/td[3]/button[@class='btn btn-primary btn-sm']");   	
+        if (IsVisible(zec_w_VAR))
+        {		
+        Click(zec_w_VAR);
+        Wait(2);
+        WithdrawEndButton_Faunction(); //call
+		Log("WithdrawEndButton - zec");	
+        }
+
+        var etc_w_VAR = ElementByXPath("//tr[9]/td[3]/button[@class='btn btn-primary btn-sm']");   	
+        if (IsVisible(etc_w_VAR))
+        {		
+        Click(etc_w_VAR);
+        Wait(2);
+        WithdrawEndButton_Faunction(); //call
+		Log("WithdrawEndButton - etc");	
+        }
+
+        var xlm_w_VAR = ElementByXPath("//tr[10]/td[3]/button[@class='btn btn-primary btn-sm']");   	
+        if (IsVisible(xlm_w_VAR))
+        {		
+        Click(xlm_w_VAR);
+        Wait(2);
+        WithdrawEndButton_Faunction(); //call
+		Log("WithdrawEndButton - xlm");	
+        }
+
+        var neo_w_VAR = ElementByXPath("//tr[11]/td[3]/button[@class='btn btn-primary btn-sm']");   	
+        if (IsVisible(neo_w_VAR))
+        {		
+        Click(neo_w_VAR);
+        Wait(2);
+        WithdrawEndButton_Faunction(); //call
+		Log("WithdrawEndButton - neo");	
+        }
+
+        var strat_w_VAR = ElementByXPath("//tr[12]/td[3]/button[@class='btn btn-primary btn-sm']");   	
+        if (IsVisible(strat_w_VAR))
+        {		
+        Click(strat_w_VAR);
+        Wait(2);
+        WithdrawEndButton_Faunction(); //call
+		Log("WithdrawEndButton - strat");	
+        }
+
+        var kmd_w_VAR = ElementByXPath("//tr[13]/td[3]/button[@class='btn btn-primary btn-sm']");   	
+        if (IsVisible(kmd_w_VAR))
+        {		
+        Click(kmd_w_VAR);
+        Wait(2);
+        WithdrawEndButton_Faunction(); //call
+		Log("WithdrawEndButton - kmd");	
+        }
+
+        var burst_w_VAR = ElementByXPath("//tr[14]/td[3]/button[@class='btn btn-primary btn-sm']");   	
+        if (IsVisible(burst_w_VAR))
+        {		
+        Click(burst_w_VAR);
+        Wait(2);
+        WithdrawEndButton_Faunction(); //call
+		Log("WithdrawEndButton - burst");	
+        }
+
+        var btg_w_VAR = ElementByXPath("//tr[15]/td[3]/button[@class='btn btn-primary btn-sm']");   	
+        if (IsVisible(btg_w_VAR))
+        {		
+        Click(btg_w_VAR);
+        Wait(2);
+        WithdrawEndButton_Faunction(); //call
+		Log("WithdrawEndButton - btg");	
+        }
+
+        var lsk_w_VAR = ElementByXPath("//tr[16]/td[3]/button[@class='btn btn-primary btn-sm']");   	
+        if (IsVisible(lsk_w_VAR))
+        {		
+        Click(lsk_w_VAR);
+        Wait(2);
+        WithdrawEndButton_Faunction(); //call
+		Log("WithdrawEndButton - lsk");	
+        }
+
+        var dgb_w_VAR = ElementByXPath("//tr[17]/td[3]/button[@class='btn btn-primary btn-sm']");   	
+        if (IsVisible(dgb_w_VAR))
+        {		
+        Click(dgb_w_VAR);
+        Wait(2);
+        WithdrawEndButton_Faunction(); //call
+		Log("WithdrawEndButton - dgb");	
+        }
+
+        var qtum_w_VAR = ElementByXPath("//tr[18]/td[3]/button[@class='btn btn-primary btn-sm']");   	
+        if (IsVisible(qtum_w_VAR))
+        {		
+        Click(qtum_w_VAR);
+        Wait(2);
+        WithdrawEndButton_Faunction(); //call
+		Log("WithdrawEndButton - qtum");	
+        }
+
+        var waves_w_VAR = ElementByXPath("//tr[19]/td[3]/button[@class='btn btn-primary btn-sm']");   	
+        if (IsVisible(waves_w_VAR))
+        {		
+        Click(waves_w_VAR);
+        Wait(2);
+        WithdrawEndButton_Faunction(); //call
+		Log("WithdrawEndButton - waves");	
+        }
+
+        var bsv_w_VAR = ElementByXPath("//tr[20]/td[3]/button[@class='btn btn-primary btn-sm']");   	
+        if (IsVisible(bsv_w_VAR))
+        {		
+        Click(bsv_w_VAR);
+        Wait(2);
+        WithdrawEndButton_Faunction(); //call
+		Log("WithdrawEndButton - bsv");	
+        }
+		
+     }// end AffWithdraw
+     //=============//
+	 
+	
+    //===========//
+    //FreeBtc//
+    //===========//
+    if (GetBoolSetting("FreeBtc"))
+    {
+        //SiteLanguage 
+        //var Menu_SiteLanguageVAR = GetSetting("Menu_SiteLanguage");
+
+ 		//GoToUrl("https://www.bitsler.com/" + Menu_SiteLanguageVAR + "/bitsler-coins/claim");
+		
+        GoToUrl("https://www.bitsler.com/en/bitsler-coins/claim");		
+ 		Log("FreeBtcVar: go to - bitsler-coins");
+		
+        Wait();	
+		
+        //call the function - to CloseChat
+		ADFunction_CloseChat();
+
+ 		//Solve ReCaptcha
+ 		var result = DoSolveCaptcha();
+ 		if (result > 0)
+ 		{
+ 		return result;
+ 		}
+            var Bypasser = new RecaptchaUtility(this);
+            Bypasser.DoSolve();
+            Wait();	
+
+	 
+ 		var ButtonGetFreeBtc = ElementByXPath("//button[@type='button' and contains(text(),'Claim')]");  //span[text()='FREE BTC']
+ 		Click(ButtonGetFreeBtc);
+
+ 		var AlertGeneral = ElementByXPath("//div[@role='alert']"); 
+        Log(AlertGeneral.Text);
+		
+        /*
+ 		var AlertMessage_NotAllow = ElementByXPath("//p[text()='You are not allowed to get any faucet.']"); 
+ 		var AlertMessage_MustBeZero = ElementByXPath("//p[text()='All your coin balances must be at zero or below minimum bet.']"); 
+        */
+
+ 	} //end FreeBtc
+	
+
+
+    //===========//
+    //Rain_AirDrop_Chat//
+    //===========//
+
+        if (GetBoolSetting("Rain_AirDrop_Chat"))
+        {  
+
+           GoToUrl("https://www.bitsler.com/");
+		   Log("Rain_AirDrop_Chat: Go to bonus Chat");	
+		   
+           var ChatAlready_Open = ElementByXPath("//div[@class='ov-wrapper animated-width site-wrapper-chat']"); //ChatAlready_Open
+           var ChatAlready_Close = ElementByXPath("//div[@class='ov-wrapper animated-width col-12']"); //ChatAlready_Close
+
+           if (IsVisible(ChatAlready_Close))
+           {
+           var ChatButton = ElementByXPath("//i[@class='fas fa-angle-double-right']"); //ChatAlready_Close
+           Click(ChatButton);
+		   Log("Rain_AirDrop_Chat: click on ChatAlready_Close - to open the chat");
+		   } 	
+		   
+           if (IsVisible(ChatAlready_Open))
+           {
+			Log("Rain_AirDrop_Chat: ChatAlready_Open");
+		   }   
+   
+	       Wait();
+		   Wait(2);	
+		   
+           var ChatInput_VAR = ElementByXPath("//textarea[@placeholder='Type your message']"); //ChatInput_VAR
+           SetText(ChatInput_VAR, GetSetting("MessageChat"));
+		   
+	       Wait();
+		   Wait(2);			   
+
+           Driver.Navigate().Refresh(); //RefrashPage	
+
+           Wait();
+           Wait(2);				   
+
+		   
+        }// end Rain_AirDrop_Chat
+ 
+	
+	
+ 		//================//
+        //Menus Vars AllGames
+		//================//
+        //AllGames_Menu
+        var AllGames_Menu_Var = GetSetting("AllGames_Menu");  	
+		
+		//===========================//
+		//AllGames - none
+		//===========================//
+		
+		 if(AllGames_Menu_Var=="none")
+         {
+			//we return after specific time  
+			Log("none: we return after specific time ");
+            //ad = true; //we return after 55 min
+			
+	        Driver.Close();  // Close specific chrome window
+            Driver.Quit();  // also Close the console app, that was used to kick off the chrome window
+            Driver.Dispose();  // Close the chromedriver.exe
+			return GetWaitSetting(); 
+		 }
+		//===========================//
+
+
+		
+		//===========================//
+		//AllGames - Dice - Game
+		//===========================//
+		
+   if(AllGames_Menu_Var=="Dice")
+   {		
+
+	      GoToUrl("https://www.bitsler.com/dice");		
+		
+          Wait();	
+          Wait(3);		
+		  
+          //call the function - to CloseChat
+		  ADFunction_CloseChat();
+		
+          Wait(3);	
+			
+          Coins_Function(); //call to select coin function
+          Wait();	
+			
+          //call to "Function" Dice Game
+		  ADFunction_Dice();
+
+	      Driver.Close();  // Close specific chrome window
+          Driver.Quit();  // also Close the console app, that was used to kick off the chrome window
+          Driver.Dispose();  // Close the chromedriver.exe
+	      return GetWaitSetting();  
+		
+   }//end Dice Game
+   
+   //=======================//	
+		
+
+		//===========================//
+		//AllGames - Roulette - Game
+		//===========================//
+		
+		 if(AllGames_Menu_Var=="Roulette")
+         {
+			GoToUrl("https://www.bitsler.com/roulette");
+		
+            Wait();	
+            Wait(3);
+			
+            Coins_Function(); //call to select coin function
+            Wait();	
+					 
+			//we return after specific time  
+			Log("Roulette: we return after specific time ");
+            //ad = true; //we return after 55 min
+			
+	        Driver.Close();  // Close specific chrome window
+            Driver.Quit();  // also Close the console app, that was used to kick off the chrome window
+            Driver.Dispose();  // Close the chromedriver.exe
+			return GetWaitSetting();
+		 }
+		//===========================//
+		
+		
+		
+		//===========================//
+		//AllGames - Multicolor - Game
+		//===========================//
+		
+   if(AllGames_Menu_Var=="Multicolor")
+   {		
+
+	        GoToUrl("https://www.bitsler.com/multicolor");		
+		
+            Wait();	
+            Wait(3);
+			
+            //call the function - to CloseChat
+		    ADFunction_CloseChat();
+		
+            Wait(3);	
+			
+            Coins_Function(); //call to select coin function
+            Wait();	
+			
+            //call to "Function" Multicolor Game
+		    ADFunction_Multicolor();
+
+            //ad = true; //we return after 55 min
+			
+	        Driver.Close();  // Close specific chrome window
+            Driver.Quit();  // also Close the console app, that was used to kick off the chrome window
+            Driver.Dispose();  // Close the chromedriver.exe
+			return GetWaitSetting();
+		
+   }//end Multicolor Game
+   
+   //=======================//	
+		
+		
+
+		//===========================//
+		//AllGames - CaraYcruz - Game
+		//===========================//
+		
+		 if(AllGames_Menu_Var=="CaraYcruz")
+         {
+			GoToUrl("https://www.bitsler.com/cara-y-cruz");
+		
+            Wait();	
+            Wait(3);
+			
+            Coins_Function(); //call to select coin function
+            Wait();	
+			
+			//we return after specific time  
+			Log("CaraYcruz: we return after specific time ");
+            //ad = true; //we return after 55 min
+			
+	        Driver.Close();  // Close specific chrome window
+            Driver.Quit();  // also Close the console app, that was used to kick off the chrome window
+            Driver.Dispose();  // Close the chromedriver.exe
+			return GetWaitSetting();
+	
+		 }
+		//===========================//
+
+	
+
+		
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoSolveFaucet();
+    }
+	
+	
+
+	
+	
+    public override int AfterSolveFaucet()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterSolveFaucet();
+    }
+	
+	
+	
+
+    /// <summary>
+    /// This method gets called in the end after the BeforeSolveFaucet/DoSolveFaucet and AfterSolveFaucet methods were done.
+    /// The base.CheckFaucetResult will try to find a visible element on the page using the XPath from SuccessXPath and FailXPath (see the Start method)
+    /// These properties should contain XPath expressions to find certain elements on the page.
+    /// For example if it finds one of the elements from the SuccessXPath, and it is visible, then it will flag the claim attempt as a success.
+    /// Or if it finds one of the elements from the FailXPath, and it is visible, then it will flag the claim attempt as a failure.
+    /// </summary>
+    public override int CheckFaucetResult()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.CheckFaucetResult();
+    }
+	
+
+	
+
+	
+//====================//	
+//ADFunction_CloseChat
+//====================//	
+ private bool ADFunction_CloseChat()
+ {
+	 
+    var ChatOpen = ElementByXPath("//div[@class='container-fluid user chat']"); 
+    var ChatClose = ElementByXPath("//div[@class='container-fluid user']"); 
+    var ButtonCloseChat = ElementByXPath("//i[@class='fas fa-angle-double-right']"); 
+	
+	if (IsVisible(ChatOpen))
+    {      
+      Log("CloseChat: the Chat was open, so now we close the Chat");
+      Click(ButtonCloseChat);
+    }
+
+	if (IsVisible(ChatClose))
+    {      
+      Log("CloseChat: the Chat close ");
+    }
+	
+	
+ return true;
+ }//end private bool
+//====================//
+
+ 
+ 
+//====================//	
+//Coins_Function
+//====================//	
+ private bool Coins_Function()
+ {
+	
+      var OpenTabCoins = ElementByXPath("//button[@class='btn dropdown-toggle cs-button btn-secondary']"); 
+      Log("click - OpenTabCoins");
+      Click(OpenTabCoins);
+
+	  
+      var MenuCoinsVAR = GetSetting("MenuCoins"); 
+	  
+      if(MenuCoinsVAR=="btc")
+      {
+      var btc_coin_VAR = ElementByXPath("//div[3]/ul/li[1]"); 
+      Log("click - btc_coin_VAR");
+      Click(btc_coin_VAR);
+	  }// end btc
+	  
+      if(MenuCoinsVAR=="eth")
+      {
+      var eth_coin_VAR = ElementByXPath("//div[3]/ul/li[2]"); 
+      Log("click - eth_coin_VAR");
+      Click(eth_coin_VAR);
+	  }// end eth
+	  
+      if(MenuCoinsVAR=="ltc")
+      {
+      var ltc_coin_VAR = ElementByXPath("//div[3]/ul/li[3]"); 
+      Log("click - ltc_coin_VAR");
+      Click(ltc_coin_VAR);
+	  }// end ltc	
+	  
+      if(MenuCoinsVAR=="bch")
+      {
+      var bch_coin_VAR = ElementByXPath("//div[3]/ul/li[4]"); 
+      Log("click - bch_coin_VAR");
+      Click(bch_coin_VAR);
+	  }// end bch  
+	  
+	  if(MenuCoinsVAR=="xrp")
+      {
+      var xrp_coin_VAR = ElementByXPath("//div[3]/ul/li[5]"); 
+      Log("click - xrp_coin_VAR");
+      Click(xrp_coin_VAR);
+	  }// end xrp  
+	  
+	  if(MenuCoinsVAR=="doge")
+      {
+      var doge_coin_VAR = ElementByXPath("//div[3]/ul/li[6]"); 
+      Log("click - doge_coin_VAR");
+      Click(doge_coin_VAR);
+	  }// end doge 
+
+	  if(MenuCoinsVAR=="dash")
+      {
+      var dash_coin_VAR = ElementByXPath("//div[3]/ul/li[7]"); 
+      Log("click - dash_coin_VAR");
+      Click(dash_coin_VAR);
+	  }// end dash  
+
+	  if(MenuCoinsVAR=="zec")
+      {
+      var zec_coin_VAR = ElementByXPath("//div[3]/ul/li[8]"); 
+      Log("click - zec_coin_VAR");
+      Click(zec_coin_VAR);
+	  }// end zec   
+	  
+	  if(MenuCoinsVAR=="etc")
+      {
+      var etc_coin_VAR = ElementByXPath("//div[3]/ul/li[9]"); 
+      Log("click - etc_coin_VAR");
+      Click(etc_coin_VAR);
+	  }// end etc  
+
+	  if(MenuCoinsVAR=="neo")
+      {
+      var neo_coin_VAR = ElementByXPath("//div[3]/ul/li[10]"); 
+      Log("click - neo_coin_VAR");
+      Click(neo_coin_VAR);
+	  }// end neo  
+	  
+	  if(MenuCoinsVAR=="strat")
+      {
+      var strat_coin_VAR = ElementByXPath("//div[3]/ul/li[11]"); 
+      Log("click - strat_coin_VAR");
+      Click(strat_coin_VAR);
+	  }// end strat  	  
+	  
+	  if(MenuCoinsVAR=="kmd")
+      {
+      var kmd_coin_VAR = ElementByXPath("//div[3]/ul/li[12]"); 
+      Log("click - kmd_coin_VAR");
+      Click(kmd_coin_VAR);
+	  }// end kmd  	  
+	  
+	  if(MenuCoinsVAR=="burst")
+      {
+      var burst_coin_VAR = ElementByXPath("//div[3]/ul/li[13]"); 
+      Log("click - burst_coin_VAR");
+      Click(burst_coin_VAR);
+	  }// end burst  
+
+	  if(MenuCoinsVAR=="btg")
+      {
+      var btg_coin_VAR = ElementByXPath("//div[3]/ul/li[14]"); 
+      Log("click - btg_coin_VAR");
+      Click(btg_coin_VAR);
+	  }// end btg  
+
+	  if(MenuCoinsVAR=="lsk")
+      {
+      var lsk_coin_VAR = ElementByXPath("//div[3]/ul/li[15]"); 
+      Log("click - lsk_coin_VAR");
+      Click(lsk_coin_VAR);
+	  }// end lsk  
+	  
+	  if(MenuCoinsVAR=="dgb")
+      {
+      var dgb_coin_VAR = ElementByXPath("//div[3]/ul/li[16]"); 
+      Log("click - dgb_coin_VAR");
+      Click(dgb_coin_VAR);
+	  }// end dgb  	  
+	  
+	  if(MenuCoinsVAR=="qtum")
+      {
+      var qtum_coin_VAR = ElementByXPath("//div[3]/ul/li[17]"); 
+      Log("click - qtum_coin_VAR");
+      Click(qtum_coin_VAR);
+	  }// end qtum  
+	  
+	  if(MenuCoinsVAR=="waves")
+      {
+      var waves_coin_VAR = ElementByXPath("//div[3]/ul/li[18]"); 
+      Log("click - waves_coin_VAR");
+      Click(waves_coin_VAR);
+	  }// end waves  	  
+
+	  if(MenuCoinsVAR=="bsv")
+      {
+      var bsv_coin_VAR = ElementByXPath("//div[3]/ul/li[19]"); 
+      Log("click - bsv_coin_VAR");
+      Click(bsv_coin_VAR);
+	  }// end bsv  
+
+	  if(MenuCoinsVAR=="btslr")
+      {
+      var btslr_coin_VAR = ElementByXPath("//div[3]/ul/li[20]"); 
+      Log("click - btslr_coin_VAR");
+      Click(btslr_coin_VAR);
+	  }// end btslr  
+	  	   
+	
+ return true;
+ }//end Coins_Function
+//====================//
+
+
+	
+	
+	
+//====================//	
+//ADFunction_Multicolor
+//====================//
+ private bool ADFunction_Multicolor()
+ {
+	 		
+    Wait(2);
+	
+	if (GetBoolSetting("Star"))
+    {
+    var StarAmountVar = ElementByXPath("//input[@id='ctrl-bet0']");
+    SetText(StarAmountVar, GetSetting("StarAmount"));
+	}
+	
+    Wait(2);
+	
+	if (GetBoolSetting("Red"))
+    {
+    var RedAmountVar = ElementByXPath("//input[@id='ctrl-bet1']");
+    SetText(RedAmountVar, GetSetting("RedAmount"));
+    }
+	
+    Wait(2);
+	
+	if (GetBoolSetting("Blue"))
+    {
+    var BlueAmountVar = ElementByXPath("//input[@id='ctrl-bet2']");
+    SetText(BlueAmountVar, GetSetting("BlueAmount"));
+    }
+	
+    Wait(2);
+	
+	if (GetBoolSetting("Yellow"))
+    {
+    var YellowAmountVar = ElementByXPath("//input[@id='ctrl-bet3']");
+    SetText(YellowAmountVar, GetSetting("YellowAmount"));
+    }
+	
+    Wait(2);
+
+	if (GetBoolSetting("Green"))
+    {
+    var GreenAmountVar = ElementByXPath("//input[@id='ctrl-bet4']");
+    SetText(GreenAmountVar, GetSetting("GreenAmount"));
+    }
+
+    Wait(3);
+	
+	
+    //====//
+	//spin
+	//====//
+    var SpinGeneralButton = ElementByXPath("//div[@class='game-bottom row']/div[1]");
+    var SpinButtonAuto = ElementByXPath("//button[@class='btn btn-primary btn-play col-12 btn-mc btn-auto']");
+    var CounterInput = ElementByXPath("//input[@class='form-control text-center']");
+
+	      Wait(2);
+
+          Click(SpinGeneralButton);		
+	
+	      Wait(2);
+		  
+          Click(SpinButtonAuto);
+
+	      Wait(2);
+		  
+          SetText(CounterInput, GetSetting("MulticolorGame_Counter"));
+
+	      Wait(3);
+		  
+          var AlertMessage_MinimumBet = ElementByXPath("//div[@class='alert global-alert alert-dismissible alert-danger']");  
+	      if (IsVisible(AlertMessage_MinimumBet))
+	      {		  
+	      Log("Spin: AlertMessage_MinimumBet - we return after 60 min");
+          ad = true; //we return after 55 min
+
+/*		  
+	      Driver.Close();  // Close specific chrome window
+          Driver.Quit();  // also Close the console app, that was used to kick off the chrome window
+          Driver.Dispose();  // Close the chromedriver.exe
+      	  return GetWaitSetting();
+*/		  
+
+		  }
+	
+	
+      while (true && !ad)
+      {
+		  
+          while (IsVisible(ElementByXPath("//input[@class='form-control text-center' and @disabled='disabled']")))
+          {
+			 //so Wait until the button visible
+             Wait();
+			 
+			 
+            var Counterbreak = ElementByXPath("//input[@class='form-control text-center']");
+	        if (IsVisible(Counterbreak))
+	        {
+
+                    //var BalanceMulticolor = ElementByXPath("//p[@class='alert-message']");
+                    //Log("Balance - " + BalanceMulticolor.Text + "we return after 60 min");
+                    //after return 
+					
+                    ad = true; //we return after 55 min
+/*					
+	                Driver.Close();  // Close specific chrome window
+                    Driver.Quit();  // also Close the console app, that was used to kick off the chrome window
+                    Driver.Dispose();  // Close the chromedriver.exe
+      	            return GetWaitSetting();
+*/	
+                    break; 		
+
+            }	
+		  
+          }//end while IsVisible
+
+      }//end while
+	  
+ 
+ return true;
+ }//end private bool
+	
+
+	
+	
+	
+//================//	
+//ADFunction_Dice
+//================//
+ private bool ADFunction_Dice()
+ {
+	 
+	
+//=======//
+//Dice Game
+//=======//
+
+//Dice_My_Bets - click on my bets
+var Dice_My_Bets = ElementByXPath("//li[@id='tuto-my-bets']");
+
+//Dice_Tab_AutoGame- click on Tab AutoGame
+var Dice_Tab_AutoGame = ElementByXPath("//button[@class='btn btn-primary btn-play col-12 btn-auto']");
+
+//Dice_AmountInput
+var Dice_Amount_Input_Var = ElementByXPath("//input[@class='bet-amount form-control form-control-lg is-valid']");
+
+//Dice_X2_Button
+var Dice_X2_Button = ElementByXPath("//li[@class='col btn btn-primary' and contains(text(),'x2')]");
+//Dice_/2_Button
+var Dice_Division_2_Button = ElementByXPath("//li[@class='col btn btn-primary' and contains(text(),'/2')]");
+
+//Dice_PayOut 
+var Dice_PayOut_Button = ElementByXPath("//div[2]/div/div/div/div[1 and @class='radial-progress-inner']");
+var Dice_PayOut_Input_Var = ElementByXPath("//div[@class='radial-progress-inner' and @style='width: 68px;'] /div[@class='editable' and contains(text(),'x')]");
+
+//Dice_Chance
+var Dice_Chance_Button = ElementByXPath("//div[3]/div/div/div/div[1 and @class='radial-progress-inner'] ");
+var Dice_Chance_Input_Var = ElementByXPath("//div[@class='radial-progress-inner' and @style='width: 68px;'] /div[@class='editable' and contains(text(),'%')]");
+
+//Dice_NumberOfRoll
+var Dice_NumberOfRoll_Var = ElementByXPath("//input[@class='form-control text-center']");
+
+//===============//
+
+
+//call to close
+ADFunction_CloseChat();
+
+Wait(2);
+
+Click(Dice_My_Bets);
+Log("Dice - click on my bets");
+
+Wait(2);
+
+Click(Dice_Tab_AutoGame);
+Log("Dice - click on Tab AutoGame");
+
+Wait(2);
+
+SetText(Dice_Amount_Input_Var, GetSetting("Dice_Amount_Input"));
+Log("Dice - set Amount to play");
+
+Wait(2);
+
+Click(Dice_PayOut_Button);
+Log("Dice - click on PayOut_Button");
+Wait(2);
+SetText(Dice_PayOut_Input_Var, GetSetting("Dice_PayOut_Input"));
+Log("Dice - set PayOut");
+
+
+/*
+Wait(1);
+
+Click(Dice_X2_Button);
+Log("Dice - click x2 button");
+
+Wait(1);
+
+Click(Dice_Division_2_Button);
+Log("Dice - click /2 button");
+*/
+
+Wait(2);
+
+Click(Dice_Chance_Button);
+Log("Dice - click on Chance_Button");
+Wait(2);
+SetText(Dice_Chance_Input_Var, GetSetting("Dice_Chance_Input"));
+Log("Dice - set Chance");
+
+Wait(2);
+
+SetText(Dice_NumberOfRoll_Var, GetSetting("Dice_NumberOfRoll"));
+Log("Dice - set NumberOfRoll");
+
+Wait(2);
+
+
+//Dice_Roll_UnderOver_Menu
+var Dice_Roll_UnderOver_Menu_Var = GetSetting("Dice_Roll_UnderOver_Menu");  	
+var Dice_Roll_Under = ElementByXPath("//div[@class='radial-progress-inner' and @style='width: 68px;'] /div[@class='editable' and contains(text(),'<')]");
+var Dice_Roll_Over = ElementByXPath("//div[@class='radial-progress-inner' and @style='width: 68px;'] /div[@class='editable' and contains(text(),'>')]");
+
+   if(Dice_Roll_UnderOver_Menu_Var=="none")
+   {
+	//none
+	Log("Dice_Roll_UnderOver_Menu - none");
+   }
+
+
+   if(Dice_Roll_UnderOver_Menu_Var=="Under")
+   {
+	//Under
+	Log("Dice_Roll_UnderOver_Menu - Under");
+	Click(Dice_Roll_Under);
+   }
+   
+   
+   if(Dice_Roll_UnderOver_Menu_Var=="Over")
+   {
+	//Over
+	Log("Dice_Roll_UnderOver_Menu - Over");
+	Click(Dice_Roll_Over);
+   }
+//===========//
+
+
+Wait(2);
+
+ 
+ /*
+ 
+ //Dice_Speed_Level
+var Dice_Speed_Level_Var = GetSetting("Dice_Speed_Level_Menu");  	
+
+var Dice_Speed_1_Level = ElementByXPath("//div[@id='speed-bet-slider']/div[@class='noUi-base']/div[@class='noUi-origin noUi-background' and @style='left: 0%;'] ");
+var Dice_Speed_2_Level = ElementByXPath("//div[@id='speed-bet-slider']/div[@class='noUi-base']/div[@class='noUi-origin noUi-background' and @style='left: 33.3333%;'] ");
+var Dice_Speed_3_Level = ElementByXPath("//div[@id='speed-bet-slider']/div[@class='noUi-base']/div[@class='noUi-origin noUi-background noUi-stacking' and @style='left: 66.6667%;'] ");
+var Dice_Speed_4_Level = ElementByXPath("//div[@id='speed-bet-slider']/div[@class='noUi-base']/div[@class='noUi-origin noUi-background noUi-stacking' and @style='left: 100%;']");
+
+
+   if(Dice_Speed_Level_Var=="none")
+   {
+	//none
+	Log("Dice_Speed_Level - none");
+   }
+
+
+   if(Dice_Speed_Level_Var=="Level_1")
+   {
+	//Level_1
+	Log("Dice_Speed_Level - Level_1");
+	Click(Dice_Speed_1_Level);
+   }
+   
+   
+   if(Dice_Speed_Level_Var=="Level_2")
+   {
+	//Level_2
+	Log("Dice_Speed_Level - Level_2");
+	Click(Dice_Speed_2_Level);
+   }
+   
+   
+   if(Dice_Speed_Level_Var=="Level_3")
+   {
+	//Level_3
+	Log("Dice_Speed_Level - Level_3");
+	Click(Dice_Speed_3_Level);
+   }
+
+   
+   if(Dice_Speed_Level_Var=="Level_4")
+   {
+	//Level_4
+	Log("Dice_Speed_Level - Level_4");
+	Click(Dice_Speed_4_Level);
+   }
+//===========//
+
+
+*/
+
+
+Wait(2);
+
+
+//Dice_Winning_Menu
+var Dice_Winning_Menu_Var = GetSetting("Dice_Winning_Menu");  	
+var Dice_Winning_Return_to_base = ElementByXPath("//div[1]/div/div[2]/button[1 and @class='btn btn-primary' and contains(text(),'Reset to base')]");
+var Dice_Winning_Increase_by = ElementByXPath("//div[1]/div/div[2]/button[2 and @class='btn' and contains(text(),'Increase by')]");
+
+var Dice_Winning_Increase_Input_Var = ElementByXPath("//input[@class='winning__event__input']");
+
+
+   if(Dice_Winning_Menu_Var=="Return to base")
+   {
+	//Return to base
+	Log("Dice_Winning_Menu - Return to base");
+	Click(Dice_Winning_Return_to_base);
+   }
+   
+   
+   if(Dice_Winning_Menu_Var=="Increase by")
+   {
+	//Increase by
+	Log("Dice_Winning_Menu - Increase by");
+	Click(Dice_Winning_Increase_by);
+
+    Wait(2);
+
+    SetText(Dice_Winning_Increase_Input_Var, GetSetting("Dice_Winning_Increase_Input"));
+    Log("Dice - set Winning_Increase");
+   }
+
+
+//===========//
+
+
+Wait(2);
+
+
+//Dice_Losing_Menu
+var Dice_Losing_Menu_Var = GetSetting("Dice_Losing_Menu");  	
+var Dice_Losing_Return_to_base = ElementByXPath("//div[2]/div/div[2]/button[1 and @class='btn btn-primary' and contains(text(),'Reset to base')]");
+var Dice_Losing_Increase_by = ElementByXPath("//div[2]/div/div[2]/button[2 and @class='btn' and contains(text(),'Increase by')]");
+
+var Dice_Losing_Increase_Input_Var = ElementByXPath("//input[@class='losing__event__input']");
+
+
+   if(Dice_Losing_Menu_Var=="Return to base")
+   {
+	//Return to base
+	Log("Dice_Losing_Menu - Return to base");
+	Click(Dice_Losing_Return_to_base);
+   }
+   
+   
+   if(Dice_Losing_Menu_Var=="Increase by")
+   {
+	//Increase by
+	Log("Dice_Losing_Menu - Increase by");
+	Click(Dice_Losing_Increase_by);
+
+    Wait(2);
+
+    SetText(Dice_Losing_Increase_Input_Var, GetSetting("Dice_Losing_Increase_Input"));
+    Log("Dice - set Losing_Increase");
+   }
+
+
+//===========//
+
+Wait(2);
+
+
+var Dice_Spin_Button = ElementByXPath("//button[@class='btn btn-primary btn-play col-12 btn-auto']");
+Click(Dice_Spin_Button);
+Log("Dice - click on Spin_Button");
+
+
+      var AlertMessage_MinimumBet = ElementByXPath("//div[contains(text(),'Amount is less than minimum')]"); 
+	  if (IsVisible(AlertMessage_MinimumBet))
+	  {		  
+	   Log("Spin: AlertMessage_MinimumBet - we return after 60 min");
+	   /*
+	   Driver.Close();  // Close specific chrome window
+       Driver.Quit();  // also Close the console app, that was used to kick off the chrome window
+       Driver.Dispose();  // Close the chromedriver.exe
+       return GetWaitSetting();
+	   */
+	   ad=true;
+	  }
+		  
+		  
+      while (true)
+      {
+		  
+          while (IsVisible(ElementByXPath("//button[contains(text(),'Stop autobet')]")))
+          {
+			 //so Wait until the button visible
+             Wait();
+			 
+			 
+            var Counterbreak = ElementByXPath("//button[contains(text(),'Start autobet')]");
+	        if (IsVisible(Counterbreak))
+	        {
+			  
+            break; 		
+
+		    //var BalanceMulticolor = ElementByXPath("//p[@class='alert-message']"); 
+	        //Log("Balance - " + BalanceMulticolor.Text + "we return after 60 min");	
+			
+	        /*
+	        Driver.Close();  // Close specific chrome window
+            Driver.Quit();  // also Close the console app, that was used to kick off the chrome window
+            Driver.Dispose();  // Close the chromedriver.exe
+            return GetWaitSetting();
+	        */
+	        ad=true;
+            }	
+		  
+          }//end while IsVisible
+
+      }//end while
+	  
+	  
+	        /*
+            Driver.Close();  // Close specific chrome window
+            Driver.Quit();  // also Close the console app, that was used to kick off the chrome window
+            Driver.Dispose();  // Close the chromedriver.exe
+            return GetWaitSetting();
+	        */
+	        ad=true;
+	   
+	   
+ return true;
+ } //end private bool
+	
+	
+	
+       //=============//
+       //WithdrawEndButton_Faunction
+       //=============// 
+        public void WithdrawEndButton_Faunction()
+        {
+        var WithdrawEndButton = ElementByXPath ("//button[@class='btn btn-primary' and contains(text(),'Withdraw')]");  
+        Click(WithdrawEndButton);	
+		}// end WithdrawEndButton_Faunction
+		//=============// 	
+	
+	
+	
+} //public class bitsler

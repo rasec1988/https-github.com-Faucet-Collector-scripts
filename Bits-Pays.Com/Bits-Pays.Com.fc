@@ -1,0 +1,1240 @@
+﻿
+
+//==================//
+//script Written by: ••AviramDayan•• 08/06/2019 22:00PM 
+//Last Update: 21/06/2019 21:00PM - Version 6
+//==================//
+
+using System;
+using FaucetCollector.Script;
+using OpenQA.Selenium;
+using OpenQA.Selenium.Interactions;
+//css_inc recaptchaUtilities
+
+
+public class bitspays : FaucetScript
+{
+    /// <summary>
+    /// List of Settings that will be shown in the bot when selecting this Faucet in the bot.
+    /// You can get the value the user entered with the methods: GetSetting("[Name of the FaucetSetting]"), GetBoolSetting and GetDateTimeSetting
+    /// You can also create a new setting value using SetSetting("[Name you want to use]", "value")
+    /// </summary>
+    public override FaucetSettings Settings
+    {
+        get
+        {
+			
+            return new FaucetSettings("https://bits-pays.com/")
+            {
+                new FaucetSetting(){Name="User",Display="User",Type=EditorType.TextBox,Required=false},
+                new FaucetSetting(){Name="Password",Display="Password",Type=EditorType.Password,Required=false},
+				
+                new FaucetSetting() { Name = "FaucetClaim", Display = "FaucetClaim - on/off ", Type = EditorType.CheckBox, Default = true},	
+                //new FaucetSetting(){Name="FlashAllAds",Display="FlashAllAds - Claim Unlimited time",Type=EditorType.CheckBox,Default=true},
+                //new FaucetSetting(){Name="DailyBonus",Display="DailyBonus - with captcha",Type=EditorType.CheckBox,Default=true},
+                new FaucetSetting(){Name="NoFrame",Display="NoFrame - no captcha",Type=EditorType.CheckBox,Default=true},
+                //new FaucetSetting(){Name="IN_Frame",Display="IN_Frame - with ReCaptcha",Type=EditorType.CheckBox,Default=false},		
+	
+	
+            };
+        }
+    }
+	
+	
+	
+//============================================================//
+//the number of "successes" in the script - when are finished  
+//============================================================//
+    public override void Start()
+    {
+        ad = false;
+       
+        //Title that shows in the browser. Is used to identify and close popup windows
+        Title = "Bits-Pays";
+
+		SuccessXPath = "//*";  //*[@id='']
+        FailXPath = "//*"; //*[@id='']
+	
+        //TimerIsCountingUp = true;
+		
+        //Let Faucet Collector start up everything
+        base.Start();
+    }
+//============================================================//
+//the number of "successes" in the script - when are finished  
+//============================================================//
+
+	
+    bool ad; //custom bool
+
+
+    public override int DoInit()
+    {			
+
+     var WarningVAR = ElementByXPath("//html/body/b[1 and contains(text(),'Warning')] | //html/body/b[4 and contains(text(),'Warning')] | //html/body/b[7 and contains(text(),'Fatal error')]"); 
+	 if (IsVisible(WarningVAR))
+	 {
+		 Log("WarningVAR - the website down - we return after your time");
+         Driver.Close();  // Close specific chrome window
+         Driver.Quit();  // also Close the console app, that was used to kick off the chrome window
+         Driver.Dispose();  // Close the chromedriver.exe
+         return GetWaitSetting();
+	 }	
+		
+        //Let Faucet Collector continue.
+        return base.DoInit();
+    }
+
+	
+//==================//
+//save Login Cookies 
+//==================//
+    public override bool IsLoggedIn()
+    {
+	    //save Login Cookies - Check if the "Logout" exist
+        return ElementByXPath("//a[@href='../mem/logout.php']") != null;
+	 
+        //return base.IsLoggedIn();
+    }
+//==================//
+//save Login Cookies 
+//==================//	
+
+
+
+
+//=============//
+//BeforeLogin
+//=============//
+    public override int BeforeLogin()
+    {
+		
+
+     GoToUrl("https://www.bits-pays.com/mem/login_ad.php");
+
+/*
+	 //var checks login or exit
+     var ExitButton = ElementByXPath("//img[@class='HeaderBar__ProfilePictureIcon-sq63g4-2 bBYaXZ']");
+
+	 
+	 //if i already Login - go to "bonus"	 
+	 if (IsVisible(ExitButton))
+	 {
+        //if we already login go to here
+        GoToUrl("https://www.bits-pays.com/");
+	 }	
+*/	
+		
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeLogin();
+    }
+//=============//
+//BeforeLogin
+//=============//
+
+	
+
+
+	
+//========//
+//DoLogin
+//========//
+    public override int DoLogin()
+    {
+	
+      var ExitButton = ElementByXPath("//a[@href='../mem/logout.php']");
+
+	
+	 //if i NOT Login - go to Login Page
+	 if (!IsVisible(ExitButton))
+	 {
+
+		GoToUrl("https://www.bits-pays.com/mem/register.php");
+		Wait();		
+		Wait(2);
+     
+        var StartOpenLogin = ElementByXPath("//a[@class='btn custom-register-login-button login-button']");
+	    if (IsVisible(StartOpenLogin))
+	    { 
+        Click(StartOpenLogin);
+		}
+
+		Wait(2);
+		
+        var box_user = ElementByXPath("//input[@id='login-user']");
+        SetText(box_user, GetSetting("User"));
+		
+		Wait(2);
+		
+        var box_pass = ElementByXPath("//input[@id='login-pass']");
+        SetText(box_pass, GetPassword("Password"));
+		
+/*			
+		Wait(2);
+	
+       //SolveCaptcha if apper
+        var result = DoSolveCaptcha();
+        if (result > 0)
+        {
+            return Fail("Fail solving captcha");
+        }
+*/		
+		Wait(4);
+		
+        var ButtonLog = ElementByXPath("//input[@name='submit-login']");
+        Click(ButtonLog);
+		
+		Wait(2);
+/*		
+        var Error_Message = ElementByXPath ("//div[@id='add_err']/div/div[@class='message' and contains(text(),'fille' | 'captcha' ) ]");
+        if (IsVisible(Error_Message))
+        {
+            Log("Error_Message - Appear - we return after 1 min ");
+            return 1*60; //we return after 1 min
+        }
+*/		
+
+		Wait();	
+
+	 } // end ExitButton
+
+        
+       return base.DoLogin();
+    }
+//========//
+//DoLogin
+//========//
+ 
+
+
+//========//
+//AfterLogin
+//========//
+ public override int AfterLogin()
+ {
+ 
+  
+    //we are good to continue
+    return base.AfterLogin();
+
+ }
+//========//
+//AfterLogin
+//========//
+
+
+	
+
+//================//
+//GetFaucetWaitTime
+//================//
+    public override int GetFaucetWaitTime()
+    {
+
+        if (ad)
+        {
+		    //Log("return ad");
+			ad=false;
+			Driver.Close();  // Close specific chrome window
+            Driver.Quit();  // also Close the console app, that was used to kick off the chrome window
+            Driver.Dispose();  // Close the chromedriver.exe
+            return GetWaitSetting();
+        }
+
+		//let Faucet Collector continue.
+        return base.GetFaucetWaitTime();
+    }
+//================//
+//GetFaucetWaitTime
+//================//
+
+
+
+    public override int BeforeSolveCaptcha()
+    {
+ 
+        //Return we are ready to proceed
+        return base.BeforeSolveFaucet();
+    }
+
+	
+    public override int DoSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoSolveCaptcha();
+    }
+
+	
+    public override int AfterSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterSolveCaptcha();
+    }
+
+	
+    public override int BeforeSolveFaucet()
+    {
+        //Return we can continue
+        return base.BeforeSolveFaucet();
+    }
+  
+	
+	
+//==============//
+//DoSolveFaucet
+//==============//
+ public override int DoSolveFaucet()
+ {
+ 
+        Account_Function(); //call
+
+ 
+        //============//
+        //NoFrame
+        //============// 
+        if (GetBoolSetting("NoFrame"))
+        { 
+
+          //before go to here 
+		  GoToUrl("http://www.bits-pays.com/mem/noFrame_ad.php");
+		  Log("NoFrame");
+          Wait();
+          Wait(2);
+	
+	      NoFrame_Function(); //call 
+	
+		}
+        //============// 
+ 
+ 
+ 
+        //============// /
+        //IN_Frame//
+        //============// 
+        if (GetBoolSetting("IN_Frame"))
+        { 
+
+          //before go to here 
+		  GoToUrl("http://www.bits-pays.com/mem/EarnViewads.php");
+		  Log("IN_Frame");
+          Wait();
+          Wait(2);
+	
+	      IN_Frame_Function(); //call
+
+		}
+        //============// 
+
+
+ 
+        //=========================//
+        //FlashAllAds//
+        //=========================//
+        if (GetBoolSetting("FlashAllAds"))
+        {         
+            GoToUrl("http://www.bits-pays.com/mem/EarnFlashads.php");
+            Log("FlashAllAds");
+            Wait();
+            Wait(3);	
+			
+            FlashAllAds_Function(); //call to FlashAllAds_Function
+
+        } //end FlashAllAds
+          //=============//
+		  
+
+	 //===========//
+	 //DailyBonus
+	 //===========//
+       if (GetBoolSetting("DailyBonus"))
+       {
+   
+        //before go to here 
+		GoToUrl("https://www.bits-pays.com/mem/DailyBonus.php");
+        Wait();
+        Wait(3);
+
+
+        var AlreadyCollected = ElementByXPath("//p[contains(text(),'already collected') ]");
+		var View3Flash = ElementByXPath("//p[@class='shares-notification-main-buy center' and contains(text(),'View 3') ]");
+        if (!IsVisible(AlreadyCollected) || !IsVisible(View3Flash) )
+        {
+			
+           //SolveCaptcha if apper
+           var result = DoSolveCaptcha();
+           Wait(3);	
+			
+           var GenerateBonus = ElementByXPath("//input[@name='randomPrize1']");
+           if (IsVisible(GenerateBonus))
+           {
+             Log("DailyBonus: GenerateBonus"); 
+             Click(GenerateBonus);	
+             Wait(2);	
+	
+             var CollectBonus = ElementByXPath("//input[@name='submit_bonus_one_collect']");		   
+             if (IsVisible(CollectBonus))
+             { 
+             Log("DailyBonus: CollectBonus"); 
+             Click(CollectBonus);	
+             Wait(2);	   
+		     }	   
+         
+	       }
+		}
+	   
+	   
+	   }// end DailyBonus
+	 //===========//	
+	 
+
+	  
+     //==============//
+	 //FaucetClaim//
+     //==============//
+     if (GetBoolSetting("FaucetClaim"))
+     {
+		 
+        //before go to here 
+		GoToUrl("https://www.bits-pays.com/mem/user_f.php");
+        Wait();
+        Wait(2);
+
+	     //timer
+         var WaitTimer_2_Text = ElementByXPath("//p[3]/span[@style='font-size:50px;font-weight:300;']");
+         if (IsVisible(WaitTimer_2_Text))
+         {
+           Log("FaucetClaim: WaitTimerText apper"); 
+           var MinuteVAR = ElementByXPath("//p[3]/span[@style='font-size:50px;font-weight:300;']"); 
+           int MinuteINT = Convert.ToInt32(MinuteVAR.Text.Trim().Split(':')[0])*60;	 // need [4] for example if we have Existing text "You have to wait 15 minutes"  it mean = You[0] have[1] to[2] wait[3] 15[4] minutes[5] 
+		   Driver.Close();  // Close specific chrome window
+           Driver.Quit();  // also Close the console app, that was used to kick off the chrome window
+           Driver.Dispose();  // Close the chromedriver.exe
+           return MinuteINT;
+
+         } // end WaitTimer_2_Text
+         //============//
+
+		
+        var CollectCoin = ElementByXPath ("//input[@name='collect_claim']");
+        if (IsVisible(CollectCoin))
+        {
+         Log("FaucetClaim - CollectCoin ");
+         Click(CollectCoin);	
+
+         Wait(4);
+         
+         Driver.Navigate().Refresh(); //Refresh
+		 
+	     //timer
+         var WaitTimerText = ElementByXPath("//p[3]/span[@style='font-size:50px;font-weight:300;']");
+         if (IsVisible(WaitTimerText))
+         {
+           Log("FaucetClaim: WaitTimerText apper"); 
+           var MinuteVAR = ElementByXPath("//p[3]/span[@style='font-size:50px;font-weight:300;']"); 
+           int MinuteINT = Convert.ToInt32(MinuteVAR.Text.Trim().Split(':')[0])*60;	 // need [4] for example if we have Existing text "You have to wait 15 minutes"  it mean = You[0] have[1] to[2] wait[3] 15[4] minutes[5] 
+		   Driver.Close();  // Close specific chrome window
+           Driver.Quit();  // also Close the console app, that was used to kick off the chrome window
+           Driver.Dispose();  // Close the chromedriver.exe
+           return MinuteINT;
+
+         } // end WaitTimerText
+         //============//
+		 
+	    } //CollectCoin
+		 
+
+		
+     } // end FaucetClaim
+     //==============//
+
+
+
+		
+     ad = true;    // if i do true - it report as succeed // only one time no multi and also required -> return GetWaitSetting();	
+     //return GetWaitSetting();	
+
+
+     //We are good to continue
+     return base.DoSolveFaucet();
+ }
+ 
+//==============//
+//DoSolveFaucet
+//==============///
+	
+	
+	
+	
+	
+//==============//
+//AfterSolveFaucet
+//==============//
+  public override int AfterSolveFaucet()
+  {
+
+   //This faucet has nothing to do here. We will let Faucet Collector handle it.
+   return base.AfterSolveFaucet();
+   
+  }
+	
+//==============//
+//AfterSolveFaucet
+//==============//
+
+
+
+    /// <summary>
+    /// This method gets called in the end after the BeforeSolveFaucet/DoSolveFaucet and AfterSolveFaucet methods were done.
+    /// The base.CheckFaucetResult will try to find a visible element on the page using the XPath from SuccessXPath and FailXPath (see the Start method)
+    /// These properties should contain XPath expressions to find certain elements on the page.
+    /// For example if it finds one of the elements from the SuccessXPath, and it is visible, then it will flag the claim attempt as a success.
+    /// Or if it finds one of the elements from the FailXPath, and it is visible, then it will flag the claim attempt as a failure.
+    /// </summary>
+    public override int CheckFaucetResult()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.CheckFaucetResult();
+    }
+	
+
+
+
+	 //===============//
+	 //IN_Frame_Function
+	 //===============//
+     public void IN_Frame_Function()
+     {
+	
+
+        var ReCap = ElementByXPath("//div[@class='rc-anchor-logo-img rc-anchor-logo-img-portrait']");
+        if (IsVisible(ReCap))
+        {
+        //SolveCaptcha if apper
+        var result = DoSolveCaptcha();	
+		}		
+
+        var ReCap_true = ElementByXPath("//span[@aria-checked='true']");
+        var ReCap_false = ElementByXPath("//span[@aria-checked='false']");
+		
+        while (IsVisible(ReCap_false))
+        {			
+          //Log("IN_Frame - ReCptcha NOT succeed - solved ");
+           Wait();			
+          //break; // break
+		}
+
+
+        if (IsVisible(ReCap_true))
+        {
+			
+          Log("IN_Frame - ReCptcha succeed - solved ");			
+
+          var vieAdBtn = ElementByXPath ("//input[@id='vieAdBtn']");
+          if (IsVisible(vieAdBtn))
+          {
+
+            Log("IN_Frame - Appear - vieAdBtn ");
+            Click(vieAdBtn);
+            Wait(2);			
+            Driver.SwitchTo().Window(Driver.WindowHandles[1]);						
+
+            while (true)
+            {
+				//if the start button not visible - in the first page
+                while (!IsVisible(ElementByXPath("//a[@class='pink darken-2'] ")))
+                {
+				 //so Wait until the button visible
+                 Log("IN_Frame  - wait for Account ");
+                 Wait();
+                }
+				
+				Driver.Navigate().Refresh();
+                Wait();				
+                Wait(3);	
+				
+                var AccountHereButton = ElementByXPath ("//h1[@class='center main-heading-h1 blue-text' and contains(text(),'any more ads for you') ]");
+                if (IsVisible(AccountHereButton))
+                {
+                 Log("IN_Frame - no more ads - try next time");
+                 Wait(2);				 
+                 break;	 // break
+				}		
+				
+                /*
+                else
+                {
+				   // if the StartButton not apper at all, so break the loop
+                   break; 
+                }          
+		        */
+				
+            } //end while (true)
+			
+          } //end vieAdBtn
+
+        } //end ReCap_true
+			
+     } //end IN_Frame_Function
+	 //=====================//
+
+
+
+	 //===============//
+	 //NoFrame_Function
+	 //===============//
+     public void NoFrame_Function()
+     {
+		
+        var openLink = ElementByXPath ("//div[1]/div[2]/div[3]/div/a[1 and @id='openLink']");
+        if (IsVisible(openLink))
+        {
+  
+			while (true)
+            {
+				Title = "Bits-Pays";
+			    Title = "";								
+                Log("NoFrame - Appear - openLink ");		
+	            var open2Link = ElementByXPath ("//div[1]/div[2]/div[3]/div/a[1 and @id='openLink']");		
+                Click(open2Link);
+                Driver.SwitchTo().Window(Driver.WindowHandles[0]);	
+	
+		
+				//if the start button not visible - in the first page
+                while (!IsVisible(ElementByXPath("//h5[@id='openAdText' and contains(text(),'Congratulations') ] | //h5[@id='openAdCrediter' and contains(text(),'Validating..')] ")))
+                {							
+				 //so Wait until the button visible
+                 Wait();
+                 Log("NoFrame  - waiting for end time ");	
+				 
+                 DateTime MyTime = DateTime.Now.AddSeconds(25);				 
+                 if (DateTime.Now > MyTime)
+                 {
+					 Log("break - DateTime");	
+                     GoToUrl("http://www.bits-pays.com/mem/noFrame_ad.php");				 
+                 }	
+				 
+                }// end while
+
+
+			    if (IsVisible(ElementByXPath("//h5[@id='openAdText' and contains(text(),'Congratulations') ] | //h5[@id='openAdCrediter' and contains(text(),'Validating..')] ")))
+				{	
+	
+			    Title = "Bits-Pays";	
+                Driver.SwitchTo().Window(Driver.WindowHandles[1]);	
+				Driver.Close();	
+                Driver.SwitchTo().Window(Driver.WindowHandles[0]);		
+				Driver.Navigate().Refresh();
+                Wait();				
+                Wait(3);	
+				}
+				
+                var AccountHereButton = ElementByXPath ("//h1[@class='center main-heading-h1 blue-text' and contains(text(),'any more ads for you') ]");
+                if (IsVisible(AccountHereButton))
+                {
+                 Log("NoFrame - no more ads - try next time");
+                 Wait(2);				 
+                 break;	 // break
+				}		
+				
+                /*
+                else
+                {
+				   // if the StartButton not apper at all, so break the loop
+                   break; 
+                }          
+		        */
+				
+            } //end while (true)
+			
+        } //end openLink
+
+
+     } //end NoFrame_Function
+	 //=====================//
+
+
+	
+	
+	 //===============//
+	 //Account_Function
+	 //===============//
+     public void Account_Function()
+     {
+
+        //before go to here 
+		GoToUrl("https://www.bits-pays.com/mem/login_ad.php");
+        Wait();
+        Wait(2);
+		
+        var OpenAccount = ElementByXPath ("//a[@id='openLink']");
+        if (IsVisible(OpenAccount))
+        {
+			
+			Title = "";
+            Log("FaucetClaim - Appear - OpenAccount ");
+            Click(OpenAccount);
+            Driver.SwitchTo().Window(Driver.WindowHandles[0]);			
+            //Wait(8);			
+
+            while (true)
+            {
+				//if the start button not visible - in the first page
+                while (!IsVisible(ElementByXPath("//a[@href='account.php']")))
+                {
+				 //so Wait until the button visible
+                 Log("FaucetClaim - wait for Account ");
+                 Wait();
+                }
+				
+                var AccountHereButton = ElementByXPath ("//a[@href='account.php']");
+                if (IsVisible(AccountHereButton))
+                {
+                 Title = "Bits-Pays";					
+                 Log("FaucetClaim - AccountHereButton");
+                 Click(AccountHereButton);	
+                 Wait(2);				 
+                 break;	 // break
+				}					
+   
+                else
+                {
+				   // if the StartButton not apper at all, so break the loop
+                   break; 
+                }          
+		   
+            } //end while (true)
+			
+        } //end OpenAccount
+
+
+        Wait(2);
+
+        GoToUrl("https://www.bits-pays.com/mem/account.php");
+		Log("FaucetClaim - we on the account page");			
+        Wait();
+        Wait(2);
+
+     } //end Account_Function
+	 //=====================//
+
+	
+	
+	
+
+
+	 //===============//
+	 //WhileFunction
+	 //===============//
+     public void WhileFunction()
+     {
+			
+            Log("FlashAllAds - WhileFunction");
+			
+            Wait(2);	
+
+           // Title = "View Ads";
+			
+		    Driver.SwitchTo().Window(Driver.WindowHandles[1]);
+			
+            Wait();			
+            Wait(6);	
+
+		    var RunningVAR = ElementByXPath("//a[@class='brand-logo myLogoName']");//p[@id='adText' and contains(text(),'Timer Running')]
+            while (IsVisible(RunningVAR))
+            {
+			    Log("FlashAllAds - RunningVAR");
+                Wait();
+				
+                var ButtonAd = ElementByXPath("//a[@class='pink darken-2']");					
+		        if (IsVisible(ButtonAd))
+		        {
+			    Log("FlashAllAds - ButtonAd");
+	            Click(ButtonAd); //CLOSE   
+
+                CheckForPopupsEnabled = true;
+                CheckForPopups();	
+					
+                Wait();
+					
+				Title = "Bits-Pays";
+					
+	            Driver.SwitchTo().Window(Driver.WindowHandles[0]);			
+	            }
+			
+                Wait();
+                Log("FlashAllAds - break");
+                break;
+
+            } 
+	  
+
+     } //end WhileFunction
+	 //=====================//
+
+
+
+
+
+
+	 //===============//
+	 //FlashAllAds_Function
+	 //===============//
+     public void FlashAllAds_Function()
+     {
+
+         Log("FlashAllAds - FlashAllAds_Function");
+		
+
+         var Grid_1_ad_Active = ElementByXPath("//a[@id='adId_1']/span[@class='bgthing']");
+		 if (IsVisible(Grid_1_ad_Active))
+		 {
+			Log("FlashAllAds - Grid_1_ad_Active");
+			Click(Grid_1_ad_Active);
+            Wait();	
+
+            //WhileFunction(); //CALL	
+
+
+
+            Log("FlashAllAds - WhileFunction");
+			
+            Wait(2);	
+
+           // Title = "View Ads";
+			
+		    Driver.SwitchTo().Window(Driver.WindowHandles[1]);
+			
+            Wait();			
+            Wait(6);	
+
+		    var RunningVAR = ElementByXPath("//a[@class='brand-logo myLogoName']");//p[@id='adText' and contains(text(),'Timer Running')]
+            while (IsVisible(RunningVAR))
+            {
+			    Log("FlashAllAds - RunningVAR");
+                Wait();
+				
+                var ButtonAd = ElementByXPath("//a[@class='pink darken-2']");					
+		        if (IsVisible(ButtonAd))
+		        {
+			    Log("FlashAllAds - ButtonAd");
+	            Click(ButtonAd); //CLOSE   
+
+                CheckForPopupsEnabled = true;
+                CheckForPopups();	
+					
+                Wait();
+					
+				Title = "Bits-Pays";
+					
+	            Driver.SwitchTo().Window(Driver.WindowHandles[0]);			
+	            }
+			
+                Wait();
+                Log("FlashAllAds - break");
+                break;
+
+            } 
+
+
+			
+		 }
+
+         var Grid_2_ad_Active = ElementByXPath("//a[@id='adId_2']/span[@class='bgthing']");
+		 if (IsVisible(Grid_2_ad_Active))
+		 {
+			Log("FlashAllAds - Grid_2_ad_Active");
+			Click(Grid_2_ad_Active);
+            Wait();	
+
+            WhileFunction(); //CALL			  
+		 }
+	
+         var Grid_3_ad_Active = ElementByXPath("//a[@id='adId_3']/span[@class='bgthing']");
+		 if (IsVisible(Grid_3_ad_Active))
+		 {
+			Log("FlashAllAds - Grid_3_ad_Active");
+			Click(Grid_3_ad_Active);
+            Wait();	
+
+            WhileFunction(); //CALL			  
+		 }
+	
+         var Grid_4_ad_Active = ElementByXPath("//a[@id='adId_4']/span[@class='bgthing']");
+		 if (IsVisible(Grid_4_ad_Active))
+		 {
+			Log("FlashAllAds - Grid_4_ad_Active");
+			Click(Grid_4_ad_Active);
+            Wait();	
+
+            WhileFunction(); //CALL			  
+		 }
+	
+         var Grid_5_ad_Active = ElementByXPath("//a[@id='adId_5']/span[@class='bgthing']");
+		 if (IsVisible(Grid_5_ad_Active))
+		 {
+			Log("FlashAllAds - Grid_5_ad_Active");
+			Click(Grid_5_ad_Active);
+            Wait();	
+
+            WhileFunction(); //CALL			  
+		 }
+	
+         var Grid_6_ad_Active = ElementByXPath("//a[@id='adId_6']/span[@class='bgthing']");
+		 if (IsVisible(Grid_6_ad_Active))
+		 {
+			Log("FlashAllAds - Grid_6_ad_Active");
+			Click(Grid_6_ad_Active);
+            Wait();	
+
+            WhileFunction(); //CALL			  
+		 }
+	
+         var Grid_7_ad_Active = ElementByXPath("//a[@id='adId_7']/span[@class='bgthing']");
+		 if (IsVisible(Grid_7_ad_Active))
+		 {
+			Log("FlashAllAds - Grid_7_ad_Active");
+			Click(Grid_7_ad_Active);
+            Wait();	
+
+            WhileFunction(); //CALL			  
+		 }
+	
+         var Grid_8_ad_Active = ElementByXPath("//a[@id='adId_8']/span[@class='bgthing']");
+		 if (IsVisible(Grid_8_ad_Active))
+		 {
+			Log("FlashAllAds - Grid_8_ad_Active");
+			Click(Grid_8_ad_Active);
+            Wait();	
+
+            WhileFunction(); //CALL			  
+		 }
+	
+         var Grid_9_ad_Active = ElementByXPath("//a[@id='adId_9']/span[@class='bgthing']");
+		 if (IsVisible(Grid_9_ad_Active))
+		 {
+			Log("FlashAllAds - Grid_9_ad_Active");
+			Click(Grid_9_ad_Active);
+            Wait();	
+
+            WhileFunction(); //CALL			  
+		 }
+		 
+         var Grid_10_ad_Active = ElementByXPath("//a[@id='adId_10']/span[@class='bgthing']");
+		 if (IsVisible(Grid_10_ad_Active))
+		 {
+			Log("FlashAllAds - Grid_10_ad_Active");
+			Click(Grid_10_ad_Active);
+            Wait();	
+
+            WhileFunction(); //CALL			  
+		 }
+
+         var Grid_11_ad_Active = ElementByXPath("//a[@id='adId_11']/span[@class='bgthing']");
+		 if (IsVisible(Grid_11_ad_Active))
+		 {
+			Log("FlashAllAds - Grid_11_ad_Active");
+			Click(Grid_11_ad_Active);
+            Wait();	
+
+            WhileFunction(); //CALL			  
+		 }
+
+         var Grid_12_ad_Active = ElementByXPath("//a[@id='adId_12']/span[@class='bgthing']");
+		 if (IsVisible(Grid_12_ad_Active))
+		 {
+			Log("FlashAllAds - Grid_12_ad_Active");
+			Click(Grid_12_ad_Active);
+            Wait();	
+
+            WhileFunction(); //CALL			  
+		 }
+	
+         var Grid_13_ad_Active = ElementByXPath("//a[@id='adId_13']/span[@class='bgthing']");
+		 if (IsVisible(Grid_13_ad_Active))
+		 {
+			Log("FlashAllAds - Grid_13_ad_Active");
+			Click(Grid_13_ad_Active);
+            Wait();	
+
+            WhileFunction(); //CALL			  
+		 }
+	
+         var Grid_14_ad_Active = ElementByXPath("//a[@id='adId_14']/span[@class='bgthing']");
+		 if (IsVisible(Grid_14_ad_Active))
+		 {
+			Log("FlashAllAds - Grid_14_ad_Active");
+			Click(Grid_14_ad_Active);
+            Wait();	
+
+            WhileFunction(); //CALL			  
+		 }
+	
+         var Grid_15_ad_Active = ElementByXPath("//a[@id='adId_15']/span[@class='bgthing']");
+		 if (IsVisible(Grid_15_ad_Active))
+		 {
+			Log("FlashAllAds - Grid_15_ad_Active");
+			Click(Grid_15_ad_Active);
+            Wait();	
+
+            WhileFunction(); //CALL			  
+		 }
+	
+         var Grid_16_ad_Active = ElementByXPath("//a[@id='adId_16']/span[@class='bgthing']");
+		 if (IsVisible(Grid_16_ad_Active))
+		 {
+			Log("FlashAllAds - Grid_16_ad_Active");
+			Click(Grid_16_ad_Active);
+            Wait();	
+
+            WhileFunction(); //CALL			  
+		 }
+	
+         var Grid_17_ad_Active = ElementByXPath("//a[@id='adId_17']/span[@class='bgthing']");
+		 if (IsVisible(Grid_17_ad_Active))
+		 {
+			Log("FlashAllAds - Grid_17_ad_Active");
+			Click(Grid_17_ad_Active);
+            Wait();	
+
+            WhileFunction(); //CALL			  
+		 }
+	
+         var Grid_18_ad_Active = ElementByXPath("//a[@id='adId_18']/span[@class='bgthing']");
+		 if (IsVisible(Grid_18_ad_Active))
+		 {
+			Log("FlashAllAds - Grid_18_ad_Active");
+			Click(Grid_18_ad_Active);
+            Wait();	
+
+            WhileFunction(); //CALL			  
+		 }
+	
+         var Grid_19_ad_Active = ElementByXPath("//a[@id='adId_19']/span[@class='bgthing']");
+		 if (IsVisible(Grid_19_ad_Active))
+		 {
+			Log("FlashAllAds - Grid_19_ad_Active");
+			Click(Grid_19_ad_Active);
+            Wait();	
+
+            WhileFunction(); //CALL			  
+		 }
+		 
+         var Grid_20_ad_Active = ElementByXPath("//a[@id='adId_20']/span[@class='bgthing']");
+		 if (IsVisible(Grid_20_ad_Active))
+		 {
+			Log("FlashAllAds - Grid_20_ad_Active");
+			Click(Grid_20_ad_Active);
+            Wait();	
+
+            WhileFunction(); //CALL			  
+		 }
+
+         var Grid_21_ad_Active = ElementByXPath("//a[@id='adId_21']/span[@class='bgthing']");
+		 if (IsVisible(Grid_21_ad_Active))
+		 {
+			Log("FlashAllAds - Grid_21_ad_Active");
+			Click(Grid_21_ad_Active);
+            Wait();	
+
+            WhileFunction(); //CALL			  
+		 }
+
+         var Grid_22_ad_Active = ElementByXPath("//a[@id='adId_22']/span[@class='bgthing']");
+		 if (IsVisible(Grid_22_ad_Active))
+		 {
+			Log("FlashAllAds - Grid_22_ad_Active");
+			Click(Grid_22_ad_Active);
+            Wait();	
+
+            WhileFunction(); //CALL			  
+		 }
+	
+         var Grid_23_ad_Active = ElementByXPath("//a[@id='adId_23']/span[@class='bgthing']");
+		 if (IsVisible(Grid_23_ad_Active))
+		 {
+			Log("FlashAllAds - Grid_23_ad_Active");
+			Click(Grid_23_ad_Active);
+            Wait();	
+
+            WhileFunction(); //CALL			  
+		 }
+	
+         var Grid_24_ad_Active = ElementByXPath("//a[@id='adId_24']/span[@class='bgthing']");
+		 if (IsVisible(Grid_24_ad_Active))
+		 {
+			Log("FlashAllAds - Grid_24_ad_Active");
+			Click(Grid_24_ad_Active);
+            Wait();	
+
+            WhileFunction(); //CALL			  
+		 }
+	
+         var Grid_25_ad_Active = ElementByXPath("//a[@id='adId_25']/span[@class='bgthing']");
+		 if (IsVisible(Grid_25_ad_Active))
+		 {
+			Log("FlashAllAds - Grid_25_ad_Active");
+			Click(Grid_25_ad_Active);
+            Wait();	
+
+            WhileFunction(); //CALL			  
+		 }
+	
+         var Grid_26_ad_Active = ElementByXPath("//a[@id='adId_26']/span[@class='bgthing']");
+		 if (IsVisible(Grid_26_ad_Active))
+		 {
+			Log("FlashAllAds - Grid_26_ad_Active");
+			Click(Grid_26_ad_Active);
+            Wait();	
+
+            WhileFunction(); //CALL			  
+		 }
+	
+         var Grid_27_ad_Active = ElementByXPath("//a[@id='adId_27']/span[@class='bgthing']");
+		 if (IsVisible(Grid_27_ad_Active))
+		 {
+			Log("FlashAllAds - Grid_27_ad_Active");
+			Click(Grid_27_ad_Active);
+            Wait();	
+
+            WhileFunction(); //CALL			  
+		 }
+	
+         var Grid_28_ad_Active = ElementByXPath("//a[@id='adId_28']/span[@class='bgthing']");
+		 if (IsVisible(Grid_28_ad_Active))
+		 {
+			Log("FlashAllAds - Grid_28_ad_Active");
+			Click(Grid_28_ad_Active);
+            Wait();	
+
+            WhileFunction(); //CALL			  
+		 }
+	
+         var Grid_29_ad_Active = ElementByXPath("//a[@id='adId_29']/span[@class='bgthing']");
+		 if (IsVisible(Grid_29_ad_Active))
+		 {
+			Log("FlashAllAds - Grid_29_ad_Active");
+			Click(Grid_29_ad_Active);
+            Wait();	
+
+            WhileFunction(); //CALL			  
+		 }
+		 
+         var Grid_30_ad_Active = ElementByXPath("//a[@id='adId_30']/span[@class='bgthing']");
+		 if (IsVisible(Grid_30_ad_Active))
+		 {
+			Log("FlashAllAds - Grid_30_ad_Active");
+			Click(Grid_30_ad_Active);
+            Wait();	
+
+            WhileFunction(); //CALL			  
+		 }
+
+         var Grid_31_ad_Active = ElementByXPath("//a[@id='adId_31']/span[@class='bgthing']");
+		 if (IsVisible(Grid_31_ad_Active))
+		 {
+			Log("FlashAllAds - Grid_31_ad_Active");
+			Click(Grid_31_ad_Active);
+            Wait();	
+
+            WhileFunction(); //CALL			  
+		 }
+
+         var Grid_32_ad_Active = ElementByXPath("//a[@id='adId_32']/span[@class='bgthing']");
+		 if (IsVisible(Grid_32_ad_Active))
+		 {
+			Log("FlashAllAds - Grid_32_ad_Active");
+			Click(Grid_32_ad_Active);
+            Wait();	
+
+            WhileFunction(); //CALL			  
+		 }
+	
+         var Grid_33_ad_Active = ElementByXPath("//a[@id='adId_33']/span[@class='bgthing']");
+		 if (IsVisible(Grid_33_ad_Active))
+		 {
+			Log("FlashAllAds - Grid_33_ad_Active");
+			Click(Grid_33_ad_Active);
+            Wait();	
+
+            WhileFunction(); //CALL			  
+		 }
+	
+         var Grid_34_ad_Active = ElementByXPath("//a[@id='adId_34']/span[@class='bgthing']");
+		 if (IsVisible(Grid_34_ad_Active))
+		 {
+			Log("FlashAllAds - Grid_34_ad_Active");
+			Click(Grid_34_ad_Active);
+            Wait();	
+
+            WhileFunction(); //CALL			  
+		 }
+	
+         var Grid_35_ad_Active = ElementByXPath("//a[@id='adId_35']/span[@class='bgthing']");
+		 if (IsVisible(Grid_35_ad_Active))
+		 {
+			Log("FlashAllAds - Grid_35_ad_Active");
+			Click(Grid_35_ad_Active);
+            Wait();	
+
+            WhileFunction(); //CALL			  
+		 }
+	
+         var Grid_36_ad_Active = ElementByXPath("//a[@id='adId_36']/span[@class='bgthing']");
+		 if (IsVisible(Grid_36_ad_Active))
+		 {
+			Log("FlashAllAds - Grid_36_ad_Active");
+			Click(Grid_36_ad_Active);
+            Wait();	
+
+            WhileFunction(); //CALL			  
+		 }
+	
+         var Grid_37_ad_Active = ElementByXPath("//a[@id='adId_37']/span[@class='bgthing']");
+		 if (IsVisible(Grid_37_ad_Active))
+		 {
+			Log("FlashAllAds - Grid_37_ad_Active");
+			Click(Grid_37_ad_Active);
+            Wait();	
+
+            WhileFunction(); //CALL			  
+		 }
+	
+         var Grid_38_ad_Active = ElementByXPath("//a[@id='adId_38']/span[@class='bgthing']");
+		 if (IsVisible(Grid_38_ad_Active))
+		 {
+			Log("FlashAllAds - Grid_38_ad_Active");
+			Click(Grid_38_ad_Active);
+            Wait();	
+
+            WhileFunction(); //CALL			  
+		 }
+	
+         var Grid_39_ad_Active = ElementByXPath("//a[@id='adId_39']/span[@class='bgthing']");
+		 if (IsVisible(Grid_39_ad_Active))
+		 {
+			Log("FlashAllAds - Grid_39_ad_Active");
+			Click(Grid_39_ad_Active);
+            Wait();	
+
+            WhileFunction(); //CALL			  
+		 }
+		 
+         var Grid_40_ad_Active = ElementByXPath("//a[@id='adId_40']/span[@class='bgthing']");
+		 if (IsVisible(Grid_40_ad_Active))
+		 {
+			Log("FlashAllAds - Grid_40_ad_Active");
+			Click(Grid_40_ad_Active);
+            Wait();	
+
+            WhileFunction(); //CALL			  
+		 }
+								
+
+     } //end FlashAllAds_Function
+	 //=====================//
+
+	
+	
+	
+} //end public class
+

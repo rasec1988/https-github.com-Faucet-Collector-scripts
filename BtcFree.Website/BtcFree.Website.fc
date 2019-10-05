@@ -1,0 +1,962 @@
+﻿
+//==================//
+//script Written by: ••AviramDayan•• 09/10/2018 06:00AM 
+//Last Update: 31/07/2019 07:00PM - Version 25
+//==================//
+
+using Base.Captcha;
+using FaucetCollector.Script;
+using OpenQA.Selenium;
+using System;
+using System.Drawing;
+using System.Drawing.Drawing2D;
+using System.IO;
+//css_inc RecaptchaUtilities
+
+
+public class BitcohitzScript : FaucetScript
+{
+    /// <summary>
+    /// List of Settings that will be shown in the bot when selecting this Faucet in the bot.
+    /// You can get the value the user entered with the methods: GetSetting("[Name of the FaucetSetting]"), GetBoolSetting and GetDateTimeSetting
+    /// You can also create a new setting value using SetSetting("[Name you want to use]", "value")
+    /// </summary>
+    public override FaucetSettings Settings
+    {
+        get
+        {
+            return new FaucetSettings("http://BtcFree.Website/")
+            {
+                new FaucetSetting(){Name="User",Display="Username",Type=EditorType.TextBox,Required=true},
+                new FaucetSetting(){Name="Pass",Display="Password",Type=EditorType.Password,Required=true},
+
+                new FaucetSetting(){Name="AutoSurfAds",Display="AutoSurfAds - Claim 5 Satoshi - Unlimited time",Type=EditorType.CheckBox,Default=true},
+                new FaucetSetting(){Name="SurfActiveWindow",Display="SurfActiveWindow - with captcha",Type=EditorType.CheckBox,Default=false},
+
+                new FaucetSetting(){Name="WalletAddress",Display="WalletAddress",Type=EditorType.TextBox,Required=true},
+                new FaucetSetting(){Name="AutoSetWallet",Display="AutoSetWallet - on off",Type=EditorType.CheckBox,Default=false},
+                new FaucetSetting(){Name="AutoWithdraw",Display="AutoWithdraw - when you have 5000 satoshi",Type=EditorType.CheckBox,Default=true},
+			    new FaucetSetting(){Name="StoreCookies",Display="StoreCookies - ON/OFF",Type=EditorType.CheckBox,Default=true },
+
+                //insert user settings here
+                //new FaucetSetting { 
+                //    Name = "Name of your setting", 
+                //    Display = "Display shown in Faucet Collector", 
+                //    Type = EditorType.TextBox | EditorType.Password | EditorType.CheckBox | EditorType.Wallet | EditorType.Numeric | EditorType.ComboBox | EditorType.CheckComboBox, 
+                //    Required = true | false, 
+                //    Default = "Optionally a default value" | true | false | null.
+                //    Items = new List<string> { "item1", "item2" } (only valid for ComboBox or CheckComboBox)
+                //} 
+            };
+        }
+    }
+
+
+
+
+
+
+
+    //============================================================//
+    //the number of "successes" in the script - when are finished  
+    //============================================================//
+    public override void Start()
+    {
+        ad = false;
+		
+        //Title that shows in the browser. Is used to identify and close popup windows
+	    Title = "Bitcoin Advertising-BitcoHitz | Surf | Login | Earn free bitcoin";
+
+        //After we did try to claim on the faucet we search for these elements to determine if it was a success or a fail
+        SuccessXPath = "//*";
+        FailXPath = "//*"; //*[text()='']
+	
+        //TimerIsCountingUp = true;
+
+        //StoreCookies
+        if (GetBoolSetting("StoreCookies"))            
+        {
+         StoreCookies = true;  //on
+        }
+		
+        if (!GetBoolSetting("StoreCookies"))            
+        {
+         StoreCookies = false; //off
+        }	
+		
+        //Let Faucet Collector start up everything
+        base.Start();
+    }
+    //============================================================//
+    //the number of "successes" in the script - when are finished  
+    //============================================================//
+
+
+
+
+    public override int DoInit()
+    {
+        CheckCloudFlare();
+
+        //Let Faucet Collector continue.
+        return base.DoInit();
+    }
+
+
+
+
+
+//==================//
+//save Login Cookies 
+//==================//
+    public override bool IsLoggedIn()
+    {
+	    //save Login Cookies - Check if the "Logout" exist
+        return ElementByXPath("//span[@id='balance']") != null;
+	 
+        //return base.IsLoggedIn();
+    }
+//==================//
+//save Login Cookies 
+//==================//	
+
+
+
+
+
+    //===========//
+    //BeforeLogin
+    //===========//
+    public override int BeforeLogin()
+    {
+		
+        GoToUrl("https://BtcFree.Website/login");	
+		
+        Wait();
+        Wait(2);	
+		
+        // Check Cloudflare
+        var CloudFlarVAR = ElementByXPath("//h1[@data-translate='challenge_headline']");
+        if (IsVisible(CloudFlarVAR))
+        {
+
+            //SolveCaptcha if apper
+            int result = DoSolveCaptcha();
+            if (result > 0)
+            {
+                return Fail("Fail solving recaptcha");
+            }
+            RecaptchaUtility utility = new RecaptchaUtility(this);
+            utility.DoSolve();
+            Wait(2);
+        }
+
+
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeLogin();
+    }
+    //===========//
+    //BeforeLogin
+    //===========//	
+
+
+
+
+
+    //=============//
+    //start DoLogin
+    //=============//
+    public override int DoLogin()
+    {
+
+      var ExitButton = ElementByXPath("//span[@id='balance']");
+      if (!IsVisible(ExitButton))
+      {
+        
+        GoToUrl("https://BtcFree.Website/login");	
+		
+        Wait();
+        Wait(2);	
+
+        Driver.Navigate().Refresh();
+
+        CheckCloudFlare(); //call to cahck
+		
+        Wait();
+        Wait(2);	
+
+        var Userbox = ElementByXPath("//input[@id='username']");
+        if (IsVisible(Userbox))
+        {
+		SetText(Userbox, GetSetting("User"));
+        }
+		
+        Wait(2);
+
+        var PassBox = ElementByXPath("//input[@id='password']");
+        if (IsVisible(PassBox))
+        {
+		SetText(PassBox, GetPassword("Pass"));
+        }
+		
+        Wait(2);
+		
+        var ButtonLog = ElementByXPath("//button[@id='button']");
+        if (IsVisible(ButtonLog))
+        {
+        Click(ButtonLog);	
+        }
+
+        //security
+        var InvalidCSRFTokenError = ElementByXPath("//span[text()=' Invalid CSRF token.']");
+        if (IsVisible(InvalidCSRFTokenError))
+        {
+            //Do not do anything	
+            Log("Login: Invalid CSRF token ");
+            Driver.Navigate().Refresh();
+            Wait(1);
+            GoToUrl("https://BtcFree.Website/");
+            Wait();			
+            Wait(2);
+            //Driver.Manage().Cookies.DeleteAllCookies();
+            GoToUrl("https://BtcFree.Website/login");	
+			Wait();
+        }
+
+      } //end ExitButton
+	  
+	  
+        //This faucet has nothing to do here.    
+        return base.DoLogin();
+    }
+    //=============//
+    //start DoLogin
+    //=============//
+
+
+
+
+
+    //==========//
+    //AfterLogin
+    //=========//
+    public override int AfterLogin()
+    {
+		
+        CheckCloudFlare();
+
+        //=============//
+        //AutoSetWallet
+        //=============//
+        if (GetBoolSetting("AutoSetWallet"))
+        {
+
+            //go to Account Settings Page
+            GoToUrl("https://BtcFree.Website/account");
+            Log("AutoSetWallet: go to set ");
+
+            var AddressTab = ElementByXPath("//a[@href='/account#accountSettings']");
+            if (IsVisible(AddressTab))
+            {
+             Click(AddressTab);
+            } 
+
+            Wait();
+
+            var AddressInput = ElementByXPath("//input[@id='btcaddress']");
+            if (IsVisible(AddressInput))
+            {
+             SetText(AddressInput, GetSetting("WalletAddress"));
+            }
+
+            Wait();
+
+            var pass = ElementByXPath("//input[@id='password']");
+            if (!IsVisible(pass))
+            { 
+		     SetText(pass, GetPassword("Pass"));
+            }
+           
+            Wait();
+
+            var AddressButtonSave = ElementByXPath("//button[@id='saveAccount']");
+            if (IsVisible(AddressButtonSave))
+            {
+            Click(AddressButtonSave);
+            SetSetting("AutoSetWallet", false);				
+            }
+
+        }
+        //=============//
+
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterLogin();
+    }
+    //==========//
+    //AfterLogin
+    //=========//
+
+
+
+
+    private bool ad;
+
+
+
+//=============//
+//GetFaucetWaitTime
+//=============//
+    public override int GetFaucetWaitTime()
+    {
+	   
+        if (ad)
+        {
+        Driver.Close();  // Close specific chrome window
+        Driver.Quit();  // also Close the console app, that was used to kick off the chrome window
+        Driver.Dispose();  // Close the chromedriver.exe
+		ad=false; //solve the problem in start - after he return to script again
+        return GetWaitSetting();	
+        }
+		
+        //let Faucet Collector continue.
+        return base.GetFaucetWaitTime();
+    }
+//=============//
+//GetFaucetWaitTime
+//=============//
+
+
+
+
+
+    public override int BeforeSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeSolveCaptcha();
+    }
+
+
+    public override int DoSolveCaptcha()
+    {
+
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoSolveCaptcha();
+    }
+
+
+    public override int AfterSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterSolveCaptcha();
+    }
+
+
+
+    public override int BeforeSolveFaucet()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeSolveCaptcha();
+    }
+
+
+
+
+    //=============//
+    //DoSolveFaucet
+    //=============//
+    public override int DoSolveFaucet()
+    {
+
+        CheckCloudFlare();
+		
+        //=============//
+        //AutoWithdraw
+        //=============//	
+        if (GetBoolSetting("AutoWithdraw"))
+        {
+
+            GoToUrl("https://BtcFree.Website/account");
+			Wait();       
+			Wait(2);
+
+            var WithdrawBattonSuccess = ElementByXPath("//td[2]/button[@data-target='#withdrawModal']");
+
+            if (IsVisible(WithdrawBattonSuccess))
+            {
+                var BalanceInfo = ElementByXPath("//span[@id='balance']");
+                Log("Balance Info - " + BalanceInfo.Text);
+
+                Click(WithdrawBattonSuccess);
+
+                Wait(3);
+
+                var PassWithdraw = ElementByXPath("//input[@id='wd_password']");
+                if (IsVisible(PassWithdraw))
+                {
+                    SetText(PassWithdraw, GetPassword("Pass"));
+                }
+
+                var SubmitWithdraw = ElementByXPath("//button[@id='makeWithdrawal']");
+                if (IsVisible(SubmitWithdraw))
+                {
+                    Click(SubmitWithdraw);
+                    Log("AutoWithdraw: Success");
+                }
+
+                Wait(3);
+
+                var FaucetHubText = ElementByXPath("//*[@id='lastWithdrawals']/tbody/tr/td[1]");
+                if (IsVisible(FaucetHubText))
+                {
+                    var LastWithdrawInfo = ElementByXPath("//table[@id='lastWithdrawals']/tbody/tr/td[2]");
+                    Log("Last Withdraw Info - " + LastWithdrawInfo.Text);
+                }
+
+                Wait(5);
+				
+            }// WithdrawBattonSuccess
+        }
+        //=============//
+
+
+
+        //=========================//
+        //SurfActiveWindow//
+        //=========================//
+        if (GetBoolSetting("SurfActiveWindow"))
+        {
+
+        GoToUrl("https://www.BtcFree.Website/ads");
+        Log("go to SurfActiveWindow");
+        Wait();
+
+        int Na = 0;
+        var Ads = ElementsByXPath("//div[contains(@class,'viewads-ad') and not(contains(@class,'visited'))]//a[@target='ad']");
+        while (Ads.Count > Na)
+        {
+            if (!IsVisible(Ads[Na]))
+            {
+                Na++;
+            }
+            else
+            {
+                try
+                {
+                    //CheckForPopupsEnabled = false;
+                    Click(Ads[Na], false);
+			       	Wait(2);					
+                    Driver.SwitchTo().Window(Driver.WindowHandles[1]);
+                    Wait();					
+                    Wait(3);
+					
+                    //DateTime Timeout = DateTime.Now.AddSeconds(150);
+                    var Timer = ElementByXPath("//div[@class='progress']/div[contains(@class,'progress-bar' | 'progress-bar progress-bar-primary' )] ") ; 
+
+
+                    while (IsVisible(Timer))
+                    {
+						Log("timer here - wait ");
+                        //Timer = ElementByXPath("//div[@class='progress-bar progress-bar-primary']");
+                        Wait();
+                        //if (Timeout <= DateTime.Now) 
+						//{
+						//break; 
+						//}
+                    }
+
+                    Wait(2);
+                    var Captcha = ElementByXPath("//img[@id='imgCaptcha']");
+                    if (IsVisible(Captcha))
+                    {
+                        var TextBoxCaptcha = ElementByXPath("//input[@id='adCaptcha']");
+                        bool IsOk = false;
+                        int tries = 0;
+                        while (!IsOk)
+                        {
+                            var result = DoSolveImageCaptcha(Captcha, TextBoxCaptcha);
+                            if (result > 0)
+                            {
+                                Log("Problem with captcha");
+                                var Reload = ElementByXPath("//button[@id='reloadCaptcha']");
+                                if (IsVisible(Reload))
+                                {
+                                    Click(Reload);
+                                    Wait();
+                                }
+                            }
+                            var TryCaptcha = ElementByXPath("//button[@id='tryCaptcha']");
+                            if (IsVisible(TryCaptcha))
+                            {
+                                Click(TryCaptcha);
+                                Wait(2);
+                            }
+                            Captcha = ElementByXPath("//img[@id='imgCaptcha']");
+                            if (!IsVisible(Captcha))
+                            {
+                                IsOk = true;
+                                ClaimSuccess();
+                                IsSuccess = true;
+                                Log("Add success viewed");
+                            }
+                            else
+                            {
+                                Log("Captcha incorrect");
+                            }
+                            tries++;
+                            if (tries >= 3)
+
+                                Na++;
+                            break;
+
+                        }
+                    }
+ 
+ 
+                    var ProgressBarText = ElementByXPath("//span[@id='progressbarText']");
+                    if (IsVisible(ProgressBarText)){
+
+                        Log(ProgressBarText.Text);
+
+                    }
+
+                }
+                finally
+                {
+                    //CheckForPopupsEnabled = true;
+                    //CheckForPopups();
+                    Driver.SwitchTo().Window(Driver.WindowHandles[0]);
+                    Driver.Navigate().Refresh();
+                    Wait(2, 3);
+                    Ads = ElementsByXPath("//div[contains(@class,'viewads-ad') and not(contains(@class,'visited'))]//a[@target='ad']");
+
+                }
+            }
+
+        }//end first while
+		
+        } //end SurfActiveWindow
+          //=============//
+
+
+
+        //=========================//
+        //AutoSurfAds - Normal Way//
+        //=========================//
+        if (GetBoolSetting("AutoSurfAds"))
+        {
+
+            GoToUrl("https://BtcFree.Website/surf");
+
+            //if No ad available
+            var SurfAdsGeneralTextCheck = ElementByXPath("//h1/b[contains(text(),'No ad available!')]  | //p/strong[contains(text(),'No ads are available right now')]");
+            if (IsVisible(SurfAdsGeneralTextCheck))
+            {
+                GoToUrl("https://BtcFree.Website/account");
+                Wait();
+
+                var BalanceInfo = ElementByXPath("//span[@id='balance']");
+                if (IsVisible(BalanceInfo))
+                {
+                    Log("Balance Info - " + BalanceInfo.Text);
+                }
+                Wait();
+
+                Driver.Close();  // Close specific chrome window
+                Driver.Quit();  // also Close the console app, that was used to kick off the chrome window
+                Driver.Dispose();  // Close the chromedriver.exe
+                return GetWaitSetting();
+
+            }
+			
+			
+            var ButtonAd = ElementByXPath("//button[@class='btn btn-primary start-btn']  | //button[@class='btn btn-success start-btn'] ");
+            while (IsVisible(ButtonAd))
+            {
+                try
+                {
+                    CheckForPopupsEnabled = false;
+                    Click(ButtonAd, false);
+                    Wait();
+                    Driver.SwitchTo().Window(Driver.WindowHandles[1]);
+                    Wait(4);
+                    Driver.SwitchTo().Window(Driver.WindowHandles[0]);
+                    ButtonAd = ElementByXPath("//button[@class='btn btn-primary start-btn']  | //button[@class='btn btn-success start-btn'] ");
+                    DateTime t1 = DateTime.Now.AddSeconds(70);
+                    while (!IsVisible(ButtonAd))
+                    {
+                        if (DateTime.Now > t1)
+                        {
+                            break;
+                        }
+                        Wait();
+                        ButtonAd = ElementByXPath("//button[@class='btn btn-primary start-btn']  | //button[@class='btn btn-success start-btn'] ");
+						
+						var NoBAL = ElementByXPath("//h1/b[contains(text(),'No ad available!')]  | //p/strong[contains(text(),'No ads are available right now')]");
+                        if (IsVisible(NoBAL))
+                        {	
+			               Log("spins 0 break");				
+                           //break; //if the count of "spins" is 0	
+				           ClaimSuccess(); //Marks the claim as a success
+						   
+                           Driver.Close();
+                           Driver.Quit();
+                           Driver.Dispose();
+                           return 1*60;    				   
+			            }	
+						
+                    }
+                    Wait();
+                }
+                finally
+                {
+                    Driver.SwitchTo().Window(Driver.WindowHandles[0]);
+                    CheckForPopupsEnabled = true;
+                    CheckForPopups();
+					
+                    Wait(2);
+                    ButtonAd = ElementByXPath("//button[@class='btn btn-primary start-btn']  | //button[@class='btn btn-success start-btn'] ");				
+                }
+            }
+        } //end AutoSurfAds
+          //=============//
+		
+		
+        //if the start button apper
+        ClaimSuccess();
+        //register as success, so the script knows it can close
+        IsSuccess = true;
+        return GetWaitSetting();
+
+
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.		
+        return base.DoSolveFaucet();
+
+    }
+    //=============//
+    //DoSolveFaucet
+    //=============//
+
+
+
+
+    public override int AfterSolveFaucet()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterSolveFaucet();
+    }
+
+
+
+
+    /// <summary>
+    /// This method gets called in the end after the BeforeSolveFaucet/DoSolveFaucet and AfterSolveFaucet methods were done.
+    /// The base.CheckFaucetResult will try to find a visible element on the page using the XPath from SuccessXPath and FailXPath (see the Start method)
+    /// These properties should contain XPath expressions to find certain elements on the page.
+    /// For example if it finds one of the elements from the SuccessXPath, and it is visible, then it will flag the claim attempt as a success.
+    /// Or if it finds one of the elements from the FailXPath, and it is visible, then it will flag the claim attempt as a failure.
+    /// </summary>
+    public override int CheckFaucetResult()
+    {
+
+        return base.CheckFaucetResult();
+
+
+    }
+
+
+
+
+    //ptc 
+	
+    public bool Solve_image_catpcha_ptcwall()
+    {
+        bool IsSolved;
+        Bitmap[] icons = new Bitmap[6];
+
+        try
+        {
+            Bitmap captcha;
+            Wait(2, 4);
+            try
+            {
+                var capt = ElementByXPath("//img[contains(@src,'captcha')]");
+
+
+
+                captcha = TakeScreenshot(CaptchaService.Manual, capt);
+
+
+                if (captcha.Size.Width != 300 || captcha.Size.Height != 50)
+                {
+                    captcha = ChangeImageSize(captcha, 300, 50);
+                }
+
+
+
+
+                icons[0] = captcha.Clone(new Rectangle(0, 0, 50, 50), captcha.PixelFormat);
+                icons[1] = captcha.Clone(new Rectangle(50, 0, 50, 50), captcha.PixelFormat);
+                icons[2] = captcha.Clone(new Rectangle(100, 0, 50, 50), captcha.PixelFormat);
+                icons[3] = captcha.Clone(new Rectangle(150, 0, 50, 50), captcha.PixelFormat);
+                icons[4] = captcha.Clone(new Rectangle(200, 0, 50, 50), captcha.PixelFormat);
+                icons[5] = captcha.Clone(new Rectangle(250, 0, 50, 50), captcha.PixelFormat);
+
+
+            }
+            catch (Exception)
+            {
+
+                var capt = ElementByXPath("//tr//td[@valign='middle'][2]");
+
+                captcha = TakeScreenshot(CaptchaService.Manual, capt);
+
+
+                if (captcha.Size.Width != 302 || captcha.Size.Height != 52)
+                {
+                    captcha = ResizeImage(captcha, new Size(302, 52));
+                }
+
+
+
+                icons[0] = captcha.Clone(new Rectangle(1, 1, 50, 50), captcha.PixelFormat);
+                icons[1] = captcha.Clone(new Rectangle(51, 1, 50, 50), captcha.PixelFormat);
+                icons[2] = captcha.Clone(new Rectangle(101, 1, 50, 50), captcha.PixelFormat);
+                icons[3] = captcha.Clone(new Rectangle(151, 1, 50, 50), captcha.PixelFormat);
+                icons[4] = captcha.Clone(new Rectangle(201, 1, 50, 50), captcha.PixelFormat);
+                icons[5] = captcha.Clone(new Rectangle(251, 1, 50, 50), captcha.PixelFormat);
+
+            }
+
+            string asset_d = AssetDir("Other");
+            int result_ = -1;
+            asset_d += "\\Images Ptcwall\\";
+            bool enc = false;
+
+            for (int i = 0; i < 6; i++)
+            {
+                for (int j = 1; j <= 10; j++)
+                {
+
+                    string dir = asset_d + j.ToString() + ".png";
+                    FileStream s = new FileStream(dir, FileMode.Open);
+                    Bitmap imgtocomp = new Bitmap(Image.FromStream(s));
+                    s.Close();
+                    bool result = CompareImage(icons[i], imgtocomp);
+                    if (result)
+                    {
+                        result_ = i;
+                        enc = true;
+                        break;
+
+                    }
+
+                }
+            }
+
+            if (enc)
+            {
+
+                result_++;
+                ExecuteScript("endprogress(" + result_.ToString() + ");");
+                Wait();
+
+                IsSolved = true;
+            }
+            else
+            {
+                IsSolved = Solve_image_Captcha_PtcWall_JS();
+            }
+
+        }
+        catch (Exception)
+        {
+
+            IsSolved = Solve_image_Captcha_PtcWall_JS();
+
+        }
+
+        return IsSolved;
+    }
+
+    private bool Solve_image_Captcha_PtcWall_JS()
+    {
+        bool IsSolved = false;
+        Bitmap[] icons = new Bitmap[6];
+
+        try
+        {
+            Bitmap captcha;
+            Wait(2, 4);
+
+            var capt = ElementByXPath("//img[contains(@src,'captcha')]");
+
+
+            captcha = TakeScreenshot(Base.Captcha.CaptchaService.Manual, capt);
+
+            icons[0] = captcha.Clone(new Rectangle(0, 0, 50, 50), captcha.PixelFormat);
+            icons[1] = captcha.Clone(new Rectangle(50, 0, 50, 50), captcha.PixelFormat);
+            icons[2] = captcha.Clone(new Rectangle(100, 0, 50, 50), captcha.PixelFormat);
+            icons[3] = captcha.Clone(new Rectangle(150, 0, 50, 50), captcha.PixelFormat);
+            icons[4] = captcha.Clone(new Rectangle(200, 0, 50, 50), captcha.PixelFormat);
+            icons[5] = captcha.Clone(new Rectangle(250, 0, 50, 50), captcha.PixelFormat);
+
+
+
+
+
+            string asset_d = AssetDir("Other");
+            int result_ = -1;
+            asset_d += "\\Images Ptcwall\\";
+            bool enc = false;
+
+            for (int i = 0; i < 6; i++)
+            {
+                for (int j = 1; j <= 10; j++)
+                {
+
+                    string dir = asset_d + j.ToString() + ".png";
+                    FileStream s = new FileStream(dir, FileMode.Open);
+                    Bitmap imgtocomp = new Bitmap(Image.FromStream(s));
+                    s.Close();
+                    bool result = CompareImage(icons[i], imgtocomp);
+                    if (result)
+                    {
+                        result_ = i;
+                        enc = true;
+                        break;
+
+                    }
+
+                }
+            }
+
+            if (enc)
+            {
+
+                result_++;
+                ExecuteScript("endprogress(" + result_.ToString() + ");");
+                Wait();
+
+                IsSolved = true;
+            }
+
+        }
+        catch (Exception ex)
+        {
+            Log(ex.ToString());
+            IsSolved = false;
+
+        }
+
+        return IsSolved;
+    }
+
+
+
+    public Bitmap ChangeImageSize(Bitmap pImg, int pWidth, int pHeigth)
+    {
+
+        //Creating new bitmap
+
+        Bitmap vBitmap = new Bitmap(pWidth, pHeigth);
+
+        using (Graphics vGraphics = Graphics.FromImage(vBitmap))
+
+        {
+
+            //Specifi interpolation
+
+            vGraphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
+
+            //Draw
+
+            vGraphics.DrawImage(pImg, 0, 0, pWidth, pHeigth);
+
+        }
+
+        //return image
+
+        return vBitmap;
+
+    }
+
+
+
+
+    private bool CompareImage(Bitmap image1, Bitmap image2)
+    {
+
+        for (int i = 0; i < image1.Height; i++)
+        {
+            for (int j = 0; j < image1.Width; j++)
+            {
+                if (!SameColor(image1.GetPixel(j, i), image2.GetPixel(j, i), 100))
+                {
+
+                    return false;
+
+                }
+            }
+        }
+
+        return true;
+
+
+    }
+
+
+    private bool SameColor(Color c1, Color c2, double thre)
+    {
+        int r = c1.R - c2.R;
+        int g = c1.G - c2.G;
+        int b = c1.B - c2.B;
+        if (r * r + g * g + b * b > thre * thre)
+        {
+            return false;
+        }
+
+        return true;
+
+
+    }
+
+
+    public Image Base64ToImage(string base64String)
+    {
+        // Convert base 64 string to byte[]
+        byte[] imageBytes = Convert.FromBase64String(base64String);
+        // Convert byte[] to Image
+        using (MemoryStream ms = new MemoryStream(imageBytes, 0, imageBytes.Length))
+        {
+            Image image = Image.FromStream(ms, true);
+            return image;
+        }
+    }
+
+
+
+
+    //CheckCloudFlare
+    public void CheckCloudFlare()
+    {
+        int Count = 0;
+        while (IsVisible(ElementByXPath("//h1[@data-translate='challenge_headline']")) && Count < 5)
+        {
+            int result = DoSolveCaptcha();
+            if (result > 0)
+            {
+                Count++;
+                continue;
+            }
+
+
+            RecaptchaUtility BypassRecaptcha = new RecaptchaUtility(this);
+            BypassRecaptcha.DoSolve();
+            Wait(2);
+            Count++;
+        }
+    }
+
+
+
+} //public class bitcohitz

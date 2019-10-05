@@ -1,0 +1,1669 @@
+﻿
+
+//==================//
+//script Written by: ••AviramDayan•• 22/08/2019 09:00AM - Version 1
+//Last Update: 21/09/2019 09:00AM - Version 3
+//==================//
+
+using System;
+using System.Drawing;
+using FaucetCollector.Script;
+using System.Threading.Tasks;
+using System.Collections.Generic;
+using OpenQA.Selenium;
+using OpenQA.Selenium.Interactions;
+
+//css_inc recaptchaUtilities
+//css_inc AntiBotLinksUtility
+//css_ref ImageProcessing
+//css_ref ProcessingImagesUsingLockBits
+//css_inc GetestCaptcha
+
+public class casinoroyale : FaucetScript
+{
+    /// <summary>
+    /// List of Settings that will be shown in the bot when selecting this Faucet in the bot.
+    /// You can get the value the user entered with the mdogeods: GetSetting("[Name of the FaucetSetting]"), GetBoolSetting and GetDateTimeSetting
+    /// You can also create a new setting value using SetSetting("[Name you want to use]", "value")
+    /// </summary>
+    public override FaucetSettings Settings
+    {
+        get
+        {
+			
+            return new FaucetSettings("https://Casinoroyale.bet/")
+            {
+                new FaucetSetting(){Name="Email",Display="Email OR UserName",Type=EditorType.TextBox,Required=false},
+                new FaucetSetting(){Name="Password",Display="Password",Type=EditorType.Password,Required=false},
+				
+                new FaucetSetting() { Name = "btc", Display = "btc - claim", Type = EditorType.CheckBox, Default =true},
+                new FaucetSetting() { Name = "bcc", Display = "bcc - claim", Type = EditorType.CheckBox, Default = true},	
+                new FaucetSetting() { Name = "ltc", Display = "ltc - claim", Type = EditorType.CheckBox, Default = true},	
+                new FaucetSetting() { Name = "dash", Display = "dash - claim", Type = EditorType.CheckBox, Default = true},	
+                new FaucetSetting() { Name = "dcr", Display = "dcr - claim", Type = EditorType.CheckBox, Default = true},	
+                new FaucetSetting() { Name = "doge", Display = "doge - claim", Type = EditorType.CheckBox, Default = true},	
+                new FaucetSetting() { Name = "eth", Display = "eth - claim", Type = EditorType.CheckBox, Default = true},	
+                new FaucetSetting() { Name = "xmr", Display = "xmr - claim", Type = EditorType.CheckBox, Default = true},	
+                new FaucetSetting() { Name = "zec", Display = "zec - claim", Type = EditorType.CheckBox, Default = true},	
+                new FaucetSetting() { Name = "usdt", Display = "usdt - claim", Type = EditorType.CheckBox, Default = true},	
+                new FaucetSetting() { Name = "xrp", Display = "xrp - claim", Type = EditorType.CheckBox, Default = true},	
+                new FaucetSetting() { Name = "kmd", Display = "kmd - claim", Type = EditorType.CheckBox, Default = true},	
+                new FaucetSetting() { Name = "lsk", Display = "lsk - claim", Type = EditorType.CheckBox, Default = true},	
+                new FaucetSetting() { Name = "qtum", Display = "qtum - claim", Type = EditorType.CheckBox, Default = true},	
+                new FaucetSetting() { Name = "strat", Display = "strat - claim", Type = EditorType.CheckBox, Default = true},	
+                new FaucetSetting() { Name = "waves", Display = "waves - claim", Type = EditorType.CheckBox, Default = true},	
+                new FaucetSetting() { Name = "xem", Display = "xem - claim", Type = EditorType.CheckBox, Default = true},	
+                new FaucetSetting() { Name = "neo", Display = "neo - claim", Type = EditorType.CheckBox, Default = true},	
+                new FaucetSetting() { Name = "xvg", Display = "xvg - claim", Type = EditorType.CheckBox, Default = true},	
+                new FaucetSetting() { Name = "dgb", Display = "dgb - claim", Type = EditorType.CheckBox, Default = true},	
+                new FaucetSetting() { Name = "trx", Display = "trx - claim", Type = EditorType.CheckBox, Default = true},	
+                new FaucetSetting() { Name = "bcn", Display = "bcn - claim", Type = EditorType.CheckBox, Default = true},	
+				
+				
+                new FaucetSetting() { Name = "AffWithdraw", Display = "AffWithdraw", Type = EditorType.CheckBox, Default = false},	
+
+
+            };
+        }
+    }
+
+	
+//============================================================//
+//the number of "successes" in the script - when are finished  
+//============================================================//
+    public override void Start()
+    {
+        ad = false;
+       
+        //Title that shows in the browser. Is used to identify and close popup windows
+        Title = "Casino Royale";
+
+		SuccessXPath = "//*";  //*[@id='']
+        FailXPath = "//*"; //*[@id='']
+	
+        //TimerIsCountingUp = true;
+		
+        //Let Faucet Collector start up everything
+        base.Start();
+    }
+//============================================================//
+//the number of "successes" in the script - when are finished  
+//============================================================//
+
+	
+    bool ad; //custom bool
+
+
+    public override int DoInit()
+    {
+	
+        //Let Faucet Collector continue.
+        return base.DoInit();
+    }
+
+	
+//==================//
+//save Login Cookies 
+//==================//
+    public override bool IsLoggedIn()
+    {
+	    //save Login Cookies - Check if the "Logout" exist
+        return ElementByXPath ("//div[@class='menu withChat']/div[@class='balanceDropdown']") != null;
+	 
+        //return base.IsLoggedIn();
+    }
+//==================//
+//save Login Cookies 
+//==================//	
+
+
+
+
+//=============//
+//BeforeLogin
+//=============//
+    public override int BeforeLogin()
+    {
+		
+
+        //if we already login go to here
+        GoToUrl("https://www.Casinoroyale.bet/");
+
+		
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeLogin();
+    }
+//=============//
+//BeforeLogin
+//=============//
+
+	
+
+
+	
+//========//
+//DoLogin
+//========//
+ public override int DoLogin()
+ {
+	
+  var ExitButton = ElementByXPath ("//div[@class='menu withChat']/div[@class='balanceDropdown']");  //("//button[@class='option btnLogout' and contains(text(),'Logout')]")
+
+  //if i NOT Login - go to Login Page
+  if (!IsVisible(ExitButton))
+  {
+
+    GoToUrl("https://www.Casinoroyale.bet/");
+    Wait();		
+    Wait(2);
+		
+    var WindowsLogin = ElementByXPath("//div[@class='styles_modal__gNwvD modal-modalBody bgNight']");
+    if (IsVisible(WindowsLogin))		
+    {
+        /*
+        var StartOpenLogin = ElementByXPath("//a[@data-test='login-link']");
+	    if (IsVisible(StartOpenLogin))
+	    { 
+        Click(StartOpenLogin);
+		}
+        */
+		
+		Wait(2);
+		
+        var box_user = ElementByXPath("//input[@name='login_username']");
+        SetText(box_user, GetSetting("Email"));
+		
+		Wait(2);
+		
+        var box_pass = ElementByXPath("//input[@name='password']");
+        SetText(box_pass, GetPassword("Password"));
+
+		Wait(4);
+		
+        var ButtonLog = ElementByXPath("//button[@class='button roll button-login']");
+        Click(ButtonLog);
+		
+		Wait(2);
+		
+        var RecaptchaOpen_Iframe = ElementByXPath ("//div[5]/div[2]/iframe[contains(@src,'recaptcha/api2/bframe')]");  // ("//iframe[contains(@src,'recaptcha/api2/anchor')]")
+        if (IsVisible(RecaptchaOpen_Iframe))
+		{
+        //SolveCaptcha if apper
+        var result = base.DoSolveCaptcha();
+        RecaptchaUtility utility = new RecaptchaUtility(this);
+        utility.DoSolve();
+		}
+
+/*		
+        var Error_Message = ElementByXPath ("//div[@id='add_err']/div/div[@class='message' and contains(text(),'fille' | 'captcha' ) ]");
+        if (IsVisible(Error_Message))
+        {
+            Log("Error_Message - Appear - we return after 1 min ");
+            return 1*60; //we return after 1 min
+        }
+*/		
+		Wait();	
+		
+    } // end WindowsLogin
+	
+  } // end ExitButton
+
+        
+       return base.DoLogin();
+    }
+//========//
+//DoLogin
+//========//
+ 
+
+
+//========//
+//AfterLogin
+//========//
+ public override int AfterLogin()
+ {
+ 
+  
+    //we are good to continue
+    return base.AfterLogin();
+
+ }
+//========//
+//AfterLogin
+//========//
+
+
+	
+
+//================//
+//GetFaucetWaitTime
+//================//
+    public override int GetFaucetWaitTime()
+    {
+
+        if (ad)
+        {
+		    //Log("return ad");
+			ad=false;
+			Driver.Close();  // Close specific chrome window
+            Driver.Quit();  // also Close the console app, that was used to kick off the chrome window
+            Driver.Dispose();  // Close the chromedriver.exe
+            return GetWaitSetting();
+        }
+
+		//let Faucet Collector continue.
+        return base.GetFaucetWaitTime();
+    }
+//================//
+//GetFaucetWaitTime
+//================//
+
+
+
+    public override int BeforeSolveCaptcha()
+    {
+ 
+        //Return we are ready to proceed
+        return base.BeforeSolveFaucet();
+    }
+
+	
+    public override int DoSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoSolveCaptcha();
+    }
+
+	
+    public override int AfterSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterSolveCaptcha();
+    }
+
+	
+    public override int BeforeSolveFaucet()
+    {
+        //Return we can continue
+        return base.BeforeSolveFaucet();
+    }
+  
+	
+	
+//==============//
+//DoSolveFaucet
+//==============//
+ public override int DoSolveFaucet()
+  {
+	  
+	  
+    //=============//
+    //AffWithdraw
+    //=============// 
+    if (GetBoolSetting("AffWithdraw"))
+    {
+
+
+		Log("AffWithdraw");
+		GoToUrl("https://casinoroyale.bet/games");
+		Wait();
+		Wait(2);
+
+		
+
+        var MenuAccount = ElementByXPath("//div[@class='options account-options']/button[@class='selected option']");
+        if (IsVisible(MenuAccount))
+        {		
+		Log("MenuAccount");		
+        Click(MenuAccount);
+        }//end MenuAccount
+		
+		Wait(2);
+		
+        var AffiliateButton = ElementByXPath("//button[@class='option' and contains(text(),'Affiliate')]");
+        if (IsVisible(AffiliateButton))
+        {		
+		Log("AffiliateButton");		
+        Click(AffiliateButton);
+        }//end AffiliateButton
+		
+		Wait();
+		Wait(2);
+		
+		Claim_Function_Affiliate(); // call to claim button
+		
+/*		
+		//======//
+		//btc//
+		//======//
+		Menu_Function_Affiliate(); // call to open Menu_Function_Affiliate
+		Wait();
+		Wait(2);
+		
+		var btc_Affiliate_Select = ElementByXPath("//div[@class='scrollPane']//button[1]");
+        if (IsVisible(btc_Affiliate_Select))
+        {			
+        Click(btc_Affiliate_Select);
+        Log("btc_Affiliate_Select");
+        }
+		
+		Wait(2);
+		
+		Claim_Function_Affiliate(); // call to claim button
+		
+		//======//
+
+		//======//
+		//bcc//
+		//======//
+		Menu_Function_Affiliate(); // call to open Menu_Function_Affiliate
+		Wait();
+		Wait(2);
+		
+		var bcc_Affiliate_Select = ElementByXPath("//div[@class='scrollPane']//button[2]");
+        if (IsVisible(bcc_Affiliate_Select))
+        {			
+        Click(bcc_Affiliate_Select);
+        Log("bcc_Affiliate_Select");
+        }
+		
+		Wait(2);
+		
+		Claim_Function_Affiliate(); // call to claim button
+		
+		//======//
+
+		//======//
+		//ltc//
+		//======//
+		Menu_Function_Affiliate(); // call to open Menu_Function_Affiliate
+		Wait();
+		Wait(2);
+		
+		var ltc_Affiliate_Select = ElementByXPath("//div[@class='scrollPane']//button[3]");
+        if (IsVisible(ltc_Affiliate_Select))
+        {			
+        Click(ltc_Affiliate_Select);
+        Log("ltc_Affiliate_Select");
+        }
+		
+		Wait(2);
+		
+		Claim_Function_Affiliate(); // call to claim button
+		
+		//======//
+
+		//======//
+		//dash//
+		//======//
+		Menu_Function_Affiliate(); // call to open Menu_Function_Affiliate
+		Wait();
+		Wait(2);
+		
+		var dash_Affiliate_Select = ElementByXPath("//div[@class='scrollPane']//button[4]");
+        if (IsVisible(dash_Affiliate_Select))
+        {			
+        Click(dash_Affiliate_Select);
+        Log("dash_Affiliate_Select");
+        }
+		
+		Wait(2);
+		
+		Claim_Function_Affiliate(); // call to claim button
+		
+		//======//
+
+		//======//
+		//dcr//
+		//======//
+		Menu_Function_Affiliate(); // call to open Menu_Function_Affiliate
+		Wait();
+		Wait(2);
+		
+		var dcr_Affiliate_Select = ElementByXPath("//div[@class='scrollPane']//button[5]");
+        if (IsVisible(dcr_Affiliate_Select))
+        {			
+        Click(dcr_Affiliate_Select);
+        Log("dcr_Affiliate_Select");
+        }
+		
+		Wait(2);
+		
+		Claim_Function_Affiliate(); // call to claim button
+		
+		//======//
+
+		//======//
+		//doge//
+		//======//
+		Menu_Function_Affiliate(); // call to open Menu_Function_Affiliate
+		Wait();
+		Wait(2);
+		
+		var doge_Affiliate_Select = ElementByXPath("//div[@class='scrollPane']//button[6]");
+        if (IsVisible(doge_Affiliate_Select))
+        {			
+        Click(doge_Affiliate_Select);
+        Log("doge_Affiliate_Select");
+        }
+		
+		Wait(2);
+		
+		Claim_Function_Affiliate(); // call to claim button
+		
+		//======//
+
+		//======//
+		//eth//
+		//======//
+		Menu_Function_Affiliate(); // call to open Menu_Function_Affiliate
+		Wait();
+		Wait(2);
+		
+		var eth_Affiliate_Select = ElementByXPath("//div[@class='scrollPane']//button[7]");
+        if (IsVisible(eth_Affiliate_Select))
+        {			
+        Click(eth_Affiliate_Select);
+        Log("eth_Affiliate_Select");
+        }
+		
+		Wait(2);
+		
+		Claim_Function_Affiliate(); // call to claim button
+		
+		//======//
+
+		//======//
+		//xmr//
+		//======//
+		Menu_Function_Affiliate(); // call to open Menu_Function_Affiliate
+		Wait();
+		Wait(2);
+		
+		var xmr_Affiliate_Select = ElementByXPath("//div[@class='scrollPane']//button[8]");
+        if (IsVisible(xmr_Affiliate_Select))
+        {			
+        Click(xmr_Affiliate_Select);
+        Log("xmr_Affiliate_Select");
+        }
+		
+		Wait(2);
+		
+		Claim_Function_Affiliate(); // call to claim button
+		
+		//======//
+
+		//======//
+		//zec//
+		//======//
+		Menu_Function_Affiliate(); // call to open Menu_Function_Affiliate
+		Wait();
+		Wait(2);
+		
+		var zec_Affiliate_Select = ElementByXPath("//div[@class='scrollPane']//button[9]");
+        if (IsVisible(zec_Affiliate_Select))
+        {			
+        Click(zec_Affiliate_Select);
+        Log("zec_Affiliate_Select");
+        }
+		
+		Wait(2);
+		
+		Claim_Function_Affiliate(); // call to claim button
+		
+		//======//
+
+		//======//
+		//usdt//
+		//======//
+		Menu_Function_Affiliate(); // call to open Menu_Function_Affiliate
+		Wait();
+		Wait(2);
+		
+		var usdt_Affiliate_Select = ElementByXPath("//div[@class='scrollPane']//button[10]");
+        if (IsVisible(usdt_Affiliate_Select))
+        {			
+        Click(usdt_Affiliate_Select);
+        Log("usdt_Affiliate_Select");
+        }
+		
+		Wait(2);
+		
+		Claim_Function_Affiliate(); // call to claim button
+		
+		//======//
+
+		//======//
+		//xrp//
+		//======//
+		Menu_Function_Affiliate(); // call to open Menu_Function_Affiliate
+		Wait();
+		Wait(2);
+		
+		var xrp_Affiliate_Select = ElementByXPath("//div[@class='scrollPane']//button[11]");
+        if (IsVisible(xrp_Affiliate_Select))
+        {			
+        Click(xrp_Affiliate_Select);
+        Log("xrp_Affiliate_Select");
+        }
+		
+		Wait(2);
+		
+		Claim_Function_Affiliate(); // call to claim button
+		
+		//======//
+
+		//======//
+		//kmd//
+		//======//
+		Menu_Function_Affiliate(); // call to open Menu_Function_Affiliate
+		Wait();
+		Wait(2);
+		
+		var kmd_Affiliate_Select = ElementByXPath("//div[@class='scrollPane']//button[12]");
+        if (IsVisible(kmd_Affiliate_Select))
+        {			
+        Click(kmd_Affiliate_Select);
+        Log("kmd_Affiliate_Select");
+        }
+		
+		Wait(2);
+		
+		Claim_Function_Affiliate(); // call to claim button
+		
+		//======//
+
+		//======//
+		//lsk//
+		//======//
+		Menu_Function_Affiliate(); // call to open Menu_Function_Affiliate
+		Wait();
+		Wait(2);
+		
+		var lsk_Affiliate_Select = ElementByXPath("//div[@class='scrollPane']//button[13]");
+        if (IsVisible(lsk_Affiliate_Select))
+        {			
+        Click(lsk_Affiliate_Select);
+        Log("lsk_Affiliate_Select");
+        }
+		
+		Wait(2);
+		
+		Claim_Function_Affiliate(); // call to claim button
+		
+		//======//
+
+		//======//
+		//qtum//
+		//======//
+		Menu_Function_Affiliate(); // call to open Menu_Function_Affiliate
+		Wait();
+		Wait(2);
+		
+		var qtum_Affiliate_Select = ElementByXPath("//div[@class='scrollPane']//button[14]");
+        if (IsVisible(qtum_Affiliate_Select))
+        {			
+        Click(qtum_Affiliate_Select);
+        Log("qtum_Affiliate_Select");
+        }
+		
+		Wait(2);
+		
+		Claim_Function_Affiliate(); // call to claim button
+		
+		//======//
+
+		//======//
+		//strat//
+		//======//
+		Menu_Function_Affiliate(); // call to open Menu_Function_Affiliate
+		Wait();
+		Wait(2);
+		
+		var strat_Affiliate_Select = ElementByXPath("//div[@class='scrollPane']//button[15]");
+        if (IsVisible(strat_Affiliate_Select))
+        {			
+        Click(strat_Affiliate_Select);
+        Log("strat_Affiliate_Select");
+        }
+		
+		Wait(2);
+		
+		Claim_Function_Affiliate(); // call to claim button
+		
+		//======//
+
+		//======//
+		//waves//
+		//======//
+		Menu_Function_Affiliate(); // call to open Menu_Function_Affiliate
+		Wait();
+		Wait(2);
+		
+		var waves_Affiliate_Select = ElementByXPath("//div[@class='scrollPane']//button[16]");
+        if (IsVisible(waves_Affiliate_Select))
+        {			
+        Click(waves_Affiliate_Select);
+        Log("waves_Affiliate_Select");
+        }
+		
+		Wait(2);
+		
+		Claim_Function_Affiliate(); // call to claim button
+		
+		//======//
+
+		//======//
+		//xem//
+		//======//
+		Menu_Function_Affiliate(); // call to open Menu_Function_Affiliate
+		Wait();
+		Wait(2);
+		
+		var xem_Affiliate_Select = ElementByXPath("//div[@class='scrollPane']//button[17]");
+        if (IsVisible(xem_Affiliate_Select))
+        {			
+        Click(xem_Affiliate_Select);
+        Log("xem_Affiliate_Select");
+        }
+		
+		Wait(2);
+		
+		Claim_Function_Affiliate(); // call to claim button
+		
+		//======//
+
+		//======//
+		//neo//
+		//======//
+		Menu_Function_Affiliate(); // call to open Menu_Function_Affiliate
+		Wait();
+		Wait(2);
+		
+		var neo_Affiliate_Select = ElementByXPath("//div[@class='scrollPane']//button[18]");
+        if (IsVisible(neo_Affiliate_Select))
+        {			
+        Click(neo_Affiliate_Select);
+        Log("neo_Affiliate_Select");
+        }
+		
+		Wait(2);
+		
+		Claim_Function_Affiliate(); // call to claim button
+		
+		//======//
+
+		//======//
+		//xvg//
+		//======//
+		Menu_Function_Affiliate(); // call to open Menu_Function_Affiliate
+		Wait();
+		Wait(2);
+		
+		var xvg_Affiliate_Select = ElementByXPath("//div[@class='scrollPane']//button[19]");
+        if (IsVisible(xvg_Affiliate_Select))
+        {			
+        Click(xvg_Affiliate_Select);
+        Log("xvg_Affiliate_Select");
+        }
+		
+		Wait(2);
+		
+		Claim_Function_Affiliate(); // call to claim button
+		
+		//======//
+
+		//======//
+		//dgb//
+		//======//
+		Menu_Function_Affiliate(); // call to open Menu_Function_Affiliate
+		Wait();
+		Wait(2);
+		
+		var dgb_Affiliate_Select = ElementByXPath("//div[@class='scrollPane']//button[20]");
+        if (IsVisible(dgb_Affiliate_Select))
+        {			
+        Click(dgb_Affiliate_Select);
+        Log("dgb_Affiliate_Select");
+        }
+		
+		Wait(2);
+		
+		Claim_Function_Affiliate(); // call to claim button
+		
+		//======//
+
+		//======//
+		//trx//
+		//======//
+		Menu_Function_Affiliate(); // call to open Menu_Function_Affiliate
+		Wait();
+		Wait(2);
+		
+		var trx_Affiliate_Select = ElementByXPath("//div[@class='scrollPane']//button[21]");
+        if (IsVisible(trx_Affiliate_Select))
+        {			
+        Click(trx_Affiliate_Select);
+        Log("trx_Affiliate_Select");
+        }
+		
+		Wait(2);
+		
+		Claim_Function_Affiliate(); // call to claim button
+		
+		//======//
+
+		//======//
+		//bcn//
+		//======//
+		Menu_Function_Affiliate(); // call to open Menu_Function_Affiliate
+		Wait();
+		Wait(2);
+		
+		var bcn_Affiliate_Select = ElementByXPath("//div[@class='scrollPane']//button[22]");
+        if (IsVisible(bcn_Affiliate_Select))
+        {			
+        Click(bcn_Affiliate_Select);
+        Log("bcn_Affiliate_Select");
+        }
+		
+		Wait(2);
+		
+		Claim_Function_Affiliate(); // call to claim button
+		
+		//======//
+*/
+		
+	   
+   }//end AffWithdraw
+   //=============//	 
+ 
+ 
+
+
+        GoToUrl("https://www.Casinoroyale.bet/");
+		Log("Go to faucet");	
+		
+		Wait();
+		Wait(2);	
+		
+
+		//======//
+		//btc//
+		//======//
+        if (GetBoolSetting("btc"))
+        {	
+		Log("btc - try to claim");	
+        FaucetButton_Function(); //call
+	
+        Menu_Function(); //call
+
+	    Wait(2);
+
+        var btc_VAR = ElementByXPath("//div[@class='scrollPane']//button[1]");
+        if (IsVisible(btc_VAR))
+        {		
+		Log("btc - success");		
+        Click(btc_VAR);
+        }//end btc_VAR
+		
+	    Wait(2);
+
+        BalanceNeedToBeZero_Function();
+		
+	    Wait(2);
+
+        Claim_Function(); //call
+		
+		}
+        //=====//	
+
+		//======//
+		//bcc//
+		//======//
+        if (GetBoolSetting("bcc"))
+        {	
+		Log("bcc - try to claim");	
+        FaucetButton_Function(); //call
+	
+        Menu_Function(); //call
+
+	    Wait(2);
+
+        var bcc_VAR = ElementByXPath("//div[@class='scrollPane']//button[2]");
+        if (IsVisible(bcc_VAR))
+        {		
+		Log("bcc - success");		
+        Click(bcc_VAR);
+        }//end bcc_VAR
+		
+	    Wait(2);
+
+        BalanceNeedToBeZero_Function();
+		
+	    Wait(2);
+
+        Claim_Function(); //call
+		
+		}
+        //=====//	
+
+		//======//
+		//ltc//
+		//======//
+        if (GetBoolSetting("ltc"))
+        {	
+		Log("ltc - try to claim");	
+        FaucetButton_Function(); //call
+	
+        Menu_Function(); //call
+
+	    Wait(2);
+
+        var ltc_VAR = ElementByXPath("//div[@class='scrollPane']//button[3]");
+        if (IsVisible(ltc_VAR))
+        {		
+		Log("ltc - success");		
+        Click(ltc_VAR);
+        }//end ltc_VAR
+		
+	    Wait(2);
+
+        BalanceNeedToBeZero_Function();
+		
+	    Wait(2);
+
+        Claim_Function(); //call
+		
+		}
+        //=====//	
+
+		//======//
+		//dash//
+		//======//
+        if (GetBoolSetting("dash"))
+        {	
+		Log("dash - try to claim");	
+        FaucetButton_Function(); //call
+	
+        Menu_Function(); //call
+
+	    Wait(2);
+
+        var dash_VAR = ElementByXPath("//div[@class='scrollPane']//button[4]");
+        if (IsVisible(dash_VAR))
+        {		
+		Log("dash - success");		
+        Click(dash_VAR);
+        }//end dash_VAR
+		
+	    Wait(2);
+
+        BalanceNeedToBeZero_Function();
+		
+	    Wait(2);
+
+        Claim_Function(); //call
+		
+		}
+        //=====//	
+
+		//======//
+		//dcr//
+		//======//
+        if (GetBoolSetting("dcr"))
+        {	
+		Log("dcr - try to claim");	
+        FaucetButton_Function(); //call
+	
+        Menu_Function(); //call
+
+	    Wait(2);
+
+        var dcr_VAR = ElementByXPath("//div[@class='scrollPane']//button[5]");
+        if (IsVisible(dcr_VAR))
+        {		
+		Log("dcr - success");		
+        Click(dcr_VAR);
+        }//end dcr_VAR
+		
+	    Wait(2);
+
+        BalanceNeedToBeZero_Function();
+		
+	    Wait(2);
+
+        Claim_Function(); //call
+		
+		}
+        //=====//	
+
+		//======//
+		//doge//
+		//======//
+        if (GetBoolSetting("doge"))
+        {	
+		Log("doge - try to claim");	
+        FaucetButton_Function(); //call
+	
+        Menu_Function(); //call
+
+	    Wait(2);
+
+        var doge_VAR = ElementByXPath("//div[@class='scrollPane']//button[6]");
+        if (IsVisible(doge_VAR))
+        {		
+		Log("doge - success");		
+        Click(doge_VAR);
+        }//end doge_VAR
+		
+	    Wait(2);
+
+        BalanceNeedToBeZero_Function();
+		
+	    Wait(2);
+
+        Claim_Function(); //call
+		
+		}
+        //=====//	
+
+		//======//
+		//eth//
+		//======//
+        if (GetBoolSetting("eth"))
+        {	
+		Log("eth - try to claim");	
+        FaucetButton_Function(); //call
+	
+        Menu_Function(); //call
+
+	    Wait(2);
+
+        var eth_VAR = ElementByXPath("//div[@class='scrollPane']//button[7]");
+        if (IsVisible(eth_VAR))
+        {		
+		Log("eth - success");		
+        Click(eth_VAR);
+        }//end eth_VAR
+		
+	    Wait(2);
+
+        BalanceNeedToBeZero_Function();
+		
+	    Wait(2);
+
+        Claim_Function(); //call
+		
+		}
+        //=====//	
+
+		//======//
+		//xmr//
+		//======//
+        if (GetBoolSetting("xmr"))
+        {	
+		Log("xmr - try to claim");	
+        FaucetButton_Function(); //call
+	
+        Menu_Function(); //call
+
+	    Wait(2);
+
+        var xmr_VAR = ElementByXPath("//div[@class='scrollPane']//button[8]");
+        if (IsVisible(xmr_VAR))
+        {		
+		Log("xmr - success");		
+        Click(xmr_VAR);
+        }//end xmr_VAR
+		
+	    Wait(2);
+
+        BalanceNeedToBeZero_Function();
+		
+	    Wait(2);
+
+        Claim_Function(); //call
+		
+		}
+        //=====//	
+
+		//======//
+		//zec//
+		//======//
+        if (GetBoolSetting("zec"))
+        {	
+		Log("zec - try to claim");	
+        FaucetButton_Function(); //call
+	
+        Menu_Function(); //call
+
+	    Wait(2);
+
+        var zec_VAR = ElementByXPath("//div[@class='scrollPane']//button[9]");
+        if (IsVisible(zec_VAR))
+        {		
+		Log("zec - success");		
+        Click(zec_VAR);
+        }//end zec_VAR
+		
+	    Wait(2);
+
+        BalanceNeedToBeZero_Function();
+		
+	    Wait(2);
+
+        Claim_Function(); //call
+		
+		}
+        //=====//	
+
+		//======//
+		//usdt//
+		//======//
+        if (GetBoolSetting("usdt"))
+        {	
+		Log("usdt - try to claim");	
+        FaucetButton_Function(); //call
+	
+        Menu_Function(); //call
+
+	    Wait(2);
+
+        var usdt_VAR = ElementByXPath("//div[@class='scrollPane']//button[10]");
+        if (IsVisible(usdt_VAR))
+        {		
+		Log("usdt - success");		
+        Click(usdt_VAR);
+        }//end usdt_VAR
+		
+	    Wait(2);
+
+        BalanceNeedToBeZero_Function();
+		
+	    Wait(2);
+
+        Claim_Function(); //call
+		
+		}
+        //=====//	
+
+		//======//
+		//xrp//
+		//======//
+        if (GetBoolSetting("xrp"))
+        {	
+		Log("xrp - try to claim");	
+        FaucetButton_Function(); //call
+	
+        Menu_Function(); //call
+
+	    Wait(2);
+
+        var xrp_VAR = ElementByXPath("//div[@class='scrollPane']//button[11]");
+        if (IsVisible(xrp_VAR))
+        {		
+		Log("xrp - success");		
+        Click(xrp_VAR);
+        }//end xrp_VAR
+		
+	    Wait(2);
+
+        BalanceNeedToBeZero_Function();
+		
+	    Wait(2);
+
+        Claim_Function(); //call
+		
+		}
+        //=====//	
+
+		//======//
+		//kmd//
+		//======//
+        if (GetBoolSetting("kmd"))
+        {	
+		Log("kmd - try to claim");	
+        FaucetButton_Function(); //call
+	
+        Menu_Function(); //call
+
+	    Wait(2);
+
+        var kmd_VAR = ElementByXPath("//div[@class='scrollPane']//button[12]");
+        if (IsVisible(kmd_VAR))
+        {		
+		Log("kmd - success");		
+        Click(kmd_VAR);
+        }//end kmd_VAR
+		
+	    Wait(2);
+
+        BalanceNeedToBeZero_Function();
+		
+	    Wait(2);
+
+        Claim_Function(); //call
+		
+		}
+        //=====//	
+
+		//======//
+		//lsk//
+		//======//
+        if (GetBoolSetting("lsk"))
+        {	
+		Log("lsk - try to claim");	
+        FaucetButton_Function(); //call
+	
+        Menu_Function(); //call
+
+	    Wait(2);
+
+        var lsk_VAR = ElementByXPath("//div[@class='scrollPane']//button[13]");
+        if (IsVisible(lsk_VAR))
+        {		
+		Log("lsk - success");		
+        Click(lsk_VAR);
+        }//end lsk_VAR
+		
+	    Wait(2);
+
+        BalanceNeedToBeZero_Function();
+		
+	    Wait(2);
+
+        Claim_Function(); //call
+		
+		}
+        //=====//	
+
+		//======//
+		//qtum//
+		//======//
+        if (GetBoolSetting("qtum"))
+        {	
+		Log("qtum - try to claim");	
+        FaucetButton_Function(); //call
+	
+        Menu_Function(); //call
+
+	    Wait(2);
+
+        var qtum_VAR = ElementByXPath("//div[@class='scrollPane']//button[14]");
+        if (IsVisible(qtum_VAR))
+        {		
+		Log("qtum - success");		
+        Click(qtum_VAR);
+        }//end qtum_VAR
+		
+	    Wait(2);
+
+        BalanceNeedToBeZero_Function();
+		
+	    Wait(2);
+
+        Claim_Function(); //call
+		
+		}
+        //=====//	
+
+		//======//
+		//strat//
+		//======//
+        if (GetBoolSetting("strat"))
+        {	
+		Log("strat - try to claim");	
+        FaucetButton_Function(); //call
+	
+        Menu_Function(); //call
+
+	    Wait(2);
+
+        var strat_VAR = ElementByXPath("//div[@class='scrollPane']//button[15]");
+        if (IsVisible(strat_VAR))
+        {		
+		Log("strat - success");		
+        Click(strat_VAR);
+        }//end strat_VAR
+		
+	    Wait(2);
+
+        BalanceNeedToBeZero_Function();
+		
+	    Wait(2);
+
+        Claim_Function(); //call
+		
+		}
+        //=====//	
+
+		//======//
+		//waves//
+		//======//
+        if (GetBoolSetting("waves"))
+        {	
+		Log("waves - try to claim");	
+        FaucetButton_Function(); //call
+	
+        Menu_Function(); //call
+
+	    Wait(2);
+
+        var waves_VAR = ElementByXPath("//div[@class='scrollPane']//button[16]");
+        if (IsVisible(waves_VAR))
+        {		
+		Log("waves - success");		
+        Click(waves_VAR);
+        }//end waves_VAR
+		
+	    Wait(2);
+
+        BalanceNeedToBeZero_Function();
+		
+	    Wait(2);
+
+        Claim_Function(); //call
+		
+		}
+        //=====//	
+
+		//======//
+		//xem//
+		//======//
+        if (GetBoolSetting("xem"))
+        {	
+		Log("xem - try to claim");	
+        FaucetButton_Function(); //call
+	
+        Menu_Function(); //call
+
+	    Wait(2);
+
+        var xem_VAR = ElementByXPath("//div[@class='scrollPane']//button[17]");
+        if (IsVisible(xem_VAR))
+        {		
+		Log("xem - success");		
+        Click(xem_VAR);
+        }//end xem_VAR
+		
+	    Wait(2);
+
+        BalanceNeedToBeZero_Function();
+		
+	    Wait(2);
+
+        Claim_Function(); //call
+		
+		}
+        //=====//	
+
+		//======//
+		//neo//
+		//======//
+        if (GetBoolSetting("neo"))
+        {	
+		Log("neo - try to claim");	
+        FaucetButton_Function(); //call
+	
+        Menu_Function(); //call
+
+	    Wait(2);
+
+        var neo_VAR = ElementByXPath("//div[@class='scrollPane']//button[18]");
+        if (IsVisible(neo_VAR))
+        {		
+		Log("neo - success");		
+        Click(neo_VAR);
+        }//end neo_VAR
+		
+	    Wait(2);
+
+        BalanceNeedToBeZero_Function();
+		
+	    Wait(2);
+
+        Claim_Function(); //call
+		
+		}
+        //=====//	
+
+		//======//
+		//xvg//
+		//======//
+        if (GetBoolSetting("xvg"))
+        {	
+		Log("xvg - try to claim");	
+        FaucetButton_Function(); //call
+	
+        Menu_Function(); //call
+
+	    Wait(2);
+
+        var xvg_VAR = ElementByXPath("//div[@class='scrollPane']//button[19]");
+        if (IsVisible(xvg_VAR))
+        {		
+		Log("xvg - success");		
+        Click(xvg_VAR);
+        }//end xvg_VAR
+		
+	    Wait(2);
+
+        BalanceNeedToBeZero_Function();
+		
+	    Wait(2);
+
+        Claim_Function(); //call
+		
+		}
+        //=====//	
+
+		//======//
+		//dgb//
+		//======//
+        if (GetBoolSetting("dgb"))
+        {	
+		Log("dgb - try to claim");	
+        FaucetButton_Function(); //call
+	
+        Menu_Function(); //call
+
+	    Wait(2);
+
+        var dgb_VAR = ElementByXPath("//div[@class='scrollPane']//button[20]");
+        if (IsVisible(dgb_VAR))
+        {		
+		Log("dgb - success");		
+        Click(dgb_VAR);
+        }//end dgb_VAR
+		
+	    Wait(2);
+
+        BalanceNeedToBeZero_Function();
+		
+	    Wait(2);
+
+        Claim_Function(); //call
+		
+		}
+        //=====//	
+
+		//======//
+		//trx//
+		//======//
+        if (GetBoolSetting("trx"))
+        {	
+		Log("trx - try to claim");	
+        FaucetButton_Function(); //call
+	
+        Menu_Function(); //call
+
+	    Wait(2);
+
+        var trx_VAR = ElementByXPath("//div[@class='scrollPane']//button[21]");
+        if (IsVisible(trx_VAR))
+        {		
+		Log("trx - success");		
+        Click(trx_VAR);
+        }//end trx_VAR
+		
+	    Wait(2);
+
+        BalanceNeedToBeZero_Function();
+		
+	    Wait(2);
+
+        Claim_Function(); //call
+		
+		}
+        //=====//	
+
+		//======//
+		//bcn//
+		//======//
+        if (GetBoolSetting("bcn"))
+        {	
+		Log("bcn - try to claim");	
+        FaucetButton_Function(); //call
+	
+        Menu_Function(); //call
+
+	    Wait(2);
+
+        var bcn_VAR = ElementByXPath("//div[@class='scrollPane']//button[22]");
+        if (IsVisible(bcn_VAR))
+        {		
+		Log("bcn - success");		
+        Click(bcn_VAR);
+        }//end bcn_VAR
+		
+	    Wait(2);
+
+        BalanceNeedToBeZero_Function();
+		
+	    Wait(2);
+
+        Claim_Function(); //call
+		
+		}
+        //=====//	
+					
+
+
+		ad = true;    // if i do true - it report as succeed // only one time no multi and also required -> return GetWaitSetting();	
+        //return GetWaitSetting();	
+	
+	
+        //We are good to continue
+        return base.DoSolveFaucet();
+ }
+//==============//
+//DoSolveFaucet
+//==============///
+	
+	
+	
+	
+	
+//==============//
+//AfterSolveFaucet
+//==============//
+  public override int AfterSolveFaucet()
+  {
+
+   //This faucet has nothing to do here. We will let Faucet Collector handle it.
+   return base.AfterSolveFaucet();
+   
+  }
+	
+//==============//
+//AfterSolveFaucet
+//==============//
+
+
+
+    /// <summary>
+    /// This mdogeod gets called in the end after the BeforeSolveFaucet/DoSolveFaucet and AfterSolveFaucet mdogeods were done.
+    /// The base.CheckFaucetResult will try to find a visible element on the page using the XPath from SuccessXPath and FailXPath (see the Start mdogeod)
+    /// These properties should contain XPath expressions to find certain elements on the page.
+    /// For example if it finds one of the elements from the SuccessXPath, and it is visible, then it will flag the claim attempt as a success.
+    /// Or if it finds one of the elements from the FailXPath, and it is visible, then it will flag the claim attempt as a failure.
+    /// </summary>
+    public override int CheckFaucetResult()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.CheckFaucetResult();
+    }
+
+
+        //=========//
+        //FaucetButton_Function
+		//=========//
+        public void FaucetButton_Function()
+        {	
+        var DepositButton = ElementByXPath("//nav/button[contains(text(),'Faucet')]");
+        Click(DepositButton);
+
+		Wait(2);	
+
+		}//end FaucetButton_Function
+		//=========//
+		
+		
+        //=========//
+        //Menu_Function
+		//=========//
+        public void Menu_Function()
+        {	
+        Log("Menu_Function");		
+        var MenuVAR = ElementByXPath("//div[2]/div[@class='balanceDropdown']");       			
+        Click(MenuVAR);
+		}//end Menu_Function
+		//=========//
+		
+		
+        //=========//
+        //Claim_Function
+		//=========//
+        public void Claim_Function()
+        {			
+		
+        var ClaimVAR = ElementByXPath("//button[@class='btnDefault faucetButton m15_d' and not (@disabled) ]");  
+        if (IsVisible(ClaimVAR))
+        {	
+        Log("Claim_Function");	
+        Click(ClaimVAR);
+        }//end ClaimVAR
+		
+		}//end Claim_Function
+		//=========//
+
+
+        //=========//
+        //BalanceNeedToBeZero_Function
+		//=========//
+        public void BalanceNeedToBeZero_Function()
+        {	
+		
+        var BalanceNeedToBeZero = ElementByXPath("//label[@class='dangeri' and contains(text(),'Balance not')] | //label[@class='dangeri' and contains(text(),'zero')] ");
+        if (!IsVisible(BalanceNeedToBeZero)) //if is not visible - BalanceNeedToBeZero - DoSolveCaptcha 
+        {	
+        var result = DoSolveCaptcha();
+		}
+		
+		}// end BalanceNeedToBeZero_Function
+		//=========//
+
+
+
+        //=========//
+        //SolveCaptcha_RightSquare_Function
+		//=========//
+        public void SolveCaptcha_RightSquare_Function()
+        {	
+		
+        /*
+        GetestCaptchaUtilities.GetestCaptcha getestCaptcha = new GetestCaptchaUtilities.GetestCaptcha(this);
+        bool res2=  getestCaptcha.DoInitSolve();
+        */
+
+        var Arrow = FindCorrectArrow();
+        if(IsVisible(Arrow))
+		{
+            Log("SolveCaptcha_RightSquare_Function - Arrow");	
+
+            var ToMove = ElementByXPath("//div[@class='verify-sub-block']");
+            if (IsVisible(ToMove))
+            {
+                Log("SolveCaptcha_RightSquare_Function - ToMove");	
+                Actions actions = new Actions(Driver);
+                actions.DragAndDrop(ToMove, Arrow).Build().Perform();
+                Wait();
+
+			}
+        }
+
+	
+		}// end SolveCaptcha_RightSquare_Function
+		//=========//
+
+	
+	
+
+        //=========//
+        //Menu_Function_Affiliate
+		//=========//
+        public void Menu_Function_Affiliate()
+        {	
+        Log("Menu_Function_Affiliate");		
+        var MenuVAR = ElementByXPath("//div[@class='affiliateBalance']/div[@class='balanceDropdown']");       			
+        Click(MenuVAR);
+		}//end Menu_Function_Affiliate
+		//=========//
+		
+		
+        //=========//
+        //Claim_Function_Affiliate
+		//=========//
+        public void Claim_Function_Affiliate()
+        {			
+		
+        var ClaimVAR = ElementByXPath("//button[@class='btnDefault claimButton' and not (@disabled) ]");  
+        if (IsVisible(ClaimVAR))
+        {	
+        Log("Claim_Function_Affiliate");	
+        Click(ClaimVAR);
+        }//end ClaimVAR
+		
+		}//end Claim_Function_Affiliate
+		//=========//
+		
+		
+
+	
+		
+
+    public bool SeeIfThereisColor(Bitmap Image)
+    {
+        bool ContainsColor = false;
+        for(int i = 0; i < Image.Width && ! ContainsColor; i++)
+        {
+            for(int j = 0; j < Image.Height; j++)
+            {
+                if(Image.GetPixel(i,j)!=Color.FromArgb(0,0,0) && Image.GetPixel(i,j)!=Color.FromArgb(255, 255, 255))
+                {
+                    ContainsColor = true;
+                    break;
+                }
+            }
+        }
+
+        return ContainsColor;
+
+    }
+	
+	
+    private IWebElement FindCorrectArrow()
+    {
+        var Arrows = ElementsByXPath("//div[@class='verify-gap']");
+        int n = 0;
+        foreach(var arrow in Arrows)
+        {
+            if(SeeIfThereisColor(TakeScreenshot(Base.Captcha.CaptchaService.Manual,arrow)))
+            {
+                Log("Element is" + n.ToString());
+                return arrow;
+
+            }
+            n++;
+
+        }
+        return null;
+
+    }
+	
+	
+	
+	
+} //end public class
+

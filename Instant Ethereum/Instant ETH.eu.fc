@@ -1,0 +1,200 @@
+﻿using System;
+using FaucetCollector.Script;
+
+public class instantetheuScript : FaucetScript
+{
+
+    public override FaucetSettings Settings
+    {
+        get
+        {
+            return new FaucetSettings("https://www.instant-eth.eu/en")
+            {
+                 new FaucetSetting {
+                    Name = "eth",
+                    Display = "Ethereum wallet address",
+                    Type = EditorType.Wallet,
+                    Required = true,
+                    Default = null
+                }
+            };
+        }
+    }
+
+
+    public override void Start()
+    {
+
+        Title = "Earn Ethereum Instantly|READY TO CLAIM|Instant-ETH";
+
+
+        SuccessXPath = "//*[@id='details']|//div[contains(@class,'alert-success para fade in')]";
+        FailXPath = "//*[@id='appFaucet']|//div[contains(@class,'alert-danger para fade in')]";
+
+
+        base.Start();
+    }
+
+
+    public override bool IsLoggedIn()
+    {
+
+        return IsVisible(ElementByXPath("//a[@href='https://www.instant-eth.eu/en/SignOut']"));
+    }
+
+    public override int BeforeLogin()
+    {
+
+        return base.BeforeLogin(); ;
+    }
+
+
+    public override int DoLogin()
+    {
+        var signInaddress = ElementByXPath("//*[@id='app']/input[1]");
+        if (signInaddress == null)
+        {
+            
+            return Fail("Signin address not found.");
+        }
+
+        
+        SetText(signInaddress, GetSetting("eth"));
+
+        
+        var NextButton = ElementByXPath("//*[@id='app']/input[2]");
+        if (NextButton == null)
+        {
+           
+            return Fail("SignIn button not found.");
+        }
+
+        Click(NextButton);
+
+        var loginButton = ElementByXPath("//*[@id='human']/input[@type='submit' and contains(@class, 'btn-blue-transparent')]");
+        if (loginButton == null)
+        {
+           
+            return Fail("Login button not found.");
+        }        
+        var result = SolveCaptcha();
+        if (result > 0)
+        {
+            
+            return result;
+        }
+
+        
+        Click(loginButton);
+
+        
+        return base.DoLogin();
+    }
+
+
+
+    public override int AfterLogin()
+    {
+        //we don't need to do anything here for this faucet - let Faucet Collector do its stuff.
+        return base.AfterLogin();
+    }
+
+
+    public override int GetFaucetWaitTime()
+    {
+        var disabledClaimButton = ElementByXPath("//*[@id='faucetclaim']/input[@type='button' and contains(@class, 'btn-blue-transparent') and @disabled]");
+        if (IsVisible(disabledClaimButton))
+        {
+            //The button is disabled, we will tell Faucet Collector to wait at least 5 minutes (returned in number of seconds)
+            return 5 * 60;
+        }
+
+        //The claim button is enabled, so we can go ahead and claim.
+        return 0;
+    }
+
+
+    public override int BeforeSolveCaptcha()
+    {
+
+        return base.BeforeSolveCaptcha();
+    }
+
+
+    public override int DoSolveCaptcha()
+    {
+
+        return base.DoSolveCaptcha();
+    }
+
+
+    public override int AfterSolveCaptcha()
+    {
+
+        return base.AfterSolveCaptcha();
+    }
+
+
+    public override int BeforeSolveFaucet()
+    {
+        //Find the submit button to claim on the faucet
+        var NextButton = ElementByXPath("//*[@id='faucetclaim']/input[@type='button' and contains(@class, 'btn-blue-transparent')]");
+        if (!IsVisible(NextButton))
+        {
+            //Unable to find the submit button - return the failure.
+            return Fail("Failed x");
+        }
+        Click(NextButton);
+
+        return base.BeforeSolveFaucet();
+    }
+    
+
+    public override int DoSolveFaucet()
+    {
+
+        var submitButton = ElementByXPath("//*[@id='human']/input[@type='submit' and contains(@class, 'btn-blue-transparent')]");
+        if (!IsVisible(submitButton))
+        {
+            //Unable to find the submit button - return the failure.
+            return Fail("Claim button not found");
+        }
+
+        var result = SolveCaptcha();
+        if (result > 0)
+        {
+            //Unable to solve the captcha - return the failure
+            return result;
+        }
+
+        //The Captcha is solved, click the submit button
+        Click(submitButton);
+
+        //Let Faucet Collector continue
+        return base.DoSolveFaucet();
+    }
+
+
+    public override int AfterSolveFaucet()
+    {
+
+
+        return base.AfterSolveFaucet();
+    }
+
+
+    public override int CheckFaucetResult()
+    {
+            var result = base.CheckFaucetResult();
+            if (IsSuccess)
+            {
+                
+
+                
+                Reload = true;
+            }
+
+            return result;
+       
+    }
+}

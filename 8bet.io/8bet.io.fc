@@ -1,0 +1,448 @@
+﻿
+
+//==================//
+//script Written by: ••AviramDayan•• 13/08/2018 04:00PM - Version 1
+//Last Update: 19/07/2019 07:00AM - Version 8
+//==================//
+
+using System;
+using FaucetCollector.Script;
+using OpenQA.Selenium;
+//css_inc RecaptchaUtilities
+
+public class Bet8Script : FaucetScript
+{
+    /// <summary>
+    /// List of Settings that will be shown in the bot when selecting this Faucet in the bot.
+    /// You can get the value the user entered with the methods: GetSetting("[Name of the FaucetSetting]"), GetBoolSetting and GetDateTimeSetting
+    /// You can also create a new setting value using SetSetting("[Name you want to use]", "value")
+    /// </summary>
+    public override FaucetSettings Settings
+    {
+        get
+        {		
+		
+            return new FaucetSettings("https://8bet.io/")
+            {
+                new FaucetSetting(){Name="User",Display="Email",Type=EditorType.TextBox,Required=true},
+                new FaucetSetting(){Name="Pass",Display="Password",Type=EditorType.Password,Required=true},
+                //new FaucetSetting() { Name = "UseSolveMedia", Display = "Use SolveMedia", Type = EditorType.CheckBox, Default = true},
+
+                new FaucetSetting(){Name="FreeLottery",Display="FreeLottery - hit random number every 8 hours ",Type=EditorType.CheckBox,Default=true},
+                new FaucetSetting(){Name="Time",Display="Custom time to wait If there was a double-entry, and FC has already made a claim, My recommendation is to put 260min - 4 hours",Type=EditorType.Numeric,Default=260},
+				
+                //insert user settings here
+                //new FaucetSetting { 
+                //    Name = "Name of your setting", 
+                //    Display = "Display shown in Faucet Collector", 
+                //    Type = EditorType.TextBox | EditorType.Password | EditorType.CheckBox | EditorType.Wallet | EditorType.Numeric | EditorType.ComboBox | EditorType.CheckComboBox, 
+                //    Required = true | false, 
+                //    Default = "Optionally a default value" | true | false | null.
+                //    Items = new List<string> { "item1", "item2" } (only valid for ComboBox or CheckComboBox)
+                //} 
+            };
+        }
+    }
+
+
+
+//============================================================//
+//the number of "successes" in the script - when are finished  
+//============================================================//
+    public override void Start()
+    {
+        ad = false;
+       
+        //Title that shows in the browser. Is used to identify and close popup windows
+        Title = "8Bet.io";
+
+		SuccessXPath = "//*";  //*[@id='']
+        FailXPath = "//*"; //*[@id='']
+	
+        //TimerIsCountingUp = true;
+		
+        //Let Faucet Collector start up everything
+        base.Start();
+    }
+//============================================================//
+//the number of "successes" in the script - when are finished  
+//============================================================//
+
+	
+    bool ad; //custom bool
+
+
+    public override int DoInit()
+    {
+	
+        //Let Faucet Collector continue.
+        return base.DoInit();
+    }
+
+
+
+//==================//
+//save Login Cookies 
+//==================//
+    public override bool IsLoggedIn()
+    {
+	    //save Login Cookies - Check if the "Logout" exist
+        return ElementByXPath("//button[@id='btnBalanceDeposit']") != null;
+	 
+        //return base.IsLoggedIn();
+    }
+//==================//
+//save Login Cookies 
+//==================//	
+	
+	
+	
+    /// <summary>
+    /// This method gets called if IsLoggedIn returned false, right before the DoLogin method is called.
+    /// </summary>
+    public override int BeforeLogin()
+    {
+
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeLogin();
+    }
+
+
+	
+	
+//================================//
+//start DoLogin
+//================================//
+ public override int DoLogin()
+ {
+
+     var ExitButton = ElementByXPath("//button[@id='btnBalanceDeposit']"); //SIGN OUT
+
+	 //if i NOT Login - go to Login Page
+	 if (!IsVisible(ExitButton))
+	 {
+        Wait();	
+		
+		//if i already login - click on start login
+		var LoginStartButton = ElementByXPath("//*[@id='topBarLogin']/button[@class='btnLogin btn btn-success']"); 	
+        Click(LoginStartButton);
+
+        Wait(2);
+
+        var Email_Box =ElementByXPath("//input[@id='txtLoginEmail']");
+        SetText(Email_Box, GetSetting("user"));
+		
+        Wait(2);
+		
+        var Password_Box = ElementByXPath("//input[@id='txtLoginPassword']");
+        SetText(Password_Box, GetPassword("Pass"));
+		
+        Wait(2);
+		
+		/*
+		//SolveCaptcha if apper
+        var result = DoReCaptcha(); //SolveCaptcha();
+        if (result > 0)
+        {
+            //SolveCaptcha returned there was something wrong - we also need to return that .
+            return result;
+        }
+            ExecuteScript("___grecaptcha_cfg.clients[0].aa.l.callback('" + Context.CaptchaResult.Result + "');");
+            Wait(2);
+		*/
+		
+        var result = base.DoSolveCaptcha();
+        RecaptchaUtility utility = new RecaptchaUtility(this);
+        utility.DoSolve();
+		
+        Wait(2);
+		
+        //Click on LoginButtonVar
+        var LoginButtonVar = ElementByXPath("//button[@class='btn btn-success submit recaptchadisable']");
+	    if (IsVisible(LoginButtonVar))
+	    {
+        Click(LoginButtonVar);
+		Log("LoginButtonVar");
+		}
+
+	 }	
+		
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoLogin();
+ }
+//================================//
+//end DoLogin
+//================================//
+	
+	
+	
+	
+	
+//================================//
+//start AfterLogin
+//================================//
+    public override int AfterLogin()
+    {
+		
+	
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterLogin();
+    }
+//================================//
+//end AfterLogin
+//================================//
+	
+
+	
+//================//
+//GetFaucetWaitTime
+//================//
+    public override int GetFaucetWaitTime()
+    {
+
+        if (ad)
+        {
+		    //Log("return ad");
+			ad=false;
+			Driver.Close();  // Close specific chrome window
+            Driver.Quit();  // also Close the console app, that was used to kick off the chrome window
+            Driver.Dispose();  // Close the chromedriver.exe
+            return GetWaitSetting();
+        }
+
+		//let Faucet Collector continue.
+        return base.GetFaucetWaitTime();
+    }
+//================//
+//GetFaucetWaitTime
+//================//
+
+	
+	
+	
+    /// <summary>
+    /// This method is called right before a captcha will be solved. 
+    /// If you call SolveCaptcha() in other methods it will start this flow and tries to solve the captcha on the page.
+    /// </summary>
+    public override int BeforeSolveCaptcha()
+    {
+		
+		
+       /*		
+        //Check if the user wants to do SolveMedia or reCAPTCHA.
+        if (GetBoolSetting("UseSolveMedia"))
+        {
+            //Make sure SolveMedia is active by clicking the link.
+            Click(ElementByLinkText("Switch to SolveMedia captcha"));
+        }
+        else
+        {
+            //Make sure reCAPTCHA is active by clicking the link.
+            Click(ElementByLinkText("Switch to Recaptcha"));
+        }
+
+        //Wait a little (1 - 2 seconds) for the captcha to switch.
+        Wait();
+		
+       */
+
+
+        //Return we are ready to proceed
+        return base.BeforeSolveFaucet();
+    }
+	
+	
+
+	
+	
+    /// <summary>
+    /// This method gets called after BeforeSolveCaptcha and it does the actual captcha solving
+    /// It will automatically try to see if there is a SolveMedia captcha active or a reCAPTCHA active. 
+    /// If it finds either one it will then use the selected method on the Captcha tab of FaucetCollector to solve the Captcha.
+    /// </summary>
+    public override int DoSolveCaptcha()
+    {
+
+		
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoSolveCaptcha();
+    }
+
+	
+	
+
+	
+	
+    /// <summary>
+    /// This method will get called after DoSolveCaptcha returned it was a success.
+    /// </summary>
+    /// <returns></returns>
+    public override int AfterSolveCaptcha()
+    {
+		
+
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterSolveCaptcha();
+    }
+
+	
+
+	
+	
+	
+	
+//================================//
+//start BeforeSolveFaucet
+//================================//
+    public override int BeforeSolveFaucet()
+    {
+
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeSolveCaptcha();
+    }
+
+//================================//
+//end BeforeSolveFaucet
+//================================//
+
+
+
+
+
+
+
+
+//================================//
+//end DoSolveFaucet
+//================================//
+	
+public override int DoSolveFaucet()
+{
+
+	if (GetBoolSetting("FreeLottery"))
+    {
+
+		//first go to "FreeLottery page"
+        GoToUrl("https://8bet.io/bitcoin-lottery/free-crypto-lotto");
+
+        Wait();
+        Wait(2);
+		
+		var Random_Number_Checking = ElementByXPath("//*[@id='btnQuickPick']");		
+		Log("Game: Random_Number_Checking");
+        Click(Random_Number_Checking);	
+
+		var FreeLottery_No = ElementByXPath("//button[@id='pickBuyTotalPrice' and contains(text(),'BUY')]");
+		var FreeLottery_Yes = ElementByXPath("//button[@id='pickBuyTotalPrice' and contains(text(),'FREE')]");
+			
+		//====================================//
+		//if we already click on FreeLottery
+		//====================================//
+		if (IsVisible(FreeLottery_No))
+        {
+		Log("AutoFreeLottery: Nop :( - We have already used the FreeLottery - we return after your time");
+
+        int MyCustomTimeINT;
+        MyCustomTimeINT = GetIntSetting("Time") * 60; 
+		Driver.Close();  // Close specific chrome window
+        Driver.Quit();  // also Close the console app, that was used to kick off the chrome window
+        Driver.Dispose();  // Close the chromedriver.exe
+        return MyCustomTimeINT;
+        }
+		//====================================//
+
+
+		//======================//
+		//if apper FreeLottery
+		//======================//
+		
+		if (IsVisible(FreeLottery_Yes))		
+	    {	
+	
+		var RandomNumber = ElementByXPath("//*[@id='btnQuickPick']");		
+		var ButtonEnd = ElementByXPath("//*[@id='pickBuyTotalPrice']");	
+		
+		if (IsVisible(RandomNumber))		
+	    {	
+        //Button RandomNumber
+		Log("FreeLottery: Random 1");
+        Click(RandomNumber);	
+        Wait(3);
+		Log("FreeLottery: Random 2");
+        Click(RandomNumber);
+        Wait(4);	 
+		Log("FreeLottery: Random 3");
+        Click(RandomNumber);	 
+        Wait(5);	 
+		Log("FreeLottery: Random 4");
+        Click(RandomNumber);	 
+        Wait(6);	
+		Log("FreeLottery: Random 5");	
+        Click(RandomNumber);
+		}
+        //==============// 	
+
+        Wait(3);
+		
+        Click(ButtonEnd);
+		Log("ButtonEnd");
+		
+        Wait(3);
+		
+		var PurchaseTextSuccess = ElementByXPath("//h2[@class='text' and contains(text(),'Purchase')]");
+		if (IsVisible(PurchaseTextSuccess))		
+	    {	
+		Log("AutoFreeLottery: Success got it - we return after your time");
+		ad=true; // call to do Success
+        }
+		
+        } //end FreeLottery_Yes
+        //==============// 	
+
+    }
+
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoSolveFaucet();
+}
+//================================//
+//end DoSolveFaucet
+//================================//
+	
+	
+	
+	
+	
+//================//
+//AfterSolveFaucet//
+//================//
+ public override int AfterSolveFaucet()
+ {
+ 
+	//This faucet has nothing to do here. We will let Faucet Collector handle it.
+    return base.AfterSolveFaucet();
+		
+ }
+//================================//
+//end AfterSolveFaucet
+//================================//
+	
+	
+
+
+    /// <summary>
+    /// This method gets called in the end after the BeforeSolveFaucet/DoSolveFaucet and AfterSolveFaucet methods were done.
+    /// The base.CheckFaucetResult will try to find a visible element on the page using the XPath from SuccessXPath and FailXPath (see the Start method)
+    /// These properties should contain XPath expressions to find certain elements on the page.
+    /// For example if it finds one of the elements from the SuccessXPath, and it is visible, then it will flag the claim attempt as a success.
+    /// Or if it finds one of the elements from the FailXPath, and it is visible, then it will flag the claim attempt as a failure.
+    /// </summary>
+    public override int CheckFaucetResult()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.CheckFaucetResult();
+    }
+	
+
+	
+	
+} //end class

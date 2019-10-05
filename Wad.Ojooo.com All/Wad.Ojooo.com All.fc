@@ -1,0 +1,611 @@
+﻿
+
+
+//============================================//
+//script Written first by: AviramDayan 17/10/2018
+//last update by: AviramDayan 01/06/2019 10:00AM - Version: 6
+//============================================//
+
+
+using System;
+using System.Collections.Generic;
+using FaucetCollector.Script;
+using OpenQA.Selenium;
+
+public class WadOjoSurfingScript_ : FaucetScript
+{
+    /// <summary>
+    /// List of Settings that will be shown in the bot when selecting this Faucet in the bot.
+    /// You can get the value the user entered with the methods: GetSetting("[Name of the FaucetSetting]"), GetBoolSetting and GetDateTimeSetting
+    /// You can also create a new setting value using SetSetting("[Name you want to use]", "value")
+    /// </summary>
+    public override FaucetSettings Settings
+    {
+        get
+        {
+            return new FaucetSettings("https://wad.ojooo.com")
+            {
+                new FaucetSetting(){Name="User",Display="Username",Type=EditorType.TextBox,Required=true},
+                new FaucetSetting(){Name="Pass",Display="Password",Type=EditorType.Password,Required=true},
+                new FaucetSetting(){Name="SolveMedia_ReCaptcha",Display="ON - Use Solvemedia | OFF - Use Recaptcha", Type=EditorType.CheckBox,Default=true},
+                //new FaucetSetting(){Name="DeleteCookies",Display="Delete Cookies - Sometimes solves problems (Recommended)",Type=EditorType.CheckBox,Default=false},
+
+                new FaucetSetting(){Name="TrafficExchange",Display="Traffic Exchange", Type=EditorType.CheckBox,Default=true},
+                new FaucetSetting(){Name="PTC",Display="PTC", Type=EditorType.CheckBox,Default=true},
+				
+                new FaucetSetting(){Name="NSites",Display="Nº Sites To Surf", Type=EditorType.TextBox,Default=20},
+				
+				
+                //insert user settings here
+                //new FaucetSetting { 
+                //    Name = "Name of your setting", 
+                //    Display = "Display shown in Faucet Collector", 
+                //    Type = EditorType.TextBox | EditorType.Password | EditorType.CheckBox | EditorType.Wallet | EditorType.Numeric | EditorType.ComboBox | EditorType.CheckComboBox, 
+                //    Required = true | false, 
+                //    Default = "Optionally a default value" | true | false | null.
+                //    Items = new List<string> { "item1", "item2" } (only valid for ComboBox or CheckComboBox)
+                //} 
+            };
+        }
+    }
+	
+	
+
+//============================================================//
+//the number of "successes" in the script - when are finished  
+//============================================================//
+    public override void Start()
+    {
+        //Title that shows in the browser. Is used to identify and close popup windows
+        Title = "Ojooo";
+
+        //After we did try to claim on the faucet we search for these elements to determine if it was a success or a fail
+        SuccessXPath = "//div[@id='opis_timer']";
+        FailXPath = "//*"; //a[@class='icon_account']//span[@class='icon_pic']
+
+
+        //Let Faucet Collector start up everything
+        base.Start();
+    }
+//============================================================//
+//the number of "successes" in the script - when are finished  
+//============================================================//
+
+
+	
+	
+	
+    /// <summary>
+    /// This is the first method to run after the browser is opened and the first page is loaded.
+    /// </summary>
+    public override int DoInit()
+    {
+	
+	   /*	
+	   //if it's Checked
+       if (GetBoolSetting("DeleteCookies"))
+       {
+		//Delete Cookies
+		 Log("DeleteCookies - Checked");
+         Driver.Manage().Cookies.DeleteAllCookies();
+       } 
+	   */
+		
+        //Let Faucet Collector continue.
+        return base.DoInit();
+    }
+	
+	
+	
+
+
+//==================//
+//save Login Cookies 
+//==================//
+    public override bool IsLoggedIn()
+    {
+        //In here we can check for the presence of an element that is only present when you are logged in.
+        //In this case we check for en element with the class "loggedIn"
+        return ElementByXPath("//a[contains(@class,'icon_logout')]")!= null;
+    }
+//==================//
+//save Login Cookies 
+//==================//
+	
+	
+	
+	
+
+//============//
+//BeforeLogin 
+//============//
+    public override int BeforeLogin()
+    {
+		
+		
+	 //var checks login or exit
+     var ExitButton =ElementByXPath("//a[@class='icon_logout ChillTip']"); //SIGN OUT
+
+	 
+	 //if i already Login - go to "bonus"	 
+	 if (IsVisible(ExitButton))
+	 {
+        //if we already login go to here
+        GoToUrl("https://wad.ojooo.com/acc.php");
+	 }	
+		
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeLogin();
+    }
+//============//
+//BeforeLogin 
+//============//
+	
+	
+
+	
+	
+	
+//=========//
+//DoLogin 
+//=========//
+    public override int DoLogin()
+    {
+		
+	 var LoginButton = ElementByXPath("//a[@href='/login.php']"); //Login
+
+	 //if i already Login - go to "bonus"	 
+	 if (IsVisible(LoginButton))
+	 {
+		 
+	    //if we are not login go to here
+        GoToUrl("https://wad.ojooo.com/login.php");
+		
+	    Wait();	
+			
+        var box_user = ElementByXPath("//input[@id='login_username']");
+        SetText(box_user, GetSetting("User"));
+		
+        Wait(2);
+		
+        var box_pass = ElementByXPath("//input[@id='pwd']");
+        SetText(box_pass, GetPassword("Pass"));
+		
+        Wait();		
+        Wait(2);
+
+        SolveMedia_ReCaptcha_Function(); //call to solve SolveMedia_ReCaptcha 
+
+        Wait(4);		
+        Wait();	
+		
+        //LoginEnd 
+        var LoginEnd = ElementByXPath("//input[@name='Login2']");
+        if (IsVisible(LoginEnd))
+        {
+			Log("Click on LoginEnd Button");
+            Click(LoginEnd);
+        }
+		
+        // if error apper
+        var error = ElementByXPath("//div[@class='error']");
+        if (IsVisible(error))
+        {
+            Log("Captcha fail - we return after 1 min ");
+            Driver.Close();  // Close specific chrome window
+            Driver.Quit();  // also Close the console app, that was used to kick off the chrome window
+            Driver.Dispose();  // Close the chromedriver.exe
+			return 1*60;
+        }
+
+		
+	 } // end login
+	 
+		
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoLogin();
+    }
+//=========//
+//DoLogin 
+//=========//
+
+	
+	
+
+
+    /// <summary>
+    /// This method gets called after the DoLogin method.
+    /// </summary>
+    public override int AfterLogin()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterLogin();
+    }
+
+	
+	
+
+//=================//
+//GetFaucetWaitTime
+//=================//
+    public override int GetFaucetWaitTime()
+    {
+        //let Faucet Collector continue.
+        return base.GetFaucetWaitTime();
+    }
+//=================//
+//GetFaucetWaitTime
+//=================//	
+	
+	
+	
+	
+	
+
+
+    public override int BeforeSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeSolveCaptcha();
+    }
+	
+	
+	
+	
+	//=============//
+	//DoSolveCaptcha
+	//=============//
+    public override int DoSolveCaptcha()
+    {
+
+
+		
+          //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoSolveCaptcha();
+    }
+	//=============//
+	//DoSolveCaptcha
+	//=============//
+	
+	
+	
+
+    public override int AfterSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterSolveCaptcha();
+    }
+
+
+    public override int BeforeSolveFaucet()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeSolveCaptcha();
+    }
+
+	
+	
+	
+	
+	
+ //===========//
+ //DoSolveFaucet
+ //===========//
+ public override int DoSolveFaucet()
+ {
+		
+		
+    //============//
+    //TrafficExchange
+    //=============//
+    if (GetBoolSetting("TrafficExchange"))
+    { 
+
+        if (!Driver.Url.Contains("https://wad.ojooo.com/trafficexchange.php"))
+        {
+            GoToUrl("https://wad.ojooo.com/trafficexchange.php");
+        }
+
+        Wait();
+        var GoToSurf = ElementByXPath("//a[@class='button']");
+        if (IsVisible(GoToSurf))
+        {
+            string url = GoToSurf.GetAttribute("href");
+            GoToUrl(url);
+            Wait();
+        }
+
+        int n_sites;
+        try
+        {
+
+            n_sites = Convert.ToInt32(GetSetting("NSites"));
+        }
+        catch(Exception){
+            Log("Fail obtain N sites to surf , you need input a number");
+            n_sites = 40;
+        }
+        var cont_ = 0;
+        int count_invisible = 0;
+        while (cont_ <= n_sites)
+        {
+            Wait(1);
+            var timer = ElementByXPath("//div[@id='clock']");
+            int timewait = 1;
+            if (IsVisible(timer))
+            {
+                try
+                {
+                    timewait = Convert.ToInt32(timer.Text);
+
+                }
+                catch (Exception)
+                {
+                    timewait = 1;
+                }
+                count_invisible = 0;
+            }
+            else
+            {
+                Driver.Navigate().Refresh();
+                count_invisible++;
+            }
+            Wait(timewait);
+
+            cont_++;
+            if (count_invisible >= 10)
+            {
+                break;
+            }
+        }
+
+		
+        //return 300;
+		
+    }// end TrafficExchange
+		
+		
+		
+		
+    //=====//
+    //PTC
+    //=====//
+	
+    if (!GetBoolSetting("PTC"))
+    { 	
+		Log("PTC: we return after 36 min");	
+        Driver.Close();  // Close specific chrome window
+        Driver.Quit();  // also Close the console app, that was used to kick off the chrome window
+        Driver.Dispose();  // Close the chromedriver.exe
+	    return GetWaitSetting();
+    }
+
+        if (GetBoolSetting("PTC"))
+        {
+            GoToUrl("http://wad.ojooo.com/ads.php");
+            var ads = ElementsByXPath("//a[contains(@href,'cks.')]//div[@class='tile  ']//span[@class='ad_id']");
+
+            int n = 0;
+            string base_url = "http://wad.ojooo.com/cks.php?k=";
+            string final_url = "&cdk=false";
+            string past_id = "FIRST ID";
+            while (ads.Count > n)
+            {
+                try
+                {
+                    string id = ExecuteScript("return arguments[0].innerHTML", ads[n]) as string;
+
+                    if (id != past_id)
+                    {
+                        string total_url = base_url + id + final_url;
+                        GoToUrl(total_url);
+
+                        Wait(2, 3);
+                        var clock = ElementByXPath("//div[@id='clock']");
+                        while (IsVisible(clock))
+                        {
+                            try
+                            {
+                                Wait();
+                                Convert.ToInt32(clock.Text);
+
+                            }
+                            catch (Exception)
+                            {
+                                break;
+                            }
+                        }
+                        Wait(4);
+
+                        if (!Driver.Url.Contains("http://wad.ojooo.com/ads.php"))
+                        {
+                            GoToUrl("http://wad.ojooo.com/ads.php");
+                        }
+                        else
+                        {
+                            Driver.Navigate().Refresh();
+                        }
+                        past_id = id;
+                        Wait();
+                        ads = ElementsByXPath("//a[contains(@href,'cks.')]//div[@class='tile  ']//span[@class='ad_id']");
+                    }
+                    else
+                    {
+                        n++;
+                        if (!Driver.Url.Contains("http://wad.ojooo.com/ads.php"))
+                        {
+                            GoToUrl("http://wad.ojooo.com/ads.php");
+                        }
+                        else
+                        {
+                            Driver.Navigate().Refresh();
+                        }
+                        Wait();
+                        ads = ElementsByXPath("//a[contains(@href,'cks.')]//div[@class='tile  ']//span[@class='ad_id']");
+                    }
+                }
+
+                catch (Exception)
+                {
+                    n++;
+                    CheckForPopupsEnabled = false;
+                    CheckForPopups();
+                    if (!Driver.Url.Contains("http://wad.ojooo.com/ads.php"))
+                    {
+                        GoToUrl("http://wad.ojooo.com/ads.php");
+                    }
+                    else
+                    {
+                        Driver.Navigate().Refresh();
+                    }
+                    Wait();
+                    ads = ElementsByXPath("//a[contains(@href,'cks.')]//div[@class='tile  ']//span[@class='ad_id']");
+                }
+            }
+
+            Log("PTC: we return after 36 min");
+            Driver.Close();  // Close specific chrome window
+            Driver.Quit();  // also Close the console app, that was used to kick off the chrome window
+            Driver.Dispose();  // Close the chromedriver.exe
+	        return GetWaitSetting();
+
+        }
+    // end PTC
+		
+		
+		
+        //We are good to continue
+        return base.DoSolveFaucet();
+ }
+ //===========//
+ //DoSolveFaucet
+ //===========//
+	
+	
+	
+	
+	
+	
+    /// <summary>
+    /// This method will get called after the DoSolveFaucet is completed and returned it was a success.
+    /// For example you can wait for a processing popup to go away until actual faucet claim result is on the page.
+    /// </summary>
+    public override int AfterSolveFaucet()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterSolveFaucet();
+    }
+
+    /// <summary>
+    /// This method gets called in the end after the BeforeSolveFaucet/DoSolveFaucet and AfterSolveFaucet methods were done.
+    /// The base.CheckFaucetResult will try to find a visible element on the page using the XPath from SuccessXPath and FailXPath (see the Start method)
+    /// These properties should contain XPath expressions to find certain elements on the page.
+    /// For example if it finds one of the elements from the SuccessXPath, and it is visible, then it will flag the claim attempt as a success.
+    /// Or if it finds one of the elements from the FailXPath, and it is visible, then it will flag the claim attempt as a failure.
+    /// </summary>
+    public override int CheckFaucetResult()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.CheckFaucetResult();
+    }
+	
+	
+        //==================//
+        //SolveMedia_ReCaptcha_Function
+		//==================//
+        public void SolveMedia_ReCaptcha_Function()
+        {			
+        var SolveMediaVAR = ElementByXPath("//a[@id='switchCaptcha' and contains(text(),'Switch captcha to another captcha')]");
+        var ReCaptchaON = ElementByXPath("//div[@id='captcha_recaptcha' and @style='display: block;' | @style='' ]");	
+
+        var SolveON = ElementByXPath("//div[@id='captcha_solvemedia' and @style='display: block;' | @style='' ]");
+        var ReCaptchaVAR = ElementByXPath("//a[@id='switchCaptcha' and contains(text(),'Switch captcha to another captcha')]");  
+		
+		
+        if (GetBoolSetting("SolveMedia_ReCaptcha"))
+        {
+
+          if (IsVisible(ReCaptchaON))
+          {		
+	      Log("Switch to SolveMedia");
+          Click(SolveMediaVAR);
+		  }
+		  
+		  Wait(2);
+		  
+          //Call to solve		  		   		  
+          var result_1_VAR = DoSolveCaptcha();
+
+        }
+		
+        if (!GetBoolSetting("SolveMedia_ReCaptcha"))
+        {
+
+          if (IsVisible(SolveON))
+          {		
+	      Log("Switch to ReCaptcha");
+          Click(ReCaptchaVAR);
+		  }	
+		  
+		  Wait(2);	  
+		  
+          //Call to solve		  
+          var result_2_VAR = DoSolveCaptcha();
+	
+        }
+		 
+        }// end SolveMedia_ReCaptcha_Function
+         //=======//		
+	
+	
+    private bool SetText_2XPath(string Relative_Xpath, string Absolute_XPath, string TextToset)
+    {
+        var ToSet = ElementByXPath(Relative_Xpath);
+        if (!IsVisible(ToSet))
+        {
+            var ToSet_2 = ElementByXPath(Absolute_XPath);
+            if (!IsVisible(ToSet_2))
+            {
+                return false;
+            }
+            else
+            {
+                SetText(ToSet_2, TextToset);
+            }
+        }
+        else
+        {
+            SetText(ToSet, TextToset);
+        }
+        return true;
+
+    }
+	
+	
+	
+    private bool Click_2XPath(string Relative_Xpath, string Absolute_XPath)
+    {
+        var ToClick = ElementByXPath(Relative_Xpath);
+        if (!IsVisible(ToClick))
+        {
+            var ToClick2 = ElementByXPath(Absolute_XPath);
+            if (!IsVisible(ToClick2))
+            {
+                return false;
+            }
+            else
+            {
+                Click(ToClick2);
+            }
+        }
+        else
+        {
+            Click(ToClick);
+        }
+        return true;
+    }
+	
+	
+
+	
+} //end class

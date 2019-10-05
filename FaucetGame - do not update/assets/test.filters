@@ -1,0 +1,26 @@
+{
+    "Rules": [
+        {
+            "Host": "*bootstrap*",
+            "Action": "Block",
+            "BlockStatusCode": 404,
+            "Type": "Host"
+        },
+        {
+            "Host": "*bitmines*",
+            "Action": "Proxy",
+            "ProxyName": "CCProxy",
+        },
+        {
+            "Host": "*bitmines*",
+            "Action": "Allow",
+        },
+        {
+            "Host": "*",
+            "Action": "Allow",
+            "ProxyName": null,
+            "BlockStatusCode": null,
+            "Type": "Host"
+        }
+    ]
+}

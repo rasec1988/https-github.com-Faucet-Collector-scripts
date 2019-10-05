@@ -1,0 +1,295 @@
+﻿using FaucetCollector.Script;
+using System;
+
+//css_inc RecaptchaUtilities
+class ScriptBitPayU : FaucetScript
+{
+   
+
+    public override FaucetSettings Settings
+    {
+        get
+        {
+            return new FaucetSettings("https://coinpayu.com")
+            {
+                new FaucetSetting(){Name="User",
+                    Display ="Email",
+                    Type =EditorType.TextBox,
+                    Required =true
+                },
+                new FaucetSetting()
+                {
+                    Name="Pass",
+                    Display="Password",
+                    Type=EditorType.Password,
+                    Required=true
+                }
+            };
+        }
+    }
+
+    public override void Start()
+    {
+
+        Title = "COINPAYU|You|seconds";
+
+
+        SuccessXPath = "//div[@class='alert-div alert-green']";
+        FailXPath = "//div[@class='alert-div alert-red']";
+
+        base.Start();
+    }
+
+
+    public override int DoInit()
+    {
+
+        return base.DoInit();
+    }
+
+
+    public override bool IsLoggedIn()
+    {
+        // See if the element is visible;
+        return ElementByXPath("//a[contains(@href,'logout')]") != null;
+    }
+
+
+    public override int BeforeLogin()
+    {
+        if (!Driver.Url.Contains("https://coinpayu.com/login"))
+        {
+            GoToUrl("https://coinpayu.com/login");
+            Wait();
+        }
+        else
+        {
+            Driver.Navigate().Refresh();
+        }
+        return base.BeforeLogin();
+    }
+
+
+    public override int DoLogin()
+    {
+        var UserBox = ElementByXPath("//input[@type='email']");
+        if (!IsVisible(UserBox))
+        {
+            return Fail("UserBox not found");
+        }
+        SetText(UserBox, GetSetting("User"));
+
+        var PasswordBox = ElementByXPath("//input[@type='password']");
+        if (!IsVisible(PasswordBox))
+        {
+            return Fail("Password box not visible");
+        }
+        SetText(PasswordBox, GetPassword("Pass"));
+
+        if (IsVisible(ElementByXPath("//span[contains(text(),'GoogleRecaptcha')]")))
+        {
+           
+            var result = DoSolveCaptcha();
+            if (result > 0)
+            {
+                return Fail("Fail solving captcha");
+            }
+        }
+        var ButtonLogin = ElementByXPath("//button[@class='btn-info jzy-btn']");
+        if (!IsVisible(ButtonLogin))
+        {
+            return Fail("Button login not visible");
+
+        }
+        ExecuteScript("arguments[0].click()", ButtonLogin);
+        Wait();
+        var ErrorElement = ElementByXPath("//div[@class='alert-div alert-red']");
+        if (IsVisible(ErrorElement))
+        {
+            Log(ErrorElement.Text);
+            if (ErrorElement.Text.ToLower().Contains("invalid username") || ErrorElement.Text.ToLower().Contains("invalid Password"))
+            {
+                Disable();
+                return Fail("You need to put correct credentials ");
+            }
+        }
+
+        return base.DoLogin();
+    }
+
+
+    public override int AfterLogin()
+    {
+
+        return base.AfterLogin();
+    }
+
+
+    public override int GetFaucetWaitTime()
+    {
+
+       
+
+        return base.GetFaucetWaitTime();
+    }
+
+
+    public override int BeforeSolveCaptcha()
+    {
+
+        return base.BeforeSolveCaptcha();
+    }
+
+    public override int DoSolveCaptcha()
+    {
+        var SpanRecaptcha = ElementByXPath("//span[contains(text(),'GoogleRecaptcha')]");
+        if (IsVisible(SpanRecaptcha))
+        {
+            Click(SpanRecaptcha);
+            Wait(1);
+
+            int result=base.DoSolveCaptcha();
+            if (result > 0)
+            {
+                return result;
+            }
+            RecaptchaUtility utility = new RecaptchaUtility(this);
+
+           
+            if (!utility.DoSolve())
+            {
+                Driver.Navigate().Refresh();
+
+            }
+            Wait(1);
+            return result;
+
+
+        }
+       return base.DoSolveCaptcha();
+    }
+
+
+    public override int AfterSolveCaptcha()
+    {
+
+        return base.AfterSolveCaptcha();
+    }
+
+
+    public override int BeforeSolveFaucet()
+    {
+       
+
+        return base.BeforeSolveCaptcha();
+    }
+
+
+    public override int DoSolveFaucet()
+    {
+
+        if (!Driver.Url.Contains("https://coinpayu.com/dashboard/viewAds/ads_surf"))
+        {
+            GoToUrl("https://coinpayu.com/dashboard/viewAds/ads_surf");
+            Wait();
+        }
+        int cont = 1;
+        var Page = ElementByXPath("//a[contains(@class,'page-link') and contains(text(),'"+cont.ToString()+"')]");
+      
+        while (IsVisible(Page))
+        {
+            Click(Page);
+            Wait(1);
+            int n = 0;
+			int PastAd=0;
+            var Ads = ElementsByXPath("//div[@class='clearfix container-fluid bgwhite']//div[@class='col-12 text-overflow ads-description pull-left']");
+            while (Ads.Count > n)
+            {
+                if (!IsVisible(Ads[n]))
+                {
+                    n++;
+                }
+                else
+                {
+                    try
+                    {
+                        CheckForPopupsEnabled = false;
+                        Click(Ads[n], false);
+                        Driver.SwitchTo().Window(Driver.WindowHandles[0]);
+                        Wait();
+                        int WaitSeconds = 120;
+                        var SpanTime = ElementsByXPath("//span[@class='span-time']");
+                        if (IsVisible(SpanTime[n]))
+                        {
+                            int.TryParse(SpanTime[n].Text.Split(' ')[0], out WaitSeconds);
+                            WaitSeconds++;
+
+                        }
+						
+
+                        var Timer = ElementByXPath("//span[@class='loader-number']");
+                        DateTime timeout = DateTime.Now.AddSeconds(WaitSeconds);
+                        while (IsVisible(Timer) && DateTime.Now < timeout)
+                        {
+                            Wait();
+                            Timer = ElementByXPath("//span[@class='loader-number']");
+
+                        }
+                        Wait();
+                        var result = DoSolveCaptcha();
+                        if (result > 0)
+                        {
+                            Log("There is a problem with the captcha");
+                        }
+                        var Suc = ElementByXPath(SuccessXPath);
+                        if (IsVisible(Suc))
+                        {
+                            Log(Suc.Text);
+                            IsSuccess = true;
+                            ClaimSuccess();
+                        }
+
+
+
+
+
+                    }
+                    finally
+                    {
+                        CheckForPopupsEnabled = true;
+                        CheckForPopups();
+						if(n==PastAd){
+						
+						n++;
+						}
+						else{
+						
+						PastAd=n;
+						}
+                        Ads = ElementsByXPath("//div[@class='clearfix container-fluid bgwhite']//div[@class='col-12 text-overflow ads-description pull-left']");
+                    }
+
+                }
+
+            }
+            cont++;
+            Page = ElementByXPath("//a[contains(@class,'page-link') and contains(text(),'" + cont.ToString() + "')]");
+        }
+
+        return GetWaitSetting();
+    }
+
+
+    public override int AfterSolveFaucet()
+    {
+        return base.AfterSolveFaucet();
+    }
+
+
+    public override int CheckFaucetResult()
+    {
+
+        return base.CheckFaucetResult();
+    }
+
+}

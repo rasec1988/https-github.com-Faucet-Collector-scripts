@@ -1,0 +1,1 @@
+{"Rules":[{"Host":"*pentafaucet*","Action":"Allow","ProxyName":null,"BlockStatusCode":null,"Type":"Url"},{"Host":"*ad*","Action":"Block","ProxyName":null,"BlockStatusCode":null,"Type":"Url"},{"Host":"koten","Action":"Block","ProxyName":null,"BlockStatusCode":null,"Type":"Url"}]}

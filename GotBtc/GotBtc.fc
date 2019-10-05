@@ -1,0 +1,168 @@
+using System;
+using FaucetCollector.Script;
+
+public class gotbtccomScript : FaucetScript
+{
+    public override FaucetSettings Settings
+    {
+        get
+        {
+            return new FaucetSettings("https://www.gotbtc.com/claim")
+            {
+                new FaucetSetting() { Name = "Email", Display = "Email", Type = EditorType.TextBox, Required = true },
+                new FaucetSetting() { Name = "Password", Display = "Password", Type = EditorType.Password, Required = true }
+            };
+        }
+    }
+
+    public override void Start()
+    {
+        Title = "GotBtc|";
+        
+        SuccessXPath = "//H5[@class='col s12 green-text']";
+        FailXPath = "//DIV[@class='swal-text'][text()='Please Insert The Correct Captcha!.']";
+
+        base.Start();
+    }
+
+    public override bool IsLoggedIn()
+    {
+
+        return IsVisible(ElementByXPath("//A[@href='javascript:void(0);']"));
+    }
+
+    public override int BeforeLogin()
+    {
+
+
+
+        return base.BeforeLogin();
+    }
+
+    public override int DoLogin()
+    {
+        var signInEmail = ElementByXPath("//INPUT[@id='email']");
+        if (!IsVisible(signInEmail))
+        {
+
+        }
+        SetText(signInEmail, GetSetting("Email"));
+
+
+        var signInPassword = ElementByXPath("//INPUT[@id='password']");
+        if (!IsVisible(signInPassword))
+        {
+
+            return Fail("Password input not found.");
+        }
+
+
+        SetText(signInPassword, GetPassword("Password"));
+
+        var loginButton = ElementByXPath("//BUTTON[@type='submit'][text()='Login']");
+        if (!IsVisible(loginButton))
+        {
+ 
+            return Fail("Login button not found.");
+        }
+
+        Wait();
+
+
+        Click(loginButton);
+
+
+        return base.DoLogin();
+    }
+
+    public override int AfterLogin()
+    {
+
+        return base.AfterLogin();
+    }
+
+    public override int GetFaucetWaitTime()
+    {
+        var minutes = Convert.ToString(ExecuteScript("var node = document.evaluate(\"//SPAN[@class='minutes']\", document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue; if (node) { return node.innerText; } else { return ''; }"));
+        var seconds = Convert.ToString(ExecuteScript("var node = document.evaluate(\"//SPAN[@class='seconds']\", document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue; if (node) { return node.innerText; } else { return ''; }"));
+        if (string.IsNullOrEmpty(minutes) || string.IsNullOrEmpty(seconds))
+        {
+            return 0;
+        }
+
+        var min = Convert.ToInt32(minutes.Trim());
+        var sec = Convert.ToInt32(seconds.Trim());
+        //return the total wait time in seconds
+        return (min * 60) + (sec);
+    }
+
+
+    public override int BeforeSolveCaptcha()
+    {
+
+        return base.BeforeSolveCaptcha();
+    }
+
+    public override int DoSolveCaptcha()
+    {
+
+        return base.DoSolveCaptcha();
+    }
+
+    public override int AfterSolveCaptcha()
+    {
+
+        return base.AfterSolveCaptcha();
+    }
+
+    public override int BeforeSolveFaucet()
+    {
+
+        return base.BeforeSolveFaucet();
+    }
+
+    public override int DoSolveFaucet()
+    {
+
+        var ClaimFreeBtc = ElementByXPath("//BUTTON[@id='download-button']");
+        if (!IsVisible(ClaimFreeBtc))
+        {
+            return Fail("ClaimFreeBtc not visible.");
+        }
+
+        //Solve the captcha
+        var result = SolveCaptcha();
+        if (result > 0)
+        {
+
+            return result;
+        }
+
+        Wait();
+
+
+        Click(ClaimFreeBtc);
+
+
+        return base.DoSolveFaucet();
+    }
+
+    public override int AfterSolveFaucet()
+    {
+
+        return base.AfterSolveFaucet();
+    }
+
+    public override int CheckFaucetResult()
+    {
+        var result = base.CheckFaucetResult();
+        if (IsSuccess)
+        {
+
+            Reload = true;
+        }
+
+        return result;
+    }
+
+}

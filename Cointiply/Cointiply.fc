@@ -1,0 +1,318 @@
+using FaucetCollector.Script;
+using System;
+//css_inc RecaptchaUtilities
+public class CointiplyScript : FaucetScript
+{
+    public override FaucetSettings Settings
+    {
+        get
+        {
+            return new FaucetSettings("https://cointiply.com")
+            {
+                new FaucetSetting() { Name = "Email", Display = "Your Cointiply Email", Type = EditorType.TextBox, Required = true },
+                new FaucetSetting() { Name = "Password", Display = "Your Cointiply Password", Type = EditorType.Password, Required = true },
+                new FaucetSetting(){Name="UseSolvemedia",Display="Use Solvemedia",Type=EditorType.CheckBox,Default=true},
+            };
+        }
+    }
+
+    public override void Start()
+    {
+        Title = "Cointiply";
+
+        SuccessXPath = "//div[contains(@class,'md-snackbar-content')]//span[contains(., 'won')]";
+        FailXPath = "//span[contains(@class, 'md-error') and not(@style)]";
+
+        base.Start();
+    }
+
+    public override bool IsLoggedIn()
+    {
+        CloseModal();
+
+        Wait(3);
+
+        //If the earning-nav element is visible we are logged in
+       bool Logged= IsVisible(ElementByXPath("//a[@href='/activity']"));
+
+        if (!Logged)
+        {
+            Driver.Manage().Cookies.DeleteAllCookies();
+        }
+        return Logged;
+    }
+
+    public override int BeforeLogin()
+    {
+        //Click on the Login link
+        OpenQA.Selenium.IWebElement loginLink = ElementByXPath("//a[@href='/login']");
+        if (IsVisible(loginLink))
+        {
+            Click(loginLink);
+        }
+        if (!Driver.Url.Contains("https://cointiply.com/login"))
+        {
+            GoToUrl("https://cointiply.com/login");
+        }
+
+        //let Faucet Collector continue.
+        return base.BeforeLogin();
+    }
+
+    public override int DoLogin()
+    {
+        //Find the input field that holds the email address
+        OpenQA.Selenium.IWebElement signInEmail = ElementByXPath("//form//input[@type='text']");
+        if (!IsVisible(signInEmail))
+        {
+            //We couldn't find it. Register it as a fail so it can reload the page and try again in 10-15 seconds.
+            return Fail("Email input not found.");
+        }
+        SetText(signInEmail, GetSetting("Email"));
+        OpenQA.Selenium.IWebElement signInPassword = ElementByXPath("//form//input[@type='password']");
+        if (!IsVisible(signInPassword))
+        {
+            //We couldn't find it. Register it as a fail so it can reload the page and try again in 10-15 seconds.
+            return Fail("Password input not found.");
+        }
+        SetText(signInPassword, GetPassword("Password"));
+        Wait();
+        DateTime t1 = DateTime.Now.AddSeconds(10);
+        while (!IsVisible(ElementByXPath("//span[@class='md-select-value']")))
+        {
+            Wait(1);
+            if (DateTime.Now > t1) { break; }
+
+        }
+        if (IsVisible(ElementByXPath("//span[@class='md-select-value']")))
+        {
+            int result = DoSolveCaptcha();
+
+            if (result > 0)
+            {
+                return Fail("Fail solve captcha login");
+            }
+        }
+        if (!GetBoolSetting("UseSolvemedia"))
+        {
+            RecaptchaUtility recaptchaUtility = new RecaptchaUtility(this);
+            recaptchaUtility.DoSolve();
+        }
+        else
+        {
+            var ResultBox = ElementByXPath("//*[@name='adcopy_response']");
+            if (IsVisible(ResultBox))
+            {
+                SetText(ResultBox, Context.CaptchaResult.Result);
+                Wait();
+            }
+        }
+        //Now we search for the login submit button
+        OpenQA.Selenium.IWebElement loginButton = ElementByXPath("//form//button[@type='button' and contains(., 'Login')]");
+        if (!IsVisible(loginButton))
+        {
+            //We couldn't find it. Register it as a fail so it can reload the page and try again in 10-15 seconds.
+            return Fail("Login button not found.");
+        }
+
+
+
+        //We are ready to click the login button.
+        Click(loginButton);
+        Wait();
+        //Let Faucet Collector continue
+        return base.DoLogin();
+    }
+
+    public override int AfterLogin()
+    {
+        return base.AfterLogin();
+    }
+
+    public override int GetFaucetWaitTime()
+    {
+        var GotoFaucet = ElementByXPath("//div[@class='social-profile col-lg-3 border-radius-5 no-padding bg-social-frame margin-bottom-20']//li[3]");
+        if (IsVisible(GotoFaucet))
+        {
+            Click(GotoFaucet);
+            Wait(3);
+        }
+        OpenQA.Selenium.IWebElement waitElement = ElementByXPath("//h1[contains(text(),'Claim Again In...')]");
+        if (!IsVisible(waitElement))
+        {
+            //there is no timer, so we are good to go.
+            return 0;
+        }
+
+        OpenQA.Selenium.IWebElement waitDays = ElementByXPath("//ul[@class='vue-countdown']/li[1]/p[1][@class='digit']");
+        OpenQA.Selenium.IWebElement waitHours = ElementByXPath("//ul[@class='vue-countdown']/li[2]/p[1][@class='digit']");
+        OpenQA.Selenium.IWebElement waitMinutes = ElementByXPath("//ul[@class='vue-countdown']/li[3]/p[1][@class='digit']");
+        OpenQA.Selenium.IWebElement waitSeconds = ElementByXPath("//ul[@class='vue-countdown']/li[4]/p[1][@class='digit']");
+        string timer = waitDays.Text + "." + waitHours.Text + ":" + waitMinutes.Text + ":" + waitSeconds.Text;
+        TimeSpan interval;
+        if (!TimeSpan.TryParse(timer, out  interval))
+        {
+            //Somethingn went wrong
+            return Fail("Failed to get the time to wait from '" + timer + "'");
+        }
+
+        //we need to return the total number of seconds
+        return (int)interval.TotalSeconds;
+    }
+
+    public override int BeforeSolveCaptcha()
+    {
+        CloseModal();
+
+        //Let Faucet Collector continue
+        return base.BeforeSolveCaptcha();
+    }
+
+    public override int DoSolveCaptcha()
+    {
+        if (GetBoolSetting("UseSolvemedia"))
+        {
+            ChangeCaptcha(true);
+        }
+        else
+        {
+            ChangeCaptcha(false);
+        }
+        Wait(5, 6);
+        //Let Faucet Collector continue. It will check for SolveMedia and reCAPTCHA.
+        return base.DoSolveCaptcha();
+    }
+
+    public override int AfterSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterSolveCaptcha();
+    }
+
+    public override int BeforeSolveFaucet()
+    {
+        CloseModal();
+        var GotoFaucet = ElementByXPath("//div[@class='social-profile col-lg-3 border-radius-5 no-padding bg-social-frame margin-bottom-20']//li[3]");
+        if (IsVisible(GotoFaucet))
+        {
+            Click(GotoFaucet);
+            Wait(3);
+        }
+        //Click the Roll & Win Button
+        OpenQA.Selenium.IWebElement claimButton = ElementByXPath("//button[contains(text(),'Roll & Win')]");
+        if (!IsVisible(claimButton))
+        {
+            return Fail("Roll button not found or not visible.");
+        }
+
+        Click(claimButton);
+
+        //Let Faucet Collector Continue.
+        return base.BeforeSolveFaucet();
+    }
+    private void ChangeCaptcha(bool ChangeToSolvemedia = false)
+    {
+        if (ChangeToSolvemedia)
+        {
+            ExecuteScript("var a=document.getElementsByClassName('md-select-value');a[0].click();var c=document.getElementsByClassName('md-button md-button-ghost md-theme-default');c[0].click();");
+        }
+        else
+        {
+            ExecuteScript("var a=document.getElementsByClassName('md-select-value');a[0].click();var c=document.getElementsByClassName('md-button md-button-ghost md-theme-default');c[1].click();");
+        }
+    }
+    public override int DoSolveFaucet()
+    {
+        //find the submit button
+        OpenQA.Selenium.IWebElement submitButton = ElementByXPath("//button[contains(text(),'Submit Captcha & Roll')]");
+        if (!IsVisible(submitButton))
+        {
+            return Fail("Submit button not found or not visible.");
+        }
+
+        Wait();
+        //Solve the captcha
+        int result = DoSolveCaptcha();
+        if (result > 0)
+        {
+            //Unable to solve the captcha - return the failure
+            return Fail("Fail solving captcha");
+        }
+        if (!GetBoolSetting("UseSolvemedia"))
+        {
+
+            RecaptchaUtility recaptchaUtility = new RecaptchaUtility(this);
+            recaptchaUtility.DoSolve();
+        }
+        else
+        {
+            var ResultBox = ElementByXPath("//*[@name='adcopy_response']");
+            if (IsVisible(ResultBox))
+            {
+                SetText(ResultBox, Context.CaptchaResult.Result);
+                Wait();
+            }
+            OpenQA.Selenium.IWebElement BoxCaptcha = ElementByXPath("//div[@class='md-input-container small-captcha md-theme-default']//input[@name='adcopy_response']");
+            if (BoxCaptcha != null)
+            {
+                SetText(BoxCaptcha, Context.CaptchaResult.Result);
+            }
+            
+        }
+
+        Wait(3);
+
+        //The Captcha is solved, click the submit button
+        submitButton = ElementByXPath("//button[contains(text(),'Submit Captcha & Roll')]");
+        if (!IsVisible(submitButton))
+        {
+            return Fail("Submit button not found");
+        }
+        Log("Clicking submit button");
+        ExecuteScript("arguments[0].click()", submitButton);
+        Wait(1);
+        if (IsVisible(ElementByXPath("//div[contains(@class,'md-snackbar-content')]//span[contains(., 'won')]")))
+        {
+            return 3600;
+
+        }
+        //Let Faucet Collector continue its work
+        return base.DoSolveFaucet();
+    }
+
+    public override int AfterSolveFaucet()
+    {
+        //Let Faucet Collector continue
+        return base.AfterSolveFaucet();
+    }
+
+    public override int CheckFaucetResult()
+    {
+        int result = base.CheckFaucetResult();
+        if (IsSuccess)
+        {
+            //Force a reload when the captcha is solved (so the wait text is displayed)
+            Reload = true;
+        }
+
+        return result;
+    }
+
+    private void CloseModal()
+    {
+        OpenQA.Selenium.IWebElement maybeLater = ElementByXPath("//button[@type='button' and contains(., 'Maybe Later')]");
+        if (IsVisible(maybeLater))
+        {
+            //Close the earn 1000's of coins offerwall
+            Click(maybeLater);
+            Wait(1);
+        }
+        OpenQA.Selenium.IWebElement ButtonClose = ElementByXPath("//button[@class='md-button md-accent md-raised md-theme-default' and contains(text(),'Done')]");
+        if (IsVisible(ButtonClose))
+        {
+            Click(ButtonClose);
+            Wait(1);
+        }
+    }
+
+}

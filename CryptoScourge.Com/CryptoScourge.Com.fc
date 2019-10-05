@@ -1,0 +1,365 @@
+﻿
+
+//==================//
+//script Written by: ••AviramDayan•• 06/06/2019 18:00PM 
+//Last Update: 01/07/2019 18:00PM - Version 3
+//==================//
+
+using FaucetCollector.Script;
+using OpenQA.Selenium;
+using System.Text;
+//css_inc RecaptchaUtilities
+//css_inc ShortLinkUtilities
+
+public class cryptoscourge : FaucetScript
+{
+    /// <summary>
+    /// List of Settings that will be shown in the bot when selecting this Faucet in the bot.
+    /// You can get the value the user entered with the methods: GetSetting("[Name of the FaucetSetting]"), GetBoolSetting and GetDateTimeSetting
+    /// You can also create a new setting value using SetSetting("[Name you want to use]", "value")
+    /// </summary>
+    public override FaucetSettings Settings
+    {
+        get
+        {
+            return new FaucetSettings("https://cryptoscourge.com/")
+            {
+                new FaucetSetting(){Name="Email",Display="Email",Type=EditorType.TextBox,Required=false},
+                new FaucetSetting(){Name="Password",Display="Password",Type=EditorType.Password,Required=false},
+
+            };
+        }
+    }
+
+
+    //============================================================//
+    //the number of "successes" in the script - when are finished  
+    //============================================================//
+    public override void Start()
+    {
+
+        //Title that shows in the browser. Is used to identify and close popup windows
+        Title = "CryptoScourge";
+
+        SuccessXPath = "//*";  //*[@id='']
+        FailXPath = "//*"; //*[@id='']
+
+        //TimerIsCountingUp = true;
+
+        //Let Faucet Collector start up everything
+        base.Start();
+    }
+
+    //============================================================//
+    //the number of "successes" in the script - when are finished  
+    //============================================================//
+
+
+
+
+
+    public override int DoInit()
+    {
+
+
+
+        //Let Faucet Collector continue.
+        return base.DoInit();
+    }
+
+
+    //==================//
+    //save Login Cookies 
+    //==================//
+    public override bool IsLoggedIn()
+    {
+        //save Login Cookies - Check if the "Logout" exist
+        return ElementByXPath("//div[@class='userButtons']/button[@class='logoutButton']") != null;
+
+        //return base.IsLoggedIn();
+    }
+    //==================//
+    //save Login Cookies 
+    //==================//	
+
+
+
+
+    //=============//
+    //BeforeLogin
+    //=============//
+    public override int BeforeLogin()
+    {
+
+
+        GoToUrl("https://cryptoscourge.com/#login");
+
+
+
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeLogin();
+    }
+    //=============//
+    //BeforeLogin
+    //=============//
+
+
+
+
+
+    //========//
+    //DoLogin
+    //========//
+    public override int DoLogin()
+    {
+
+
+        if (Driver.Url != "https://cryptoscourge.com/#login")
+        {
+            GoToUrl("https://cryptoscourge.com/#login");
+            Wait();
+        }
+
+
+
+        IWebElement box_user = ElementByXPath("//input[@id='login-email']");
+        if (!IsVisible(box_user))
+        {
+            return Fail("Box user not visible");
+        }
+        SetText(box_user, GetSetting("Email"));
+
+
+        IWebElement box_pass = ElementByXPath("//input[@id='login-password']");
+        if (!IsVisible(box_pass))
+        {
+            return Fail("Box pass not visible");
+        }
+        SetText(box_pass, GetPassword("Password"));
+
+
+
+        IWebElement ButtonLog = ElementByXPath("//button[@id='login-submit-button']");
+        if (!IsVisible(ButtonLog))
+        {
+            return Fail("Button log not visible");
+        }
+        Click(ButtonLog);
+
+        Wait();
+
+
+
+
+
+
+
+
+        return base.DoLogin();
+    }
+    //========//
+    //DoLogin
+    //========//
+
+
+
+    //========//
+    //AfterLogin
+    //========//
+    public override int AfterLogin()
+    {
+
+
+        //we are good to continue
+        return base.AfterLogin();
+
+    }
+    //========//
+    //AfterLogin
+    //========//
+
+
+
+
+    //================//
+    //GetFaucetWaitTime
+    //================//
+    public override int GetFaucetWaitTime()
+    {
+        if (Driver.Url != "https://cryptoscourge.com/d.html")
+        {
+            GoToUrl("https://cryptoscourge.com/d.html");
+            Wait();
+        }
+
+        var TimerElement = ElementByXPath("//div[@class='countdown']");
+        if (IsVisible(TimerElement))
+        {
+            string[] SplitedTimer = TimerElement.Text.Split(':');
+            int h, m, s;
+
+            int.TryParse(SplitedTimer[0], out h);
+            int.TryParse(SplitedTimer[1], out m);
+            int.TryParse(SplitedTimer[2], out s);
+
+
+            m *= 60;
+            h *= 3600;
+            return m + s + h;
+
+        }
+
+        //let Faucet Collector continue.
+        return base.GetFaucetWaitTime();
+    }
+    //================//
+    //GetFaucetWaitTime
+    //================//
+
+
+
+    public override int BeforeSolveCaptcha()
+    {
+
+        //Return we are ready to proceed
+        return base.BeforeSolveFaucet();
+    }
+
+
+    public override int DoSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoSolveCaptcha();
+    }
+
+
+    public override int AfterSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterSolveCaptcha();
+    }
+
+
+    public override int BeforeSolveFaucet()
+    {
+        //Return we can continue
+        return base.BeforeSolveFaucet();
+    }
+
+
+
+   
+
+    //==============//
+    //DoSolveFaucet
+    //==============//
+    public override int DoSolveFaucet()
+    {
+
+        //==============//
+        //FaucetClaim//
+        //==============//
+        if (Driver.Url != "https://cryptoscourge.com/d.html")
+        {
+            GoToUrl("https://cryptoscourge.com/d.html");
+            Wait();
+        }
+        var ShortButton = ElementByXPath("//a[@class='shl']");
+        if (!IsVisible(ShortButton))
+        {
+            return Fail("Short button not visible");
+
+        }
+        //Click button to generate the url
+        string ScriptOne = "var Shortlink1=document.getElementById('short-link1');" +
+            "Shortlink1.click();";
+        // Get the url
+        string ScriptTwo = "var sh1=document.getElementsByClassName('shl');" +
+            "return sh1[0].href";
+
+        ExecuteScript(ScriptOne);
+
+        Wait(2);
+
+        string UrlShortlink=ExecuteScript(ScriptTwo).ToString();
+
+
+  
+     
+        ShortLinkBypasser bypasser = new ShortLinkBypasser(this);
+        GoToUrl(UrlShortlink);
+        Wait(1);
+        bypasser.DoShortLink();
+
+        Wait(1);
+
+        var ClaimButton = ElementByXPath("//button[@id='claim-coins-button' and contains(text(),'Claim')]");
+        if (!IsVisible(ClaimButton))
+        {
+            return Fail("Something is wrong with the shortlink, Claim button not found");
+        }
+        var result = DoSolveCaptcha();
+        if (result > 0)
+        {
+            return Fail("Fail solving captcha");
+        }
+        
+        Wait(1);
+        int tries = 0;
+        while (IsVisible(ClaimButton))
+        {
+
+
+            Click(ClaimButton);
+            Wait();
+            if (tries >= 3)
+            {
+                break;
+            }
+        }
+
+
+
+
+
+
+        //We are good to continue
+        return base.DoSolveFaucet();
+    }
+    //==============//
+    //DoSolveFaucet
+    //==============///
+
+
+
+
+
+    //==============//
+    //AfterSolveFaucet
+    //==============//
+    public override int AfterSolveFaucet()
+    {
+
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterSolveFaucet();
+
+    }
+
+    //==============//
+    //AfterSolveFaucet
+    //==============//
+
+
+    public override int CheckFaucetResult()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.CheckFaucetResult();
+    }
+
+
+
+
+
+
+} //end public class
+

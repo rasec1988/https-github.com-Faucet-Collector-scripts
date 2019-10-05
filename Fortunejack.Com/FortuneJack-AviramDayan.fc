@@ -1,0 +1,472 @@
+﻿//==================//
+//script Written by: AviramDayan 15/07/2019 19:09PM version 1
+//Last Update: 15/07/2019 22:09PM - Version 1
+//==================//
+
+using System;
+using FaucetCollector.Script;
+using OpenQA.Selenium;
+//css_inc RecaptchaUtilities
+
+public class fortunejackScript : FaucetScript
+{
+    /// <summary>
+    /// List of Settings that will be shown in the bot when selecting this Faucet in the bot.
+    /// You can get the value the user entered with the methods: GetSetting("[Name of the FaucetSetting]"), GetBoolSetting and GetDateTimeSetting
+    /// You can also create a new setting value using SetSetting("[Name you want to use]", "value")
+    /// </summary>
+    public override FaucetSettings Settings
+    {
+        get
+        {
+			
+            return new FaucetSettings("https://fortunejack.com/")
+            {
+                new FaucetSetting(){Name="Email",Display="Your Email",Type=EditorType.TextBox,Required=true},
+                new FaucetSetting(){Name="Password",Display="Your Password",Type=EditorType.Password,Required=true},
+
+                //new FaucetSetting() { Name = "UseSolveMedia", Display = "Use SolveMedia or ReCaptcha", Type = EditorType.CheckBox, Default = true},
+                new FaucetSetting() { Name = "FaucetClaim", Display = "FaucetClaim", Type = EditorType.CheckBox, Default = true},	
+                //new FaucetSetting() { Name = "GameTaboo", Display = "Game | Endorphina - Taboo", Type = EditorType.CheckBox, Default = true},				
+                //new FaucetSetting() { Name = "GameSatoshiSecret", Display = "Game | Endorphina - Satoshi Secret", Type = EditorType.CheckBox, Default = true},
+		
+		
+				
+            };
+        }
+    }
+
+	
+	
+//============================================================//
+//the number of "successes" in the script - when are finished  
+//============================================================//
+    public override void Start()
+    {
+        ad = false;
+       	
+        //Title that shows in the browser. Is used to identify and close popup windows
+        Title = "fortunejack.com";
+
+        //After we did try to claim on the faucet we search for these elements to determine if it was a success or a fail
+		SuccessXPath = "//*";  //*[@id='']
+        FailXPath = "//*"; //*[@id='']
+		
+        //TimerIsCountingUp = true;
+		
+        //Let Faucet Collector start up everything
+        base.Start();
+    }
+//============================================================//
+//the number of "successes" in the script - when are finished  
+//============================================================//
+
+
+
+	//loop
+   bool ad;
+
+	
+	
+    /// <summary>
+    /// This is the first method to run after the browser is opened and the first page is loaded.
+    /// </summary>
+	
+    public override int DoInit()
+    {
+        //Let Faucet Collector continue.
+        return base.DoInit();
+    }
+
+	
+	
+	
+//==================//
+//save Login Cookies 
+//==================//
+    public override bool IsLoggedIn()
+    {
+	   //save Login Cookies - Check if the "Logout" exist
+       return ElementByXPath("//i[@class='fas fa-sign-out-alt'] | //i[@class='fas fa-sign-out-alt' and contains(text(),'Sign Out')] ") != null;
+    }
+//==================//
+//save Login Cookies 
+//==================//	
+
+
+
+
+	
+    /// <summary>
+    /// This method gets called if IsLoggedIn returned false, right before the DoLogin method is called.
+    /// </summary>
+    public override int BeforeLogin()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeLogin();
+    }
+
+
+	
+
+	
+//================================//
+//start DoLogin
+//================================//
+    public override int DoLogin()
+    {
+
+		//if i already login - go to here
+        //GoToUrl("https://www.fortunejack.com/login");
+
+        Wait();
+
+        var Email_Box =ElementByXPath("//input[@placeholder='Username']");
+        if (!IsVisible(Email_Box))
+        {
+        return Fail("Fail login , user box not found");
+        }            
+		SetText(Email_Box, GetSetting("Email"));
+
+        Wait();
+		
+        var Password_Box = ElementByXPath("//input[@placeholder='Password']");
+        if (!IsVisible(Password_Box))
+		{
+            return Fail("Fail login , pass box not found");
+        }
+		SetText(Password_Box, GetPassword("Password")); 
+
+		Wait();
+
+		//click on the login button
+        var ButtonLogin = ElementByXPath("//button[@id='login-btn']");
+        if (!IsVisible(ButtonLogin))
+        {
+            return Fail("Button not found");
+        }
+        Click(ButtonLogin);
+		
+		
+		Wait();		
+		
+		
+		//SolveCaptcha if apper
+		/*
+        var result=DoSolveCaptcha();
+        if(result>0)
+        {
+        return result;
+        }
+		*/
+		
+        var result = base.DoSolveCaptcha();
+        RecaptchaUtility utility = new RecaptchaUtility(this);
+        utility.DoSolve();
+		
+        Wait();
+		
+        //deep way - need to find the name of "data-callback" in the button html 
+        ExecuteScript("loginCallback();");
+		
+        //Let Faucet Collector continue
+        return base.DoLogin();
+    }
+//================================//
+//end DoLogin
+//================================//
+ 
+
+
+ 
+ 
+	
+//================================//
+//start AfterLogin
+//================================//
+ public override int AfterLogin()
+ {
+
+    //we are good to continue
+    return base.AfterLogin();
+
+ }
+	
+//================================//
+//end AfterLogin
+//================================//
+	
+
+	
+    /// <summary>
+    /// This method gets called after the login methods are successful, so we are logged into the faucet.
+    /// If the faucet is not yet ready to claim you should return a TimeStamp value to return how long it takes before the Faucet claim can be done.
+    /// This is used to pause the script while the faucet its timer runs out.
+    /// </summary>
+    public override int GetFaucetWaitTime()
+    {
+
+        if (ad)
+        {		
+		 ad=false;
+         Driver.Close();  // Close specific chrome window
+         Driver.Quit();  // also Close the console app, that was used to kick off the chrome window
+         Driver.Dispose();  // Close the chromedriver.exe
+		 return GetWaitSetting();
+	    }
+		
+		
+		//let Faucet Collector continue.
+        return base.GetFaucetWaitTime();
+    }
+
+	
+	
+	
+	
+    /// <summary>
+    /// This method is called right before a captcha will be solved. 
+    /// If you call SolveCaptcha() in other methods it will start this flow and tries to solve the captcha on the page.
+    /// </summary>
+    public override int BeforeSolveCaptcha()
+    {
+        //Check if the user wants to do SolveMedia or reCAPTCHA.
+        if (GetBoolSetting("UseSolveMedia"))
+        {
+            //Make sure SolveMedia is active by clicking the link.
+            Click(ElementByLinkText("Switch to SolveMedia captcha"));
+        }
+        else
+        {
+            //Make sure reCAPTCHA is active by clicking the link.
+            Click(ElementByLinkText("Switch to Recaptcha"));
+        }
+
+        //Wait a little (1 - 2 seconds) for the captcha to switch.
+        Wait();
+
+        //Return we are ready to proceed
+        return base.BeforeSolveFaucet();
+    }
+	
+	
+	
+
+    /// <summary>
+    /// This method gets called after BeforeSolveCaptcha and it does the actual captcha solving
+    /// It will automatically try to see if there is a SolveMedia captcha active or a reCAPTCHA active. 
+    /// If it finds either one it will then use the selected method on the Captcha tab of FaucetCollector to solve the Captcha.
+    /// </summary>
+    public override int DoSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoSolveCaptcha();
+    }
+
+	
+	
+	
+    /// <summary>
+    /// This method will get called after DoSolveCaptcha returned it was a success.
+    /// </summary>
+    /// <returns></returns>
+    public override int AfterSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterSolveCaptcha();
+    }
+
+	
+	
+	
+	
+//================================//
+//start BeforeSolveFaucet
+//================================//
+
+public override int BeforeSolveFaucet()
+  {
+	  
+
+    //Return we can continue
+     return base.BeforeSolveFaucet();
+  }
+  
+//================================//
+//end BeforeSolveFaucet
+//================================//
+	
+
+	
+	
+	
+	
+	
+//================================//
+//start DoSolveFaucet
+//================================//
+ public override int DoSolveFaucet()
+  {
+	  
+	  
+    if (GetBoolSetting("FaucetClaim"))
+    {  
+		
+		// go to faucet page
+		GoToUrl("https://fortunejack.com/dice");
+		
+		Wait();
+		
+		//click on - FreeBtcTab
+        var FreeBtcTab = ElementByXPath("//*[@id='getFreeBtc']");
+        Click(FreeBtcTab);
+		
+		//click on - ClaimBtcButton
+        var ClaimBtcButton = ElementByXPath("//button[@class='fullInput btn yellow g-recaptcha']");
+        Click(ClaimBtcButton);
+		
+		Wait();
+
+		//SolveCaptcha if apper
+		/*
+        var result = SolveCaptcha();
+        if (result > 0)
+        {
+            //Unable to solve the captcha - return the failure
+            //return result;
+			return Fail("Fail captcha");
+        }
+        */
+	
+        var result = base.DoSolveCaptcha();
+        RecaptchaUtility utility = new RecaptchaUtility(this);
+        utility.DoSolve();	
+		
+		Wait();
+		
+        //Check if "Faucet Eror" Text apper "less then 10 Satoshis"
+        var CheckFaucetTextLess10Satoshis = ElementByXPath("//div[starts-with(text(),'Your total balance must be less then 10 Satoshis')]");	  
+        if (IsVisible(CheckFaucetTextLess10Satoshis))
+        {
+	    Log("Your total balance must be less then 10 Satoshis");
+        return GetWaitSetting(); //return after 1 hour
+        }
+ 	  
+        //Check if "Faucet Eror" Text apper "Faucet limit exceeded"
+        var CheckFaucetTextFaucetLimit = ElementByXPath("//div[starts-with(text(),'Faucet limit exceeded')]"); 
+        if (IsVisible(CheckFaucetTextFaucetLimit))
+        {
+	    Log("Faucet limit exceeded");
+        return GetWaitSetting(); //return after 1 hour
+        }  
+
+		ad = true;    // if i do true - it report as succeed // only one time no multi and also required -> return GetWaitSetting();	
+
+	  
+    //=================//
+
+		
+    }
+		
+		
+        //We are good to continue
+        return base.DoSolveFaucet();
+ }
+//================================//
+//end DoSolveFaucet
+//================================//
+	
+	
+	
+	
+	
+	
+//================================//
+//start AfterSolveFaucet
+//================================//
+  public override int AfterSolveFaucet()
+  {
+
+    if (GetBoolSetting("GameTaboo"))
+    {  
+
+		//===============//
+		//SearchGame Taboo
+		//===============//
+		
+		//if i already login - go to "casino" page
+        GoToUrl("https://fortunejack.com/casino");
+
+		//click on - ButtonSearchGame
+		var ButtonSearchGame = ElementByXPath("//div[@class='icon-search']");
+        if (!IsVisible(ButtonSearchGame))
+        {
+         return Fail("ButtonSearchGame not found");
+        }
+		Wait();
+        Click(ButtonSearchGame);
+
+		Wait();
+		
+		//click on - InputSearchBar - and type - Taboo
+		var InputSearchBar = ElementByXPath("//input[@id='search']");
+        if (IsVisible(InputSearchBar))
+        {
+         return Fail("InputSearchBar not found"); 
+        }
+		Wait();
+		SetText(InputSearchBar,"Taboo");
+
+		Wait();
+
+		var BarClickTaboo = ElementByXPath("/html/body/main/div[1]/div[4]/div/div/div[1]/ul[1]/li[2]");
+		Click(BarClickTaboo);
+		
+		//enter Taboo
+	   //SendKeys.SendWait("{ENTER}");	
+		
+		//TabooEndClick
+		var TabooEndClick = ElementByXPath("/html/body/main/div[2]/div/div[2]/div/div[1]/div[3]/div[1]");
+		Click(TabooEndClick); 
+		//===============//
+		
+		
+		
+		//===============//
+		//Play Game Taboo
+		//===============//
+		
+		
+		//===============//	
+		
+		
+	} 
+
+	
+   //This faucet has nothing to do here. We will let Faucet Collector handle it.
+   return base.AfterSolveFaucet();
+   
+  }
+	
+//================================//
+//end AfterSolveFaucet
+//================================//
+
+
+
+
+
+    /// <summary>
+    /// This method gets called in the end after the BeforeSolveFaucet/DoSolveFaucet and AfterSolveFaucet methods were done.
+    /// The base.CheckFaucetResult will try to find a visible element on the page using the XPath from SuccessXPath and FailXPath (see the Start method)
+    /// These properties should contain XPath expressions to find certain elements on the page.
+    /// For example if it finds one of the elements from the SuccessXPath, and it is visible, then it will flag the claim attempt as a success.
+    /// Or if it finds one of the elements from the FailXPath, and it is visible, then it will flag the claim attempt as a failure.
+    /// </summary>
+    public override int CheckFaucetResult()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.CheckFaucetResult();
+    }
+}
+

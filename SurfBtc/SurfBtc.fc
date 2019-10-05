@@ -1,0 +1,643 @@
+﻿using System;
+using System.Drawing;
+using System.IO;
+using FaucetCollector.Script;
+using OpenQA.Selenium;
+using OpenQA.Selenium.Interactions;
+
+public class Surfbtc : FaucetScript
+{
+    /// <summary>
+    /// List of Settings that will be shown in the bot when selecting this Faucet in the bot.
+    /// You can get the value the user entered with the methods: GetSetting("[Name of the FaucetSetting]"), GetBoolSetting and GetDateTimeSetting
+    /// You can also create a new setting value using SetSetting("[Name you want to use]", "value")
+    /// </summary>
+    public override FaucetSettings Settings
+    {
+        get
+        {
+            return new FaucetSettings("http://www.surfbtc.com")
+            {
+                new FaucetSetting(){Name="User",Display="Username",Type=EditorType.TextBox,Required=true},
+                new FaucetSetting(){Name="Pass",Display="Password",Type=EditorType.Password,Required=true},
+                //insert user settings here
+                //new FaucetSetting { 
+                //    Name = "Name of your setting", 
+                //    Display = "Display shown in Faucet Collector", 
+                //    Type = EditorType.TextBox | EditorType.Password | EditorType.CheckBox | EditorType.Wallet | EditorType.Numeric | EditorType.ComboBox | EditorType.CheckComboBox, 
+                //    Required = true | false, 
+                //    Default = "Optionally a default value" | true | false | null.
+                //    Items = new List<string> { "item1", "item2" } (only valid for ComboBox or CheckComboBox)
+                //} 
+            };
+        }
+    }
+
+    /// <summary>
+    /// This method gets called when the faucet is enabled and the GO button is clicked
+    /// </summary>
+    public override void Start()
+    {
+        //Title that shows in the browser. Is used to identify and close popup windows
+        Title = "SURF BTC";
+        solved_ = false;
+        //After we did try to claim on the faucet we search for these elements to determine if it was a success or a fail
+        SuccessXPath = "//body[@class='ui-mobile-viewport ui-overlay-c']/div[@id='signIn']/div[@class='row']/div[@class='s12 m9']/div[@class='ui-content']/center/div[2]";
+        FailXPath = "//span[contains(text(),'Failed')]";
+
+        //Let Faucet Collector start up everything
+        base.Start();
+    }
+
+    /// <summary>
+    /// This is the first method to run after the browser is opened and the first page is loaded.
+    /// </summary>
+    public override int DoInit()
+    {
+  
+        //Let Faucet Collector continue.
+        return base.DoInit();
+    }
+
+    /// <summary>
+    /// This method gets called after the Start method, here you need to return if we are logged in or not.
+    /// If you return false then it will call the BeforeLogin, Login and AfterLogin methods so you can login.
+    /// After those Login methods are called it will call this IsLoggedIn method again to see if the login did succeed.
+    /// If you return true Faucet Collector will store all cookies so it will probably be already logged in on the next attempt.
+    /// </summary>
+    public override bool IsLoggedIn()
+    {
+        //In here we can check for the presence of an element that is only present when you are logged in.
+        //In this case we check for en element with the class "loggedIn"
+        return IsVisible(ElementByXPath("//span[contains(text(),'Logout')]"));
+    }
+
+    /// <summary>
+    /// This method gets called if IsLoggedIn returned false, right before the DoLogin method is called.
+    /// </summary>
+    public override int BeforeLogin()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeLogin();
+    }
+
+    /// <summary>
+    /// This method gets called after BeforeLogin, but only if IsLoggedIn returned false.
+    /// It can be used to actually login the user/enter wallet details in the faucet
+    /// </summary>
+    /// <returns></returns>
+    public override int DoLogin()
+    {
+        Driver.Manage().Cookies.DeleteAllCookies();
+
+        GotoiFimNot("http://www.surfbtc.com/index.php?v=login");
+        Wait(7);
+        var user_box = ElementByXPath("//input[@id='name']");
+        if (!IsVisible(user_box))
+        {
+            return Fail("Box not found");
+        }
+        SetText(user_box,GetSetting("User"));
+        var pass_box = ElementByXPath("//input[@id='password']");
+        if (!IsVisible(pass_box))
+        {
+            return Fail("box not found");
+        }
+        SetText(pass_box, GetPassword("Pass"));
+        Wait();
+        var button = ElementByXPath("//input[@value='Login']");
+        if (!IsVisible(button))
+        {
+            return Fail("Fail button is not visible");
+        }
+        Click(button);
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoLogin();
+    }
+
+    /// <summary>
+    /// This method gets called after the DoLogin method.
+    /// </summary>
+    public override int AfterLogin()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterLogin();
+    }
+
+    /// <summary>
+    /// This method gets called after the login methods are successful, so we are logged into the faucet.
+    /// If the faucet is not yet ready to claim you should return a TimeStamp value to return how long it takes before the Faucet claim can be done.
+    /// This is used to pause the script while the faucet its timer runs out.
+    /// Return the number of seconds the bot should wait.
+    /// </summary>
+    public override int GetFaucetWaitTime()
+    {
+        if (solved_)
+        {
+            return 3600;
+        }
+        //let Faucet Collector continue.
+        return 0;
+    }
+
+    /// <summary>
+    /// This method is called right before a captcha will be solved. 
+    /// If you call SolveCaptcha() in other methods it will start this flow and tries to solve the captcha on the page.
+    /// </summary>
+    public override int BeforeSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeSolveCaptcha();
+    }
+
+    /// <summary>
+    /// This method gets called after BeforeSolveCaptcha and it does the actual captcha solving
+    /// It will automatically try to see if there is a SolveMedia captcha active or a reCAPTCHA active. 
+    /// If it finds either one it will then use the selected method on the Captcha tab of FaucetCollector to solve the Captcha.
+    /// </summary>
+    public override int DoSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoSolveCaptcha();
+    }
+
+    /// <summary>
+    /// This method will get called after DoSolveCaptcha returned it was a success.
+    /// </summary>
+    /// <returns></returns>
+    public override int AfterSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterSolveCaptcha();
+    }
+
+    /// <summary>
+    /// This method is called right before we attempt to claim on the faucet. So we are logged in and good to go.
+    /// Next methods that will be called are DoSolveFaucet, AfterSolveFaucet and CheckFaucetResult.
+    /// </summary>
+    public override int BeforeSolveFaucet()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeSolveCaptcha();
+    }
+
+    /// <summary>
+    /// This method gets called after the BeforeSolveFaucet. You can do the actual claiming of the faucet in here.
+    /// </summary>
+    /// <returns></returns>
+    static bool solved_;
+    public override int DoSolveFaucet()
+    {
+        GoToUrl("http://www.surfbtc.com/index.php?v=surf-next");
+        Wait(5);
+        
+        var button = ElementByXPath("//*[@id='signIn']/div[3]/div[2]/div/center/div/a[1]/span");
+        while (button!=null)
+        {
+
+          
+                Click(button);
+                Wait();
+           
+            
+            
+            var capt = ElementByXPath("//img[@src='secure/captcha.php']");
+            while (!IsVisible(capt))
+            {
+                Wait();
+                capt = ElementByXPath("//img[@src='secure/captcha.php']");
+            }
+        
+            Wait();
+            bool solved = solve_image();
+            Wait();
+        
+            GotoiFimNot("http://www.surfbtc.com/index.php?v=surf-next");
+            Wait(5);
+            button = ElementByXPath("//*[@id='signIn']/div[3]/div[2]/div/center/div/a[1]/span");
+           
+        }
+        solved_ = true;
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoSolveFaucet();
+    }
+    public Bitmap ChangeImageSize(Bitmap pImg, int pWidth, int pHeigth)
+    {
+
+        //Creating new bitmap
+
+        Bitmap vBitmap = new Bitmap(pWidth, pHeigth);
+
+        using (Graphics vGraphics = Graphics.FromImage((Image)vBitmap))
+
+        {
+
+            //Specifi interpolation
+
+            vGraphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
+
+            //Draw
+
+            vGraphics.DrawImage(pImg, 0, 0, pWidth, pHeigth);
+
+        }
+
+        //return image
+
+        return vBitmap;
+
+    }
+    private bool solve_image()
+    {
+        bool IsSolved = false;
+        var capt = ElementByXPath("//img[@src='secure/captcha.php']");
+        Bitmap captcha = TakeScreenshot(Base.Captcha.CaptchaService.Manual, capt);
+        if (captcha.Width != 50)
+        {
+            captcha = ChangeImageSize(captcha,240, 50);
+        }
+        //Log("Captcha obtain");
+        Bitmap[] icons = new Bitmap[5];
+        icons[0] = captcha.Clone(new Rectangle(40, 0, 35, 50), captcha.PixelFormat);
+        icons[1] = captcha.Clone(new Rectangle(100, 0, 35, 50), captcha.PixelFormat);
+        icons[2] = captcha.Clone(new Rectangle(135, 0, 35, 50), captcha.PixelFormat);
+        icons[3] = captcha.Clone(new Rectangle(170, 0, 35, 50), captcha.PixelFormat);
+        icons[4] = captcha.Clone(new Rectangle(205, 0, 35, 50), captcha.PixelFormat);
+        //Log("CLone");
+        // PRINCIPAL ICON CLEAN
+       
+        //Log("Replaced black");
+        int[] n_pixels = new int[5];
+        for(int i = 1; i < 5; i++)
+        {
+            n_pixels[i]=Count_Colors(icons[i], Color.FromArgb(160, 0, 0, 0), 1);
+            n_pixels[i] = icons[i].Width * icons[i].Height - n_pixels[i];
+        }
+        //Log("replaced 2");
+        n_pixels[0] = Count_Colors(icons[0],Color.FromArgb(255,255,255),10);
+        n_pixels[0] = icons[0].Width * icons[0].Height - n_pixels[0];
+       
+      //  n_pixels[0] += (n_pixels[0] * 25) / 100;
+       //for(int i = 0; i < 5; i++)
+       // {
+       //     icons[i].Save(i.ToString() + "ICONOS.png");
+       // }
+   
+        int solution = 0;
+        int minor = int.MinValue;
+        for(int i = 1; i < 5; i++)
+        {
+            int u = n_pixels[i] - n_pixels[0];
+            u = u * u;
+      
+            if (i == 0)
+            {
+                minor = u;
+                solution = i;
+            }
+
+            if (minor > u)
+            {
+                minor = u;
+                solution = i;
+            }
+        }
+      
+
+        ExecuteScript("captchaa(" + solution.ToString() + ");");
+        Wait();
+        //Log("clicked");
+        Wait();
+
+
+        
+
+
+
+        return IsSolved;
+    }
+    /// <summary>
+    /// This method will get called after the DoSolveFaucet is completed and returned it was a success.
+    /// For example you can wait for a processing popup to go away until actual faucet claim result is on the page.
+    /// </summary>
+    public override int AfterSolveFaucet()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterSolveFaucet();
+    }
+
+    /// <summary>
+    /// This method gets called in the end after the BeforeSolveFaucet/DoSolveFaucet and AfterSolveFaucet methods were done.
+    /// The base.CheckFaucetResult will try to find a visible element on the page using the XPath from SuccessXPath and FailXPath (see the Start method)
+    /// These properties should contain XPath expressions to find certain elements on the page.
+    /// For example if it finds one of the elements from the SuccessXPath, and it is visible, then it will flag the claim attempt as a success.
+    /// Or if it finds one of the elements from the FailXPath, and it is visible, then it will flag the claim attempt as a failure.
+    /// </summary>
+    public override int CheckFaucetResult()
+    {
+       
+        Wait();
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.CheckFaucetResult();
+    }
+
+
+    private Bitmap GetElementScreenShort(IWebDriver driver, IWebElement element, string name)
+    {
+        Actions actions = new Actions(driver);
+        actions.MoveToElement(element);
+        actions.Perform();
+        Screenshot sc = ((ITakesScreenshot)driver).GetScreenshot();
+        var img = Image.FromStream(new MemoryStream(sc.AsByteArray)) as Bitmap;
+        var x = ExecuteScript("let coords = arguments[0].getBoundingClientRect();return coords.left;", element);
+        var y = ExecuteScript("let coords = arguments[0].getBoundingClientRect();return coords.top;", element);
+        int x2 = Convert.ToInt32(x);
+        int y2 = Convert.ToInt32(y);
+        var width = ExecuteScript("let coords = arguments[0].getBoundingClientRect();return coords.width;", element);
+        var height = ExecuteScript("let coords = arguments[0].getBoundingClientRect();return coords.height;", element);
+        int width2 = Convert.ToInt32(width);
+        int height2 = Convert.ToInt32(height);
+
+        if (Convert.ToInt32(name) != 4)
+        {
+            img = img.Clone(new Rectangle(x2, y2, width2, height2), img.PixelFormat);
+        }
+        else
+        {
+            img = img.Clone(new Rectangle(x2, y2, width2, height2), img.PixelFormat);
+        }
+
+        return img;
+    }
+    public int CountSamePixels(Bitmap FromPath, Color Tocount)
+    {
+        int count = 0;
+        for (int i = 0; i < FromPath.Width; i++)
+        {
+            for (int j = 0; j < FromPath.Height; j++)
+            {
+                if (!comp_argb(Color.White, FromPath.GetPixel(i, j), 5))
+                {
+                    count++;
+                }
+            }
+
+        }
+        return count;
+
+    }
+    public bool WaitForElement(string XPathElement, int time_max, bool IsVisible_, bool not_visible)
+    {
+        DateTime t1 = DateTime.Now.AddSeconds(time_max);
+        bool breaked = false;
+        var element = ElementByXPath(XPathElement);
+        if (IsVisible_)
+        {
+            if (not_visible)
+            {
+
+                while (IsVisible(element))
+                {
+                    Wait();
+                    if (DateTime.Now > t1)
+                    {
+                        breaked = true;
+                        break;
+                    }
+                    element = ElementByXPath(XPathElement);
+                }
+            }
+            else
+            {
+                while (!IsVisible(element))
+                {
+                    Wait();
+                    if (DateTime.Now > t1)
+                    {
+                        breaked = true;
+                        break;
+                    }
+                    element = ElementByXPath(XPathElement);
+                }
+            }
+        }
+        else
+        {
+            if (not_visible)
+            {
+                while (!(element == null))
+                {
+
+                    Wait();
+                    if (DateTime.Now > t1)
+                    {
+                        breaked = true;
+                        break;
+                    }
+                    element = ElementByXPath(XPathElement);
+                }
+
+            }
+            else
+            {
+
+                while (element == null)
+                {
+
+                    Wait();
+                    if (DateTime.Now > t1)
+                    {
+                        breaked = true;
+                        break;
+                    }
+                    element = ElementByXPath(XPathElement);
+                }
+
+            }
+        }
+        Wait();
+
+        return !breaked;
+    }
+    private bool GotoiFimNot(string url)
+    {
+        if (!Driver.Url.Contains(url))
+        {
+            GoToUrl(url);
+            return true;
+        }
+        return false;
+    }
+    private bool comp_argb(Color fr, Color source, double threshold)
+    {
+        int r = fr.R - source.R;
+        int g = fr.G - source.G;
+        int b = fr.B - source.B;
+        int a = fr.A - source.A;
+        if (r * r + g * g + b * b + a * a > threshold * threshold)
+        {
+            return false;
+        }
+        else
+        {
+            return true;
+        }
+    }
+    private static int GetDiff(Color color, Color baseColor)
+    {
+        int a = color.A - baseColor.A,
+            r = color.R - baseColor.R,
+            g = color.G - baseColor.G,
+            b = color.B - baseColor.B;
+        return a * a + r * r + g * g + b * b;
+    }
+    float getBrightness(Color c)
+    { return (c.R * 0.299f + c.G * 0.587f + c.B * 0.114f) / 256f; }
+    bool IsSame(Color a, Color b)
+    {
+        if (a.R == b.R && a.G == b.G && a.B == b.B && a.A == b.A)
+        {
+            return true;
+        }
+        return false;
+    }
+
+
+    float getHueDistance(float hue1, float hue2)
+    {
+        float d = Math.Abs(hue1 - hue2); return d > 180 ? 360 - d : d;
+    }
+
+
+    private static int Count_Colors(Bitmap fromPath, Color source, double threshold)
+    {
+        var thresh = threshold * threshold;
+        //var target = targetColor.ToArgb();
+        int count_color = 0;
+
+
+        int sR = source.R, sG = source.G, sB = source.B;
+        // store the max length so we don't have to recalculate it
+
+
+
+        // for (var p = (int*)data.Scan0; p < length; p++)
+        for (int i = 0; i < fromPath.Width; i++)
+        {
+            for (int j = 0; j < fromPath.Height; j++)
+            {
+
+                // get the rgb Distance
+                // var r = ((*p >> 16) & 255) - sR;
+                //var g = ((*p >> 8) & 255) - sG;
+                //var b = ((*p >> 0) & 255) - sB;
+                var r = fromPath.GetPixel(i, j).R - sR;
+                var g = fromPath.GetPixel(i, j).G - sG;
+                var b = fromPath.GetPixel(i, j).B - sB;
+                // compare it against the threshold
+                if (r * r + g * g + b * b > thresh)
+                    continue;
+                // poke the target color in
+                count_color++;
+            }
+        }
+
+        // unlock the bitmap
+
+
+        return count_color;
+    }
+    private bool IsSameColor(Color fr, Color source, double threshold)
+    {
+        int r = fr.R - source.R;
+        int g = fr.G - source.G;
+        int b = fr.B - source.B;
+        if (r * r + g * g + b * b > threshold * threshold)
+        {
+            return false;
+        }
+        else
+        {
+            return true;
+        }
+    }
+
+    private Bitmap Replace_Colors(Bitmap fromPath, Color source, Color replace, double threshold, string n)
+    {
+        var thresh = threshold * threshold;
+        //var target = targetColor.ToArgb();
+
+
+        int sR = source.R, sG = source.G, sB = source.B;
+        // store the max length so we don't have to recalculate it
+
+
+
+        // for (var p = (int*)data.Scan0; p < length; p++)
+        for (int i = 0; i < fromPath.Width; i++)
+        {
+            for (int j = 0; j < fromPath.Height; j++)
+            {
+
+                // get the rgb Distance
+                // var r = ((*p >> 16) & 255) - sR;
+                //var g = ((*p >> 8) & 255) - sG;
+                //var b = ((*p >> 0) & 255) - sB;
+                var r = fromPath.GetPixel(i, j).R - sR;
+                var g = fromPath.GetPixel(i, j).G - sG;
+                var b = fromPath.GetPixel(i, j).B - sB;
+                // compare it against the threshold
+                if (r * r + g * g + b * b > thresh)
+                    continue;
+                // poke the target color in
+                fromPath.SetPixel(i, j, replace);
+
+            }
+        }
+
+
+        // unlock the bitmap
+        return fromPath;
+
+
+    }
+    private Bitmap ReplaceAllColorsTo(Bitmap fromPath, Color source, Color replace, double threshold)
+    {
+
+        var thresh = threshold * threshold;
+        //var target = targetColor.ToArgb();
+
+
+        int sR = source.R, sG = source.G, sB = source.B;
+        // store the max length so we don't have to recalculate it
+
+
+
+        // for (var p = (int*)data.Scan0; p < length; p++)
+        for (int i = 0; i < fromPath.Width; i++)
+        {
+            for (int j = 0; j < fromPath.Height; j++)
+            {
+
+                // get the rgb Distance
+                // var r = ((*p >> 16) & 255) - sR;
+                //var g = ((*p >> 8) & 255) - sG;
+                //var b = ((*p >> 0) & 255) - sB;
+                var r = fromPath.GetPixel(i, j).R - sR;
+                var g = fromPath.GetPixel(i, j).G - sG;
+                var b = fromPath.GetPixel(i, j).B - sB;
+                // compare it against the threshold
+                if (r * r + g * g + b * b < thresh)
+                    continue;
+                // poke the target color in
+                fromPath.SetPixel(i, j, replace);
+            }
+        }
+
+        // unlock the bitmap
+        return fromPath;
+
+
+    }
+
+}

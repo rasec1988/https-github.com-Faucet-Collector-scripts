@@ -1,0 +1,211 @@
+﻿using System;
+using System.Threading.Tasks;
+using FaucetCollector.Script;
+
+public class GetFreeCoinbtccript : FaucetScript
+{
+    
+    public override FaucetSettings Settings
+    {
+        get
+        {
+            return new FaucetSettings("http://getfree.co.in/faucet")
+            {
+                 new FaucetSetting {
+                    Name = "btc",
+                    Display = "FaucetHub linked btc wallet address",
+                    Type = EditorType.Wallet,
+                    Required = true,
+                    Default = null
+                }
+            };
+        }
+    }
+
+    
+    public override void Start()
+    {
+        
+        Title = "Get Free Coin|Redirect";
+
+        SuccessXPath = "//div[contains(@class,'alert-success')]";
+        FailXPath = "//div[contains(@class,'alert-error')]";
+
+        //Let Faucet Collector start up everything
+        base.Start();
+    }
+
+    
+    public override bool IsLoggedIn()
+    {
+        
+        return IsVisible(ElementByXPath("//a[@href='/user']"));
+    }
+
+    
+    public override int BeforeLogin()
+    {
+        Wait(5);
+        return base.BeforeLogin();
+    }
+
+   
+    public override int DoLogin()
+    {
+
+
+        var addressInput = ElementByXPath("//INPUT[@type='text']");
+        if (addressInput == null)
+        {
+            
+            return Fail("btc address input not found.");
+        }
+
+        
+        SetText(addressInput, GetSetting("btc"));
+
+        
+        var rewardButton = ElementByXPath("//BUTTON[@type='submit']");
+        if (!IsVisible(rewardButton))
+        {
+            
+            return Fail("Get reward button not found.");
+        }
+
+        
+        Click(rewardButton);
+
+        
+        return base.DoLogin();
+    }
+
+   
+    public override int AfterLogin()
+    {
+        
+        return base.AfterLogin();
+    }
+
+   
+    public override int GetFaucetWaitTime()
+    {
+		var previous = GetDateTimeSetting("ClaimTime");
+        if (previous.HasValue)
+        {
+            if (previous.Value.AddMinutes(10) > DateTime.Now)
+            {
+                //it was still less than an hour ago, return the remaingin time in seconds
+                return (int)(previous.Value.AddMinutes(10) - DateTime.Now).TotalSeconds;
+            }
+        }
+
+        //we don't need to wait
+        return 0;    
+    }
+
+   
+    public override int BeforeSolveCaptcha()
+    {
+
+        return base.BeforeSolveCaptcha();
+    }
+
+   
+    public override int DoSolveCaptcha()
+    {
+       
+        var extraCaptcha = ElementById("captcha");
+        var extraInput = ElementByName("captcha_code");
+        Task<int> extraTask = null;
+        if (IsVisible(extraCaptcha) && IsVisible(extraInput))
+        {
+            
+            extraTask = Task.Run(() =>
+            {
+                return DoSolveImageCaptcha(extraCaptcha, extraInput);
+            });
+        }
+
+       
+        var result = base.DoSolveCaptcha();
+
+        
+        if (extraTask != null)
+        {
+            
+            extraTask.Wait();
+
+            
+            result += extraTask.Result;
+        }
+
+        
+        return result;
+    }
+
+    
+    public override int AfterSolveCaptcha()
+    {
+        
+        return base.AfterSolveCaptcha();
+    }
+
+   
+    public override int BeforeSolveFaucet()
+    {
+        
+        return base.BeforeSolveFaucet();
+    }
+
+  
+    public override int DoSolveFaucet()
+    {
+
+        var Provehuman = ElementByXPath("//BUTTON[@class='btn'][text()='Prove you are human']");
+        if (!IsVisible(Provehuman))
+        {
+            
+            return Fail("Provehuman Error.");
+        }
+
+
+        
+        var result = SolveCaptcha();
+        if (result > 0)
+        {
+            
+            return result;
+        }
+
+        
+        Click(Provehuman);
+
+        var ClaimButton = ElementByXPath("//INPUT[@id='claimbtn']");
+
+        Click(ClaimButton);
+        
+        return base.DoSolveFaucet();
+    }
+
+    
+    public override int AfterSolveFaucet()
+    {
+        
+        return base.AfterSolveFaucet();
+    }
+
+    
+    public override int CheckFaucetResult()
+    {
+       
+        var result = base.CheckFaucetResult();
+
+        if (IsSuccess)
+        {
+            SetSetting("ClaimTime", DateTime.Now);            
+            Reload = true;
+        }
+
+        return result;
+    }
+}

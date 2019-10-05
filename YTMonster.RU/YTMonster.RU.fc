@@ -1,0 +1,498 @@
+﻿
+
+//==================//
+//script Written by: ••AviramDayan•• 31/05/2019 19:09PM
+//Last Update: 03/06/2019 08:00PM - Version 3
+//==================//
+
+using System;
+using FaucetCollector.Script;
+using OpenQA.Selenium;
+using OpenQA.Selenium.Interactions;
+//css_inc recaptchaUtilities
+
+public class ytmonster : FaucetScript
+{
+    /// <summary>
+    /// List of Settings that will be shown in the bot when selecting this Faucet in the bot.
+    /// You can get the value the user entered with the methods: GetSetting("[Name of the FaucetSetting]"), GetBoolSetting and GetDateTimeSetting
+    /// You can also create a new setting value using SetSetting("[Name you want to use]", "value")
+    /// </summary>
+    public override FaucetSettings Settings
+    {
+        get
+        {
+			
+            return new FaucetSettings("https://ytmonster.ru/?r=152822")
+            {
+				
+                new FaucetSetting() { Name = "Username", Display = "Username", Type = EditorType.TextBox, Required = true },           
+                new FaucetSetting() { Name = "Password", Display = "Password", Type = EditorType.Password, Required = true },
+				
+                new FaucetSetting() { Name = "Bonus_Views", Display = "Bonus_Views", Type = EditorType.CheckBox, Default = true},	
+                new FaucetSetting() { Name = "Bonus_Subscribers", Display = "Bonus_Subscribers", Type = EditorType.CheckBox, Default = false},	
+                new FaucetSetting() { Name = "Bonus_Likes", Display = "Bonus_Likes", Type = EditorType.CheckBox, Default = false},	
+	            //new FaucetSetting() { Name = "Bonus_Comments", Display = "Bonus_Comments", Type = EditorType.CheckBox, Default = false},	
+						
+                //new FaucetSetting() { Name = "Do_YouTube_Views", Display = "Do_YouTube_Views - ON/OFF", Type = EditorType.CheckBox, Default = true},   
+                //new FaucetSetting() { Name = "Do_YouTube_Subscribers", Display = "Do_YouTube_Subscribers - ON/OFF", Type = EditorType.CheckBox, Default = true},	   
+                //new FaucetSetting() { Name = "Do_YouTube_Likes", Display = "Do_YouTube_Likes - ON/OFF", Type = EditorType.CheckBox, Default = true},   
+                //new FaucetSetting() { Name = "Do_YouTube_Comments", Display = "Do_YouTube_Comments - ON/OFF", Type = EditorType.CheckBox, Default = true},   
+
+                //new FaucetSetting() { Name = "Numbers_Of_Views", Display = "Numbers_Of_Views", Type = EditorType.Numeric, Default = 300 },
+
+ 
+				
+            };
+        }
+    }
+
+	
+//============================================================//
+//the number of "successes" in the script - when are finished  
+//============================================================//
+    public override void Start()
+    {
+        ad = false;
+       
+        //Title that shows in the browser. Is used to identify and close popup windows
+        Title = "Панель управления";  //Control Panel   //YTMonster
+
+		SuccessXPath = "//*";  //*[@id='']
+        FailXPath = "//*"; //*[@id='']
+	
+        //TimerIsCountingUp = true;
+		
+        //Let Faucet Collector start up everything
+        base.Start();
+    }
+//============================================================//
+//the number of "successes" in the script - when are finished  
+//============================================================//
+
+	
+	
+    bool ad; //custom bool
+
+
+
+    public override int DoInit()
+    {
+		
+/*
+      //=======//
+	  //Protection
+	  //=======//
+      var ProtectionVAR = ElementByXPath("//div[1]/p[1 and contains(text(),'Balance: 0')] ");
+				
+      if(IsVisible(ProtectionVAR))
+      {	  
+	        Log("ProtectionVAR - the faucet are empty");  
+			Driver.Close();  // Close specific chrome window
+            Driver.Quit();  // also Close the console app, that was used to kick off the chrome window
+            Driver.Dispose();  // Close the chromedriver.exe
+            return GetWaitSetting();  
+	  }
+	  //=======//
+ 
+*/		
+        //Let Faucet Collector continue.
+        return base.DoInit();
+    }
+
+
+
+//==================//
+//save Login Cookies 
+//==================//
+    public override bool IsLoggedIn()
+    {
+	    //save Login Cookies - Check if the "Logout" exist
+        return ElementByXPath("//a[@href='../out.php/']") != null;
+	 
+        //return base.IsLoggedIn();
+    }
+//==================//
+//save Login Cookies 
+//==================//	
+
+
+
+
+//=============//
+//BeforeLogin
+//=============//
+    public override int BeforeLogin()
+    {
+  
+	  
+	 //var checks login or exit
+     var ExitButton = ElementByXPath("//a[@href='../out.php/']");
+	 
+	 //if i already Login - go to "bonus"	 
+	 if (IsVisible(ExitButton))
+	 {
+        //if we already login go to here
+        GoToUrl("https://ytmonster.ru/dashboard/");
+		Log("we are login "); 
+	 }	
+	
+		
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeLogin();
+    }
+//=============//
+//BeforeLogin
+//=============//
+
+	
+
+	
+//========//
+//DoLogin
+//========//
+    public override int DoLogin()
+    {
+
+      var ExitButton = ElementByXPath("//a[@href='../out.php/']");
+	
+	 //if i NOT Login - go to Login Page
+	 if (!IsVisible(ExitButton))
+	 {
+	
+		GoToUrl("https://ytmonster.ru/");
+		Log("Go to Login "); 
+		
+		Wait();		
+		Wait(2);
+		
+        var StartLogin = ElementByXPath("//a[@title='Войти']");
+  	    if (IsVisible(StartLogin))
+	    {
+        Click(StartLogin);			
+		}	
+
+		Wait(3);
+		
+        var signInUser = ElementByXPath("//input[@placeholder='Логин']");
+        SetText(signInUser, GetSetting("Username"));
+	
+        Wait(2);
+	
+        var signInPassword = ElementByXPath("//input[@placeholder='Пароль']");
+        SetText(signInPassword, GetPassword("Password"));
+	
+        Wait(4);
+   
+        var loginButton = ElementByXPath("//input[@id='booSubmit']");
+        Click(loginButton);
+
+        var recaptcha_here = ElementByXPath("//span[@id='recaptcha-anchor']");
+  	    if (IsVisible(recaptcha_here))
+	    {
+
+        var result = DoSolveCaptcha();
+        if (result > 0)
+        {
+            return Fail("Fail solving captcha");
+        }	
+		
+		} //end recaptcha_here			
+		
+		//Wait(6);	
+
+        //Driver.Navigate().Refresh(); //RefrashPage
+
+		Wait();	
+
+	 } // end ExitButton
+
+        
+       return base.DoLogin();
+    }
+//========//
+//DoLogin
+//========//
+ 
+
+
+//========//
+//AfterLogin
+//========//
+ public override int AfterLogin()
+ {
+ 
+  
+    //we are good to continue
+    return base.AfterLogin();
+
+ }
+//========//
+//AfterLogin
+//========//
+
+
+	
+
+//================//
+//GetFaucetWaitTime
+//================//
+    public override int GetFaucetWaitTime()
+    {
+
+        if (ad)
+        {
+			
+		 ad=false;
+		 
+         //=======//
+	     //Timer
+	     //=======//
+         //var MinuteVAR = ElementByXPath("//div[1]/p[3 and contains(text(),'wait' )]");
+				
+         //if(IsVisible(MinuteVAR))
+         //{
+	     //Log("MinuteVAR");  
+         //int MinuteINT = Convert.ToInt32(MinuteVAR.Text.Trim().Split(' ')[4])*60;	 // need [4] for example if we have Existing text "You have to wait 15 minutes"  it mean = You[0] have[1] to[2] wait[3] 15[4] minutes[5] 
+				
+         Driver.Close();  // Close specific chrome window
+         Driver.Quit();  // also Close the console app, that was used to kick off the chrome window
+         Driver.Dispose();  // Close the chromedriver.exe
+		 return GetWaitSetting();
+         //return MinuteINT;
+	     //}
+         //=======//
+			
+        }
+		
+
+		//let Faucet Collector continue.
+        return base.GetFaucetWaitTime();
+    }
+//================//
+//GetFaucetWaitTime
+//================//
+
+
+
+    public override int BeforeSolveCaptcha()
+    {
+ 
+        //Return we are ready to proceed
+        return base.BeforeSolveFaucet();
+    }
+
+	
+    public override int DoSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoSolveCaptcha();
+    }
+
+	
+    public override int AfterSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterSolveCaptcha();
+    }
+
+	
+    public override int BeforeSolveFaucet()
+    {
+        //Return we can continue
+        return base.BeforeSolveFaucet();
+    }
+  
+	
+	
+//==============//
+//DoSolveFaucet
+//==============//
+ public override int DoSolveFaucet()
+  {
+
+    if (GetBoolSetting("Bonus_Views"))
+    { 
+		Log("Reedem_Button_Views");
+        var Reedem_Button_Views = ElementByXPath("//a[@href='?reedem=views']");
+  	    if (IsVisible(Reedem_Button_Views))
+	    {  
+		Log("Reedem_Button_Views - click now");
+        Click(Reedem_Button_Views);
+		}
+		
+        Wait(2);	
+		
+        var Success_Progress_Views = ElementByXPath("//div[@class='progress-bar progress-bar-success' and @style='width: 100%;' and contains(text(),'100') ]");	
+  	    if (IsVisible(Success_Progress_Views))
+	    {  
+		 Log("Success_Progress_Views - Success");
+         CheckFaucetResult(); //skip all actions - and call to --> CheckFaucetResult - to make sure that FC mark as "Payout" before
+	    }	
+	}
+	
+    Wait(3);	
+		
+    if (GetBoolSetting("Bonus_Subscribers"))
+    { 
+		Log("Reedem_Button_Subscribers");
+        var Reedem_Button_Subscribers = ElementByXPath("//a[@href='?reedem=subscribers']");
+  	    if (IsVisible(Reedem_Button_Subscribers))
+	    {  
+		Log("Reedem_Button_Subscribers - click now");
+        Click(Reedem_Button_Subscribers);
+		}
+		
+        Wait(2);	
+	
+        var Success_Progress_Subscribers = ElementByXPath("//div[2]/div/div[4]/div[@class='progress-bar progress-bar-success' and @style='width: 100%;' and contains(text(),'20') ]");		
+  	    if (IsVisible(Success_Progress_Subscribers))
+	    {  
+		 Log("Success_Progress_Subscribers - Success");
+         CheckFaucetResult(); //skip all actions - and call to --> CheckFaucetResult - to make sure that FC mark as "Payout" before
+	    }	
+	}
+	
+    Wait(3);	
+		
+    if (GetBoolSetting("Bonus_Likes"))
+    { 
+		Log("Reedem_Button_Likes");
+        var Reedem_Button_Likes = ElementByXPath("//a[@href='?reedem=likes']");
+  	    if (IsVisible(Reedem_Button_Likes))
+	    {  
+		Log("Reedem_Button_Likes - click now");
+        Click(Reedem_Button_Likes);
+		}
+		
+        Wait(2);	
+		
+        var Success_Progress_Likes = ElementByXPath("//div[3]/div/div[4]/div[@class='progress-bar progress-bar-success' and @style='width: 100%;' and contains(text(),'10') ]");		
+  	    if (IsVisible(Success_Progress_Likes))
+	    {  
+		 Log("Success_Progress_Likes - Success");
+         CheckFaucetResult(); //skip all actions - and call to --> CheckFaucetResult - to make sure that FC mark as "Payout" before
+	    }	
+	}
+	
+    Wait(3);	
+			
+/*			
+    if (GetBoolSetting("Bonus_Comments"))
+    { 
+		Log("Reedem_Button_Comments");
+        var Reedem_Button_Comments = ElementByXPath("//a[@href='?reedem=comments']");
+  	    if (IsVisible(Reedem_Button_Comments))
+	    {  
+		Log("Reedem_Button_Comments - click now");
+        Click(Reedem_Button_Comments);
+		}
+		
+        Wait(2);	
+		
+        var Success_Progress_Comments = ElementByXPath("//div[4]/div/div[4]/div[@class='progress-bar progress-bar-success' and @style='width: 100%;' and contains(text(),'10') ]");		
+  	    if (IsVisible(Success_Progress_Comments))
+	    {  
+		 Log("Success_Progress_Comments - Success");
+         CheckFaucetResult(); //skip all actions - and call to --> CheckFaucetResult - to make sure that FC mark as "Payout" before
+	    }	
+	}
+*/
+
+    Wait(5);	
+	
+	//ad = true;    // if i do true - it report as succeed // only one time no multi and also required -> return GetWaitSetting();	
+    return GetWaitSetting();	
+
+	
+//Do_YouTube_Views
+//Do_YouTube_Subscribers
+//Do_YouTube_Likes
+//Do_YouTube_Comments
+
+/*
+    if (GetBoolSetting("FaucetClaim"))
+    {  
+     	GoToUrl("https://google.com/");
+		Log("Go to Google");		
+		
+        Wait();
+
+        var StartViewButton = ElementByXPath("//div[@id='startBtn']");
+        Click(StartViewButton);
+	
+	
+	    //LOOP//
+        int Claims;      
+        Claims = Convert.ToInt32(GetSetting("Numbers_Of_Views"));
+        int Count = 0;
+
+		var YourTextVAR = ElementByXPath("//input[@class='gLFyf gsfi']");	
+
+        while (true)
+	    {
+		
+		Count++; //	important to put Count++ in start - Count OR store - Similar to the clock begins to count	
+		Log("SearchBar Google");
+		
+        SetText(YourTextVAR, GetSetting("YourText"));					
+		
+        if (Count >= Claims)  //IsVisible(YourTextVAR) && 
+	    {	
+	     Log("break");	
+	     break; //after break the while
+	    }
+
+        }	//end  while (true)		
+		
+    }// end FaucetClaim
+*/
+
+
+	
+        //We are good to continue
+        return base.DoSolveFaucet();
+ }
+//==============//
+//DoSolveFaucet
+//==============///
+	
+	
+	
+	
+	
+//==============//
+//AfterSolveFaucet
+//==============//
+  public override int AfterSolveFaucet()
+  {
+
+   //This faucet has nothing to do here. We will let Faucet Collector handle it.
+   return base.AfterSolveFaucet();
+   
+  }
+	
+//==============//
+//AfterSolveFaucet
+//==============//
+
+
+
+    /// <summary>
+    /// This method gets called in the end after the BeforeSolveFaucet/DoSolveFaucet and AfterSolveFaucet methods were done.
+    /// The base.CheckFaucetResult will try to find a visible element on the page using the XPath from SuccessXPath and FailXPath (see the Start method)
+    /// These properties should contain XPath expressions to find certain elements on the page.
+    /// For example if it finds one of the elements from the SuccessXPath, and it is visible, then it will flag the claim attempt as a success.
+    /// Or if it finds one of the elements from the FailXPath, and it is visible, then it will flag the claim attempt as a failure.
+    /// </summary>
+    public override int CheckFaucetResult()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.CheckFaucetResult();
+    }
+	
+	
+
+	
+} //end public class
+

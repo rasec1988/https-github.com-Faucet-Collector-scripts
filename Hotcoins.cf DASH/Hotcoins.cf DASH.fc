@@ -1,0 +1,173 @@
+﻿using System;
+using System.Threading.Tasks;
+using FaucetCollector.Script;
+
+public class hotcoincfdashScript : FaucetScript
+{
+    
+    public override FaucetSettings Settings
+    {
+        get
+        {
+            return new FaucetSettings("http://hotcoins.cf/dash/")
+            {
+                 new FaucetSetting {
+                    Name = "dash",
+                    Display = "FaucetHub linked dash wallet address",
+                    Type = EditorType.Wallet,
+                    Required = true,
+                    Default = null
+                }
+            };
+        }
+    }
+
+    
+    public override void Start()
+    {
+        
+        Title = "HOT COINS DASH";
+
+        SuccessXPath = "//div[contains(@class,'alert-success')]";
+        FailXPath = "//div[contains(@class,'alert-error')]";
+
+        //Let Faucet Collector start up everything
+        base.Start();
+    }
+
+    
+    public override bool IsLoggedIn()
+    {
+
+        return true;
+    }
+
+    
+    public override int BeforeLogin()
+    {
+
+
+        return base.BeforeLogin();
+    }
+
+   
+    public override int DoLogin()
+    {
+        
+
+        
+        return base.DoLogin();
+    }
+
+
+   
+    public override int AfterLogin()
+    {
+        
+        return base.AfterLogin();
+    }
+
+   
+    public override int GetFaucetWaitTime()
+    {
+        var waitElement = ElementByXPath("//p[contains(@class,'alert-info')]");
+        if (!IsVisible(waitElement))
+        {
+            //no time remaining element, so we are good to go.
+            return 0;
+        }
+
+        var waitText = waitElement.Text.ToLower().Trim().Replace("you have to wait ", "").Replace(" minutes", "").Trim();
+        int minutes;
+        if (!int.TryParse(waitText, out minutes))
+        {
+            return Fail("Unable to get the remaining time from text '" + waitText + "'.");
+        }
+
+        
+        return minutes * 60;
+    }
+
+   
+    public override int BeforeSolveCaptcha()
+    {
+        
+        return base.BeforeSolveCaptcha();
+    }
+
+   
+     public override int DoSolveCaptcha()
+    {
+        return base.DoSolveCaptcha();
+    }
+        
+
+
+
+    
+    public override int AfterSolveCaptcha()
+    {
+        
+        return base.AfterSolveCaptcha();
+    }
+
+   
+    public override int BeforeSolveFaucet()
+    {
+        var signInaddress = ElementByXPath("//input[@type='text' and contains(@class, 'form-control')]");
+        if (signInaddress == null)
+        {
+            
+            return Fail("Signin address not found.");
+        }
+        SetText(signInaddress, GetSetting("dash"));
+
+        return base.BeforeSolveFaucet();
+    }
+
+  
+    public override int DoSolveFaucet()
+    {
+        var submitButton = ElementByXPath("//input[@type='submit' and contains(@class, 'claim-button')]");
+        if (!IsVisible(submitButton))
+        {
+            
+            return Fail("Submit button not found or not visible.");
+        }
+
+        var result = SolveCaptcha();
+        if (result > 0)
+        {
+            
+            return result;
+        }
+        
+        Click(submitButton);
+
+        
+        return base.DoSolveFaucet();
+    }
+
+
+    
+    public override int AfterSolveFaucet()
+    {
+        
+        return base.AfterSolveFaucet();
+    }
+
+    
+    public override int CheckFaucetResult()
+    {
+       
+        var result = base.CheckFaucetResult();
+
+        if (IsSuccess)
+        {
+            
+            Reload = true;
+        }
+
+        return result;
+    }
+}

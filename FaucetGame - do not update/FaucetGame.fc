@@ -1,0 +1,654 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using FaucetCollector.Script;
+using OpenQA.Selenium;
+
+public class FaucetGameScript : FaucetScript
+{
+    /// <summary>
+    /// List of Settings that will be shown in the bot when selecting this Faucet in the bot.
+    /// You can get the value the user entered with the methods: GetSetting("[Name of the FaucetSetting]"), GetBoolSetting and GetDateTimeSetting
+    /// </summary>
+    public override FaucetSettings Settings
+    {
+        get
+        {
+            return new FaucetSettings(BaseUrl)
+            {
+                //We have a setting to get the email address used for faucetgame
+                new FaucetSetting() { Name = "Email", Display = "Email", Type = EditorType.TextBox, Required = true },
+                //And we need a username
+                new FaucetSetting() { Name = "Username", Display = "Username", Type = EditorType.TextBox, Required = true },
+                //And we also need the password
+                new FaucetSetting() { Name = "Password", Display = "Password", Type = EditorType.Password, Required = true },
+
+                new FaucetSetting() { Name = "Games", Display = "Enabled games", Type = EditorType.CheckComboBox, Items = new List<string> { "Turbofaucet", "Slots", "Wheel", "Dice", "Plinko" }, Default = "Turbofaucet;Slots;Wheel;Dice;Plinko;", Required = true },
+
+                new FaucetSetting() { Name = "NewGameAfter", Display = "New game after minutes", Type = EditorType.Numeric, Default = 10 },
+                new FaucetSetting() { Name = "ReloadPageOnWin", Display = "Reload page on win", Type = EditorType.CheckBox, Default = false },
+                new FaucetSetting() { Name = "UseSolveMedia", Display = "Use SolveMedia (instead of reCAPTCHA)", Type = EditorType.CheckBox, Default = true },
+
+                new FaucetSetting() { Name = "SlotBet", Display = "Slot bet", Type = EditorType.Numeric, Default = 1 },
+                new FaucetSetting() { Name = "WheelBet", Display = "Wheel bet", Type = EditorType.Numeric, Default = 1 },
+                new FaucetSetting() { Name = "DiceBet", Display = "Dice bet", Type = EditorType.Numeric, Default = 10 },
+                new FaucetSetting() { Name = "PayoutX", Display = "Dice payout X", Type = EditorType.Numeric, Default = 1 },
+                new FaucetSetting() { Name = "DiceHiLo", Display = "Dice Random Hi Lo", Type = EditorType.CheckBox, Default = true },
+                new FaucetSetting() { Name = "PlinkoBet", Display = "Plinko bet", Type = EditorType.Numeric, Default = 1 }
+            };
+        }
+    }
+
+    private static string BaseUrl = "http://faucetgame.com/";
+
+    /// <summary>
+    /// This method gets called when the faucet is enabled and the GO button is clicked
+    /// </summary>
+    public override void Start()
+    {
+        //Title that shows in the browser. Is used to close popups
+        Title = "faucet game";
+
+        //After we did turbo faucet we search for these elements to determine if it was a success or a fail
+        SuccessXPaths.Add("//div[contains(@class,'alert-success')]");
+        FailXPaths.Add("//div[contains(@class,'alert-danger')]");
+
+        //Let Faucet Collector start up everything
+        base.Start();
+    }
+
+    public override int DoInit()
+    {
+        //Enable sending chats without popup
+        ExecuteScript("localStorage.setItem('chat_cost_confirm', true);");
+        //Disable the sounds
+        ExecuteScript("localStorage.setItem('sound_disabled', true);");
+        //Dismiss the cookie banner
+        ExecuteScript("if($('.cc_btn_accept_all').length > 0) { $('.cc_btn_accept_all')[0].click(); }");
+        //Let Faucet Collector continue;
+        return base.DoInit();
+    }
+
+    /// <summary>
+    /// This method gets called after the Start method, here you need to return if we are logged in or not.
+    /// If you return false then it will call the BeforeLogin, Login and AfterLogin methods so you can login.
+    /// After those Login methods are called it will call this IsLoggedIn method again to see if the login did succeed.
+    /// If you return true Faucet Collector will store all cookies so it will probably be already logged in on the next attempt.
+    /// </summary>
+    public override bool IsLoggedIn()
+    {
+        //Get the element that hold the username.  
+        var loggedInUsername = ElementByClass("logged_in_username");
+        if (loggedInUsername != null)
+        {
+            //if that username element its innerText equals our username we are logged in.
+            return string.Equals(loggedInUsername.GetAttribute("innerText"), GetSetting("Username"), StringComparison.OrdinalIgnoreCase);
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// This method gets called if IsLoggedIn returned false, right before the DoLogin method is called.
+    /// </summary>
+    public override int BeforeLogin()
+    {
+        //Navigate to the login page
+        Url = BaseUrl + "login";
+        GoToUrl(Url);
+        //Let Faucet Game continue
+        return base.BeforeLogin();
+    }
+
+    /// <summary>
+    /// This method gets called after BeforeLogin if IsLoggedIn returned false.
+    /// It can be used to actually login the user/enter wallet details in the faucet
+    /// </summary>
+    /// <returns></returns>
+    public override int DoLogin()
+    {
+        //Find the submit button
+        var signInButton = ElementByClass("btn-success");
+        if (!IsVisible(signInButton))
+        {
+            return Fail("Signin button not found");
+        }
+
+        //Find the user input fields
+        var signInUser = ElementByName("username");
+        var signInEmail = ElementByName("email");
+        var signInPass = ElementByName("password");
+        if (!IsVisible(signInEmail) || !IsVisible(signInPass) || !IsVisible(signInUser))
+        {
+            return Fail("Signin Email, Username or Password input not found");
+        }
+
+        //Fill the user input fields with our settings
+        SetText(signInUser, GetSetting("Username"));
+        SetText(signInEmail, GetSetting("Email"));
+        SetText(signInPass, GetPassword("Password"));
+
+        //Solve the captcha on the login page
+        var result = SolveCaptcha();
+        if (result > 0)
+        {
+            return result;
+        }
+
+        //Now we are ready to click the login button.
+        Click(signInButton);
+
+        //Let Faucet Collector continue
+        return base.DoLogin();
+    }
+
+    /// <summary>
+    /// This method gets called after the DoLogin method.
+    /// </summary>
+    public override int AfterLogin()
+    {
+        //Check if the login was successful
+        var fail = ElementByXPath("//div[contains(@class,'alert-danger')]");
+        if (IsVisible(fail))
+        {
+            //There is a alert-danger element that holds the error.
+            var failText = fail.Text;
+            if (failText.IndexOf("captcha failed", StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                //The captcha was incorrect, report it
+                FlagCaptchaAsInvalid();
+            }
+
+            return Fail("Login failed: " + failText);
+        }
+
+        //Let Faucet Collector continue.
+        return base.AfterLogin();
+    }
+
+    /// <summary>
+    /// This method gets called after the login methods are successful, so we are logged into the faucet.
+    /// If the faucet is not yet ready to claim you should return a TimeStamp value to return how long it takes before the Faucet claim can be done.
+    /// This is used to pause the script while the faucet its timer runs out.
+    /// </summary>
+    public override int GetFaucetWaitTime()
+    {
+        //we don't know the wait time yet, we will return it in the CheckFaucetResult method
+        return 0;
+    }
+
+    /// <summary>
+    /// This method is called right before a captcha will be solved.
+    /// </summary>
+    public override int BeforeSolveCaptcha()
+    {
+        //Find the captcha dropdown where we can choose between reCAPTCHA and SolveMedia
+        var switcher = ElementByName("captcha_type");
+        if (GetBoolSetting("UseSolveMedia"))
+        {
+            //Make sure SolveMedia is active by clicking the link.
+            SelectOptionByValue(switcher, "1");
+        }
+        else
+        {
+            //Make sure reCAPTCHA is active by clicking the link.
+            SelectOptionByValue(switcher, "0");
+        }
+
+        //Wait a little (1 - 2 seconds) for the captcha to switch.
+        Wait();
+
+        //Hide the nav bar, so it never is displayed on top of the captcha image
+        ExecuteScript("$('.navbar').hide()");
+
+        //Let Faucet Collector continue
+        return base.BeforeSolveCaptcha();
+    }
+
+    /// <summary>
+    /// This method gets called after BeforeSolveCaptcha and it does the actual captcha solving
+    /// It will automatically try to see if there is a SolveMedia captcha active or a reCAPTCHA active. 
+    /// If it finds either one it will then use the selected method on the Captcha tab of FaucetCollector to solve the Captcha.
+    /// </summary>
+    public override int DoSolveCaptcha()
+    {
+        //Let Faucet Collector continue. It will check for SolveMedia and reCAPTCHA.
+        return base.DoSolveCaptcha();
+    }
+
+    /// <summary>
+    /// This method will get called after DoSolveCaptcha returned it was a success.
+    /// </summary>
+    /// <returns></returns>
+    public override int AfterSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterSolveCaptcha();
+    }
+
+    /// <summary>
+    /// This method is called right before we attempt to claim on the faucet. 
+    /// Next methods that will be called are DoSolveFaucet and AfterSolveFaucet and CheckFaucetResult.
+    /// </summary>
+    public override int BeforeSolveFaucet()
+    {
+        //Check what game we want to play
+        var section = GetFaucetGameSection();
+        //Navigate to that page we want to play
+        Url = BaseUrl + section;
+        GoToUrl(Url);
+        //Let Faucet Collector Continue.
+        return base.BeforeSolveFaucet();
+    }
+
+    //Var to store when we start a specific game - so we know when to switch to a different one
+    private static DateTime? FaucetGameStart = null;
+    //Var to store what game we selected - so we can pick another one later
+    private static string FaucetGameSelected = null;
+    //Var to store if we need to log how many credits credits after we reloaded a page on win.
+    private static bool FaucetGameShowCredits = false;
+
+    private string GetFaucetGameSection()
+    {
+        string game;
+        var games = GetSetting("Games");
+        if (string.IsNullOrEmpty(games))
+        {
+            //The user didn't pick a game, we will choose dice.
+            Log("Please select one or more games. Using dice.");
+            return "dice";
+        }
+
+        //Get the user setting how fast to switch between games
+        int newGameAfter = GetIntSetting("NewGameAfter", 15);
+        if (FaucetGameSelected == null
+            || FaucetGameStart == null
+            || FaucetGameStart.Value.AddMinutes(newGameAfter) < DateTime.UtcNow)
+        {
+            //It is time to select a new game
+            var gamesList = games.ToLower().Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
+            game = gamesList[Random(0, gamesList.Length)];
+            while (game == FaucetGameSelected && gamesList.Length > 1)
+            {
+                //The selected game was the same as before - try again
+                game = gamesList[Random(0, gamesList.Length)];
+            }
+
+            //Store when and what game we did select.
+            FaucetGameStart = DateTime.UtcNow;
+            FaucetGameSelected = game;
+            Log("Selected section: " + game);
+        }
+        else
+        {
+            //Don't change the game yet, use the same one that was previously selected
+            game = FaucetGameSelected;
+        }
+
+        return game;
+    }
+
+    private int CheckErrorOrAntiBot()
+    {
+        //Try to find the errors windows (no timeout so Faucet Collector won't wait for the element to be found)
+        var errors = ElementsByXPath("//div[@class='error_msg' and @style='']", timeout: 0);
+        if (errors != null && errors.Any())
+        {
+            //There is an error popup visible
+            var errorMsg = errors.FirstOrDefault(e => e.Displayed);
+            return Fail("Error message is visible:  " + errorMsg == null ? "" : errorMsg.Text);
+        }
+
+        //Check for the alive button - also no timeout to keep the playing as fast a possible
+        var aliveBtn = ElementById("aliveBtn", timeout: 0);
+        if (IsVisible(aliveBtn))
+        {
+            Log("Clicking alive Button..");
+
+            Click(aliveBtn);
+
+            return 0;
+        }
+
+        //Check for the anti bot popup
+        var antiBot = ElementByXPath("//a[@href='/antibot']", timeout: 0);
+        if (IsVisible(antiBot))
+        {
+            Log("Solving Antibot..");
+            //Click the button
+            Click(antiBot);
+            //Wait a short moment for the new page to load
+            Wait(4, 5);
+            //Now try to find the verify button
+            var verifyButton = ElementByXPath("//button[contains(@class,'btn-success')]", timeout: 5);
+            if (!IsVisible(verifyButton))
+            {
+                return Fail("Error finding Verify button.");
+            }
+
+            var result = SolveCaptcha();
+            if (result > 0)
+            {
+                //Something went wrong
+                return result;
+            }
+
+            //Click the button
+            Click(verifyButton);
+            //We are done. Force a reload.
+            Reload = true;
+            return 0;
+        }
+
+        //Check for the (old) unlock captcha
+        var unlockButton = ElementById("unlockBtn", timeout: 0);
+        if (IsVisible(unlockButton))
+        {
+            //The unlock button is visible - so there is a captcha on this page.
+            var result = SolveCaptcha();
+            if (result > 0)
+            {
+                //something went wrong
+                return result;
+            }
+
+            //Click the unlock button
+            Click(unlockButton);
+
+            Reload = true;
+        }
+
+        return 0;
+    }
+
+    /// <summary>
+    /// This method gets called after the BeforeSolveFaucet. You can do the actual claiming of the faucet in here.
+    /// </summary>
+    /// <returns></returns>
+    public override int DoSolveFaucet()
+    {
+        var result = CheckErrorOrAntiBot();
+        if (result > 0)
+        {
+            //Something was found, we need to stop this attempt
+            return result;
+        }
+
+        if (FaucetGameSelected == "turbofaucet")
+        {
+            //Find the claimbutton
+            var claimButton = ElementById("claimBtn");
+            if (!IsVisible(claimButton))
+            {
+                return Fail("Submit button not found or not visible.");
+            }
+
+            //Check if the element with name="start" is there - if not we need to click the claim button once
+            var start = ElementByName("start");
+            if (start == null)
+            {
+                //First we need to hit the button once
+                Click(claimButton);
+                //Wait a little for the new page to load
+                Wait();
+                //Get the button again from the new page
+                claimButton = ElementById("claimBtn", timeout: 10);
+                //Make sure the button is still there
+                if (!IsVisible(claimButton))
+                {
+                    return Fail("Submit button not found or not visible (2).");
+                }
+            }
+
+            //Solve the capthca on this page
+            result = SolveCaptcha();
+            if (result > 0)
+            {
+                return result;
+            }
+
+            //Click the claim button
+            Click(claimButton);
+        }
+        else
+        {
+            int currentCreds = -1;
+            if (FaucetGameShowCredits)
+            {
+                FaucetGameShowCredits = false;
+                currentCreds = GetCredits();
+            }
+
+            if (currentCreds > 0)
+            {
+                Log("We won someting. Current credits: " + currentCreds);
+            }
+            else
+            {
+                Log("Initializing " + FaucetGameSelected + "..");
+            }
+
+            //Find the play button for this games
+            IWebElement playButton = GetPlayButton();
+            if (!IsVisible(playButton))
+            {
+                return Fail("Play button not found or not visible.");
+            }
+
+            //Check if the button is not disabled.
+            var classes = playButton.GetAttribute("class");
+            if (classes.Contains("disabled"))
+            {
+                return Fail("Spin button is disabled.");
+            }
+
+            //Now put in the bets the user wants
+            SetBets();
+
+            //We are going to start a loop with a maximum number of plays (between 20 and 30)
+            //This is too speed things up - just keep playing for a bit.
+            int plays = Random(20, 30);
+            if (FaucetGameSelected == "wheel" || FaucetGameSelected == "plinko")
+            {
+                //Wheel and Plinko plays go a little slower, so we do between 10 and 20 plays
+                plays = Random(10, 20);
+            }
+
+            //Before we start get the current number of credits.
+            int prevCredits = GetCredits();
+            int actions = 0;
+            //Now here is the while loop to keep playing for a while (unless Faucet Collector is paused, disabled or done the number of plays)
+            while (!Context.Paused && Context.Settings.Enabled == true && actions < plays)
+            {
+                actions++;
+                //Click the play button, don't check for popups (= slow)
+                Click(playButton, false);
+
+                //Check if there is something going on (error or antibot)
+                var sleep = CheckErrorOrAntiBot();
+                if (sleep > 0)
+                {
+                    return sleep;
+                }
+
+                if (Reload)
+                {
+                    //Somewhere was asked for a reload, exit the loop.
+                    return Random(1, 2);
+                }
+
+                if (GetBoolSetting("ReloadPageOnWin"))
+                {
+                    if (FaucetGameSelected == "dice")
+                    {
+                        var resultSpan = ElementById("rollResulVal", timeout: 0);
+                        if (resultSpan != null)
+                        {
+                            if (WaitForAttributeNotContains(resultSpan, "class", "animating", 25))
+                            {
+                                var creditsEl = ElementById("credits", timeout: 0);
+                                if (AttributeContains(creditsEl, "class", "animating"))
+                                {
+                                    FaucetGameShowCredits = true;
+                                    Reload = true;
+                                    return 0;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                //Wait for disabed to go away from the class attribute on the play button element
+                //We try max 30 seconds
+                if (!WaitForAttributeNotContains(playButton, "class", "disabled", 30))
+                {
+                    return Fail("Play button is disabled..");
+                }
+                
+                //Now retreive the new credits after the play.
+                int credits = GetCredits();
+                var wonOrLost = credits - prevCredits;
+                if (wonOrLost == 0)
+                {
+                    //We don't need to show if we didn't win or lose anything
+                    continue;
+                }
+
+                //Keep track of the previous number of credits
+                prevCredits = credits;
+
+                //Now we are going to show how much we did win or lose
+                string creditsWonOrLost = wonOrLost.ToString();
+                if (wonOrLost > 0)
+                {
+                    creditsWonOrLost = "+" + creditsWonOrLost;
+                }
+
+                Log("Played " + FaucetGameSelected + ". Credits: " + credits + " (" + creditsWonOrLost + ")", Level.Payout);
+            }
+        }
+
+        //Let Faucet Collector continue its work
+        return base.DoSolveFaucet();
+    }
+
+    private int GetCredits()
+    {
+        //Search for the element that holds the number of credits.
+        var creditsElement = ElementByClass("userCredits", timeout: 0);
+        if (!IsVisible(creditsElement))
+        {
+            //Woops - unable to find the credits element. 
+            return -1;
+        }
+
+        int credits = 0;
+        if (!int.TryParse(creditsElement.Text, out credits))
+        {
+            //Woops - unable to get the number of credits from the text of the element. 
+            return -1;
+        }
+
+        return credits;
+    }
+
+    private IWebElement GetPlayButton()
+    {
+        if (FaucetGameSelected == "dice")
+        {
+            return ElementById("rollButton");
+        }
+        else if (FaucetGameSelected == "plinko")
+        {
+            return ElementByClass("dropButton");
+        }
+
+        return ElementByClass("spinButton");
+    }
+
+    private void SetBets()
+    {
+        if (FaucetGameSelected == "slots")
+        {
+            ExecuteScript("slotMachine.change_bet(" + GetIntSetting("SlotBet") + " - slotMachine.curBet);");
+        }
+        else if (FaucetGameSelected == "wheel")
+        {
+            ExecuteScript("wheel.change_bet(" + GetIntSetting("WheelBet") + " - wheel.curBet);");
+        }
+        else if (FaucetGameSelected == "plinko")
+        {
+            ExecuteScript("plinko.change_bet(" + GetIntSetting("PlinkoBet") + " - plinko.curBet);");
+        }
+        else if (FaucetGameSelected == "dice")
+        {
+            ExecuteScript("dice.change_bet(" + GetIntSetting("DiceBet") + " - dice.curBet);");
+
+            ExecuteScript("dice.change_payout(" + GetIntSetting("PayoutX") + " - dice.curPayout);");
+
+            //Also check if we need to change the hi-lo option
+            if (GetBoolSetting("DiceHiLo"))
+            {
+                //User wants random hi-lo.
+                if (Random(1, 3) == 2)
+                {
+                    //50% chance we come here - click the hi-lo button.
+                    var rollHi = ElementById("rollHi");
+                    if (IsVisible(rollHi))
+                    {
+                        Log("Dice: Changing Hi-Lo.");
+                        Click(rollHi);
+                    }
+                }
+            }
+        }
+
+        //If the user entered a bet that is too high for the Level we get a popup - close it if it is there.
+        var keepPlayingButton = ElementByXPath("//div[@id='upgradeModal']//button[@data-dismiss='modal' and @class='close']");
+        if (IsVisible(keepPlayingButton))
+        {
+            Log("Please lower your bets or upgrade.");
+            Click(keepPlayingButton);
+        }
+    }
+
+    /// <summary>
+    /// This method will get called after the DoSolveFaucet is completed and returned it was a success.
+    /// This faucet shows a "Processing" window after you click the claim submit button.
+    /// We will have to wait for it to disappear before we can check for the results.
+    /// </summary>
+    public override int AfterSolveFaucet()
+    {
+        //Let Faucet Collector continue
+        return base.AfterSolveFaucet();
+    }
+
+    /// <summary>
+    /// This method gets called in the end after the BeforeSolveFaucet/DoSolveFaucet and AfterSolveFaucet methods were done.
+    /// The base.CheckFaucetResult will try to find a visible element on the page using the lists from SuccessXPaths and FailXPaths (see the Start method)
+    /// These lists should contain XPath expressions to find certain elements on the page.
+    /// For example if it finds one of the elements from the SuccessXPaths, and it is visible, then it will flag the claim attempt as a success.
+    /// Or if it finds one of the elements from the FailXPaths, and it is visible, then it will flag the claim attempt as a failure.
+    /// </summary>
+    public override int CheckFaucetResult()
+    {
+        if (FaucetGameSelected == "turbofaucet")
+        {
+            //Let Faucet Collector check for the results of the captcha.
+            var result = base.CheckFaucetResult();
+            if (IsSuccess)
+            {
+                //claim was successful, get the time how fast the user wants to try again
+                result = GetWaitSetting();
+
+                //Force a Reload of the page for the next attempt.
+                Reload = true;
+            }
+
+            return result;
+        }
+
+        //the other games we don't need to do anything here.
+        return 0;
+    }
+}

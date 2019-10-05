@@ -1,0 +1,603 @@
+﻿using FaucetCollector.Script;
+using System;
+//css_inc recaptchaUtilities
+
+public class CointiplyMiningScript : FaucetScript
+{
+    public override FaucetSettings Settings
+    {
+        get
+        {
+            return new FaucetSettings("https://cointiply.com")
+            {
+                new FaucetSetting() { Name = "Email", Display = "Your Cointiply Email", Type = EditorType.TextBox, Required = true },
+                new FaucetSetting() { Name = "Password", Display = "Your Cointiply Password", Type = EditorType.Password, Required = true },
+                new FaucetSetting(){Name="Roll",Display="Roll Number of defined Coins(Minimum 10)",Type=EditorType.TextBox,Required=true},
+                new FaucetSetting(){Name="Level",Display="Level to stop",Type=EditorType.ComboBox,Items=new System.Collections.Generic.List<string>{"Level 1","Level 2","Level 3","Level 4","Level 5","Level 6","Level 7", "Level 8","Level 9","Level 10","Level 11" } },
+                new FaucetSetting(){Name="Claims",Display="Stop After Number of rolls",Type=EditorType.CheckBox,Default=false},
+                new FaucetSetting()
+                {
+                    Name="NClaims",Display="Number of Rolls",Type=EditorType.TextBox,Default=1,
+                },
+                new FaucetSetting()
+                {
+                    Name="StopP",Display="Stop After Profit",Type=EditorType.CheckBox,Default=true,
+                },
+                new FaucetSetting()
+                {
+                    Name="StopPN",Display="Profit(Coins)",Type=EditorType.TextBox,Default=50,
+                },
+               new FaucetSetting()
+                {
+                    Name="StopL",Display="Stop After Loss",Type=EditorType.CheckBox,Default=true,
+                },
+                new FaucetSetting()
+                {
+                    Name="StopLN",Display="Loss(Coins)",Type=EditorType.TextBox,Default=50,
+                },
+                new FaucetSetting(){Name="UseSolvemedia",Type=EditorType.CheckBox,Default=true,Display="UseSolvemedia"},
+            };
+        }
+    }
+
+    public override void Start()
+    {
+        Title = "Cointiply";
+
+        SuccessXPath = "//div[contains(@class,'md-snackbar-content')]//span[contains(., 'won')]";
+        FailXPath = "//span[contains(@class, 'md-error') and not(@style)]";
+
+        base.Start();
+    }
+    public override int BeforeLogin()
+    {
+        //Click on the Login link
+        OpenQA.Selenium.IWebElement loginLink = ElementByXPath("//a[@href='/login']");
+        if (IsVisible(loginLink))
+        {
+            Click(loginLink);
+        }
+        if (!Driver.Url.Contains("https://cointiply.com/login"))
+        {
+            GoToUrl("https://cointiply.com/login");
+        }
+
+        //let Faucet Collector continue.
+        return base.BeforeLogin();
+    }
+    public override bool IsLoggedIn()
+    {
+        CloseModal();
+
+        Wait(3);
+
+        //If the earning-nav element is visible we are logged in
+        return IsVisible(ElementByClass("earning-nav")) || IsVisible(ElementByXPath("//a[@href='/activity']"));
+    }
+
+    public override int DoLogin()
+    {
+        //Find the input field that holds the email address
+        OpenQA.Selenium.IWebElement signInEmail = ElementByXPath("//form//input[@type='text']");
+        if (!IsVisible(signInEmail))
+        {
+            //We couldn't find it. Register it as a fail so it can reload the page and try again in 10-15 seconds.
+            return Fail("Email input not found.");
+        }
+        SetText(signInEmail, GetSetting("Email"));
+        OpenQA.Selenium.IWebElement signInPassword = ElementByXPath("//form//input[@type='password']");
+        if (!IsVisible(signInPassword))
+        {
+            //We couldn't find it. Register it as a fail so it can reload the page and try again in 10-15 seconds.
+            return Fail("Password input not found.");
+        }
+        SetText(signInPassword, GetPassword("Password"));
+        Wait();
+        DateTime t1 = DateTime.Now.AddSeconds(10);
+        while (!IsVisible(ElementByXPath("//span[@class='md-select-value']")))
+        {
+            Wait(1);
+            if (DateTime.Now > t1) { break; }
+
+        }
+        if (IsVisible(ElementByXPath("//span[@class='md-select-value']")))
+        {
+            int result = DoSolveCaptcha();
+
+            if (result > 0)
+            {
+                return Fail("Fail solve captcha login");
+            }
+        }
+        if (!GetBoolSetting("UseSolvemedia"))
+        {
+            RecaptchaUtility recaptchaUtility = new RecaptchaUtility(this);
+            recaptchaUtility.DoSolve();
+        }
+        else
+        {
+            var ResultBox = ElementByXPath("//*[@name='adcopy_response']");
+            if (IsVisible(ResultBox))
+            {
+                SetText(ResultBox, Context.CaptchaResult.Result);
+                Wait();
+            }
+        }
+        //Now we search for the login submit button
+        OpenQA.Selenium.IWebElement loginButton = ElementByXPath("//form//button[@type='button' and contains(., 'Login')]");
+        if (!IsVisible(loginButton))
+        {
+            //We couldn't find it. Register it as a fail so it can reload the page and try again in 10-15 seconds.
+            return Fail("Login button not found.");
+        }
+
+
+
+        //We are ready to click the login button.
+        Click(loginButton);
+        Wait();
+        //Let Faucet Collector continue
+        return base.DoLogin();
+    }
+
+    public override int AfterLogin()
+    {
+        return base.AfterLogin();
+    }
+
+    /// <summary>
+    /// This method gets called after the DoLogin method.
+    /// </summary>
+    private void CloseModal()
+    {
+        OpenQA.Selenium.IWebElement maybeLater = ElementByXPath("//button[@type='button' and contains(., 'Maybe Later')]");
+        if (IsVisible(maybeLater))
+        {
+            //Close the earn 1000's of coins offerwall
+            Click(maybeLater);
+        }
+    }
+
+    public override int GetFaucetWaitTime()
+    {
+        return 0;
+    }
+
+    public override int BeforeSolveCaptcha()
+    {
+        CloseModal();
+
+        //Let Faucet Collector continue
+        return base.BeforeSolveCaptcha();
+    }
+
+    public override int DoSolveCaptcha()
+    {
+        if (GetBoolSetting("UseSolvemedia"))
+        {
+            ChangeCaptcha(true);
+        }
+        else
+        {
+            ChangeCaptcha(false);
+        }
+        Wait(5, 6);
+        //Let Faucet Collector continue. It will check for SolveMedia and reCAPTCHA.
+        return base.DoSolveCaptcha();
+    }
+    private void ChangeCaptcha(bool ChangeToSolvemedia = false)
+    {
+        if (ChangeToSolvemedia)
+        {
+            ExecuteScript("var a=document.getElementsByClassName('md-select-value');a[0].click();var c=document.getElementsByClassName('md-button md-button-ghost md-theme-default');c[0].click();");
+        }
+        else
+        {
+            ExecuteScript("var a=document.getElementsByClassName('md-select-value');a[0].click();var c=document.getElementsByClassName('md-button md-button-ghost md-theme-default');c[1].click();");
+        }
+    }
+    public override int AfterSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterSolveCaptcha();
+    }
+
+    public override int BeforeSolveFaucet()
+    {
+        CloseModal();
+        OpenQA.Selenium.IWebElement Multiplier_button = ElementByXPath("//body//div[@id='app']//div[@class='container']//div[@class='row']//div//div[@class='text-center earning-nav']//button[3]");
+        if (IsVisible(Multiplier_button))
+        {
+            Click(Multiplier_button);
+        }
+
+
+        //Let Faucet Collector Continue.
+        return base.BeforeSolveFaucet();
+    }
+
+    public override int DoSolveFaucet()
+    {
+        if (!Driver.Url.Contains("https://cointiply.com/pg"))
+        {
+            GoToUrl("https://cointiply.com/pg");
+        }
+        bool roll_finished = false;
+        int CountRoll_ = 0;
+        Wait(3);
+        int StartBalance = GetBalance();
+        while (!roll_finished)
+        {
+            OpenQA.Selenium.IWebElement Custom = ElementByXPath("//div[@class='md-button-toggle md-accent md-raised md-theme-default']//button[5]");
+            DateTime t1 = DateTime.Now.AddSeconds(20);
+            bool breaked = false;
+            while (!IsVisible(Custom))
+            {
+                Wait();
+                if (t1 < DateTime.Now)
+                {
+                    breaked = true;
+                    break;
+                }
+
+            }
+            if (breaked)
+            {
+                if (!Driver.Url.Contains("https://cointiply.com/pg"))
+                {
+                    GoToUrl("https://cointiply.com/pg");
+                }
+                else
+                {
+                    Driver.Navigate().Refresh();
+                }
+                Wait(3);
+                Custom = ElementByXPath("//div[@class='md-button-toggle md-accent md-raised md-theme-default']//button[5]");
+                t1 = DateTime.Now.AddSeconds(20);
+                breaked = false;
+                while (!IsVisible(Custom))
+                {
+                    Wait();
+                    if (t1 < DateTime.Now)
+                    {
+                        breaked = true;
+                        break;
+                    }
+
+                }
+            }
+            if (!breaked)
+            {
+                Wait();
+                Click(Custom);
+                Wait();
+                OpenQA.Selenium.IWebElement input_ = ElementByXPath("//input[@type='text' and @class='md-input']");
+                if (input_ != null)
+                {
+                    SetText(input_, GetSetting("Roll"));
+                    Wait(1);
+
+                    OpenQA.Selenium.IWebElement StartNav = ElementByXPath("//body/div[@id='app']/div/div[@id='gameContainer']/div[@id='gameField']/div[@id='startNav']/div[@class='content margin-top-20']/button[2]");
+                    if (IsVisible(StartNav))
+                    {
+                        Click(StartNav);
+                    }
+                    else
+                    {
+                        OpenQA.Selenium.IWebElement StartNav_ = ElementByXPath("//body/div[@id='app']/div/div[@id='gameContainer']/div[@id='gameField']/div[@id='endNav']/div[@class='content margin-top-20']/button[2]");
+                        if (IsVisible(StartNav_))
+                        {
+                            Click(StartNav_);
+                        }
+                        else
+                        {
+                            return Fail("Start Nav Button not found");
+                        }
+
+                    }
+                    Wait(7);
+                    if (IsVisible(ElementByXPath("//span[@class='font-size-16 font-weight-500']")))
+                    {
+                        Disable();
+                    }
+                    SetClickFalse();
+                    bool finished_round = false;
+                    int count_rounds = 0;
+                    while (!finished_round)
+                    {
+                        int StartLevel;
+                        OpenQA.Selenium.IWebElement level__ = ElementByXPath("//div[@class='ui-level hidden-sm hidden-xs']//div[@class='title']");
+                        try
+                        {
+                            StartLevel = Convert.ToInt32(level__.Text);
+                            StartLevel--;
+                        }
+                        catch (Exception)
+                        {
+                            Log("Fail obtaining your actually level");
+                            StartLevel = 0;
+                        }
+                        bool clicked = ClickToRollElement();
+                        if (!clicked)
+                        {
+                            Log("Something is wrong restarting....");
+                            SetClickFalse();
+                        }
+                        else
+                        {
+                            WaitToNextClick(StartLevel);
+                        }
+                        Wait();
+
+
+                        OpenQA.Selenium.IWebElement FinishedElement = ElementByXPath("//div[contains(text(),'Your game has ended and you')]");
+                        if (IsVisible(FinishedElement))
+                        {
+                            finished_round = true;
+                        }
+                        OpenQA.Selenium.IWebElement level = ElementByXPath("//div[@class='ui-level hidden-sm hidden-xs']//div[@class='title']");
+                        int level_ = 0;
+                        try
+                        {
+                            level_ = Convert.ToInt32(level.Text);
+                            level_--;
+                        }
+                        catch (Exception)
+                        {
+                            Log("Fail obtaining your actully level");
+                        }
+                        int Level_stop = 0;
+                        try
+                        {
+                            Level_stop = Convert.ToInt32(GetSetting("Level").Replace("Level", "").Replace(" ", ""));
+                        }
+                        catch (Exception)
+                        {
+                            Log("Fail obtaining Level stop is probably you didn't put a number in this box");
+                            Level_stop = 1;
+                        }
+                        if (level_ >= Level_stop)
+                        {
+                            finished_round = true;
+                        }
+                        if (finished_round)
+                        {
+                            OpenQA.Selenium.IWebElement button_finishR = ElementByXPath("//div[@class='ui-right-rect']//button[@type='button']");
+                            if (IsVisible(button_finishR))
+                            {
+                                Click(button_finishR);
+                                Wait();
+                            }
+                            CountRoll_++;
+                        }
+                        if (count_rounds >= 11)
+                        {
+                            OpenQA.Selenium.IWebElement button_finishR = ElementByXPath("//div[@class='ui-right-rect']//button[@type='button']");
+                            if (IsVisible(button_finishR))
+                            {
+                                Click(button_finishR);
+                                CountRoll_++;
+                                Wait();
+                            }
+                            break;
+                        }
+                        count_rounds++;
+
+                    }
+                }
+            }
+            int Stop_N = -1;
+            if (GetBoolSetting("Claims"))
+            {
+
+                try
+                {
+                    Stop_N = Convert.ToInt32(GetSetting("NClaims"));
+                }
+                catch (Exception)
+                {
+                    Log("Fail obtaining NClaims is probably you didn't put a number in this box");
+                    Stop_N = 1;
+                }
+            }
+
+            if (Stop_N != -1 && Stop_N <= CountRoll_)
+            {
+                roll_finished = true;
+                Log("Number of rolls has been reached!");
+
+            }
+            int ActualBalance = GetBalance();
+            int Stop_Profit = -1;
+            if (GetBoolSetting("StopP"))
+            {
+                try
+                {
+                    Stop_Profit = Convert.ToInt32(GetSetting("StopPN"));
+
+                }
+                catch (Exception)
+                {
+                    Stop_Profit = 11;
+                    Log("Fail Obtaining stop profit number default is 11");
+                }
+
+            }
+            if (Stop_Profit != -1 && (ActualBalance - StartBalance) > Stop_Profit)
+            {
+                Log("Profit has been reached successfull!");
+                roll_finished = true;
+            }
+            int Stop_Loss = -1;
+            if (GetBoolSetting("StopL"))
+            {
+                try
+                {
+                    Stop_Loss = Convert.ToInt32(GetSetting("StopLN"));
+
+                }
+                catch (Exception)
+                {
+                    Stop_Loss = 11;
+                    Log("Fail obtaining stop profit number default is 11");
+
+                }
+
+
+            }
+            if (Stop_Loss != -1 && (StartBalance - ActualBalance) > Stop_Loss)
+            {
+                Log("Stop Loss Reached.");
+                roll_finished = true;
+            }
+            if (!GetBoolSetting("StopL") && !GetBoolSetting("StopP") && !GetBoolSetting("Claims"))
+            {
+                Log("You didn't select one stop method for script.");
+                roll_finished = true;
+
+            }
+            if (roll_finished)
+            {
+                Log("Your roll is finished Your balance is: " + ActualBalance.ToString() + " And you Won: " + (ActualBalance - StartBalance).ToString());
+            }
+        }
+        if (roll_finished)
+        {
+            return 3600;
+        }
+        //Let Faucet Collector continue its work
+        return base.DoSolveFaucet();
+
+    }
+    private bool WaitToNextClick(int ActualLevel)
+    {
+        bool finished = false;
+        DateTime t1 = DateTime.Now.AddSeconds(25);
+        while (!finished)
+        {
+            OpenQA.Selenium.IWebElement level__ = ElementByXPath("//div[@class='ui-level hidden-sm hidden-xs']//div[@class='title']");
+            int level;
+            try
+            {
+                level = Convert.ToInt32(level__.Text);
+                level--;
+            }
+            catch (Exception)
+            {
+                Log("Fail obtaining your actually level");
+                level = 0;
+            }
+            if (ActualLevel != level)
+            {
+                finished = true;
+            }
+            if (IsVisible(ElementByXPath("//div[contains(text(),'Your game has ended and you')]")))
+            {
+                finished = true;
+            }
+            if (DateTime.Now > t1)
+            {
+                break;
+            }
+            Wait();
+
+        }
+        if (finished)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+    private int GetBalance()
+    {
+        try
+        {
+            OpenQA.Selenium.IWebElement el = ElementByXPath("//a[contains(@href,'/activity')]");
+            string b = el.Text.ToLower().Replace(" ", "").Replace("account_balance", "").Replace("\"", "").Replace("coins", "");
+
+            int balance = Convert.ToInt32(b);
+
+            return balance;
+        }
+        catch (Exception)
+        {
+            return 0;
+        }
+
+    }
+
+    private static readonly bool[] ClickMat = new bool[11];
+    private int GetRollElement()
+    {
+        int res = -1;
+        bool finished = false;
+        int cont = 0;
+        while (!finished)
+        {
+            int rand = Random(0, 10);
+            if (!ClickMat[rand])
+            {
+                res = rand;
+                finished = true;
+            }
+            else
+            {
+                cont++;
+            }
+            if (cont > 1000)
+            {
+                Log("Something is Wrong Claim Reward and refreshing");
+                break;
+            }
+        }
+
+        return res;
+    }
+    private bool ClickToRollElement()
+    {
+        try
+        {
+            System.Collections.Generic.List<OpenQA.Selenium.IWebElement> elements = ElementsByXPath("//div[contains(@class,'result level-')]");
+            int n_click = GetRollElement();
+            if (n_click == -1)
+            {
+                return false;
+            }
+            ClickMat[n_click] = true;
+            Click(elements[n_click]);
+            return true;
+        }
+        catch (Exception)
+        {
+            return false;
+        }
+    }
+    private void SetClickFalse()
+    {
+        for (int i = 0; i < 11; i++)
+        {
+            ClickMat[i] = false;
+        }
+
+    }
+
+    public override int AfterSolveFaucet()
+    {
+        //Let Faucet Collector continue
+        return base.AfterSolveFaucet();
+    }
+
+    public override int CheckFaucetResult()
+    {
+
+
+
+        return base.CheckFaucetResult();
+    }
+
+
+
+}

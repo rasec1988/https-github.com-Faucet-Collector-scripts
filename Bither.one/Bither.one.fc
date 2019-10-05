@@ -1,0 +1,673 @@
+﻿
+
+//==================//
+//script Written by: ••AviramDayan•• 26/06/2019 00:30PM - Version 1
+//Last Update: 25/09/2019 00:30PM - Version 4
+//==================//
+
+using System;
+using FaucetCollector.Script;
+using OpenQA.Selenium;
+using OpenQA.Selenium.Interactions;
+using System.Text.RegularExpressions;
+//css_inc RecaptchaUtilities
+//css_inc ShortLinkUtilities
+
+
+public class BitherOne : FaucetScript
+{
+    /// <summary>
+    /// List of Settings that will be shown in the bot when selecting this Faucet in the bot.
+    /// You can get the value the user entered with the methods: GetSetting("[Name of the FaucetSetting]"), GetBoolSetting and GetDateTimeSetting
+    /// You can also create a new setting value using SetSetting("[Name you want to use]", "value")
+    /// </summary>
+    public override FaucetSettings Settings
+    {
+        get
+        {
+			
+            return new FaucetSettings("https://panel.bither.one/")
+            {
+                new FaucetSetting(){Name="Email",Display="Email",Type=EditorType.TextBox,Required=false},
+                new FaucetSetting(){Name="Password",Display="Password",Type=EditorType.Password,Required=false},
+			    //new FaucetSetting(){Name="StoreCookies",Display="StoreCookies - ON/OFF ",Type=EditorType.CheckBox,Default=true },
+                new FaucetSetting() { Name = "FaucetClaim", Display = "FaucetClaim - ON/OFF", Type = EditorType.CheckBox, Default = true},
+                new FaucetSetting() { Name = "AutoWithdraw", Display = "AutoWithdraw - ON/OFF", Type = EditorType.CheckBox, Default = false},	
+                new FaucetSetting() { Name = "LimitWithdraw", Display = "LimitWithdraw - write the full number of satoshi (without point - 0.0 | 1.1 | 2.2 - and etc ) ", Type = EditorType.Numeric, Default = 8 },
+
+                //new FaucetSetting() { Name = "UserCustomTime", Display = "UserCustomTime", Type = EditorType.Numeric, Default = 2 },
+ 				//new FaucetSetting(){Name="MenuExample",Display="MenuExample - Select Favorite Coin",Type=EditorType.ComboBox,Default="DOGECOIN",Items=new System.Collections.Generic.List<string>{"none","DOGECOIN","BITCOIN"}},               
+	
+				
+				//new FaucetSetting() { Name = "ShortLink", Display = "ShortLink - ON/OFF", Type = EditorType.CheckBox, Default = false},			
+				
+				//new FaucetSetting() { Name = "GetActivityToken", Display = "GetActivityToken - on/off (it's recommended to set the time every 360 min '6 hours') ", Type = EditorType.CheckBox, Default = true},		
+                
+				//new FaucetSetting(){Name="NumbersOfClaim",Display="Numbers of claims",Type=EditorType.TextBox,Default="10"},
+                //new FaucetSetting(){Name="YourText",Display="YourText",Default="mytext1",Type=EditorType.TextBox,Required=false},
+				
+ 
+				
+            };
+        }
+    }
+
+
+	
+//============================================================//
+//the number of "successes" in the script - when are finished  
+//============================================================//
+    public override void Start()
+    {
+        ad = false;
+       
+        //Title that shows in the browser. Is used to identify and close popup windows
+        Title = "Bither.one";
+
+		SuccessXPath = "//*";  //*[@id='']
+        FailXPath = "//*"; //*[@id='']
+	
+        //TimerIsCountingUp = true;
+
+        // Save/Store Cookies OR NOT 
+        if (GetBoolSetting("StoreCookies"))            
+        {
+         StoreCookies = true;
+		}
+		
+        if (!GetBoolSetting("StoreCookies"))            
+        {
+         StoreCookies = false;
+		}	
+		//======================//
+		
+        //Let Faucet Collector start up everything
+        base.Start();
+    }
+//============================================================//
+//the number of "successes" in the script - when are finished  
+//============================================================//
+
+	
+    bool ad; //custom bool
+
+
+    public override int DoInit()
+    {
+			
+
+		
+        //Let Faucet Collector continue.
+        return base.DoInit();
+    }
+
+	
+//==================//
+//save Login Cookies 
+//==================//
+    public override bool IsLoggedIn()
+    {
+	    //save Login Cookies - Check if the "Logout" exist
+        return ElementByXPath("//button[@href='/logout']") != null;
+	 
+	    //return true;
+	 
+        //return base.IsLoggedIn();
+    }
+//==================//
+//save Login Cookies 
+//==================//	
+
+
+
+
+//=============//
+//BeforeLogin
+//=============//
+    public override int BeforeLogin()
+    {
+		
+
+     GoToUrl("https://panel.bither.one/dashboard");
+
+		
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeLogin();
+    }
+//=============//
+//BeforeLogin
+//=============//
+
+	
+
+
+	
+//========//
+//DoLogin
+//========//
+    public override int DoLogin()
+    {
+	
+     var ExitButton = ElementByXPath("//button[@href='/logout']");
+
+
+	 //if i NOT Login - go to Login Page
+	 if (!IsVisible(ExitButton))
+	 {
+
+		GoToUrl("https://panel.bither.one/auth");
+		Wait();		
+		Wait(2);
+/*     
+        var StartOpenLogin = ElementByXPath("//div[@class='AuthPage___controls']/button[contains(text(),'Sign In')]");
+	    if (IsVisible(StartOpenLogin))
+	    { 
+        Click(StartOpenLogin);
+		}
+*/
+		Wait(2);
+		
+        var box_user = ElementByXPath("//input[@id='Lemail']");
+        SetText(box_user, GetSetting("Email"));
+		
+		Wait(2);
+		
+        var box_pass = ElementByXPath("//input[@id='Lpassword']");
+        SetText(box_pass, GetPassword("Password"));
+		
+		
+		Wait(2);
+
+        //SolveCaptcha if apper
+        //var result = DoSolveCaptcha();
+		
+        var result = base.DoSolveCaptcha();
+        RecaptchaUtility utility = new RecaptchaUtility(this);
+        utility.DoSolve();
+		
+        ExecuteScript("enableSigninBtn");
+		
+		Wait(2);
+				
+        var ButtonLog = ElementByXPath("//button[contains(text(),'Sign In')]");
+        Click(ButtonLog);
+		
+		Wait(2);
+/*		
+        var Error_Message = ElementByXPath ("//div[@id='add_err']/div/div[@class='message' and contains(text(),'fille' | 'captcha' ) ]");
+        if (IsVisible(Error_Message))
+        {
+            Log("Error_Message - Appear - we return after 1 min ");
+            return 1*60; //we return after 1 min
+        }
+*/		
+
+		Wait();	
+
+        //Title = "test Wallet";
+		
+		Wait();	
+
+	 } // end ExitButton
+
+        
+       return base.DoLogin();
+    }
+//========//
+//DoLogin
+//========//
+ 
+
+
+//========//
+//AfterLogin
+//========//
+ public override int AfterLogin()
+ {
+ 
+  
+    //we are good to continue
+    return base.AfterLogin();
+
+ }
+//========//
+//AfterLogin
+//========//
+
+
+	
+
+//================//
+//GetFaucetWaitTime
+//================//
+    public override int GetFaucetWaitTime()
+    {
+
+        if (ad)
+        {
+
+		 ad=false;
+		 
+         //Time
+         var Time_Min_Checking_Exist = ElementByXPath("//div[@id='countClock' and @class='countdown clock flip-clock-wrapper countdownclock in-block']");         
+
+         if(IsVisible(Time_Min_Checking_Exist)) //Visible
+         {
+		 
+         Log("CountDownTimer");  
+
+         var HourVAR = ElementByXPath("//*[@id='countClock']/ul[1]/li/a"); 
+         var MinVAR = ElementByXPath("//*[@id='countClock']/ul[2]/li/a"); 
+         var SecVAR = ElementByXPath("//*[@id='countClock']/ul[3]/li/a");
+		 
+         int HourINT = Convert.ToInt32(HourVAR.Text)*3600;
+         int MinINT = Convert.ToInt32(MinVAR.Text)*60;
+         int SecINT = Convert.ToInt32(SecVAR.Text);
+				
+         //Driver.Close();  // Close specific chrome window
+         //Driver.Quit();  // also Close the console app, that was used to kick off the chrome window
+         //Driver.Dispose();  // Close the chromedriver.exe
+         //return GetWaitSetting();
+         return HourINT + MinINT + SecINT;
+         }
+		 
+        }// end ad
+
+		//let Faucet Collector continue.
+        return base.GetFaucetWaitTime();
+    }
+//================//
+//GetFaucetWaitTime
+//================//
+
+
+
+    public override int BeforeSolveCaptcha()
+    {
+ 
+        //Return we are ready to proceed
+        return base.BeforeSolveFaucet();
+    }
+
+	
+    public override int DoSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoSolveCaptcha();
+    }
+
+	
+    public override int AfterSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterSolveCaptcha();
+    }
+
+	
+    public override int BeforeSolveFaucet()
+    {
+        //Return we can continue
+        return base.BeforeSolveFaucet();
+    }
+  
+	
+	
+//==============//
+//DoSolveFaucet
+//==============//
+ public override int DoSolveFaucet()
+  {
+
+
+		//==============//
+		//AutoWithdraw//
+		//==============//
+        if (GetBoolSetting("AutoWithdraw"))
+        {
+         GoToUrl("https://panel.bither.one/dashboard");
+         Wait();
+         Wait(2);
+
+	     AutoWithdraw_Function(); //call 
+	
+		}//end AutoWithdraw
+		//==============//
+		
+
+		//==============//
+		//FaucetClaim//
+		//==============//
+        if (GetBoolSetting("FaucetClaim"))
+        {
+        GoToUrl("https://panel.bither.one/getbither");
+		Wait();
+		Wait(2);		
+		Log("FaucetClaim");	
+
+         //Time
+         var Time_Min_Checking_Exist = ElementByXPath("//div[@id='countClock' and @class='countdown clock flip-clock-wrapper countdownclock in-block']");         
+
+         if(IsVisible(Time_Min_Checking_Exist)) //Visible
+         {
+		 
+         Log("CountDownTimer");  
+
+         var HourVAR = ElementByXPath("//*[@id='countClock']/ul[1]/li/a"); 
+         var MinVAR = ElementByXPath("//*[@id='countClock']/ul[2]/li/a"); 
+         var SecVAR = ElementByXPath("//*[@id='countClock']/ul[3]/li/a");
+		 
+         int HourINT = Convert.ToInt32(HourVAR.Text)*3600;
+         int MinINT = Convert.ToInt32(MinVAR.Text)*60;
+         int SecINT = Convert.ToInt32(SecVAR.Text);
+				
+         //Driver.Close();  // Close specific chrome window
+         //Driver.Quit();  // also Close the console app, that was used to kick off the chrome window
+         //Driver.Dispose();  // Close the chromedriver.exe
+         //return GetWaitSetting();
+         return HourINT + MinINT + SecINT;
+         }
+		//=======//
+		
+        Wait();
+        Wait(3);
+
+        //SolveCaptcha if apper
+        //var result = DoSolveCaptcha();
+		
+        var result = base.DoSolveCaptcha();
+        RecaptchaUtility utility = new RecaptchaUtility(this);
+        utility.DoSolve();
+		
+        ExecuteScript("enableBitherBtn"); //diffrent
+	
+		Wait(4);
+
+        //ClaimButton
+        var ClaimButton = ElementByXPath ("//button[@id='getBitherBtn' and (@disabled) ]");
+		
+        if (IsVisible(ClaimButton)) //if visible "disabled" 
+        {
+            Log("FaucetClaim - Captcha field - ClaimButton not visible ");
+        }	
+		
+        if (!IsVisible(ClaimButton)) //if NOT visible "disabled" so click on claim button
+        {
+            var Claim2Button = ElementByXPath ("//button[@id='getBitherBtn']");
+            Click(Claim2Button);
+            Log("FaucetClaim - click on ClaimButton ");
+        }
+
+        } // end FaucetClaim
+	 //===========//
+	 
+
+/*
+	 //===========//
+	 //ShortLink
+	 //===========//
+       if (GetBoolSetting("ShortLink"))
+       {
+		   
+         GoToUrl("https://claimbtc.in/links/");
+		 Log("Go to ShortLink");		
+
+         Wait();
+         Wait(2);
+		 
+         for(var i=1; i<=30; i++)
+         {
+           ShortLink_ClickAll_Function(i);
+         }
+
+ 	   }// end ShortLink
+	 //===========//
+*/
+
+
+
+/*
+        int MyCustomTimeINT;
+        MyCustomTimeINT = GetIntSetting("UserCustomTime") * 60; 
+        return MyCustomTimeINT;
+*/				
+	
+	
+		ad = true;    // if i do true - it report as succeed // only one time no multi and also required -> return GetWaitSetting();	
+        //return GetWaitSetting();	
+
+        //We are good to continue
+        return base.DoSolveFaucet();
+ }
+//==============//
+//DoSolveFaucet
+//==============///
+	
+	
+	
+	
+	
+//==============//
+//AfterSolveFaucet
+//==============//
+  public override int AfterSolveFaucet()
+  {
+
+   //This faucet has nothing to do here. We will let Faucet Collector handle it.
+   return base.AfterSolveFaucet();
+   
+  }
+	
+//==============//
+//AfterSolveFaucet
+//==============//
+
+
+
+    /// <summary>
+    /// This method gets called in the end after the BeforeSolveFaucet/DoSolveFaucet and AfterSolveFaucet methods were done.
+    /// The base.CheckFaucetResult will try to find a visible element on the page using the XPath from SuccessXPath and FailXPath (see the Start method)
+    /// These properties should contain XPath expressions to find certain elements on the page.
+    /// For example if it finds one of the elements from the SuccessXPath, and it is visible, then it will flag the claim attempt as a success.
+    /// Or if it finds one of the elements from the FailXPath, and it is visible, then it will flag the claim attempt as a failure.
+    /// </summary>
+    public override int CheckFaucetResult()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.CheckFaucetResult();
+    }
+	
+
+ 
+        //=================//
+       //NumbersOfClaim_Function
+        //=================//
+
+        public int NumbersOfClaim_Function()
+        {
+			
+        Wait();
+	
+        int Claims;      
+        Claims = Convert.ToInt32(GetSetting("NumbersOfClaim"));
+        int Count = 0;
+
+		var YourTextVAR = ElementByXPath("//input[@class='gLFyf gsfi']");	
+
+        while (true)
+	    {
+		
+		Count++; //	important to put Count++ in start - Count OR store - Similar to the clock begins to count	
+		Log("SearchBar Google");
+        SetText(YourTextVAR, GetSetting("YourText"));					
+		
+        if (Count >= Claims)  //IsVisible(YourTextVAR) && 
+	    {	
+	     Log("break");	
+	     break; //after break the while
+	    }
+
+        }	//end  while (true)		
+	
+
+        return 0;
+		
+        }//end NumbersOfClaim_Function
+        //=================//
+
+ 
+        //=================//
+       //ShortLink_Function
+        //=================//
+
+        public void ShortLink_Function()
+        {
+			
+        //call to ShortLink
+        ShortLinkBypasser bypasser = new ShortLinkBypasser(this);
+        bool ShorBool = bypasser.DoShortLink();
+        if (!ShorBool)
+        {
+            Log("Fail shortlink");
+        }
+
+        }//end ShortLink_Function
+        //=================//
+
+
+	    //================//
+        //ShortLink_ClickAll_Function
+	    //================//
+        public void ShortLink_ClickAll_Function(int number)
+        {
+    
+         var Link_All_VAR = ElementByXPath ("//div["+number.ToString()+"]/div/div[3]/a[@class='btn btn-primary btn-cell ' ]");
+         if (IsVisible(Link_All_VAR))
+         {	
+	 
+         GoToUrl("https://vivebtc.win/links/");
+		 Log("Go to ShortLink");	
+		 
+		 Wait();
+		 Wait(2);	
+		 
+	     Click(Link_All_VAR);			 
+		 Log("ShortLink - Link_All_VAR" + number.ToString() );	
+		 
+		 Wait();
+		 Wait(2);
+		 
+         ShortLink_Function(); //call to ShortLink_Function		
+		 
+		 Wait();
+		 Wait(2);
+	 
+	     } //Link_All_VAR		 
+		  
+        } //ShortLink_ClickAll_Function
+        //=================//
+
+
+
+	    //===========//
+        //MenuExample
+	    //===========//
+        public void ShortLink_ClickAll_Function()
+        {
+    
+           //Menu
+           var MenuExampleVAR = GetSetting("MenuExample"); 
+
+
+           if(MenuExampleVAR=="none")
+           {
+             Log("none_Select");
+	       } //end none
+	  
+	  
+           if(MenuExampleVAR=="DOGECOIN")
+           {
+             var DOGECOIN_Select = ElementByXPath("//div[1]/div/div[2]/a[1 and @class='btn btn-secondary']");		  
+		     Click(DOGECOIN_Select);
+             Log("DOGECOIN_Select");
+		 
+		     Wait();		 
+		     Wait(2);
+	       } //end DOGECOIN
+		   
+		   
+           if(MenuExampleVAR=="BITCOIN")
+           {
+             var BITCOIN_Select = ElementByXPath("//div[1]/div/div[2]/a[1 and @class='btn btn-secondary']");		  
+		     Click(BITCOIN_Select);
+             Log("BITCOIN_Select");
+		 
+		     Wait();		 
+		     Wait(2);
+	       } //end BITCOIN		   
+		   
+		   
+        } //MenuExample
+	    //===========//
+
+
+
+
+	    //===========//
+        //AutoWithdraw_Function
+	    //===========//
+        public void AutoWithdraw_Function()
+        {
+		  Log("AutoWithdraw_Function");	
+
+/*
+        var BalanceVAR = ElementByXPath("//span[@class='my-balance']");
+        double BalanceDOUBLE; 
+        double.TryParse(BalanceVAR.Text.Trim(), out BalanceDOUBLE); //decimals  0.1  1.1  2.2  etc
+  
+        double MyAmount;        
+        double.TryParse(GetSetting("LimitWheel"), out MyAmount);
+*/
+	
+        var balance = ElementByXPath("//div[1]/h3/span[@class='m-widget24__stats m--font-brand bither-balance']");
+        string BalanceSTRING = balance.Text.Trim().Split('.')[0];
+        int BalanceINT = Convert.ToInt32(BalanceSTRING);
+
+        int MyAmount;
+        Int32.TryParse(GetSetting("LimitWithdraw"), out MyAmount);
+
+        if (BalanceINT < MyAmount) // - 1000
+        {
+			Log("AutoWithdraw - Under <");
+           //do all stuff
+        }
+ 
+        if (BalanceINT > MyAmount) // the Default Limit to withdraw is 1000
+        {
+			Log("AutoWithdraw - Above >");
+            GoToUrl("https://panel.bither.one/withdraw");
+		    Log("AutoWithdraw");	
+			Wait();
+			Wait(2);
+
+            var WheelButton = ElementByXPath("//button[@id='withdraw-btn' and (@disabled) ]");
+			
+            if (IsVisible(WheelButton)) //if visible "disabled" 
+            {
+             Log("AutoWithdraw - not visible ");
+            }				
+	        if (!IsVisible(WheelButton))  //if NOT visible "disabled" so click on claim button
+	        {
+			 Log("AutoWithdraw - Click on WheelButton");
+			 Click(WheelButton);
+			}
+			
+			Wait();
+        }
+		
+		
+        } //AutoWithdraw_Function
+	    //===========//	
+	
+	
+} //end public class
+

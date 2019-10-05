@@ -1,0 +1,192 @@
+﻿using System;
+using FaucetCollector.Script;
+
+public class mydogecoinScript : FaucetScript
+{
+    
+    public override FaucetSettings Settings
+    {
+        get
+        {
+            return new FaucetSettings("http://mydoge.co.in/")
+            {
+                new FaucetSetting {
+                    Name = "Doge",
+                    Display = "Doge wallet address",
+                    Type = EditorType.Wallet,
+                    Required = true,
+                    Default = null
+               }
+            };
+        }
+    }
+
+    
+    public override void Start()
+    {
+        Title = "MYDOGE|";
+
+        SuccessXPath = "//*[@id='claim_success']";
+
+        FailXPath = "//div[contains(@class,'alert-danger')]";
+
+        
+        base.Start();
+    }
+
+    
+    public override bool IsLoggedIn()
+    {
+       
+        return IsVisible(ElementByXPath("//a[@href='http://mydoge.co.in/logout.php']"));
+    }
+
+    
+    public override int BeforeLogin()
+    {
+        
+       
+        
+        return base.BeforeLogin(); ;
+    }
+
+   
+    public override int DoLogin()
+    {
+        
+        var signInaddress = ElementByXPath("//input[@type='text' and contains(@class, 'form-control')]");
+        if (signInaddress == null)
+        {
+            
+            return Fail("Signin address not found.");
+        }
+
+        
+        SetText(signInaddress, GetSetting("Doge"));
+
+        
+        var loginButton = ElementByXPath("//input[@type='submit' and contains(@class, 'btn-primary')]");
+        if (loginButton == null)
+        {
+           
+            return Fail("Login button not found.");
+        }
+
+        
+        var result = SolveCaptcha();
+        if (result > 0)
+        {
+            
+            return result;
+        }
+
+        
+        Click(loginButton);
+
+        
+        return base.DoLogin();
+    }
+
+    
+    public override int AfterLogin()
+    {
+        
+        return base.AfterLogin();
+    }
+
+    
+    public override int GetFaucetWaitTime()
+    {
+        
+        return 0;
+    }
+   
+    public override int BeforeSolveCaptcha()
+    {
+		
+
+        return base.BeforeSolveCaptcha();
+    }
+
+    
+    public override int DoSolveCaptcha()
+    {
+        
+        return base.DoSolveCaptcha();
+    }
+
+    
+    public override int AfterSolveCaptcha()
+    {
+        
+        return base.AfterSolveCaptcha();
+    }
+
+    
+    public override int BeforeSolveFaucet()
+    {
+        
+        var claimButton = ElementByClass("btn-lg");
+        if (!IsVisible(claimButton))
+        {
+            
+            return Fail("Claim button not found or not visible.");
+        }
+
+        
+        Click(claimButton);
+
+        
+        return base.BeforeSolveFaucet();
+    }
+    
+    
+    public override int DoSolveFaucet()
+    {
+        
+        var submitButton = ElementByXPath("//div[@id='claim_reward']//div[@class='modal-body']/form[contains(@name, 'claim_form')]/input[contains(@class, 'btn-lg')]");
+        if (!IsVisible(submitButton))
+        {
+            
+            return Fail("Submit button not found or not visible.");
+        }
+
+        
+        var result = SolveCaptcha();
+        if (result > 0)
+        {
+            
+            return result;
+        }
+
+        
+        Click(submitButton);
+
+        
+        return base.DoSolveFaucet();
+    }
+
+    
+    public override int AfterSolveFaucet()
+    {
+
+        return base.AfterSolveFaucet();
+    }
+
+   
+    public override int CheckFaucetResult()
+    {
+            var result = base.CheckFaucetResult();
+            if (IsSuccess)
+            {
+                
+                result = GetWaitSetting();
+
+                
+                Reload = true;
+            }
+
+            return result;
+       
+    }
+}

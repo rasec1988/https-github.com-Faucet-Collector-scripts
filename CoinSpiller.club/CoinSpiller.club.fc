@@ -1,0 +1,507 @@
+﻿
+
+//==================//
+//script Written by: ••AviramDayan•• 13/08/2019 03:00AM - Version 1
+//Last Update: 17/08/2019 03:00AM - Version 2
+//==================//
+
+using System;
+using FaucetCollector.Script;
+using OpenQA.Selenium;
+using OpenQA.Selenium.Interactions;
+using System.Text.RegularExpressions;
+//css_inc RecaptchaUtilities
+//css_inc ShortLinkUtilities
+
+public class freebtc : FaucetScript
+{
+    /// <summary>
+    /// List of Settings that will be shown in the bot when selecting this Faucet in the bot.
+    /// You can get the value the user entered with the methods: GetSetting("[Name of the FaucetSetting]"), GetBoolSetting and GetDateTimeSetting
+    /// You can also create a new setting value using SetSetting("[Name you want to use]", "value")
+    /// </summary>
+    public override FaucetSettings Settings
+    {
+        get
+        {
+			
+            return new FaucetSettings("https://coinspiller.club/")
+            {
+
+                new FaucetSetting(){Name="Email",Display="Email",Type=EditorType.TextBox,Required=true},
+                new FaucetSetting(){Name="Password",Display="Password",Type=EditorType.Password,Required=true},
+                new FaucetSetting(){Name="Address",Display="Bitcoin Address",Type=EditorType.TextBox,Required=false},				
+                //new FaucetSetting() { Name = "FaucetClaim", Display = "FaucetClaim", Type = EditorType.CheckBox, Default = true},	
+				new FaucetSetting() { Name = "GetActivityToken", Display = "GetActivityToken - on/off (it's recommended to set the time every 360 min '6 hours') ", Type = EditorType.CheckBox, Default = true},		
+ 				//new FaucetSetting(){Name="MenuTime",Display="MenuTime - Select Favorite Time",Type=EditorType.ComboBox,Default="WebSiteTime",Items=new System.Collections.Generic.List<string>{"WebSiteTime","UserCustomTime"}},
+                new FaucetSetting() { Name = "UserCustomTime", Display = "UserCustomTime", Type = EditorType.Numeric, Default = 120 },				
+                new FaucetSetting(){Name="SelectCaptcha",Display="SelectCaptcha - ON SolveMedia  | OFF Recaptcha",Type=EditorType.CheckBox,Default=true },
+
+				
+            };
+        }
+    }
+
+	
+//============================================================//
+//the number of "successes" in the script - when are finished  
+//============================================================//
+    public override void Start()
+    {
+        ad = false;
+       
+        //Title that shows in the browser. Is used to identify and close popup windows
+        Title = "CoinSpiller";
+
+		SuccessXPath = "//*";  //*[@id='']
+        FailXPath = "//*"; //*[@id='']
+	
+        //TimerIsCountingUp = true;
+		
+        //Let Faucet Collector start up everything
+        base.Start();
+    }
+//============================================================//
+//the number of "successes" in the script - when are finished  
+//============================================================//
+
+	
+    bool ad; //custom bool
+
+
+    public override int DoInit()
+    {
+			
+
+		
+        //Let Faucet Collector continue.
+        return base.DoInit();
+    }
+
+	
+//==================//
+//save Login Cookies 
+//==================//
+    public override bool IsLoggedIn()
+    {
+	    //save Login Cookies - Check if the "Logout" exist
+        return ElementByXPath("//a[@title='Logout']") != null;
+	 
+	    //return true;
+	 
+        //return base.IsLoggedIn();
+    }
+//==================//
+//save Login Cookies 
+//==================//	
+
+
+
+
+//=============//
+//BeforeLogin
+//=============//
+    public override int BeforeLogin()
+    {
+		
+
+     GoToUrl("https://coinspiller.club/offerwalls/");
+
+		
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeLogin();
+    }
+//=============//
+//BeforeLogin
+//=============//
+
+	
+
+
+	
+//========//
+//DoLogin
+//========//
+    public override int DoLogin()
+    {
+	
+     var ExitButton = ElementByXPath("//a[@title='Logout']");
+
+
+	 //if i NOT Login - go to Login Page
+	 if (!IsVisible(ExitButton))
+	 {
+
+		GoToUrl("https://coinspiller.club/login");
+		Wait();		
+		Wait(2);
+/*     
+        var StartOpenLogin = ElementByXPath("//div[@class='AuthPage___controls']/button[contains(text(),'Sign In')]");
+	    if (IsVisible(StartOpenLogin))
+	    { 
+        Click(StartOpenLogin);
+		}
+*/
+		Wait(2);
+		
+		
+/*	
+        var Address_VAR = ElementByXPath("//input[@id='form-field-wallet_addr']");
+        SetText(Address_VAR, GetSetting("Address"));
+*/
+	
+        var box_user = ElementByXPath("//input[@id='wpuf-user_login']");
+        SetText(box_user, GetSetting("Email"));
+		
+		Wait(2);
+		
+        var box_pass = ElementByXPath("//input[@id='wpuf-user_pass']");
+        SetText(box_pass, GetPassword("Password"));
+
+
+        SelectCaptcha_Function(); //call to SelectCaptcha
+		
+		Wait(2);	
+		
+
+        //SolveCaptcha if apper
+        var result = DoSolveCaptcha();
+		
+/*			
+		
+        var result = base.DoSolveCaptcha();
+        RecaptchaUtility utility = new RecaptchaUtility(this);
+        utility.DoSolve();
+		
+        ExecuteScript("enableSigninBtn");
+*/		
+
+		Wait(3);
+		
+        var ButtonLog = ElementByXPath("//button[@class='btn-primary btnsmall']");
+        Click(ButtonLog);
+		
+		Wait(2);
+	
+        var Error_Message = ElementByXPath ("//button[@class='btn-info' and contains(text(),'Please check your email') ]");
+        if (IsVisible(Error_Message))
+        {
+            Log("Error_Message - Please check your email - we return after your CustomTime ");
+            int MyCustomTimeINT;
+            MyCustomTimeINT = GetIntSetting("UserCustomTime") * 60; 
+            return MyCustomTimeINT;
+        }
+
+        //Title = "test Wallet";
+		
+		Wait();	
+
+	 } // end ExitButton
+
+        
+       return base.DoLogin();
+    }
+//========//
+//DoLogin
+//========//
+ 
+
+
+//========//
+//AfterLogin
+//========//
+ public override int AfterLogin()
+ {
+ 
+  
+    //we are good to continue
+    return base.AfterLogin();
+
+ }
+//========//
+//AfterLogin
+//========//
+
+
+	
+
+//================//
+//GetFaucetWaitTime
+//================//
+    public override int GetFaucetWaitTime()
+    {
+
+        if (ad)
+        {
+			
+			ad=false;
+			/*
+            var TimeVAR = ElementByXPath("//span[@id='faucetTimer']");	
+            int MinINT, SecINT;
+            MinINT = Convert.ToInt32(TimeVAR.Text.Trim().Split(':')[0])*60;
+            SecINT = Convert.ToInt32(TimeVAR.Text.Trim().Split(':')[1]);
+	  
+			Driver.Close();  // Close specific chrome window
+            Driver.Quit();  // also Close the console app, that was used to kick off the chrome window
+            Driver.Dispose();  // Close the chromedriver.exe
+			
+            return MinINT + SecINT;
+			*/
+            return GetWaitSetting();
+			
+        }
+
+		//let Faucet Collector continue.
+        return base.GetFaucetWaitTime();
+    }
+//================//
+//GetFaucetWaitTime
+//================//
+
+
+
+    public override int BeforeSolveCaptcha()
+    {
+ 
+        //Return we are ready to proceed
+        return base.BeforeSolveFaucet();
+    }
+
+	
+    public override int DoSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoSolveCaptcha();
+    }
+
+	
+    public override int AfterSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterSolveCaptcha();
+    }
+
+	
+    public override int BeforeSolveFaucet()
+    {
+        //Return we can continue
+        return base.BeforeSolveFaucet();
+    }
+  
+	
+	
+//==============//
+//DoSolveFaucet
+//==============//
+ public override int DoSolveFaucet()
+  {
+
+      //==============//
+      //FaucetClaim//
+      //==============//
+      if (GetBoolSetting("GetActivityToken"))
+      {
+
+        GoToUrl("https://coinspiller.club/offerwalls/");
+		//Log("FaucetClaim");
+		Log("GetActivityToken - Go to promotions , we just waiting 30 seconds, to act normal and get the bounos daily");	
+	
+        Wait();
+        Wait(3);
+/*		
+        var ButtoneDisabled_VAR = ElementByXPath("//span[@id='faucetTimer']");			
+
+        //TIME visible
+	    if (IsVisible(ButtoneDisabled_VAR)) //visible
+	    {
+
+           //Menu
+           var MenuExampleVAR = GetSetting("MenuTime"); 
+           if(MenuExampleVAR=="WebSiteTime")
+           {
+               Log("WebSiteTime");
+		       //Wait();		 
+		       //Wait(2);
+
+               var TimeVAR = ElementByXPath("//span[@id='faucetTimer']");	
+               int MinINT, SecINT;
+               MinINT = Convert.ToInt32(TimeVAR.Text.Trim().Split(':')[0])*60;
+               SecINT = Convert.ToInt32(TimeVAR.Text.Trim().Split(':')[1]);
+			
+               //Driver.Close();  // Close specific chrome window
+               //Driver.Quit();  // also Close the console app, that was used to kick off the chrome window
+               //Driver.Dispose();  // Close the chromedriver.exe
+			
+               return MinINT + SecINT;
+			
+               //return GetWaitSetting();
+
+	       } //end Menu - WebSiteTime 
+		   
+		   
+           if(MenuExampleVAR=="UserCustomTime")
+           {
+               Log("UserCustomTime");
+               Wait();		 
+               Wait(2);
+			 
+               int MyCustomTimeINT;
+               MyCustomTimeINT = GetIntSetting("UserCustomTime") * 60; 
+               return MyCustomTimeINT;
+			 
+	       } //end Menu - UserCustomTime 	   
+		
+        } //end ButtoneDisabled_VAR
+		
+*/	
+
+
+        Wait(3);		
+/*
+		var RollButton = ElementByXPath("//button[@class='btn btn-primary btn-claim']");	
+	    if (IsVisible(RollButton))
+	    {	
+	     Click(RollButton);
+	     Log("RollButton");	
+		}
+*/	
+		
+		
+		/*
+        //ExecuteScript("claim");
+        var result = base.DoSolveCaptcha();
+        RecaptchaUtility utility = new RecaptchaUtility(this);
+        utility.DoSolve();
+		*/
+		
+        Wait();		
+ 
+        Driver.Navigate().Refresh();
+		
+        Wait();	
+		
+		/*
+		var ErrorText = ElementByXPath("//p[contains(text(),'incorrect') ]") ;	
+	    if (IsVisible(ErrorText))
+	    {	
+	     return 1*60;
+	     Log("ErrorText - return after 1 min");	
+		}
+		*/
+		
+
+
+		
+      }// end FaucetClaim
+
+
+/*
+        int MyCustomTimeINT;
+        MyCustomTimeINT = GetIntSetting("UserCustomTime") * 60; 
+        return MyCustomTimeINT;
+*/				
+
+		ad = true;    // if i do true - it report as succeed // only one time no multi and also required -> return GetWaitSetting();	
+        //return GetWaitSetting();	
+
+        //We are good to continue
+        return base.DoSolveFaucet();
+ }
+//==============//
+//DoSolveFaucet
+//==============///
+	
+	
+	
+	
+	
+//==============//
+//AfterSolveFaucet
+//==============//
+  public override int AfterSolveFaucet()
+  {
+
+   //This faucet has nothing to do here. We will let Faucet Collector handle it.
+   return base.AfterSolveFaucet();
+   
+  }
+	
+//==============//
+//AfterSolveFaucet
+//==============//
+
+
+
+    /// <summary>
+    /// This method gets called in the end after the BeforeSolveFaucet/DoSolveFaucet and AfterSolveFaucet methods were done.
+    /// The base.CheckFaucetResult will try to find a visible element on the page using the XPath from SuccessXPath and FailXPath (see the Start method)
+    /// These properties should contain XPath expressions to find certain elements on the page.
+    /// For example if it finds one of the elements from the SuccessXPath, and it is visible, then it will flag the claim attempt as a success.
+    /// Or if it finds one of the elements from the FailXPath, and it is visible, then it will flag the claim attempt as a failure.
+    /// </summary>
+    public override int CheckFaucetResult()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.CheckFaucetResult();
+    }
+	
+
+	
+
+	    //===========//
+        //Time_Function
+	    //===========//
+        public int Time_Function()
+        {
+
+         //do stuff
+
+	     return 0;   
+		   
+        } //MenuExample
+	    //===========//	
+
+
+	    //================//
+        //SelectCaptcha_Function
+	    //================//
+        public void SelectCaptcha_Function()
+        {
+            if (GetBoolSetting("SelectCaptcha"))
+            {
+                var SolveMediaVAR = ElementByXPath("//div[@class='select-items select-hide']/div[contains(text(),'SolveMedia')]");
+                Click(SolveMediaVAR);				
+            }
+            if (!GetBoolSetting("SelectCaptcha"))
+            {
+                var ReCaptchaVAR = ElementByXPath("//div[@class='select-items select-hide']/div[contains(text(),'ReCaptcha')]");	
+                Click(ReCaptchaVAR);
+            }
+            Wait(1);
+
+		  
+        } //SelectCaptcha_Function
+        //=================//
+	
+
+        //=================//
+       //ShortLink_Function
+        //=================//
+
+        public void ShortLink_Function()
+        {
+			
+        //call to ShortLink
+        ShortLinkBypasser bypasser = new ShortLinkBypasser(this);
+        bool ShorBool = bypasser.DoShortLink();
+        if (!ShorBool)
+        {
+            Log("Fail shortlink");
+        }
+
+        }//end ShortLink_Function
+        //=================//
+
+	
+} //end public class
+

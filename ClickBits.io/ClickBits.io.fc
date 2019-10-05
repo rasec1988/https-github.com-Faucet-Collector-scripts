@@ -1,0 +1,355 @@
+﻿using System;
+//css_inc ShortLinkUtilities
+using FaucetCollector.Script;
+
+public class ClickBits: FaucetScript
+{
+    /// <summary>
+    /// List of Settings that will be shown in the bot when selecting this Faucet in the bot.
+    /// You can get the value the user entered with the methods: GetSetting("[Name of the FaucetSetting]"), GetBoolSetting and GetDateTimeSetting
+    /// You can also create a new setting value using SetSetting("[Name you want to use]", "value")
+    /// </summary>
+    public override FaucetSettings Settings
+    {
+        get
+        {
+            return new FaucetSettings("https://clickbits.io/")
+            {
+                new FaucetSetting(){Name="User",Display="Username",Type=EditorType.TextBox,Required=true},
+                new FaucetSetting(){Name="Pass",Display="Password",Type=EditorType.Password,Required=true},
+                new FaucetSetting(){Name="UseSolvemedia",Display="UseSolvemedia",Type=EditorType.CheckBox,Default=true },
+
+                new FaucetSetting()
+                {
+                    Name="DoShortLink",Display="DoShortLink",Type=EditorType.CheckBox,Default=true
+                }
+                //insert user settings here
+                //new FaucetSetting { 
+                //    Name = "Name of your setting", 
+                //    Display = "Display shown in Faucet Collector", 
+                //    Type = EditorType.TextBox | EditorType.Password | EditorType.CheckBox | EditorType.Wallet | EditorType.Numeric | EditorType.ComboBox | EditorType.CheckComboBox, 
+                //    Required = true | false, 
+                //    Default = "Optionally a default value" | true | false | null.
+                //    Items = new List<string> { "item1", "item2" } (only valid for ComboBox or CheckComboBox)
+                //} 
+            };
+        }
+    }
+
+    /// <summary>
+    /// This method gets called when the faucet is enabled and the GO button is clicked
+    /// </summary>
+    public override void Start()
+    {
+        //Title that shows in the browser. Is used to identify and close popup windows
+        Title = "BitsFree";
+
+        //After we did try to claim on the faucet we search for these elements to determine if it was a success or a fail
+        SuccessXPath = "//div[@class='alert alert-success']";
+        FailXPath = "//div[@class='alert alert-danger']";
+
+        //Let Faucet Collector start up everything
+        base.Start();
+    }
+
+    /// <summary>
+    /// This is the first method to run after the browser is opened and the first page is loaded.
+    /// </summary>
+    public override int DoInit()
+    {
+        //Let Faucet Collector continue.
+        return base.DoInit();
+    }
+
+    /// <summary>
+    /// This method gets called after the Start method, here you need to return if we are logged in or not.
+    /// If you return false then it will call the BeforeLogin, Login and AfterLogin methods so you can login.
+    /// After those Login methods are called it will call this IsLoggedIn method again to see if the login did succeed.
+    /// If you return true Faucet Collector will store all cookies so it will probably be already logged in on the next attempt.
+    /// </summary>
+    public override bool IsLoggedIn()
+    {
+        //In here we can check for the presence of an element that is only present when you are logged in.
+        //In this case we check for en element with the class "loggedIn"
+        return ElementByXPath("//button[contains(text(),'Withdraw')]") != null;
+    }
+
+    /// <summary>
+    /// This method gets called if IsLoggedIn returned false, right before the DoLogin method is called.
+    /// </summary>
+    public override int BeforeLogin()
+    {
+        var LoginModal = ElementByXPath("//a[@data-target='#loginModal']");
+        if (!IsVisible(LoginModal))
+        {
+            return Fail("Login modal button is not visible");
+        }
+        Click(LoginModal);
+        Wait();
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeLogin();
+    }
+
+    /// <summary>
+    /// This method gets called after BeforeLogin, but only if IsLoggedIn returned false.
+    /// It can be used to actually login the user/enter wallet details in the faucet
+    /// </summary>
+    /// <returns></returns>
+    public override int DoLogin()
+    {
+        var UserLogin = ElementByXPath("//input[@id='userLogin']");
+        if (!IsVisible(UserLogin))
+        {
+            return Fail("User login is not visible");
+        }
+        SetText(UserLogin, GetSetting("User"));
+        var PasswordBox = ElementByXPath("//input[@id='userPass']");
+        if (!IsVisible(PasswordBox)){
+            return Fail("Password box is not visible");
+        }
+        SetText(PasswordBox, GetPassword("Pass"));
+        var remember = ElementByXPath("//input[@id='remember']");
+        if (IsVisible(remember))
+        {
+            Click(remember);
+        }
+        var result = DoSolveCaptcha();
+        if (result > 0)
+        {
+            return Fail("Fail solve captcha");
+        }
+        Wait();
+        var ButtonLogin = ElementByXPath("//button[contains(text(),'Login')]");
+        if (!IsVisible(ButtonLogin))
+        {
+            return Fail("Button login is not visible");
+        }
+        Click(ButtonLogin);
+        Wait();
+
+        var Error = ElementByXPath("//div[@class='alert alert-danger']");
+        if (IsVisible(Error))
+        {
+            Log(Error.Text);
+        }
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoLogin();
+    }
+
+    /// <summary>
+    /// This method gets called after the DoLogin method.
+    /// </summary>
+    public override int AfterLogin()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterLogin();
+    }
+
+    /// <summary>
+    /// This method gets called after the login methods are successful, so we are logged into the faucet.
+    /// If the faucet is not yet ready to claim you should return a TimeStamp value to return how long it takes before the Faucet claim can be done.
+    /// This is used to pause the script while the faucet its timer runs out.
+    /// Return the number of seconds the bot should wait.
+    /// </summary>
+    public override int GetFaucetWaitTime()
+    {
+        Driver.Navigate().Refresh();
+        Wait();
+        var Timer = ElementByXPath("//span[@id='claimTime']");
+        if (IsVisible(Timer))
+        {
+            try
+            {
+                string[] SplitedTimer = Timer.Text.Split(' ');
+                int Minutes = Convert.ToInt32(SplitedTimer[0]) * 60;
+                int Seconds = Convert.ToInt32(SplitedTimer[3]);
+
+
+                return Minutes + Seconds;
+
+
+            }
+            catch (Exception)
+            {
+
+            }
+        }
+        //let Faucet Collector continue.
+        return base.GetFaucetWaitTime();
+    }
+
+    /// <summary>
+    /// This method is called right before a captcha will be solved. 
+    /// If you call SolveCaptcha() in other methods it will start this flow and tries to solve the captcha on the page.
+    /// </summary>
+    public override int BeforeSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeSolveCaptcha();
+    }
+
+    /// <summary>
+    /// This method gets called after BeforeSolveCaptcha and it does the actual captcha solving
+    /// It will automatically try to see if there is a SolveMedia captcha active or a reCAPTCHA active. 
+    /// If it finds either one it will then use the selected method on the Captcha tab of FaucetCollector to solve the Captcha.
+    /// </summary>
+    public override int DoSolveCaptcha()
+    {
+        var ToggleCaptcha = ElementByXPath("//select[@id='toggleCaptcha']");
+        if (IsVisible(ToggleCaptcha))
+        {
+            if (GetBoolSetting("UseSolvemedia"))
+            {
+                SelectOptionByValue(ToggleCaptcha, "0");
+            }
+            else
+            {
+                SelectOptionByValue(ToggleCaptcha, "1");
+            }
+            Wait(1);
+        }
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoSolveCaptcha();
+    }
+
+    /// <summary>
+    /// This method will get called after DoSolveCaptcha returned it was a success.
+    /// </summary>
+    /// <returns></returns>
+    public override int AfterSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterSolveCaptcha();
+    }
+
+    /// <summary>
+    /// This method is called right before we attempt to claim on the faucet. So we are logged in and good to go.
+    /// Next methods that will be called are DoSolveFaucet, AfterSolveFaucet and CheckFaucetResult.
+    /// </summary>
+    public override int BeforeSolveFaucet()
+    {
+        if (GetBoolSetting("DoShortLink"))
+        {
+            GoToUrl("https://clickbits.io/shortlinks.html");
+            Wait();
+            var Shortlinks = ElementsByXPath("//a[@class='btn btn-success btn-sm']");
+            if (Shortlinks.Count > 0)
+            {
+                int NShort = Random(0, Shortlinks.Count - 1);
+
+                try
+                {
+                    string uri = Shortlinks[NShort].GetAttribute("href");
+                    if (!string.IsNullOrEmpty(uri))
+                    {
+                        ShortLinkBypasser bypasser = new ShortLinkBypasser(this);
+                        GoToUrl(uri);
+                        Wait();
+                        bool cs = bypasser.DoShortLink();
+
+                        if (cs)
+                        {
+                            Log("ShortlinkSuccess");
+                        }
+                        else
+                        {
+                            Log("Something is wrong with the shortlink");
+                        }
+                    }
+
+                }
+                finally
+                {
+                    if (!Driver.Url.Contains("https://clickbits.io"))
+                    {
+
+                        GoToUrl("https://clickbits.io");
+                    }
+
+                }
+
+            }
+            else
+            {
+                Log("No more shortlinks available");
+            }
+
+        }
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeSolveCaptcha();
+    }
+
+    /// <summary>
+    /// This method gets called after the BeforeSolveFaucet. You can do the actual claiming of the faucet in here.
+    /// </summary>
+    /// <returns></returns>
+    public override int DoSolveFaucet()
+    {
+        if(Driver.Url!= "https://clickbits.io/")
+        {
+            GoToUrl("https://clickbits.io/");
+            Wait();
+        }
+
+        var FaucetLocked = ElementByXPath("//b[contains(text(),'Faucet Locked!')]");
+        if (IsVisible(FaucetLocked))
+        {
+            if (GetBoolSetting("DoShortLink"))
+            {
+                Log("We need to do another shortlink..., Faucet is still locked");
+                return GetWaitSetting();
+            }
+            else
+            {
+                
+                Disable();
+
+                return Fail("You need other shortlink to unlock the faucet, please do it manually or enable the option to do shortlink in the script");
+            }
+        }
+
+        var ButtonRoll = ElementByXPath("//button[contains(text(),'Roll & Win')]");
+        if (!IsVisible(ButtonRoll))
+        {
+            return Fail("Button roll is not visible");
+        }
+        var result = DoSolveCaptcha();
+        if (result > 0)
+        {
+            return Fail("Fail solving captcha");
+        }
+        ButtonRoll = ElementByXPath("//button[contains(text(),'Roll & Win')]");
+        if (!IsVisible(ButtonRoll))
+        {
+            return Fail("Button roll is not visible");
+        }
+        Click(ButtonRoll);
+
+     
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoSolveFaucet();
+    }
+
+    /// <summary>
+    /// This method will get called after the DoSolveFaucet is completed and returned it was a success.
+    /// For example you can wait for a processing popup to go away until actual faucet claim result is on the page.
+    /// </summary>
+    public override int AfterSolveFaucet()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterSolveFaucet();
+    }
+
+    /// <summary>
+    /// This method gets called in the end after the BeforeSolveFaucet/DoSolveFaucet and AfterSolveFaucet methods were done.
+    /// The base.CheckFaucetResult will try to find a visible element on the page using the XPath from SuccessXPath and FailXPath (see the Start method)
+    /// These properties should contain XPath expressions to find certain elements on the page.
+    /// For example if it finds one of the elements from the SuccessXPath, and it is visible, then it will flag the claim attempt as a success.
+    /// Or if it finds one of the elements from the FailXPath, and it is visible, then it will flag the claim attempt as a failure.
+    /// </summary>
+    public override int CheckFaucetResult()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.CheckFaucetResult();
+    }
+}

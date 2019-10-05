@@ -1,0 +1,468 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.IO;
+using FaucetCollector.Script;
+using OpenQA.Selenium;
+using Tesseract;
+public class TrafficSwarm : FaucetScript
+{
+    /// <summary>
+    /// List of Settings that will be shown in the bot when selecting this Faucet in the bot.
+    /// You can get the value the user entered with the methods: GetSetting("[Name of the FaucetSetting]"), GetBoolSetting and GetDateTimeSetting
+    /// You can also create a new setting value using SetSetting("[Name you want to use]", "value")
+    /// </summary>
+    public override FaucetSettings Settings
+    {
+        get
+        {
+            return new FaucetSettings("https://www.trafficswarm.com")
+            {
+                new FaucetSetting(){Name="User",Display="Email/ID",Type=EditorType.TextBox,Required=true},
+                new FaucetSetting(){Name="Pass",Display="Password",Type=EditorType.Password,Required=true},
+                new FaucetSetting(){Name="N",Display="Nº of Claims",Type=EditorType.TextBox, Default=200},
+                //insert user settings here
+                //new FaucetSetting { 
+                //    Name = "Name of your setting", 
+                //    Display = "Display shown in Faucet Collector", 
+                //    Type = EditorType.TextBox | EditorType.Password | EditorType.CheckBox | EditorType.Wallet | EditorType.Numeric | EditorType.ComboBox | EditorType.CheckComboBox, 
+                //    Required = true | false, 
+                //    Default = "Optionally a default value" | true | false | null.
+                //    Items = new List<string> { "item1", "item2" } (only valid for ComboBox or CheckComboBox)
+                //} 
+            };
+        }
+    }
+
+    /// <summary>
+    /// This method gets called when the faucet is enabled and the GO button is clicked
+    /// </summary>
+    public override void Start()
+    {
+        //Title that shows in the browser. Is used to identify and close popup windows
+        Title = "A Swarm";
+
+        //After we did try to claim on the faucet we search for these elements to determine if it was a success or a fail
+        SuccessXPath = "//span[contains(text(),'Credits available:')]";
+        FailXPath = "//span[contains(text(),'Failed')]";
+
+
+
+
+        //Let Faucet Collector start up everything
+        base.Start();
+    }
+
+    /// <summary>
+    /// This is the first method to run after the browser is opened and the first page is loaded.
+    /// </summary>
+    public override int DoInit()
+    {
+        cs = false;
+        //Let Faucet Collector continue.
+        return base.DoInit();
+    }
+
+    /// <summary>
+    /// This method gets called after the Start method, here you need to return if we are logged in or not.
+    /// If you return false then it will call the BeforeLogin, Login and AfterLogin methods so you can login.
+    /// After those Login methods are called it will call this IsLoggedIn method again to see if the login did succeed.
+    /// If you return true Faucet Collector will store all cookies so it will probably be already logged in on the next attempt.
+    /// </summary>
+    public override bool IsLoggedIn()
+    {
+        //In here we can check for the presence of an element that is only present when you are logged in.
+        //In this case we check for en element with the class "loggedIn"
+        return ElementByXPath("//a[contains(text(),'My Ads')]") != null;
+    }
+
+    /// <summary>
+    /// This method gets called if IsLoggedIn returned false, right before the DoLogin method is called.
+    /// </summary>
+    public override int BeforeLogin()
+    {
+       
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeLogin();
+    }
+
+    /// <summary>
+    /// This method gets called after BeforeLogin, but only if IsLoggedIn returned false.
+    /// It can be used to actually login the user/enter wallet details in the faucet
+    /// </summary>
+    /// <returns></returns>
+    public override int DoLogin()
+    {
+        if (!Driver.Url.Contains("https://www.trafficswarm.com/login"))
+        {
+            GoToUrl("https://www.trafficswarm.com/login");
+        }
+ string User = GetSetting("User");
+ string Pass = GetPassword("Pass");
+        Wait();
+        var UserBox=ElementByXPath("//div[@class='inputsmall']//input[@id='username']");
+if(!IsVisible(UserBox)){return Fail("Fail");}
+
+        Wait();
+        var PassBox=ElementByXPath("//div[@class='inputsmall']//input[@id='password'");
+if(!IsVisible(PassBox)){return Fail("Fail");}
+SetText(PassBox, Pass);
+Wait();
+SetText(UserBox,User);
+Log("Seted");
+        Wait(5);
+        //var result = DoSolveCaptcha();
+        //if (result > 0)
+        //{
+        //    return Fail("Fail Solving captcha");
+        //}
+        var ButtonLogin=ElementByXPath("//div[@id='loginbutton']//input[@type='image']");
+if(!IsVisible(ButtonLogin)){Click(ButtonLogin);}
+
+        Wait(1);
+        var button_offer = ElementByXPath("//div[@class='trial-btn']");
+        if (IsVisible(button_offer))
+        {
+            Click(button_offer);
+        }
+        Wait();
+        GoToUrl("http://www.trafficswarm.com/member-home");
+        Wait();
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoLogin();
+    }
+    private bool SetText_2XPath(string Relative_Xpath, string Absolute_XPath, string TextToset)
+    {
+        var ToSet = ElementByXPath(Relative_Xpath);
+        if (!IsVisible(ToSet))
+        {
+            var ToSet_2 = ElementByXPath(Absolute_XPath);
+            if (!IsVisible(ToSet_2))
+            {
+                return false;
+            }
+            else
+            {
+                SetText(ToSet_2, TextToset);
+            }
+        }
+        else
+        {
+            SetText(ToSet, TextToset);
+        }
+        return true;
+
+    }
+    private bool Click_2XPath(string Relative_Xpath, string Absolute_XPath)
+    {
+        var ToClick = ElementByXPath(Relative_Xpath);
+        if (!IsVisible(ToClick))
+        {
+            var ToClick2 = ElementByXPath(Absolute_XPath);
+            if (!IsVisible(ToClick2))
+            {
+                return false;
+            }
+            else
+            {
+                Click(ToClick2);
+            }
+        }
+        else
+        {
+            Click(ToClick);
+        }
+        return true;
+    }
+
+    /// <summary>
+    /// This method gets called after the DoLogin method.
+    /// </summary>
+    public override int AfterLogin()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterLogin();
+    }
+
+    /// <summary>
+    /// This method gets called after the login methods are successful, so we are logged into the faucet.
+    /// If the faucet is not yet ready to claim you should return a TimeStamp value to return how long it takes before the Faucet claim can be done.
+    /// This is used to pause the script while the faucet its timer runs out.
+    /// Return the number of seconds the bot should wait.
+    /// </summary>
+    public override int GetFaucetWaitTime()
+    {
+        if (cs)
+        {
+            return 7200;
+        }
+        Wait();
+        //let Faucet Collector continue.
+        return base.GetFaucetWaitTime();
+    }
+    private string DoOcr(Bitmap SourceImg)
+    {
+        string ocrtext = string.Empty;
+        using (var engine = new TesseractEngine(@"./tessdata", "eng", EngineMode.TesseractAndCube))
+        {
+            engine.SetVariable("tessedit_char_whitelist", ",abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ");
+            //engine.SetVariable("tessedit_char_whitelist", "WondermaGrilctBtil");
+            engine.SetVariable("tessedit_char_blacklist", "-¢§+~»~`!@#$%^&*()_+-={}[]|\\:\";\'<>?./123456789");
+            using (var img = PixConverter.ToPix(SourceImg))
+            {
+                using (var page = engine.Process(img))
+                {
+                    ocrtext = page.GetText();
+                }
+            }
+        }
+        return ocrtext;
+    }
+    public int Set_option()
+    {
+      
+
+        bool IsAntiBot_ = false;
+        try
+        {
+            int solution = 0;
+            string AntiBot_Dir = AssetDir("Image");
+            AntiBot_Dir += "//AntiBotImage.png";
+            FileStream s = new FileStream(AntiBot_Dir, FileMode.Open);
+            Bitmap AntiBot = new Bitmap(Image.FromStream(s));
+            s.Close();
+            var img__ = ElementsByXPath("//div[@class='adtitle']//img");
+            bool IsSelected = false;
+            int Cont = 0;
+            while (!IsSelected && Cont < img__.Count)
+            {
+                Bitmap ToSee = TakeScreenshot(Base.Captcha.CaptchaService.Manual,img__[Cont]);
+                string ToSeeText = DoOcr(ToSee);
+
+                if (!ToSeeText.ToLower().Contains("click"))
+                {
+                    IsSelected = true;
+                    solution = Cont;
+                }
+                Cont++;
+
+            }
+            return solution;
+        }
+        catch (Exception)
+        {
+            return 0;
+        }
+
+        //div[@class='adtitle']
+
+
+
+    }
+
+   
+    private int CompareImage(Bitmap image1, Bitmap image2)
+    {
+        int cont1 = 0;
+        int cont2 = 0;
+        int cot = 0;
+        for (int i = 0; i < image1.Height; i++)
+        {
+            for (int j = 0; j < image1.Width; j++)
+            {
+                if (!SameColor(image1.GetPixel(j, i),Color.White, 30))
+                {
+                    cont1++;
+                }
+
+                if (!SameColor(image2.GetPixel(j, i), Color.White, 30)){
+
+                    cont2++;
+                }
+
+            }
+        }
+        cot = (cont1 - cont2) * (cont1 - cont2);
+
+        return cot;
+    }
+    private bool SameColor(Color c1, Color c2, double thre)
+    {
+        int r = c1.R - c2.R;
+        int g = c1.G - c2.G;
+        int b = c1.B - c2.B;
+        if (r * r + g * g + b * b > thre * thre)
+        {
+            return false;
+        }
+        return true;
+    }
+    /// <summary>
+    /// This method is called right before a captcha will be solved. 
+    /// If you call SolveCaptcha() in other methods it will start this flow and tries to solve the captcha on the page.
+    /// </summary>
+    public override int BeforeSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeSolveCaptcha();
+    }
+
+    /// <summary>
+    /// This method gets called after BeforeSolveCaptcha and it does the actual captcha solving
+    /// It will automatically try to see if there is a SolveMedia captcha active or a reCAPTCHA active. 
+    /// If it finds either one it will then use the selected method on the Captcha tab of FaucetCollector to solve the Captcha.
+    /// </summary>
+    public override int DoSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoSolveCaptcha();
+    }
+
+    /// <summary>
+    /// This method will get called after DoSolveCaptcha returned it was a success.
+    /// </summary>
+    /// <returns></returns>
+    public override int AfterSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterSolveCaptcha();
+    }
+
+    /// <summary>
+    /// This method is called right before we attempt to claim on the faucet. So we are logged in and good to go.
+    /// Next methods that will be called are DoSolveFaucet, AfterSolveFaucet and CheckFaucetResult.
+    /// </summary>
+    public override int BeforeSolveFaucet()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeSolveCaptcha();
+    }
+
+    /// <summary>
+    /// This method gets called after the BeforeSolveFaucet. You can do the actual claiming of the faucet in here.
+    /// </summary>
+    /// <returns></returns>
+    public override int DoSolveFaucet()
+    {
+        if (!Driver.Url.Contains("http://www.trafficswarm.com/surf"))
+        {
+            GoToUrl("http://www.trafficswarm.com/surf");
+        }
+        Wait();
+        int n_claims;
+        try
+        {
+            n_claims = Convert.ToInt32(GetSetting("N"));
+     
+
+
+        }
+        catch (Exception){
+            Log("You need input a number in n_claims box, you will surf the default count: 200 sites");
+            n_claims = 200;
+        }
+        int n_ = 0;
+        Wait(4, 5);
+        while (n_claims >= n_)
+        {
+            Wait(2);
+            try
+            {
+                var frame_ = ElementByXPath("//frame[@name='main']");
+                if (frame_ != null) {
+                    Driver.SwitchTo().Frame(frame_);
+
+                    var count_ad = ElementsByXPath("//div[@class='adtitle']//a[contains(@onclick,'clicklink')]");
+                    int cont_random = 0;
+                    if (count_ad.Count >= 1)
+                    {
+                        int n_ad = Set_option();
+                       
+                        Click(count_ad[n_ad]);
+                        Wait(2,3);
+                    }
+                    Driver.SwitchTo().DefaultContent();
+
+                }
+            }
+            catch (Exception)
+            {
+                Driver.SwitchTo().DefaultContent();
+            }
+
+            var frame_head = ElementByXPath("//frame[@name='head']");
+            if (frame_head != null)
+            {
+                try
+                {
+                    Driver.SwitchTo().Frame(frame_head);
+                    Wait();
+                    var wait = ElementByXPath("//h2[@id=numberCountdown]");
+                    var wait2 = ElementByXPath("/a[@href='/surf']");
+                    DateTime t1 = DateTime.Now.AddSeconds(20);
+                    while (IsVisible(wait) || !IsVisible(wait2))
+                    {
+                        Wait();
+                        wait = ElementByXPath("//h2[@id=numberCountdown]");
+                        wait2 = ElementByXPath("/a[@href='/surf']");
+                        if (DateTime.Now > t1)
+                        {
+                            break;
+                        }
+                    }
+                    Wait();
+                    var SurfNext = ElementByXPath("//img[@src='/images/view-more.png']");
+                    Click(SurfNext);
+                    Wait();
+                    Driver.SwitchTo().DefaultContent();
+                }
+                catch (Exception)
+                {
+                    Driver.SwitchTo().DefaultContent();
+                }
+            }
+            else
+            {
+                if (Driver.Url.Contains("http://www.trafficswarm.com/surf"))
+                {
+                    Driver.Navigate().Refresh();
+                }
+                else
+                {
+                    GoToUrl("http://www.trafficswarm.com/surf");
+                }
+                Wait();
+                //RECHARGING PAGE
+            }
+
+
+            n_++;
+        }
+        cs = true;
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoSolveFaucet();
+    }
+    private static bool cs;
+    /// <summary>
+    /// This method will get called after the DoSolveFaucet is completed and returned it was a success.
+    /// For example you can wait for a processing popup to go away until actual faucet claim result is on the page.
+    /// </summary>
+    public override int AfterSolveFaucet()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterSolveFaucet();
+    }
+
+    /// <summary>
+    /// This method gets called in the end after the BeforeSolveFaucet/DoSolveFaucet and AfterSolveFaucet methods were done.
+    /// The base.CheckFaucetResult will try to find a visible element on the page using the XPath from SuccessXPath and FailXPath (see the Start method)
+    /// These properties should contain XPath expressions to find certain elements on the page.
+    /// For example if it finds one of the elements from the SuccessXPath, and it is visible, then it will flag the claim attempt as a success.
+    /// Or if it finds one of the elements from the FailXPath, and it is visible, then it will flag the claim attempt as a failure.
+    /// </summary>
+    public override int CheckFaucetResult()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.CheckFaucetResult();
+    }
+}

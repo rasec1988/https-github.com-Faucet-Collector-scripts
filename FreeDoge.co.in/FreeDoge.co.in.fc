@@ -1,0 +1,332 @@
+﻿using FaucetCollector.Script;
+using System;
+
+public class FreeDogecoinScript : FaucetScript
+{
+    /// <summary>
+    /// List of Settings that will be shown in the bot when selecting this Faucet in the bot.
+    /// You can get the value the user entered with the methods: GetSetting("[Name of the FaucetSetting]"), GetBoolSetting and GetDateTimeSetting
+    /// </summary>
+    public override FaucetSettings Settings
+    {
+        get
+        {
+            return new FaucetSettings("https://freedoge.co.in/")
+            {
+                //We have a setting to get the email address used for freedogecoin
+                new FaucetSetting() { Name = "Email", Display = "Email", Type = EditorType.TextBox, Required = true },
+                //And we also need the password
+                new FaucetSetting() { Name = "Password", Display = "Password", Type = EditorType.Password, Required = true },
+                //Option to use SolveMedia or reCAPTCHA
+                new FaucetSetting() { Name = "UseSolveMedia", Display = "Use SolveMedia", Type = EditorType.CheckBox, Default = true },
+
+                new FaucetSetting() { Name = "CustomTimeForSolveMediaProblem", Display = "CustomTimeForSolveMediaProblem", Type = EditorType.Numeric, Default = 120 },
+
+
+            };
+        }
+    }
+
+    /// <summary>
+    /// This method gets called when the faucet is enabled and the GO button is clicked
+    /// </summary>
+    public override void Start()
+    {
+        //Title that shows in the browser. Is used to close popups
+        Title = "freedoge.co.in";
+
+        //After we did try to claim on the faucet we search for these elements to determine if it was a success or a fail
+        SuccessXPath = "//*[@id='free_play_result']";
+        FailXPath = "//*[@id='free_play_error']";
+
+        //Let Faucet Collector start up everything
+        base.Start();
+    }
+
+    /// <summary>
+    /// This method gets called after the Start method, here you need to return if we are logged in or not.
+    /// If you return false then it will call the BeforeLogin, Login and AfterLogin methods so you can login.
+    /// After those Login methods are called it will call this IsLoggedIn method again to see if the login did succeed.
+    /// If you return true Faucet Collector will store all cookies so it will probably be already logged in on the next attempt.
+    /// </summary>
+    public override bool IsLoggedIn()
+    {
+        //If there is a visible element time_remaining or free_play_form_button then we are logged in.     
+        return IsVisible(ElementById("time_remaining")) || IsVisible(ElementById("free_play_form_button"));
+    }
+
+    /// <summary>
+    /// This method gets called if IsLoggedIn returned false, right before the DoLogin method is called.
+    /// </summary>
+    public override int BeforeLogin()
+    {
+        //click on the Login menu item
+        ExecuteScript("$('.login_menu_button').click();");
+
+        //hide the top bar, sometimes the captcha image comes below the top bar.
+        ExecuteScript("$('.top-bar').hide();");
+
+        Wait();
+
+        //select the right option in the dropdown
+        OpenQA.Selenium.IWebElement dropdown = ElementById("signup_page_captcha_types");
+        if (GetBoolSetting("UseSolveMedia"))
+        {
+            SelectOptionByValue(dropdown, "solvemedia");
+        }
+        else
+        {
+            SelectOptionByValue(dropdown, "recaptcha_v2");
+        }
+
+        //Wait a little (1 - 2 seconds) for the captcha to switch.
+        Wait();
+
+        //let Faucet Collector continue.
+        return base.BeforeLogin();
+    }
+
+    /// <summary>
+    /// This method gets called after BeforeLogin if IsLoggedIn returned false.
+    /// It can be used to actually login the user/enter wallet details in the faucet
+    /// </summary>
+    /// <returns></returns>
+    public override int DoLogin()
+    {
+        //Find the input field that holds the email address
+        OpenQA.Selenium.IWebElement signInEmail = ElementById("login_form_doge_address");
+        if (signInEmail == null)
+        {
+            //We couldn't find it. Register it as a fail so it can reload the page and try again in 10-15 seconds.
+            return Fail("Signin email input not found.");
+        }
+
+        OpenQA.Selenium.IWebElement signInPassword = ElementById("login_form_password");
+        if (signInPassword == null)
+        {
+            //We couldn't find it. Register it as a fail so it can reload the page and try again in 10-15 seconds.
+            return Fail("Signin password input not found.");
+        }
+
+        //Email and password input found, update the value of the input with the email address and password the user entered in Faucet Collector
+        SetText(signInEmail, GetSetting("Email"));
+        SetText(signInPassword, GetPassword("Password"));
+
+        //Now we search for the login submit button
+        OpenQA.Selenium.IWebElement loginButton = ElementById("login_button");
+        if (loginButton == null)
+        {
+            //We couldn't find it. Register it as a fail so it can reload the page and try again in 10-15 seconds.
+            return Fail("Login button not found.");
+        }
+
+
+        OpenQA.Selenium.IWebElement LimitHere = ElementByXPath("//*[@id='adcopy-outer']/b[contains(text(),'limit exceeded')]");
+        if (IsVisible(LimitHere))
+        {
+            // another Custom Time - for user
+            int MyCustomTimeINT;
+            MyCustomTimeINT = GetIntSetting("CustomTimeForSolveMediaProblem") * 60;
+            return MyCustomTimeINT;
+        }
+
+
+        //solve the captcha that is on the login page.
+        int result = SolveCaptcha();
+        if (result > 0)
+        {
+            //SolveCaptcha returned there was something wrong - we also need to return that .
+            return result;
+        }
+
+        //We are ready to click the login button.
+        Click(loginButton);
+
+        //Let Faucet Collector continue
+        return base.DoLogin();
+    }
+
+    /// <summary>
+    /// This method gets called after the DoLogin method.
+    /// </summary>
+    public override int AfterLogin()
+    {
+        //we don't need to do anything here for this faucet - let Faucet Collector do its stuff.
+        return base.AfterLogin();
+    }
+
+    /// <summary>
+    /// This method gets called after the login methods are successful, so we are logged into the faucet.
+    /// If the faucet is not yet ready to claim you should return a TimeStamp value to return how long it takes before the Faucet claim can be done.
+    /// This is used to pause the script while the faucet its timer runs out.
+    /// </summary>
+    public override int GetFaucetWaitTime()
+    {
+        OpenQA.Selenium.IWebElement timerCheck = ElementById("time_remaining");
+        if (!IsVisible(timerCheck))
+        {
+            //no time remaining element, so we are good to go.
+            return 0;
+        }
+
+        string minutes = Convert.ToString(ExecuteScript("return $('#time_remaining .countdown_amount')[0].innerText"));
+        string seconds = Convert.ToString(ExecuteScript("return $('#time_remaining .countdown_amount')[1].innerText"));
+        if (string.IsNullOrEmpty(seconds) || string.IsNullOrEmpty(minutes))
+        {
+            return 0;
+        }
+
+        int min = Convert.ToInt32(minutes.Trim());
+        int sec = Convert.ToInt32(seconds.Trim());
+
+        //Driver.Close();  // Close specific chrome window
+        //Driver.Quit();  // also Close the console app, that was used to kick off the chrome window
+        //Driver.Dispose();  // Close the chromedriver.exe
+
+        //we need to return the total number of seconds
+        return (min * 60) + sec;
+    }
+
+    /// <summary>
+    /// This method is called right before a captcha will be solved.
+    /// </summary>
+    public override int BeforeSolveCaptcha()
+    {
+        //Let Faucet Collector continue
+        return base.BeforeSolveCaptcha();
+    }
+
+    /// <summary>
+    /// This method gets called after BeforeSolveCaptcha and it does the actual captcha solving
+    /// It will automatically try to see if there is a SolveMedia captcha active or a reCAPTCHA active. 
+    /// If it finds either one it will then use the selected method on the Captcha tab of FaucetCollector to solve the Captcha.
+    /// </summary>
+    public override int DoSolveCaptcha()
+    {
+        //check for the custom captcha image
+        OpenQA.Selenium.IWebElement captchaImage = ElementByClass("captchasnet_captcha_content");
+        if (IsVisible(captchaImage))
+        {
+            //get the input where the result of the captcha needs to be entered.
+            OpenQA.Selenium.IWebElement captchaInput = ElementByClass("captchasnet_captcha_input_box");
+            if (!IsVisible(captchaInput))
+            {
+                return Fail("ImageCaptcha input field not foundd");
+            }
+
+            //Let Faucet Collector solve the image
+            int sleep = DoSolveImageCaptcha(captchaImage, captchaInput);
+            if (sleep > 0)
+            {
+                return Fail("Fail solving captcha");
+            }
+
+            //return we are done.
+            return sleep;
+        }
+        else
+        {
+            //Let Faucet Collector continue. It will check for SolveMedia and reCAPTCHA.
+            return base.DoSolveCaptcha();
+        }
+    }
+
+    /// <summary>
+    /// This method will get called after DoSolveCaptcha returned it was a success.
+    /// </summary>
+    /// <returns></returns>
+    public override int AfterSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterSolveCaptcha();
+    }
+
+    /// <summary>
+    /// This method is called right before we attempt to claim on the faucet. 
+    /// Next methods that will be called are DoSolveFaucet and AfterSolveFaucet and CheckFaucetResult.
+    /// </summary>
+    public override int BeforeSolveFaucet()
+    {
+        //Dismiss the cookie banner
+        ExecuteScript("if($('.cc_btn_accept_all').length > 0) { $('.cc_btn_accept_all')[0].click(); }");
+
+        //select the right option in the dropdown
+        OpenQA.Selenium.IWebElement dropdown = ElementById("free_play_captcha_types");
+        if (GetBoolSetting("UseSolveMedia"))
+        {
+            SelectOptionByValue(dropdown, "solvemedia");
+        }
+        else
+        {
+            SelectOptionByValue(dropdown, "recaptcha_v2");
+        }
+
+        //Let Faucet Collector Continue.
+        return base.BeforeSolveFaucet();
+    }
+
+    /// <summary>
+    /// This method gets called after the BeforeSolveFaucet. You can do the actual claiming of the faucet in here.
+    /// </summary>
+    /// <returns></returns>
+    public override int DoSolveFaucet()
+    {
+        //Find the submit button to claim on the faucet
+        OpenQA.Selenium.IWebElement submitButton = ElementById("free_play_form_button");
+        if (!IsVisible(submitButton))
+        {
+            //Unable to find the submit button - return the failure.
+            return Fail("Submit button not found or not visible.");
+        }
+
+
+
+
+        OpenQA.Selenium.IWebElement LimitHere = ElementByXPath("//*[@id='adcopy-outer']/b[contains(text(),'limit exceeded')]");
+        if (IsVisible(LimitHere))
+        {
+            // another Custom Time - for user
+            int MyCustomTimeINT;
+            MyCustomTimeINT = GetIntSetting("CustomTimeForSolveMediaProblem") * 60;
+            return MyCustomTimeINT;
+        }
+
+
+        int result = DoSolveCaptcha();
+        if (result > 0)
+        {
+            //Unable to solve the captcha - return the failure
+            return result;
+        }
+
+        //The Captcha is solved, click the submit button
+        Click(submitButton);
+
+        //Let Faucet Collector continue its work
+        return base.DoSolveFaucet();
+    }
+
+    /// <summary>
+    /// This method will get called after the DoSolveFaucet is completed and returned it was a success.
+    /// This faucet shows a "Processing" window after you click the claim submit button.
+    /// We will have to wait for it to disappear before we can check for the results.
+    /// </summary>
+    public override int AfterSolveFaucet()
+    {
+        //Let Faucet Collector continue
+        return base.AfterSolveFaucet();
+    }
+
+    /// <summary>
+    /// This method gets called in the end after the BeforeSolveFaucet/DoSolveFaucet and AfterSolveFaucet methods were done.
+    /// The base.CheckFaucetResult will try to find a visible element on the page using the XPath from SuccessXPath and FailXPath (see the Start method)
+    /// These properties should contain XPath expressions to find certain elements on the page.
+    /// For example if it finds one of the elements from the SuccessXPath, and it is visible, then it will flag the claim attempt as a success.
+    /// Or if it finds one of the elements from the FailXPath, and it is visible, then it will flag the claim attempt as a failure.
+    /// </summary>
+    public override int CheckFaucetResult()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.CheckFaucetResult();
+    }
+}

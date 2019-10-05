@@ -1,0 +1,859 @@
+﻿
+
+//==================//
+//script Written by: ••AviramDayan•• 22/08/2019 09:00AM - Version 1
+//Last Update: 29/08/2019 09:00AM - Version 3
+//==================//
+
+using System;
+using System.Drawing;
+using FaucetCollector.Script;
+using System.Threading.Tasks;
+using System.Collections.Generic;
+using OpenQA.Selenium;
+using OpenQA.Selenium.Interactions;
+
+//css_inc recaptchaUtilities
+//css_inc AntiBotLinksUtility
+//css_ref ImageProcessing
+//css_ref ProcessingImagesUsingLockBits
+//css_inc GetestCaptcha
+
+public class WinDice : FaucetScript
+{
+    /// <summary>
+    /// List of Settings that will be shown in the bot when selecting this Faucet in the bot.
+    /// You can get the value the user entered with the mdogeods: GetSetting("[Name of the FaucetSetting]"), GetBoolSetting and GetDateTimeSetting
+    /// You can also create a new setting value using SetSetting("[Name you want to use]", "value")
+    /// </summary>
+    public override FaucetSettings Settings
+    {
+        get
+        {
+			
+            return new FaucetSettings("https://WinDice.io/")
+            {
+                new FaucetSetting(){Name="Email",Display="UserName",Type=EditorType.TextBox,Required=false},
+                new FaucetSetting(){Name="Password",Display="Password",Type=EditorType.Password,Required=false},
+
+                new FaucetSetting() { Name = "btc", Display = "btc - claim", Type = EditorType.CheckBox, Default =true},
+                new FaucetSetting() { Name = "LimitFaucet", Display = "LimitFaucet - write the full number of satoshi (without point - 0.0 | 1.1 | 2.2 - and etc ) ", Type = EditorType.Numeric, Default = 9 },
+
+				new FaucetSetting() { Name = "Rain_AirDrop_Chat", Display = "Rain_AirDrop_Chat - ON/OFF", Type = EditorType.CheckBox, Default = false},		
+                new FaucetSetting(){Name="MessageChat",Display="Your Message In Chat - only need to be active to get any rain",Default = ".",Type=EditorType.TextBox,Required=false},
+
+/*
+				new FaucetSetting(){Name="WalletAddress",Display="WalletAddress",Type=EditorType.TextBox,Required=false},
+                new FaucetSetting() { Name = "AutoWithdraw", Display = "AutoWithdraw - ON/OFF", Type = EditorType.CheckBox, Default = false},	
+                new FaucetSetting() { Name = "LimitWithdraw", Display = "LimitWithdraw - write the full number of satoshi (without point - 0.0 | 1.1 | 2.2 - and etc ) ", Type = EditorType.Numeric, Default = 8 },
+
+                new FaucetSetting() { Name = "AffWithdraw", Display = "AffWithdraw", Type = EditorType.CheckBox, Default = false},	
+*/
+
+            };
+        }
+    }
+
+	
+//============================================================//
+//the number of "successes" in the script - when are finished  
+//============================================================//
+    public override void Start()
+    {
+        ad = false;
+       
+        //Title that shows in the browser. Is used to identify and close popup windows
+        Title = "WINDICE";
+
+		SuccessXPath = "//*";  //*[@id='']
+        FailXPath = "//*"; //*[@id='']
+	
+        //TimerIsCountingUp = true;
+		
+        //Let Faucet Collector start up everything
+        base.Start();
+    }
+//============================================================//
+//the number of "successes" in the script - when are finished  
+//============================================================//
+
+	
+    bool ad; //custom bool
+
+
+    public override int DoInit()
+    {
+	
+        //Let Faucet Collector continue.
+        return base.DoInit();
+    }
+
+	
+//==================//
+//save Login Cookies 
+//==================//
+    public override bool IsLoggedIn()
+    {
+	    //save Login Cookies - Check if the "Logout" exist
+        return ElementByXPath ("//a[@class='navbar-item' and contains(text(),'Logout')]") != null;
+	 
+        //return base.IsLoggedIn();
+    }
+//==================//
+//save Login Cookies 
+//==================//	
+
+
+
+
+//=============//
+//BeforeLogin
+//=============//
+    public override int BeforeLogin()
+    {
+		
+
+        //if we already login go to here
+        GoToUrl("https://www.WinDice.io/");
+
+		
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeLogin();
+    }
+//=============//
+//BeforeLogin
+//=============//
+
+	
+
+
+	
+//========//
+//DoLogin
+//========//
+ public override int DoLogin()
+ {
+	
+  var ExitButton = ElementByXPath ("//a[@class='navbar-item' and contains(text(),'Logout')]");  //("//button[@class='option btnLogout' and contains(text(),'Logout')]")
+
+  //if i NOT Login - go to Login Page
+  if (!IsVisible(ExitButton))
+  {
+
+        GoToUrl("https://www.WinDice.io/");
+        Wait();		
+        Wait(2);
+
+        var StartOpenLogin = ElementByXPath("//a[@class='navbar-item' and contains(text(),'Log in')]");
+	    if (IsVisible(StartOpenLogin))
+	    { 
+        Click(StartOpenLogin);
+		}
+
+		
+		Wait(2);
+		
+        var box_user = ElementByXPath("//form/div[1]/div/div/p[2]/input[@class='input' and @type='text']");
+        SetText(box_user, GetSetting("Email"));
+		
+		Wait(2);
+		
+        var box_pass = ElementByXPath("//form/div[2]/div/div/p[2]/input[@class='input' and @type='password']");
+        SetText(box_pass, GetPassword("Password"));
+
+		Wait(4);
+		
+        var ButtonLog = ElementByXPath("//button[@class='button is-link']");
+        Click(ButtonLog);
+		
+		Wait(2);
+		
+        var RecaptchaOpen_Iframe = ElementByXPath ("//iframe[contains(@src,'recaptcha/api2/bframe' | 'recaptcha/api2/anchor')]");  // ("//iframe[contains(@src,'recaptcha/api2/anchor')]")
+        if (IsVisible(RecaptchaOpen_Iframe))
+		{
+        //SolveCaptcha if apper
+        var result = base.DoSolveCaptcha();
+        RecaptchaUtility utility = new RecaptchaUtility(this);
+        utility.DoSolve();
+		}
+
+/*		
+        var Error_Message = ElementByXPath ("//div[@id='add_err']/div/div[@class='message' and contains(text(),'fille' | 'captcha' ) ]");
+        if (IsVisible(Error_Message))
+        {
+            Log("Error_Message - Appear - we return after 1 min ");
+            return 1*60; //we return after 1 min
+        }
+*/		
+		Wait();	
+
+  } // end ExitButton
+
+        
+       return base.DoLogin();
+    }
+//========//
+//DoLogin
+//========//
+ 
+
+
+//========//
+//AfterLogin
+//========//
+ public override int AfterLogin()
+ {
+ 
+  
+    //we are good to continue
+    return base.AfterLogin();
+
+ }
+//========//
+//AfterLogin
+//========//
+
+
+	
+
+//================//
+//GetFaucetWaitTime
+//================//
+    public override int GetFaucetWaitTime()
+    {
+
+        if (ad)
+        {
+		    //Log("return ad");
+			ad=false;
+			Driver.Close();  // Close specific chrome window
+            Driver.Quit();  // also Close the console app, that was used to kick off the chrome window
+            Driver.Dispose();  // Close the chromedriver.exe
+            return GetWaitSetting();
+        }
+
+		//let Faucet Collector continue.
+        return base.GetFaucetWaitTime();
+    }
+//================//
+//GetFaucetWaitTime
+//================//
+
+
+
+    public override int BeforeSolveCaptcha()
+    {
+ 
+        //Return we are ready to proceed
+        return base.BeforeSolveFaucet();
+    }
+
+	
+    public override int DoSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoSolveCaptcha();
+    }
+
+	
+    public override int AfterSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterSolveCaptcha();
+    }
+
+	
+    public override int BeforeSolveFaucet()
+    {
+        //Return we can continue
+        return base.BeforeSolveFaucet();
+    }
+  
+	
+	
+//==============//
+//DoSolveFaucet
+//==============//
+ public override int DoSolveFaucet()
+  {
+	
+		//==============//
+		//Rain_AirDrop_Chat//
+		//==============//	
+
+        if (GetBoolSetting("Rain_AirDrop_Chat"))
+        {  
+         RainAirDropChat_Function(); //call to RainAirDropChat_Function
+
+         Wait();
+         Wait(2);
+		 
+		}// Rain_AirDrop_Chat
+		//==============//
+
+		 
+
+	
+/*
+		//==============//
+		//AutoWithdraw//
+		//==============//
+        if (GetBoolSetting("AutoWithdraw"))
+        {
+         GoToUrl("https://panel.bither.one/dashboard");
+         Wait();
+         Wait(2);
+
+	     AutoWithdraw_Function(); //call 
+	
+		}//end AutoWithdraw
+		//==============//
+*/
+
+
+/*	  
+    //=============//
+    //AffWithdraw
+    //=============// 
+    if (GetBoolSetting("AffWithdraw"))
+    {
+
+      var ProtectionAffiliate_NotZero = ElementByXPath("//div[contains(@class,'our_affiliate__w2 our_affiliate__gr') and starts-with(text(),'0')]");
+      if (!IsVisible(ProtectionAffiliate_NotZero)) //if the Affiliate NOT 0 - only then do stuff
+	  {
+		Log("AffWithdraw");
+		GoToUrl("https://WinDice.io/affiliate/funds");
+		Wait();
+		Wait(2);	
+
+        var MenuAccount = ElementByXPath("//div[@class='options account-options']/button[@class='selected option']");
+        if (IsVisible(MenuAccount))
+        {		
+		Log("MenuAccount");		
+        Click(MenuAccount);
+        }//end MenuAccount
+		
+		Wait(2);
+		
+        var AffiliateButton = ElementByXPath("//button[@class='option' and contains(text(),'Affiliate')]");
+        if (IsVisible(AffiliateButton))
+        {		
+		Log("AffiliateButton");		
+        Click(AffiliateButton);
+        }//end AffiliateButton
+		
+		Wait();
+		Wait(2);
+		
+		//======//
+		//btc//
+		//======//
+		Menu_Function_Affiliate(); // call to open Menu_Function_Affiliate
+		Wait();
+		Wait(2);
+		
+		var btc_Affiliate_Select = ElementByXPath("//div[@class='scrollPane']//button[1]");
+        if (IsVisible(btc_Affiliate_Select))
+        {			
+        Click(btc_Affiliate_Select);
+        Log("btc_Affiliate_Select");
+        }
+		
+		Wait(2);
+		
+		Claim_Function_Affiliate(); // call to claim button
+		
+		//======//
+
+
+		
+	  }	// end ProtectionAffiliate_NotZero
+	   
+   }//end AffWithdraw
+   //=============//	 
+ */
+ 
+
+
+        GoToUrl("https://www.WinDice.io/");
+		Log("Go to faucet");	
+		
+		Wait();
+		Wait(2);	
+		
+
+		//======//
+		//btc//
+		//======//
+        if (GetBoolSetting("btc"))
+        {	
+		  Log("btc - try to claim");	
+          Faucet_Function(); //call
+	
+          //Menu_Function(); //call
+		  
+	      Wait();
+	      Wait(2);
+
+		}
+        //=====//	
+
+
+
+		ad = true;    // if i do true - it report as succeed // only one time no multi and also required -> return GetWaitSetting();	
+        //return GetWaitSetting();	
+	
+	
+        //We are good to continue
+        return base.DoSolveFaucet();
+ }
+//==============//
+//DoSolveFaucet
+//==============///
+	
+	
+	
+	
+	
+//==============//
+//AfterSolveFaucet
+//==============//
+  public override int AfterSolveFaucet()
+  {
+
+   //This faucet has nothing to do here. We will let Faucet Collector handle it.
+   return base.AfterSolveFaucet();
+   
+  }
+	
+//==============//
+//AfterSolveFaucet
+//==============//
+
+
+
+    /// <summary>
+    /// This mdogeod gets called in the end after the BeforeSolveFaucet/DoSolveFaucet and AfterSolveFaucet mdogeods were done.
+    /// The base.CheckFaucetResult will try to find a visible element on the page using the XPath from SuccessXPath and FailXPath (see the Start mdogeod)
+    /// These properties should contain XPath expressions to find certain elements on the page.
+    /// For example if it finds one of the elements from the SuccessXPath, and it is visible, then it will flag the claim attempt as a success.
+    /// Or if it finds one of the elements from the FailXPath, and it is visible, then it will flag the claim attempt as a failure.
+    /// </summary>
+    public override int CheckFaucetResult()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.CheckFaucetResult();
+    }
+
+
+
+	    //===========//
+        //AutoWithdraw_Function
+	    //===========//
+        public void AutoWithdraw_Function()
+        {
+		  Log("AutoWithdraw_Function");	
+
+/*
+        var BalanceVAR = ElementByXPath("//span[@class='my-balance']");
+        double BalanceDOUBLE; 
+        double.TryParse(BalanceVAR.Text.Trim(), out BalanceDOUBLE); //decimals  0.1  1.1  2.2  etc
+  
+        double MyAmount;        
+        double.TryParse(GetSetting("LimitWheel"), out MyAmount);
+*/
+	
+        var balance = ElementByXPath("//div[1]/h3/span[@class='m-widget24__stats m--font-brand bither-balance']");
+        string BalanceSTRING = balance.Text.Trim().Split('.')[0];
+        int BalanceINT = Convert.ToInt32(BalanceSTRING);
+
+        int MyAmount;
+        Int32.TryParse(GetSetting("LimitWithdraw"), out MyAmount);
+
+        if (BalanceINT < MyAmount) // - 1000
+        {
+			Log("AutoWithdraw - Under <");
+           //do all stuff
+        }
+ 
+        if (BalanceINT > MyAmount) // the Default Limit to withdraw is 1000
+        {
+			Log("AutoWithdraw - Above >");
+            //GoToUrl("https://panel.bither.one/withdraw");
+
+            var WalletCheck = ElementByXPath("//input[@class='form-control' and (@readonly) ]");
+	        if (!IsVisible(WalletCheck))  //if NOT visible "readonly" so set the wallet
+	        {
+            Log("WalletCheck - set wallet ");
+		    var WalletAddressVAR = ElementByXPath("//input[@class='form-control']");
+		    SetText(WalletAddressVAR, GetSetting("WalletAddress"));
+            }
+			
+			Wait();
+			Wait(2);
+
+            var WheelButton = ElementByXPath("//button[@id='withdraw-btn' and (@disabled) ]");
+			
+            if (IsVisible(WheelButton)) //if visible "disabled" 
+            {
+             Log("AutoWithdraw - not visible ");
+            }				
+	        if (!IsVisible(WheelButton))  //if NOT visible "disabled" so click on claim button
+	        {
+			 Log("AutoWithdraw - Click on WheelButton");
+			 Click(WheelButton);
+			}
+			
+			Wait();
+        }
+		
+		
+        } //AutoWithdraw_Function
+	    //===========//	
+	
+
+
+        //=========//
+        //Faucet_Function
+		//=========//
+        public int Faucet_Function()
+        {	
+		
+        //click on MainMenu
+        var MainMenu = ElementByXPath("//div[@id='balanceBlock']");
+        if (IsVisible(MainMenu)) 
+        {
+         Click(MainMenu);
+         Log("click on MainMenu ");
+        }
+		
+        Wait();	
+        Wait(2);
+		
+        //Btc_Choose
+        var Btc_Choose = ElementByXPath("//div[2]/div/ul/li[1]/span[@class='bet-row']");
+        Click(Btc_Choose);
+        Log("click on Btc_Choose ");
+
+        Wait();	
+        Wait(2);
+		
+        //cahck balance
+        var balance = ElementByXPath("//div[@id='balanceBlock']/span");
+        string BalanceSTRING = balance.Text.Trim().Split('.')[1];
+        int BalanceINT = Convert.ToInt32(BalanceSTRING);
+
+        int MyAmount;
+        Int32.TryParse(GetSetting("LimitFaucet"), out MyAmount);
+
+        if (BalanceINT > MyAmount) // if above 9
+        {
+			Log("LimitFaucet - the balance above 9 > not good");
+           //do all stuff
+        }
+ 
+        if (BalanceINT < MyAmount) // if under "9"
+        {
+	       Log("LimitFaucet - the balance under 9 < good");
+ 
+		   var TimerRun = ElementByXPath("//div[@class='faucet-timer' and contains(text(),':')]");
+           if (!IsVisible(TimerRun)) //if "TimerRun" NOT visible
+		   {		
+             OpenFaucetTab_Faunction(); // call to open faucet tab
+	   
+             Wait();	
+             Wait(2);
+		
+		     var DangerError = ElementByXPath("//div[@class='notification is-danger is-flex notif-error']"); //("//div[@class='game-menu-faucet-loader' and contains(@style,'display: none')]")
+             if (!IsVisible(DangerError)) //if "DangerError" NOT visible
+		     {		
+               SolveCaptcha_RightSquare_Function(); //call to solve 			  
+               Wait(2);
+		     } //end if DangerError
+		   
+		   } //end if TimerRun
+		  
+        }
+
+         return 0;
+		}//end Faucet_Function
+		//=========//
+		
+		
+		
+        //=========//
+        //Menu_Function
+		//=========//
+        public void Menu_Function()
+        {	
+        Log("Menu_Function");		
+        var MenuVAR = ElementByXPath("//div[2]/div[@class='balanceDropdown']");       			
+        Click(MenuVAR);
+		}//end Menu_Function
+		//=========//
+
+
+
+
+		
+        //=========//
+        //OpenFaucetTab_Faunction
+		//=========//
+        public void OpenFaucetTab_Faunction()
+        {	
+	       Log("click on FaucetTab");
+           var FaucetTab = ElementByXPath("//a[@class='game-menu-faucet-link' and contains(text(),'Faucet')]");
+           Click(FaucetTab);
+		   
+		}//end OpenFaucetTab_Faunction
+		//=========//
+
+
+
+
+    //=========//
+    //SolveCaptcha_RightSquare_Function
+    //=========//
+    public int SolveCaptcha_RightSquare_Function()
+    {	
+		
+       while (true)
+       {
+
+          var Section1_PART_1 = ElementByXPath("//section/div[2]/div/div[2]/div[ 1 ]/div[1]");
+          var Section1_PART_2 = ElementByXPath("//section/div[2]/div/div[2]/div[ 1 ]/div[2]");
+          var Section1_PART_3 = ElementByXPath("//section/div[2]/div/div[2]/div[ 1 ]/div[3]");
+          var Section1_PART_4 = ElementByXPath("//section/div[2]/div/div[2]/div[ 1 ]/div[4]");
+
+          var Section2_PART_1 = ElementByXPath("//section/div[2]/div/div[2]/div[ 2 ]/div[1]");
+          var Section2_PART_2 = ElementByXPath("//section/div[2]/div/div[2]/div[ 2 ]/div[2]");
+          var Section2_PART_3 = ElementByXPath("//section/div[2]/div/div[2]/div[ 2 ]/div[3]");
+          var Section2_PART_4 = ElementByXPath("//section/div[2]/div/div[2]/div[ 2 ]/div[4]");
+
+          var Section3_PART_1 = ElementByXPath("//section/div[2]/div/div[2]/div[ 3 ]/div[1]");
+          var Section3_PART_2 = ElementByXPath("//section/div[2]/div/div[2]/div[ 3 ]/div[2]");
+          var Section3_PART_3 = ElementByXPath("//section/div[2]/div/div[2]/div[ 3 ]/div[3]");
+          var Section3_PART_4 = ElementByXPath("//section/div[2]/div/div[2]/div[ 3 ]/div[4]");
+
+          var Section4_PART_1 = ElementByXPath("//section/div[2]/div/div[2]/div[ 4 ]/div[1]");
+          var Section4_PART_2 = ElementByXPath("//section/div[2]/div/div[2]/div[ 4 ]/div[2]");
+          var Section4_PART_3 = ElementByXPath("//section/div[2]/div/div[2]/div[ 4 ]/div[3]");
+          var Section4_PART_4 = ElementByXPath("//section/div[2]/div/div[2]/div[ 4 ]/div[4]");
+
+          int RandomButton = Random(0, 15);
+ 
+          var ButtonToClick = 
+		  ( 
+          RandomButton == 0 && IsVisible(Section1_PART_1) ) ? Section1_PART_1 
+          : 
+          RandomButton == 1 && IsVisible(Section1_PART_2) ? Section1_PART_2 
+          : 
+          RandomButton == 2 && IsVisible(Section1_PART_3) ? Section1_PART_3
+          : 		  
+          RandomButton == 3 && IsVisible(Section1_PART_4) ? Section1_PART_4
+          : 	
+          RandomButton == 4 && IsVisible(Section2_PART_1) ? Section2_PART_1 
+          : 
+          RandomButton == 5 && IsVisible(Section2_PART_2) ? Section2_PART_2 
+          : 
+          RandomButton == 6 && IsVisible(Section2_PART_3) ? Section2_PART_3
+          : 		  
+          RandomButton == 7 && IsVisible(Section2_PART_4) ? Section2_PART_4
+          : 			  
+          RandomButton == 8 && IsVisible(Section3_PART_1) ? Section3_PART_1 
+          : 
+          RandomButton == 9 && IsVisible(Section3_PART_2) ? Section3_PART_2 
+          : 
+          RandomButton == 10 && IsVisible(Section3_PART_3) ? Section3_PART_3
+          : 		  
+          RandomButton == 11 && IsVisible(Section3_PART_4) ? Section3_PART_4
+          : 	
+          RandomButton == 12 && IsVisible(Section4_PART_1) ? Section4_PART_1 
+          : 
+          RandomButton == 13 && IsVisible(Section4_PART_2) ? Section4_PART_2 
+          : 
+          RandomButton == 14 && IsVisible(Section4_PART_3) ? Section4_PART_3
+          : 
+          IsVisible(Section4_PART_4) ? Section4_PART_4 : null;
+
+
+          if (IsVisible(ButtonToClick)) //ButtonToClick !=null
+          {
+             Click(ButtonToClick);
+		     Log("Click on ButtonToClick");	
+			 
+             Wait(3);
+		     Log("Wait");		
+			 
+             if (IsVisible(ElementByXPath ("//strong[contains(text(),'Game Over')] | //div[@class='faucet-timer' and contains(text(),':')] ") )) 
+             {	
+			  Log("Game Over");	
+              break; //if the count of "spins" is 0	
+		     }	 
+
+             Driver.Navigate().Refresh();
+		     Log("Refresh");
+
+             Wait(2);
+		     Log("Wait");
+			 
+             OpenFaucetTab_Faunction(); // call to open faucet tab
+
+             Wait(2);
+		     Log("Wait");
+
+	      }//end ButtonToClick
+	 
+
+       } //end  while true
+          
+		
+          /*
+          GetestCaptchaUtilities.GetestCaptcha getestCaptcha = new GetestCaptchaUtilities.GetestCaptcha(this);
+          bool res2=  getestCaptcha.DoInitSolve();
+          */
+		
+		
+          /*
+          var Arrow = FindCorrectArrow();
+          if(IsVisible(Arrow))
+		  {
+              Log("SolveCaptcha_RightSquare_Function - Arrow");	
+
+              var ToMove = ElementByXPath("//div[@class='verify-sub-block']");
+              if (IsVisible(ToMove))
+              {
+                  Log("SolveCaptcha_RightSquare_Function - ToMove");	
+                  Actions actions = new Actions(Driver);
+                  actions.DragAndDrop(ToMove, Arrow).Build().Perform();
+                  Wait();
+
+			  }
+          }
+          */
+      
+       return 0;
+    }// end SolveCaptcha_RightSquare_Function
+    //=========//
+
+	
+	
+
+        //=========//
+        //Menu_Function_Affiliate
+		//=========//
+        public void Menu_Function_Affiliate()
+        {	
+        Log("Menu_Function_Affiliate");		
+        var MenuVAR = ElementByXPath("//div[@class='affiliateBalance']/div[@class='balanceDropdown']");       			
+        Click(MenuVAR);
+		}//end Menu_Function_Affiliate
+		//=========//
+		
+		
+        //=========//
+        //Claim_Function_Affiliate
+		//=========//
+        public void Claim_Function_Affiliate()
+        {			
+		
+        var ClaimVAR = ElementByXPath("//button[@class='btnDefault claimButton' and not (@disabled) ]");  
+        if (IsVisible(ClaimVAR))
+        {	
+        Log("Claim_Function_Affiliate");	
+        Click(ClaimVAR);
+        }//end ClaimVAR
+		
+		}//end Claim_Function_Affiliate
+		//=========//
+		
+		
+
+
+    //===========//
+    //RainAirDropChat_Function//
+    //===========//
+    public void RainAirDropChat_Function()
+    {	
+
+           GoToUrl("https://www.windice.io/");
+		   Log("Rain_AirDrop_Chat: Go to bonus Chat");	
+		   
+           var ChatAlready_Open = ElementByXPath("//nav[@class='navbar navbar-chat is-flex' and @style ]"); //ChatAlready_Open
+           var ChatAlready_Close = ElementByXPath("//nav[@class='navbar navbar-chat is-flex' and @style='display: none;']"); //ChatAlready_Close
+
+           if (IsVisible(ChatAlready_Close))
+           {
+           var ChatButton = ElementByXPath("//a[@title='Chat' and @class='navbar-item navbar-chat-icon fa-lg' ]"); //ChatAlready_Close
+           Click(ChatButton);
+		   Log("Rain_AirDrop_Chat: click on ChatAlready_Close - to open the chat");
+		   } 	
+		   
+           if (IsVisible(ChatAlready_Open))
+           {
+			Log("Rain_AirDrop_Chat: ChatAlready_Open");
+		   }   
+   
+	       Wait();
+		   Wait(2);	
+		   
+           var ChatInput_VAR = ElementByXPath("//textarea[@id='chatMsg']"); //ChatInput_VAR
+           SetText(ChatInput_VAR, GetSetting("MessageChat"));
+		   
+	       Wait();
+		   Wait(2);			   
+
+           Driver.Navigate().Refresh(); //RefrashPage	
+
+           Wait();
+           Wait(2);				   
+		   
+    }
+    //=========//
+	
+		
+
+    public bool SeeIfThereisColor(Bitmap Image)
+    {
+        bool ContainsColor = false;
+        for(int i = 0; i < Image.Width && ! ContainsColor; i++)
+        {
+            for(int j = 0; j < Image.Height; j++)
+            {
+                if(Image.GetPixel(i,j)!=Color.FromArgb(0,0,0) && Image.GetPixel(i,j)!=Color.FromArgb(255, 255, 255))
+                {
+                    ContainsColor = true;
+                    break;
+                }
+            }
+        }
+
+        return ContainsColor;
+
+    }
+	
+	
+    private IWebElement FindCorrectArrow()
+    {
+        var Arrows = ElementsByXPath("//div[@class='verify-gap']");
+        int n = 0;
+        foreach(var arrow in Arrows)
+        {
+            if(SeeIfThereisColor(TakeScreenshot(Base.Captcha.CaptchaService.Manual,arrow)))
+            {
+                Log("Element is" + n.ToString());
+                return arrow;
+
+            }
+            n++;
+
+        }
+        return null;
+
+    }
+	
+	
+	
+	
+} //end public class
+

@@ -1,0 +1,534 @@
+﻿
+
+//==================//
+//script Written by: ••AviramDayan•• 13/10/2018 06:00AM 
+//Last Update: 26/08/2019 03:00AM - Version 22
+//==================//
+
+using System;
+using FaucetCollector.Script;
+
+
+
+public class bitnyx : FaucetScript
+{
+    /// <summary>
+    /// List of Settings that will be shown in the bot when selecting this Faucet in the bot.
+    /// You can get the value the user entered with the methods: GetSetting("[Name of the FaucetSetting]"), GetBoolSetting and GetDateTimeSetting
+    /// You can also create a new setting value using SetSetting("[Name you want to use]", "value")
+    /// </summary>
+    public override FaucetSettings Settings
+    {
+        get
+        {
+            return new FaucetSettings("http://bitnyx.com/")
+            {
+                new FaucetSetting(){Name="Email",Display="Email",Type=EditorType.TextBox,Required=true},
+                new FaucetSetting(){Name="Pass",Display="Password",Type=EditorType.Password,Required=true},
+				
+                new FaucetSetting(){Name="FaucetClaim",Display="FaucetClaim - Claim 30 Satoshi - every 30min",Type=EditorType.CheckBox,Default=true},		
+                //new FaucetSetting(){Name="DeleteCookies",Display="Delete Cookies - Sometimes solves problems (Recommended)",Type=EditorType.CheckBox,Default=false},
+                
+				new FaucetSetting(){Name="AutoWithdraw",Display="AutoWithdraw - ON/OFF",Type=EditorType.CheckBox,Default=false},				
+                new FaucetSetting(){Name="WalletAddress",Display="Wallet Address (option)",Type=EditorType.TextBox,Required=false},
+                new FaucetSetting(){Name="AutoSetWallet",Display="Auto Set Wallet (option)",Type=EditorType.CheckBox,Default=false},
+
+				
+				
+                //insert user settings here
+                //new FaucetSetting { 
+                //    Name = "Name of your setting", 
+                //    Display = "Display shown in Faucet Collector", 
+                //    Type = EditorType.TextBox | EditorType.Password | EditorType.CheckBox | EditorType.Wallet | EditorType.Numeric | EditorType.ComboBox | EditorType.CheckComboBox, 
+                //    Required = true | false, 
+                //    Default = "Optionally a default value" | true | false | null.
+                //    Items = new List<string> { "item1", "item2" } (only valid for ComboBox or CheckComboBox)
+                //} 
+            };
+        }
+    }
+
+	
+	
+	
+	
+	
+	
+//============================================================//
+//the number of "successes" in the script - when are finished  
+//============================================================//
+    public override void Start()
+    {
+		ad=false;
+		
+        //Title that shows in the browser. Is used to identify and close popup windows
+        Title = "Surf - Bitcoin advertising | Earn free bitcoin";
+
+        //After we did try to claim on the faucet we search for these elements to determine if it was a success or a fail
+        SuccessXPath = "//div[@id='btc-balance']"; //*
+        FailXPath = "//*[text()='']";
+
+        //Let Faucet Collector start up everything
+        base.Start();
+    }
+//============================================================//
+//the number of "successes" in the script - when are finished  
+//============================================================//
+	
+	
+	
+	bool ad;
+	
+    public override int DoInit()
+    {
+	
+	
+/*			
+		//if it's Checked
+       if (GetBoolSetting("DeleteCookies"))
+       {
+		//Delete Cookies
+		 Log("DeleteCookies - Checked");
+         Driver.Manage().Cookies.DeleteAllCookies();
+       } 
+
+*/
+
+     var MaintenanceVAR =ElementByXPath("//h1[contains(text(),'under maintenance')]"); //maintenance
+	 if (IsVisible(MaintenanceVAR))
+	 {
+		 Log("website Maintenance - we return after FC time");
+         return GetWaitSetting();
+	 }	
+ 
+        //Let Faucet Collector continue.
+        return base.DoInit();
+    }
+
+	
+	
+	
+//==================//
+//save Login Cookies 
+//==================//
+    public override bool IsLoggedIn()
+    {
+
+        //In this case we check for en element with the class "loggedIn"
+		 return ElementByXPath("//a[@href='https://bitnyx.com/logout']") != null;
+		
+    }
+//==================//
+//save Login Cookies 
+//==================//
+	
+	
+	
+	
+	
+    /// <summary>
+    /// This method gets called if IsLoggedIn returned false, right before the DoLogin method is called.
+    /// </summary>
+    public override int BeforeLogin()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeLogin();
+    }
+	
+	
+	
+	
+	
+
+	
+//=============//
+//start DoLogin
+//=============//
+    public override int DoLogin()
+    {
+		
+	 //var checks login or exit
+     var ExitButton =ElementByXPath("//a[@href='https://bitnyx.com/logout']"); //SIGN OUT
+
+	 
+	 //if i already Login - go to "bonus"	 
+	 if (IsVisible(ExitButton))
+	 {
+        //if we already login go to here
+        GoToUrl("https://bitnyx.com/faucet");
+	 }	
+	
+		
+	 //if i NOT Login - go to Login Page
+	 if (!IsVisible(ExitButton))
+	 {
+		
+        //else go to normal login
+		GoToUrl("https://bitnyx.com/");
+		
+        var box_user = ElementByXPath("//input[@id='email']");
+            if (!IsVisible(box_user))
+            {
+                return Fail("Box user not found");
+            }
+            SetText(box_user, GetSetting("Email"));
+		
+        Wait(2);
+		
+        var box_pass = ElementByXPath("//input[@id='password']");
+            if (!IsVisible(box_pass))
+            {
+                return Fail("Box pass not found");
+            }
+        SetText(box_pass, GetPassword("Pass"));
+		
+        Wait(2);
+		
+		
+        /*
+        var result = DoSolveImageCaptcha(ElementByXPath("//div[@class='cimage']"), ElementByXPath("//input[@placeholder='Captcha']"));
+        if (result > 0)
+        {
+            return Fail("Fail solve captcha");
+        }
+		*/
+		
+        Wait(3);
+		
+        var ButtonLog = ElementByXPath("//button[text()='Login']");
+            if (!IsVisible(ButtonLog))
+            {
+                return Fail("Button log not found");
+            }
+        Click(ButtonLog);
+
+	 }
+	 
+		if(IsVisible(ElementByXPath("//span[@class='error']"))){
+		
+		Log(ElementByXPath("//span[@class='error']").Text);
+		}
+        //This faucet has nothing to do here.    
+        return base.DoLogin();
+    }
+//=============//
+//start DoLogin
+//=============//
+	
+
+	
+	
+	
+	
+//==========//
+//AfterLogin
+//=========//
+ public override int AfterLogin()
+ {
+
+     //=============//
+     //AutoSetWallet
+     //=============//
+     if (GetBoolSetting("AutoSetWallet")) 
+     {
+	
+		//go to Account Settings Page
+        GoToUrl("https://bitnyx.com/settings");
+        Log("AutoSetWallet: go to set ");
+
+
+            Wait(1);
+	    var AddressInput = ElementByXPath("//input[@name='address']");
+        SetText(AddressInput, GetSetting("WalletAddress"));
+		
+        Wait(3);
+
+	    var pass = ElementByXPath("//input[@name='address-password']");
+        SetText(pass, GetPassword("Pass"));
+				
+        Wait(3);
+		  
+	    var AddressButtonSave = ElementByXPath("//button[text()=' Change address ']");
+        Click(AddressButtonSave);	
+		
+     } 
+     //=============//
+
+
+	 
+     //=============//
+     //AutoWithdraw
+     //=============//
+     if (GetBoolSetting("AutoWithdraw")) 
+     { 
+ 
+     var AutoWithdrawVAR = ElementByXPath("//input[@id='withdrawal-toggle' and @checked='']");
+ 	 
+	 if (!IsVisible(AutoWithdrawVAR))
+	 {
+		Log("AutoWithdrawVAR: now is active ");	
+        Click(AutoWithdrawVAR); 
+     } 
+	 
+ 	 if (IsVisible(AutoWithdrawVAR))
+	 {
+      //do not do nothing
+     } 	 
+	 
+     }// end AutoWithdraw
+     //=============//
+	 
+	 
+	 
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterLogin();
+ }
+//==========//
+//AfterLogin
+//=========//
+	
+	
+	
+
+	
+//=============//
+//GetFaucetWaitTime
+//=============//
+ public override int GetFaucetWaitTime()
+ {
+
+    if(ad)
+	{
+        var WaitTimerText = ElementByXPath("//div[@id='timer']");
+        if (IsVisible(WaitTimerText))
+        {
+            try {
+				Log("FaucetClaim: WaitTimerText apper"); 
+                int m, s;
+                m = Convert.ToInt32(WaitTimerText.Text.Split(':')[0])*60;
+                s = Convert.ToInt32(WaitTimerText.Text.Split(':')[1]);
+                    try
+                    {
+                        Driver.Close();  // Close specific chrome window
+                        Driver.Quit();  // also Close the console app, that was used to kick off the chrome window
+                        Driver.Dispose();  // Close the chromedriver.exe
+                    }
+                    catch (Exception)
+                    {
+
+                    }
+                return m + s;
+
+            }
+            catch (Exception)
+            {
+                return 3600;
+
+            }
+
+        } // end WaitTimerText
+		
+    }	//end ad
+		
+		
+   //let Faucet Collector continue.
+   return base.GetFaucetWaitTime();
+ }
+//=============//
+//GetFaucetWaitTime
+//=============//
+	
+	
+	
+	
+
+    public override int BeforeSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeSolveCaptcha();
+    }
+
+
+    public override int DoSolveCaptcha()
+    {
+
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoSolveCaptcha();
+    }
+
+
+    public override int AfterSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterSolveCaptcha();
+    }
+	
+	
+
+    public override int BeforeSolveFaucet()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeSolveCaptcha();
+    }
+	
+	
+	
+
+
+//=============//
+//DoSolveFaucet
+//=============//
+    public override int DoSolveFaucet()
+    {
+	
+
+		//=========================//
+		//FaucetClaim - Normal Way//
+		//=========================//
+        if (GetBoolSetting("FaucetClaim"))
+        {
+			
+         GoToUrl("https://bitnyx.com/faucet");
+		 
+		 Wait();		
+		 Wait(10);
+
+			  //====//			 
+	          //Time//
+			  //====//
+              var WaitTimerText = ElementByXPath("//div[@id='timer']");
+              if (IsVisible(WaitTimerText))
+              {
+                try 
+				{
+				 Log("FaucetClaim: WaitTimerText apper"); 
+                  int m, s;
+                  m = Convert.ToInt32(WaitTimerText.Text.Split(':')[0])*60;
+                  s = Convert.ToInt32(WaitTimerText.Text.Split(':')[1]);
+				  
+                  Driver.Close();  // Close specific chrome window
+                  Driver.Quit();  // also Close the console app, that was used to kick off the chrome window
+                  Driver.Dispose();  // Close the chromedriver.exe
+                  return m + s;
+                }
+			   
+                catch (Exception)
+                {
+                return 3600;
+                }
+
+              } // end WaitTimerText
+
+
+		 Wait();		
+		 Wait(3);
+
+		 //ClaimButtonStart 
+		 var ClaimButtonStart = ElementByXPath("//button[contains(text(),'Claim' | 'Собрать')]");
+			
+         if (IsVisible(ClaimButtonStart))
+         {
+		      Log("ClaimButtonStart"); 
+			 
+              Wait(4);
+
+			 //TextCheck - ReadyToClaim 
+		     var ReadyToClaim = ElementByXPath("//span/i[@class='fa fa-check']"); //span[text()='Ready to claim']
+             if (IsVisible(ReadyToClaim))
+             {
+				 
+				Log("ReadyToClaim"); 
+				 
+			  	//claim button
+                var Claim1Button = ElementByXPath("//*[@id='claim-button']");
+                Click(Claim1Button);
+			    Log("FaucetClaim: Success - Claim1Button - ReadyToClaim - we return after 30 min"); 
+				
+			    Wait(4);
+			 
+			    //info
+                var Balance1Info = ElementByXPath("//div[@id='btc-balance']");
+	            Log(Balance1Info.Text); 
+			 }	 
+
+			 
+		   		Wait();
+		   
+		   
+		    //VerifyInvisibleReCaptcha
+		    var VerifyInvisibleReCaptcha = ElementByXPath("//div[@class='g-recaptcha-outer']"); 
+			 
+            if (IsVisible(VerifyInvisibleReCaptcha))
+            {
+				
+				var ReCaptcha1Click = ElementByXPath("//div[@class='g-recaptcha']");
+				Click(ReCaptcha1Click);	
+				Log("Click1"); 
+				Wait(2);
+	
+				//SolveCaptcha if apper
+				var result = DoSolveCaptcha();
+				if (result > 0)
+				{
+				return result;
+				}
+				
+				Wait();
+
+			  	//claim button
+                var Claim4Button = ElementByXPath("//*[@id='claim-button']");
+                Click(Claim4Button);
+			    Log("FaucetClaim: Success - Claim1Button - ReadyToClaim - we return after 30 min"); 
+				
+			    Wait(4);
+			 
+			    //info
+                var SuccessInfo = ElementByXPath("//div[@class='box']/span");
+	            Log(SuccessInfo.Text); 
+ 
+				
+           } // end VerifyInvisibleReCaptcha
+			 
+
+            ad = true; //call to timer / and do success
+
+				
+         }// end ClaimButtonStart
+		 
+    } //end FaucetClaim
+		
+		
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoSolveFaucet();
+    }
+	
+	
+
+
+	
+	
+    public override int AfterSolveFaucet()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterSolveFaucet();
+    }
+	
+	
+	
+
+    /// <summary>
+    /// This method gets called in the end after the BeforeSolveFaucet/DoSolveFaucet and AfterSolveFaucet methods were done.
+    /// The base.CheckFaucetResult will try to find a visible element on the page using the XPath from SuccessXPath and FailXPath (see the Start method)
+    /// These properties should contain XPath expressions to find certain elements on the page.
+    /// For example if it finds one of the elements from the SuccessXPath, and it is visible, then it will flag the claim attempt as a success.
+    /// Or if it finds one of the elements from the FailXPath, and it is visible, then it will flag the claim attempt as a failure.
+    /// </summary>
+    public override int CheckFaucetResult()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.CheckFaucetResult();
+    }
+	
+	
+	
+} //public class bitnyx
