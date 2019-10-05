@@ -1,6 +1,6 @@
 using System;
 using FaucetCollector.Script;
-//edit
+//edit, test from github
 public class dashfaucetInfoScript : FaucetScript
 {
     public override FaucetSettings Settings
