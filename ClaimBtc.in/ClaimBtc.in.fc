@@ -1,8 +1,8 @@
-﻿
+
 
 //==================//
 //script Written by: ••AviramDayan•• 27/25/2019 21:09PM
-//Last Update: 26/08/2019 19:20PM - Version 4
+//Last Update: 06/10/2019 19:20PM - Version 10
 //==================//
 using System;
 using FaucetCollector.Script;
@@ -25,7 +25,6 @@ public class ClaimBtcInScript : FaucetScript
                 new FaucetSetting(){Name="Password",Display="Password",Type=EditorType.Password,Required=false},
                 new FaucetSetting(){Name="CaptchaOption",Display="CaptchaOption - ON UseSolvemedia | OFF Recaptcha",Type=EditorType.CheckBox,Default=false },
 		
-
                 new FaucetSetting(){Name="FaucetClaims",Display="Claim to: ", Type=EditorType.CheckComboBox ,
                     Items=new System.Collections.Generic.List<string>{"BITCOIN","LITECOIN","DOGECOIN","DASH","ETHEREUM","POTCOIN","PRIMECOIN","PEERCOIN","DIGIBYTE","BITCORE","BLACKCOIN","TRON","HORA"  }, Default="BITCOIN;LITECOIN;DOGECOIN;DASH;ETHEREUM;POTCOIN;PRIMECOIN;PEERCOIN;DIGIBYTE;BITCORE;BLACKCOIN;TRON"  }			
             };
@@ -63,8 +62,7 @@ public class ClaimBtcInScript : FaucetScript
 //========//
     public override int DoLogin()
     {
-	
-     
+
 		GoToUrl("https://claimbtc.in/login");
 		
         var box_user = ElementByXPath("//input[@placeholder='Email']");
@@ -102,13 +100,53 @@ public class ClaimBtcInScript : FaucetScript
         {
             Log ( Error_Message.Text );
         }
-
-	
-
-
         
        return base.DoLogin();
     }
+//========//
+//DoLogin
+//========//
+
+
+
+
+//=============//
+//GetFaucetWaitTime
+//=============//
+ public override int GetFaucetWaitTime()
+ {
+
+        //time
+        var WaitTimerText = ElementByXPath("//span[@class='kkcountdown-box']");
+		
+        if (!IsVisible(WaitTimerText))
+        {
+		  return GetWaitSetting ( );
+		}		
+		
+        if (IsVisible(WaitTimerText))
+        {
+             var minVAR = ElementByXPath("//span[@class='kkc-min']");
+             var secVAR = ElementByXPath("//span[@class='kkc-sec']");
+			
+             Log("FaucetClaim: WaitTimerText apper"); 
+             int min,sec;
+             min = Convert.ToInt32(minVAR.Text)*60;
+             sec = Convert.ToInt32(secVAR.Text);
+             return min+sec;
+
+        } // end WaitTimerText
+		
+	
+   //let Faucet Collector continue.
+   return base.GetFaucetWaitTime();
+ }
+//=============//
+//GetFaucetWaitTime
+//=============//
+
+
+
 
 
     public override int BeforeSolveCaptcha()
@@ -127,6 +165,9 @@ public class ClaimBtcInScript : FaucetScript
         //Return we are ready to proceed
         return base.BeforeSolveFaucet();
     }
+
+
+
 
 	
 //==============//
@@ -186,10 +227,15 @@ public class ClaimBtcInScript : FaucetScript
             ClaimSuccess ( );
         }
 
-  
-        return GetWaitSetting ( );
 
+         return GetFaucetWaitTime();
+		
+        //return GetWaitSetting ( );
+		
+        //return base.DoSolveFaucet();
  }
+	
+	
 	
     public override int CheckFaucetResult()
     {
