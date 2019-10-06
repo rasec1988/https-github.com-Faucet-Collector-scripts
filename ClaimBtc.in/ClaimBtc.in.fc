@@ -5,9 +5,12 @@
 //Last Update: 26/08/2019 19:20PM - Version 4
 //==================//
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using FaucetCollector.Script;
+//css_inc RecaptchaUtilities
 //css_inc IconCaptcha
-public class ClaimBtcInScript : FaucetScript
+public class ClaimBtcInScript_ : FaucetScript
 {
     /// <summary>
     /// List of Settings that will be shown in the bot when selecting this Faucet in the bot.
@@ -55,12 +58,29 @@ public class ClaimBtcInScript : FaucetScript
         //return base.IsLoggedIn();
     }
 
+    public override int GetFaucetWaitTime ( )
+    {
+        var WaitTimerText = ElementByXPath("//span[@class='kkcountdown-box']");
+        if ( IsVisible ( WaitTimerText ) )
+        {
+            var minVAR = ElementByXPath("//span[@class='kkc-min']");
+            var secVAR = ElementByXPath("//span[@class='kkc-sec']");
+
+            Log ( "FaucetClaim: WaitTimerText apper" );
+            int min,sec;
+            min=Convert.ToInt32 ( minVAR.Text )*60;
+            sec=Convert.ToInt32 ( secVAR.Text );
+            return min+sec;
+
+        } // end WaitTimerText
+
+        return base.GetFaucetWaitTime ( );  
+    }
 
 
-
-//========//
-//DoLogin
-//========//
+    //========//
+    //DoLogin
+    //========//
     public override int DoLogin()
     {
 	
@@ -132,11 +152,17 @@ public class ClaimBtcInScript : FaucetScript
 //==============//
 //DoSolveFaucet
 //==============//
+
+private class Timer
+    {
+        public int Seconds { get; set; }
+        public DateTime Date { get; set; } 
+    }
+
  public override int DoSolveFaucet()
   {
-
-
-        int NClaims=0;
+            List<Timer> TimerList=new List<Timer>();
+            int NClaims=0;
             var Faucets=GetSetting("FaucetClaims").Split(new[] { ';' },StringSplitOptions.RemoveEmptyEntries);
             foreach ( var Faucet in Faucets)
             {
@@ -173,6 +199,16 @@ public class ClaimBtcInScript : FaucetScript
                 {
                     Log ( "Claim successfull in: "+Faucet.ToString ( ) );
                     NClaims++;
+                    int Time=GetFaucetWaitTime();
+                    if ( Time>0 )
+                    {
+                        TimerList.Add ( new Timer
+                        {
+                            Seconds=Time,
+                            Date=DateTime.Now
+                            
+                        } ) ;
+                    }
                 }
 
             }
@@ -184,8 +220,20 @@ public class ClaimBtcInScript : FaucetScript
         {
             IsSuccess=true;
             ClaimSuccess ( );
-        }
+            if ( TimerList.Count==0 )
+            {
+                return GetWaitSetting ( );
+            }
+            int MaxTimerForFaucet=(int)TimerList.Where(
+                x=>DateTime.Now<x.Date.AddSeconds(x.Seconds))
+                .Select(x=>(x.Date.AddSeconds(x.Seconds)-DateTime.Now).TotalSeconds)
+                .Max();
 
+            int WaitTimerUser=GetWaitSetting();
+
+            return WaitTimerUser>MaxTimerForFaucet ? WaitTimerUser : MaxTimerForFaucet;
+
+        }
   
         return GetWaitSetting ( );
 
