@@ -2,7 +2,7 @@
 
 //==================//
 //script Written by: ••AviramDayan•• 27/25/2019 21:09PM
-//Last Update: 26/08/2019 19:20PM - Version 4
+//Last Update: 06/10/2019 19:20PM - Version 10
 //==================//
 using System;
 using System.Collections.Generic;
@@ -58,9 +58,19 @@ public class ClaimBtcInScript_ : FaucetScript
         //return base.IsLoggedIn();
     }
 
+
+//=============//
+//GetFaucetWaitTime
+//=============//
     public override int GetFaucetWaitTime ( )
     {
         var WaitTimerText = ElementByXPath("//span[@class='kkcountdown-box']");
+
+        if (!IsVisible(WaitTimerText))
+        {
+		  return GetWaitSetting ( );
+        }	
+
         if ( IsVisible ( WaitTimerText ) )
         {
             var minVAR = ElementByXPath("//span[@class='kkc-min']");
@@ -76,6 +86,9 @@ public class ClaimBtcInScript_ : FaucetScript
 
         return base.GetFaucetWaitTime ( );  
     }
+//=============//
+//GetFaucetWaitTime
+//=============//
 
 
     //========//
