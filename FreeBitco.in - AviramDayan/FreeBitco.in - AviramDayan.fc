@@ -1,4 +1,4 @@
-﻿
+
 //==========//
 //first time: by ••FaucetCollector•• (When the software first came out)
 //•write the script
@@ -12,7 +12,7 @@
 //===========//
 
 //==================//
-//new update & Features by: ••AviramDayan•• 31/08/2019 03:00AM - Version 8 (last updates)
+//new update & Features by: ••AviramDayan•• 06/10/2019 19:20PM - Version 11 (last updates)
 //fix the old menu 
 //Add new Menus - different way - separated Menu by Subject X3 - RewardPoints,BTCBonus,TicketsLottery
 //invisible_AND_Normal_ReCaptcha - (fix if class of invisibleReCaptcha apper (do not do) if class of NormalReCaptcha (do) - general at end - before the Rool)		
@@ -38,7 +38,7 @@ public class FreeBitcoinScript : FaucetScript
     {
         get
         {
-            return new FaucetSettings("https://freebitco.in/?r=10712911")
+            return new FaucetSettings("https://freebitco.in/")
             {
                 //We have a setting to get the email address used for freebitcoin
                 new FaucetSetting() { Name = "Email", Display = "Email", Type = EditorType.TextBox, Required = true },
@@ -1430,8 +1430,14 @@ public override int DoInit()
             Wait();
 	
 	        //click on DoubleCaptcha
-	        ExecuteScript("SwitchCaptchas('double_captchas');");
-
+	        //ExecuteScript("SwitchCaptchas('double_captchas');");
+			
+            var DoubleCaptcha = ElementByXPath("//div[@id='free_play_captcha_container']/div[contains(@onclick,'double_captchas')]");
+            if (IsVisible(DoubleCaptcha))
+			{	
+		      Click(DoubleCaptcha);
+			  Log("DoubleCaptcha");
+			}
 			
 	        //solve Captcha X2 XPath (1 = captcha image | 2 = input text )
 	        var captchaImage1 = DoSolveImageCaptcha(ElementByXPath("//div[@id='botdetect_free_play_captcha']/div[1]/img"),ElementByXPath("//*[@id='botdetect_free_play_captcha']/input[2]")); 
