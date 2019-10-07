@@ -33,7 +33,7 @@ public class NanoGamesScript : FaucetScript
                 new FaucetSetting() { Name = "Rain_AirDrop_Chat", Display = "Rain_AirDrop_Chat - ON/OFF", Type = EditorType.CheckBox, Default = false},
                 new FaucetSetting(){Name="MessageChat",Display="Your Message In Chat - only need to be active to get any rain",Default = ".",Type=EditorType.TextBox,Required=false},
 
-                 new FaucetSetting(){Name="AllGames_Menu",Display="AllGames_Menu - Select Favorite Game (Correctly available only 'ATM' Games)",Type=EditorType.ComboBox,Default="none",Items=new System.Collections.Generic.List<string>{"none","ATM"}},
+                 new FaucetSetting(){Name="AllGames_Menu",Display="AllGames_Menu - Select Favorite Game (Correctly available only 'ATM' Games)",Type=EditorType.ComboBox,Default="ATM",Items=new System.Collections.Generic.List<string>{"none","ATM"}},
                 
 				//ATM
  	            new FaucetSetting(){Name="ATM_Multiplication_Division_Menu",Display="ATM - Select if you want to Multiplication OR Division OR MAX OR MIN - Bet",Type=EditorType.ComboBox,Default="none",Items=new System.Collections.Generic.List<string>{"none","Max","Min","/2","x2"}},
@@ -90,11 +90,14 @@ public class NanoGamesScript : FaucetScript
     public override int DoLogin ( )
     {
 
-
         var LoginLightBox = ElementByXPath("//span[@class='login-label']");
-        if ( !IsVisible ( LoginLightBox ) )
+        if (!IsVisible(LoginLightBox))
         {
-            return Fail ( "Login LightBox not visible" );
+            LoginLightBox = ElementByXPath("//a[@class='nologin']");
+            if (!IsVisible(LoginLightBox))
+            {
+                return Fail("Login link not visible");
+            }
         }
         Click ( LoginLightBox );
 
@@ -137,13 +140,41 @@ public class NanoGamesScript : FaucetScript
 
 
 
-    public override int AfterLogin ( )
+    public override int AfterLogin()
     {
+        var errorElement = ElementByXPath("//div[@class='xnotify-content'] | //div[@class='xnotify-content' and contains(text(),'verify' | 'VERIFY' )] | //div[@class='xnotify-content' and contains(text(),'error')] ");
+        if (IsVisible(errorElement))
+        {
+            var imageElement = ElementByXPath("//label[@class='xinput captcha']/div/img");
+            var inputElement = ElementByXPath("//input[@placeholder='Verification Code']");
+            if (imageElement == null || inputElement == null)
+            {
+                return Fail("Error: " + errorElement.Text);
+            }
 
+            //solve the image captcha
+            var result = DoSolveImageCaptcha(imageElement, inputElement);
+            if (result > 0)
+            {
+                return Fail("Unable to solve the image captcha");
+            }
+
+            Wait(5);
+
+            var loginButton = ElementByXPath("//button[@class='xbutton xbutton-big xbutton-full' and contains(text(),'LOGIN' | 'Login')]");
+            Click(loginButton);
+
+            Wait(1);
+        }
+
+        errorElement = ElementByXPath("//div[@class='xnotify-content'] | //div[@class='xnotify-content' and contains(text(),'verify' | 'VERIFY' )] | //div[@class='xnotify-content' and contains(text(),'error' | 'ERROR')] ");
+        if (IsVisible(errorElement))
+        {
+            return Fail("Error message still visible, retry after two minutes.", minSec: 2 * 60, maxSec: 2 * 65);
+        }
 
         //we are good to continue
-        return base.AfterLogin ( );
-
+        return base.AfterLogin();
     }
 
     public override int DoSolveCaptcha ( )
