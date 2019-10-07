@@ -1,8 +1,8 @@
-﻿
+
 
 //==================//
 //script Written by: ••AviramDayan•• 30/04/2019 21:09PM - Version 1
-//Last Update: 25/07/2019 21:00PM - Version 2
+//Last Update: 07/10/2019 21:00PM - Version 6
 //==================//
 
 using System;
@@ -447,14 +447,14 @@ public class nanogames : FaucetScript
            Wait();
 		   Wait(2); 
 	   
-		   var DailySignIN_VAR = ElementByXPath("//div[1]/button[@class='xbutton action taskover' and contains(text(),'Claim' | 'CLAIM')]");
-		   var BetOnce_VAR = ElementByXPath("//div[2]/button[@class='xbutton action taskover' and contains(text(),'Claim' | 'CLAIM' )]");
-		   var Bet_2_Once_GoBet_VAR = ElementByXPath("//div[2]/button[@class='xbutton action' and contains(text(),'Go' | 'go' | 'GO' | 'BET' | 'Bet' | 'bet' )]");
-		   var Relief_VAR = ElementByXPath("//div[3] /button[@class='xbutton action taskover' and contains(text(),'Claim' | 'CLAIM' )] | //div[4] /button[@class='xbutton action taskover' and contains(text(),'Claim' | 'CLAIM')]"); // if JB balance is less than 50
+		   var DailySignIN_VAR = ElementByXPath("//div[1]/button[contains(@class,'xbutton action') and contains(text(),'Claim' | 'CLAIM') ]");
+		   var BetOnce_VAR = ElementByXPath("//div[2]/button[contains(@class,'xbutton action') and contains(text(),'Claim' | 'CLAIM') ]");
+		   var Bet_2_Once_GoBet_VAR = ElementByXPath("//div[2]/button[contains(@class,'xbutton action') and contains(text(),'Go' | 'go' | 'GO' | 'BET' | 'Bet' | 'bet' ) ]");
+		   var Relief_VAR = ElementByXPath("//div[3]/button[contains(@class,'xbutton action') and contains(text(),'Claim' | 'CLAIM' ) ] | //div[4]/button[contains(@class,'xbutton action') and contains(text(),'Claim' | 'CLAIM' ) ] "); // if JB balance is less than 50
 
-		   var DailySignIN_NOT_VAR = ElementByXPath("//div[1]/button[@class='xbutton action xbutton-disabled']");		   
-		   var BetOnce_NOT_VAR = ElementByXPath("//div[2]/button[@class='xbutton action xbutton-disabled']");
-		   var Relief_NOT_VAR = ElementByXPath("//div[3]/button[@class='xbutton action xbutton-disabled']");
+		   var DailySignIN_NOT_VAR = ElementByXPath("//div[1]/button[contains(@class,'xbutton-disabled') ]");		   
+		   var BetOnce_NOT_VAR = ElementByXPath("//div[2]/button[contains(@class,'xbutton-disabled') ]");
+		   var Relief_NOT_VAR = ElementByXPath("//div[3]/button[contains(@class,'xbutton-disabled') ]");
 	   
 		   
 		   //===========//		   
