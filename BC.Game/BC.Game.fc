@@ -1,8 +1,8 @@
-﻿
+
 
 //==================//
 //script Written by: ••AviramDayan•• 30/04/2019 21:09PM - Version 1
-//Last Update: 25/07/2019 22:00PM - Version 20
+//Last Update: 07/10/2019 22:00PM - Version 24
 //==================//
 
 using System;
@@ -438,7 +438,7 @@ public class winspotz : FaucetScript
            Wait();
 		   Wait(2); 
 
-		   var Open_3rd_DailyTasks_VAR = ElementByXPath("//a[@href='/user/task']");
+		   var Open_3rd_DailyTasks_VAR = ElementByXPath("//div[@class='bonus-item']/div[@class='am-jbtask-wrap img-con']");
            if (IsVisible(Open_3rd_DailyTasks_VAR)) // click to open & do stuff
            { 
            Click(Open_3rd_DailyTasks_VAR);
@@ -448,14 +448,14 @@ public class winspotz : FaucetScript
            Wait();
 		   Wait(2); 
 	   
-		   var DailySignIN_VAR = ElementByXPath("//div[1]/button[@class='xbutton action taskover' and contains(text(),'Claim' | 'CLAIM')]");
-		   var BetOnce_VAR = ElementByXPath("//div[2]/button[@class='xbutton action taskover' and contains(text(),'Claim' | 'CLAIM' )]");
-		   var Bet_2_Once_GoBet_VAR = ElementByXPath("//div[2]/button[@class='xbutton action' and contains(text(),'Go' | 'go' | 'GO' | 'BET' | 'Bet' | 'bet' )]");
-		   var Relief_VAR = ElementByXPath("//div[3] /button[@class='xbutton action taskover' and contains(text(),'Claim' | 'CLAIM' )] | //div[4] /button[@class='xbutton action taskover' and contains(text(),'Claim' | 'CLAIM')]"); // if JB balance is less than 50
+		   var DailySignIN_VAR = ElementByXPath("//div[1]/button[contains(@class,'xbutton action') and contains(text(),'Claim' | 'CLAIM') ]");
+		   var BetOnce_VAR = ElementByXPath("//div[2]/button[contains(@class,'xbutton action') and contains(text(),'Claim' | 'CLAIM') ]");
+		   var Bet_2_Once_GoBet_VAR = ElementByXPath("//div[2]/button[contains(@class,'xbutton action') and contains(text(),'Go' | 'go' | 'GO' | 'BET' | 'Bet' | 'bet' ) ]");
+		   var Relief_VAR = ElementByXPath("//div[3]/button[contains(@class,'xbutton action') and contains(text(),'Claim' | 'CLAIM' ) ] | //div[4]/button[contains(@class,'xbutton action') and contains(text(),'Claim' | 'CLAIM' ) ] "); // if JB balance is less than 50
 
-		   var DailySignIN_NOT_VAR = ElementByXPath("//div[1]/button[@class='xbutton action xbutton-disabled']");		   
-		   var BetOnce_NOT_VAR = ElementByXPath("//div[2]/button[@class='xbutton action xbutton-disabled']");
-		   var Relief_NOT_VAR = ElementByXPath("//div[3]/button[@class='xbutton action xbutton-disabled']");
+		   var DailySignIN_NOT_VAR = ElementByXPath("//div[1]/button[contains(@class,'xbutton-disabled') ]");		   
+		   var BetOnce_NOT_VAR = ElementByXPath("//div[2]/button[contains(@class,'xbutton-disabled') ]");
+		   var Relief_NOT_VAR = ElementByXPath("//div[3]/button[contains(@class,'xbutton-disabled') ]");
 	   
 		   
 		   //===========//		   
@@ -551,7 +551,7 @@ public class winspotz : FaucetScript
            Wait();
 		   Wait(2);
 		
-		   var OneWindowsVAR = ElementByXPath("//a[@href='/user/lottery']");	
+		   var OneWindowsVAR = ElementByXPath("//div[@class='bonus-item']/div[@class='am-exchange-wrap img-con']");	
            Click(OneWindowsVAR);
 		   Log("RollingTheLucky: click on OneWindows");	
 		
@@ -588,7 +588,7 @@ public class winspotz : FaucetScript
            Wait();
 		   Wait(2);
 		
-		   var OneWindowsVAR = ElementByXPath("//a[@href='/bonus/roll']");	
+		   var OneWindowsVAR = ElementByXPath("//div[@class='bonus-item']/div[@class='am-rollpoint-wrap img-con']");	
            Click(OneWindowsVAR);
 		   Log("RollDaily: click on OneWindows");	
 		
