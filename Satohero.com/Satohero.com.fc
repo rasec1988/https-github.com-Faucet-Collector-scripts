@@ -2,7 +2,7 @@
 //css_inc ShortLinkUtilities
 using FaucetCollector.Script;
 
-public class HitCavatary : FaucetScript
+public class SatoheroScript : FaucetScript
 {
     public override FaucetSettings Settings
     {
