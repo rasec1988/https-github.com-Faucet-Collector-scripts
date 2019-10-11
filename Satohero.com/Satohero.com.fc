@@ -34,7 +34,7 @@ public class SatoheroScript : FaucetScript
     public override void Start ( )
     {
         //Title that shows in the browser. Is used to identify and close popup windows
-        Title="Free";
+        Title="Satohero";
 
         //After we did try to claim on the faucet we search for these elements to determine if it was a success or a fail
         SuccessXPath="//div[@class='alert alert-success']";
@@ -132,9 +132,9 @@ public class SatoheroScript : FaucetScript
 
 
             }
-            catch ( Exception )
+            catch ( Exception ex )
             {
-
+				Log("Problem catching time:\n"+ex.Message);
             }
         }
         //let Faucet Collector continue.
