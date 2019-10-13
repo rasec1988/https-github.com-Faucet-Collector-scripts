@@ -2,7 +2,7 @@
 
 //==================//
 //script Written by: ••AviramDayan•• 15/09/2019 03:00AM - Version 1
-//Last Update: 15/09/2019 03:00AM - Version 1
+//Last Update: 13/10/2019 03:00AM - Version 4
 //==================//
 
 using System;
@@ -385,10 +385,17 @@ public class x6crypto : FaucetScript
       {
 
          GoToUrl("https://listabitcoin.com/claim");
-		 Log("FaucetClaim");
+	 Log("FaucetClaim");
          Wait();
          Wait(3);
-			
+	
+         var Message_WillBeBack = ElementByXPath("//p[@class='msgblock' and contains(text(),'will be back')]");		
+	     if (IsVisible(Message_WillBeBack)) 
+	     {
+	     Log("Message_WillBeBack");		
+         return GetWaitSetting();
+         }  	
+		
          var TimerExist_VAR = ElementByXPath("//span[@id='faucet_countdown' and contains(text(),':')]");		
 	     if (IsVisible(TimerExist_VAR)) // TimerExist_VAR - visible
 	     {
@@ -543,7 +550,7 @@ public class x6crypto : FaucetScript
 			
             Wait(2);
 			
-            var WithdrawButton = ElementByXPath("//button[@id='withdraw_submit']");
+            var WithdrawButton = ElementByXPath("//button[@id='withdraw_submit']"); //td[@class='submit']
 	        if (IsVisible(WithdrawButton)) 
 	        {
 			 Log("AutoWithdraw - Click on WithdrawButton");
