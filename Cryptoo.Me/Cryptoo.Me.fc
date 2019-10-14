@@ -2,7 +2,7 @@
 
 //==================//
 //script Written by: ••AviramDayan•• 04/05/2019 10:30AM
-//Last Update: 14/10/2019 10:30AM - Version 8
+//Last Update: 14/10/2019 23:05AM - Version 8
 //==================//
 
 using System;
@@ -345,11 +345,7 @@ public class cryptoome : FaucetScript
         if (IsVisible(WaitTimerText))
         {
 	         Log("FaucetClaim: WaitTimerText apper"); 
-             var WaitVAR = ElementByXPath("//div[@class='alert alert-danger'] | //p[@class='alert alert-info']");
-             int min;
-             min = Convert.ToInt32(WaitVAR.Text.Split(' ')[4])*60;
-             return min;
-
+		     Min_Function(); //call to Min_Function
         } // end WaitTimerText
 
 
@@ -382,10 +378,7 @@ public class cryptoome : FaucetScript
         if (IsVisible(Error_NeedToWait))
 		{
 		Log("FaucetClaim - Error_NeedToWait ");  
-        var WaitVAR = ElementByXPath("//div[@class='alert alert-danger'] | //p[@class='alert alert-info']");
-        int min;
-        min = Convert.ToInt32(WaitVAR.Text.Split(' ')[4])*60;
-        return min;
+		Min_Function(); //call to Min_Function
 		}	
 		
         var Success_Claim = ElementByXPath("//div[@class='alert alert-success']"); //and contains(text(),'sent to you')
@@ -397,7 +390,7 @@ public class cryptoome : FaucetScript
 		
 	    //Driver.SwitchTo().DefaultContent(); //go back to default content in <html>
 		
-        ad = true; //call to timer / and do success
+        return GetWaitSetting(); //protection
 
       } //end FaucetClaim
 
@@ -444,6 +437,23 @@ public class cryptoome : FaucetScript
 		return reCaptchaUrl;
     }
 
+
+
+    //===========//
+    //Min_Function//
+    //===========//
+    public int Min_Function()
+    {
+		
+        var WaitVAR = ElementByXPath("//div[@class='alert alert-danger'] | //p[@class='alert alert-info']");
+        int min;
+        min = Convert.ToInt32(WaitVAR.Text.Split(' ')[4])*60;
+        return min;
+		
+		return 0;
+		
+	} //end Min_Function
+	
 	
 	
 } //public class dogeto
