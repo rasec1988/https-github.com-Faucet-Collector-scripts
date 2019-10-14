@@ -1,8 +1,8 @@
-﻿
+
 
 //==================//
 //script Written by: ••AviramDayan•• 04/05/2019 10:30AM
-//Last Update: 27/09/2019 10:30AM - Version 5
+//Last Update: 14/10/2019 10:30AM - Version 8
 //==================//
 
 using System;
@@ -246,14 +246,13 @@ public class cryptoome : FaucetScript
 		reCaptchaUrl = iframeMainTag.GetAttribute("src");
 		Driver.SwitchTo().Frame(iframeMainTag); //after active & switch to "iframe"	
 
-        var WaitTimerText = ElementByXPath("//p[@class='alert alert-info' and contains(text(),'wait') ]");
+        var WaitTimerText = ElementByXPath("//div[@class='alert alert-danger' and contains(text(),'wait') ] | //p[@class='alert alert-info' and contains(text(),'wait') ]  | //button[@id='f2_others'] ");
         if (IsVisible(WaitTimerText))
         {
 	         Log("FaucetClaim: WaitTimerText apper"); 
-             var WaitVAR = ElementByXPath("//p[@class='alert alert-info']");
-             int min, sec;
+             var WaitVAR = ElementByXPath("//div[@class='alert alert-danger'] | //p[@class='alert alert-info']");
+             int min;
              min = Convert.ToInt32(WaitVAR.Text.Split(' ')[4])*60;
-             //sec = Convert.ToInt32(WaitTimerText.Text.Split(':')[1]);
              return min;
 
         } // end WaitTimerText
@@ -342,14 +341,13 @@ public class cryptoome : FaucetScript
 	    Wait();
 	    Wait(2);
 
-        var WaitTimerText = ElementByXPath("//p[@class='alert alert-info' and contains(text(),'wait') ]  | //button[@id='f2_others'] ");
+        var WaitTimerText = ElementByXPath("//div[@class='alert alert-danger' and contains(text(),'wait') ] | //p[@class='alert alert-info' and contains(text(),'wait') ]  | //button[@id='f2_others'] ");
         if (IsVisible(WaitTimerText))
         {
 	         Log("FaucetClaim: WaitTimerText apper"); 
-             var WaitVAR = ElementByXPath("//p[@class='alert alert-info']");
-             int min, sec;
+             var WaitVAR = ElementByXPath("//div[@class='alert alert-danger'] | //p[@class='alert alert-info']");
+             int min;
              min = Convert.ToInt32(WaitVAR.Text.Split(' ')[4])*60;
-             //sec = Convert.ToInt32(WaitTimerText.Text.Split(':')[1]);
              return min;
 
         } // end WaitTimerText
@@ -379,7 +377,17 @@ public class cryptoome : FaucetScript
 		
 	    Wait();		
 	    Wait(15);
-	
+		
+        var Error_NeedToWait = ElementByXPath("//div[@class='alert alert-danger' and contains(text(),'wait') ]"); 
+        if (IsVisible(Error_NeedToWait))
+		{
+		Log("FaucetClaim - Error_NeedToWait ");  
+        var WaitVAR = ElementByXPath("//div[@class='alert alert-danger'] | //p[@class='alert alert-info']");
+        int min;
+        min = Convert.ToInt32(WaitVAR.Text.Split(' ')[4])*60;
+        return min;
+		}	
+		
         var Success_Claim = ElementByXPath("//div[@class='alert alert-success']"); //and contains(text(),'sent to you')
         if (IsVisible(Success_Claim))
 		{
