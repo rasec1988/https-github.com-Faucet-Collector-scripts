@@ -249,13 +249,8 @@ public class FreeBitcoinScript_ : FaucetScript
                 })
                 );
             }
-            var NextTaskWait = TaskList.Where(x => !x.IsCompleted).FirstOrDefault();
-            while (NextTaskWait!=null)
-            {
-                NextTaskWait.Wait();
-                NextTaskWait= TaskList.Where(x => !x.IsCompleted).FirstOrDefault();
-
-            }
+            Task.WhenAll(TaskList);
+           
             return TaskList.Select(x => x.Result).Sum();
          }
         //Recaptcha Solve
