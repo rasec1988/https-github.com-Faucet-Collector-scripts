@@ -243,14 +243,17 @@ public class FreeBitcoinScript_ : FaucetScript
             
             for(int i = 0; i < DoubleCaptchaImg.Count; i++)
             {
+                int aux = i;
                 TaskList.Add(Task.Run(() =>
                 {
-                    return DoSolveImageCaptcha(DoubleCaptchaImg[i], DoubleCaptchaBox[i]);
+                        return DoSolveImageCaptcha(DoubleCaptchaImg[aux], DoubleCaptchaBox[aux]);                  
                 })
                 );
+                Wait(1);
             }
+
             Task.WhenAll(TaskList);
-           
+
             return TaskList.Select(x => x.Result).Sum();
          }
         //Recaptcha Solve
