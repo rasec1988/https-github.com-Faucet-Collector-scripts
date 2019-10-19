@@ -467,17 +467,13 @@ public class MoonLiteCoinScript_ : FaucetScript
     /// </summary>
     public override int CheckFaucetResult()
     {
-        return base.CheckFaucetResult();
-		
+        /// return base.CheckFaucetResult();
+		var result= base.CheckFaucetResult();
 		var currentBalance = ElementByXPath("//span[contains(@title,'balance:')]");
 		if (IsVisible(currentBalance));
 			{
 				Log("Balance: " + currentBalance.Text + " LTC");
 			}
-			
-		return result;
-
-        //This faucet has nothing to do here. We will let Faucet Collector handle it.
-
+			return result;
     }
 }
