@@ -467,12 +467,14 @@ public class MoonBitcoinScript : FaucetScript
     }
     public override int CheckFaucetResult()
     {
-        return base.CheckFaucetResult();
-	var currentBalance = ElementByXPath("//span[contains(@title,'balance:')]");
+        var result= base.CheckFaucetResult();
+		
+		var currentBalance = ElementByXPath("//span[contains(@title,'balance:')]");
 		if (IsVisible(currentBalance));
 		{
 			Log("Balance: " + currentBalance.Text + " BTC");
 		}
-	return result;
+		return result;
+	
     }
 }
