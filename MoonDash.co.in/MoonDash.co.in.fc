@@ -364,6 +364,7 @@ public class MoonDashScript : FaucetScript
 			Log("Balance: "+ currentBalance.Text);
 			Wait(1);
 			ClaimSuccess();
+		}
 
         //Find the button to open the popup window where we can solve the captcha and claim on the faucet.
         var claimButton = ElementByXPath("//button[@data-target='#ClaimModal']");
