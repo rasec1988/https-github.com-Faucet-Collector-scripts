@@ -480,7 +480,7 @@ public class MoonDogeScript : FaucetScript
 		var currentBalance = ElementByXPath("//span[contains(@title,'balance:')]
 		if (IsVisible(currentBalance));
 			{
-				Log(currentBalance.Text);
+				Log("Balance: " + currentBalance.Text + " DOGE");
 			}
 			
 		return result;
