@@ -1,36 +1,23 @@
-﻿
-//==================//
-//script Written by: ••AviramDayan•• 13/09/2019 04:30AM - Version 1
-//Last Update: 13/09/2019 20:30AM - Version 1
-//==================//
-
-using System;
-using FaucetCollector.Script;
-using OpenQA.Selenium;
-using OpenQA.Selenium.Interactions;
-//css_inc recaptchaUtilities
+﻿using System;
 //css_inc ShortLinkUtilities
+using FaucetCollector.Script;
 
-public class ShortPTC: FaucetScript
+public class SatoheroScript : FaucetScript
 {
-    /// <summary>
-    /// List of Settings that will be shown in the bot when selecting this Faucet in the bot.
-    /// You can get the value the user entered with the methods: GetSetting("[Name of the FaucetSetting]"), GetBoolSetting and GetDateTimeSetting
-    /// You can also create a new setting value using SetSetting("[Name you want to use]", "value")
-    /// </summary>
     public override FaucetSettings Settings
     {
         get
         {
-            return new FaucetSettings(DomainName_String)
+            return new FaucetSettings ( "http://satohero.com/" )
             {
                 new FaucetSetting(){Name="User",Display="Username",Type=EditorType.TextBox,Required=true},
                 new FaucetSetting(){Name="Pass",Display="Password",Type=EditorType.Password,Required=true},
-                new FaucetSetting(){Name="SelectCaptcha",Display="SelectCaptcha - ON Recaptcha | OFF Raincaptcha",Type=EditorType.CheckBox,Default=true },
-                new FaucetSetting() { Name = "FaucetClaim", Display = "FaucetClaim", Type = EditorType.CheckBox, Default = true},	
-				new FaucetSetting() { Name = "ShortLink", Display = "ShortLink - ON/OFF", Type = EditorType.CheckBox, Default = true},			
+                new FaucetSetting(){Name="UseSolvemedia",Display="UseSolvemedia",Type=EditorType.CheckBox,Default=true },
 
-				
+                new FaucetSetting()
+                {
+                    Name="DoShortLink",Display="DoShortLink",Type=EditorType.CheckBox,Default=true
+                }
                 //insert user settings here
                 //new FaucetSetting { 
                 //    Name = "Name of your setting", 
@@ -44,534 +31,230 @@ public class ShortPTC: FaucetScript
         }
     }
 
-
-
-    //My DomainName
-    string DomainName_String = "http://Satohero.com";
-    //==========//
-
-
-
-    /// <summary>
-    /// This method gets called when the faucet is enabled and the GO button is clicked
-    /// </summary>
-    public override void Start()
+    public override void Start ( )
     {
-		ad=false;
-		
         //Title that shows in the browser. Is used to identify and close popup windows
-        Title = "Satohero.com";
+        Title="Satohero";
 
         //After we did try to claim on the faucet we search for these elements to determine if it was a success or a fail
-        SuccessXPath = "//*"; //div[@class='alert alert-success']
-        FailXPath = "//*"; //div[@class='alert alert-danger']
-
-        //TimerIsCountingUp = true;
-
+        SuccessXPath="//div[@class='alert alert-success']";
+        FailXPath="//div[@class='alert alert-danger']";
 
         //Let Faucet Collector start up everything
-        base.Start();
+        base.Start ( );
     }
 
-
-	
-    bool ad; //custom bool
-
-
-
-    /// <summary>
-    /// This is the first method to run after the browser is opened and the first page is loaded.
-    /// </summary>
-    public override int DoInit()
+ 
+    public override int DoInit ( )
     {
         //Let Faucet Collector continue.
-        return base.DoInit();
+        return base.DoInit ( );
+    }
+
+    public override bool IsLoggedIn ( )
+    {
+   
+        return ElementByXPath ( "//button[contains(text(),'Withdraw')]" )!=null;
     }
 
 
-
-//==================//
-//save Login Cookies 
-//==================//
-    public override bool IsLoggedIn()
+    public override int BeforeLogin ( )
     {
-        //In here we can check for the presence of an element that is only present when you are logged in.
-        //In this case we check for en element with the class "loggedIn"
-        return ElementByXPath("//a[contains(text(),'Edit Account')] | //span[@class='logout']") != null;
-    }
-//==================//
-
-	
-	
-
-    /// <summary>
-    /// This method gets called if IsLoggedIn returned false, right before the DoLogin method is called.
-    /// </summary>
-    public override int BeforeLogin()
-    {
-
-        GoToUrl(DomainName_String);
-
+        var LoginModal = ElementByXPath("//a[@data-target='#loginModal']");
+        if ( !IsVisible ( LoginModal ) )
+        {
+            return Fail ( "Login modal button is not visible" );
+        }
+        Click ( LoginModal );
+        Wait ( );
         //This faucet has nothing to do here. We will let Faucet Collector handle it.
-        return base.BeforeLogin();
+        return base.BeforeLogin ( );
     }
 
-
-
- //=======//
- //DoLogin//
- //=======//
- public override int DoLogin()
- {
-		
-     GoToUrl(DomainName_String);
-	 Wait();
-	 Wait(2);
-	 
-     var ExitButton = ElementByXPath("//a[@href='/account.html']");
-     if (!IsVisible(ExitButton))
-	 {	 
-
-        var StartLogin = ElementByXPath("//a[@data-target='#loginModal']");
-        if (IsVisible(StartLogin))
-        {
-          Click(StartLogin);
-        }
-		
-	    Wait();
-	    Wait(2);
-	 
+  
+    public override int DoLogin ( )
+    {
         var UserLogin = ElementByXPath("//input[@id='userLogin']");
-        if (IsVisible(UserLogin))
+        if ( !IsVisible ( UserLogin ) )
         {
-          SetText(UserLogin, GetSetting("User"));
+            return Fail ( "User login is not visible" );
         }
-
-	    Wait(2);
-
+        SetText ( UserLogin , GetSetting ( "User" ) );
         var PasswordBox = ElementByXPath("//input[@id='userPass']");
-        if (IsVisible(PasswordBox))
-		{
-          SetText(PasswordBox, GetPassword("Pass"));
+        if ( !IsVisible ( PasswordBox ) )
+        {
+            return Fail ( "Password box is not visible" );
         }
-
-	    Wait(2);
-		
-        // SolveCaptcha   
-        var RecaptchaOpen_Iframe = ElementByXPath ("//iframe[contains(@src,'recaptcha/api2/anchor')]"); // iframe
-        if (IsVisible(RecaptchaOpen_Iframe))
-		{
-		Log("RecaptchaOpen_Iframe");	
-		//Driver.SwitchTo().Frame(RecaptchaOpen_Iframe); //switch to "iframe"
-	    Wait(2);	
-        var result = DoSolveCaptcha(); // SolveCaptcha
-        Wait(2);
-		Driver.SwitchTo().DefaultContent(); //go back to default content in <html>
-		
-        }// end RecaptchaOpen_Iframe
-		
-        Wait();		
-        Wait(2);
-
+        SetText ( PasswordBox , GetPassword ( "Pass" ) );
         var remember = ElementByXPath("//input[@id='remember']");
-        if (IsVisible(remember))
+        if ( IsVisible ( remember ) )
         {
-            Click(remember);
+            Click ( remember );
         }
-		
-        Wait(2);
-
-		
+        var result = DoSolveCaptcha();
+        if ( result>0 )
+        {
+            return Fail ( "Fail solve captcha" );
+        }
+        Wait ( );
         var ButtonLogin = ElementByXPath("//button[contains(text(),'Login')]");
-        if (IsVisible(ButtonLogin))
+        if ( !IsVisible ( ButtonLogin ) )
         {
-           Click(ButtonLogin);
+            return Fail ( "Button login is not visible" );
         }
-
-        Wait();
+        Click ( ButtonLogin );
+        Wait ( );
 
         var Error = ElementByXPath("//div[@class='alert alert-danger']");
-        if (IsVisible(Error))
+        if ( IsVisible ( Error ) )
         {
-            Log(Error.Text);
+            Log ( Error.Text );
         }
-
-	 } // end ExitButton
-
-		
         //This faucet has nothing to do here. We will let Faucet Collector handle it.
-        return base.DoLogin();
- }
- //=======//
-	
-	
-	
-	
-    /// <summary>
-    /// This method gets called after the DoLogin method.
-    /// </summary>
-    public override int AfterLogin()
-    {
-        //This faucet has nothing to do here. We will let Faucet Collector handle it.
-        return base.AfterLogin();
+        return base.DoLogin ( );
     }
 
-
-
-
-//===============//
-//GetFaucetWaitTime
-//===============//
- public override int GetFaucetWaitTime()
- {
-		
-     if (ad)
-     {
-		 
-		ad=false;
-		
-        GoToUrl(DomainName_String);
-        Wait();
-        Wait(2);
-		
-        Driver.Navigate().Refresh();
-        Wait();
-		
-        var TimerVAR = ElementByXPath("//span[@id='claimTime']");
-		
-        if (IsVisible(TimerVAR))
+    public override int GetFaucetWaitTime ( )
+    {
+        Driver.Navigate ( ).Refresh ( );
+        Wait ( );
+        var Timer = ElementByXPath("//span[@id='claimTime']");
+        if ( IsVisible ( Timer ) )
         {
-           int Minutes, Seconds;
-           Minutes = Convert.ToInt32(TimerVAR.Text.Trim().Split(' ')[0])*60;
-           Seconds = Convert.ToInt32(TimerVAR.Text.Trim().Split(' ')[3]);
-           return Minutes + Seconds;
-        } //end TimerVAR - Visble
-		
-		if (!IsVisible(TimerVAR))
-        {
-		 return GetWaitSetting();
-        } //end TimerVAR - Not Visble
-		
-		
-     }	// end ad
-		
+            try
+            {
+                string[] SplitedTimer = Timer.Text.Split(' ');
+                int Minutes = Convert.ToInt32(SplitedTimer[0]) * 60;
+                int Seconds = Convert.ToInt32(SplitedTimer[3]);
+
+
+                return Minutes+Seconds;
+
+
+            }
+            catch ( Exception ex )
+            {
+				Log("Problem catching time:\n"+ex.Message);
+            }
+        }
         //let Faucet Collector continue.
-        return base.GetFaucetWaitTime();
- }
-//===============//
-
-
-
-
-    public override int BeforeSolveCaptcha()
-    {
-        //This faucet has nothing to do here. We will let Faucet Collector handle it.
-        return base.BeforeSolveCaptcha();
+        return base.GetFaucetWaitTime ( );
     }
-
-    public override int DoSolveCaptcha()
+    public override int DoSolveCaptcha ( )
     {
-
-        //This faucet has nothing to do here. We will let Faucet Collector handle it.
-        return base.DoSolveCaptcha();
-    }
-
-    public override int AfterSolveCaptcha()
-    {
-        //This faucet has nothing to do here. We will let Faucet Collector handle it.
-        return base.AfterSolveCaptcha();
-    }
-
-
-    public override int BeforeSolveFaucet()
-    {
-        //This faucet has nothing to do here. We will let Faucet Collector handle it.
-        return base.BeforeSolveCaptcha();
-    }
-
-
-
-
-    //==========//
-    //DoSolveFaucet
-    //==========//
-    public override int DoSolveFaucet()
-    {
-		
-	      //===========//
-	      //FaucetClaim
-	      //===========//
-          if (GetBoolSetting("FaucetClaim"))
-          {		  
-		   Log("FaucetClaim");
- 		   GoToUrl(DomainName_String);
-		   Wait();
-		   Wait(2);	
-
-		   
-           var TimerVAR = ElementByXPath("//span[@id='claimTime']");
-           if (IsVisible(TimerVAR))
-           {
-              int Minutes, Seconds;
-              Minutes = Convert.ToInt32(TimerVAR.Text.Trim().Split(' ')[0])*60;
-              Seconds = Convert.ToInt32(TimerVAR.Text.Trim().Split(' ')[3]);
-              return Minutes + Seconds;
-           } //end TimerVAR
-
-
-		   Wait(2);	
-		   
-		    
-		   var AlertLocked = ElementByXPath (" //div[@class='alert alert-warning']/b[contains(text(),'Locked' )] ");
-           
-		   if (IsVisible(AlertLocked))
-           {
-
-             ShortLink_GoToUrl_Function(); // call to URL
-		     Wait();
-		     Wait(2);	
-             
-             for(var i=1; i<=3; i++)
-             {
-               ShortLink_ClickAll_Function(i);  //call to ShortLink
-             }
-
-           } //end AlertLocked visible
-		   
-		   
-
-           if (!IsVisible(AlertLocked))
-           {
-		    var ShortLink_1_ViewsLeft = ElementByXPath (" //th[@class='text-center' and contains(text(),'Views Left')] ");
-            if (!IsVisible(ShortLink_1_ViewsLeft)) 
+        var ToggleCaptcha = ElementByXPath("//select[@id='toggleCaptcha']");
+        if ( IsVisible ( ToggleCaptcha ) )
+        {
+            if ( GetBoolSetting ( "UseSolvemedia" ) )
             {
-			  Log("AlertLocked - NOT visible & ViewsLeft");
- 		      GoToUrl(DomainName_String);
-		      Wait();
-		      Wait(2);	
-
-              SelectCaptcha_Function(); //call to SelectCaptcha
-
-		      Wait(2);	
-			  
-              var result = DoSolveCaptcha(); //SolveCaptcha
-
-		      Wait(2);	
-		   
-              var ButtonRoll = ElementByXPath("//button[contains(text(),'Roll')]");
-              if (IsVisible(ButtonRoll))
-              {
-                Click(ButtonRoll);
-              }
-			  
-		      Wait();
-              Driver.Navigate().Refresh(); //RefrashPage	
-		      Wait();
-			  
-              var Timer_2_VAR = ElementByXPath("//span[@id='claimTime']");
-              if (IsVisible(Timer_2_VAR))
-              {
-                int Minutes, Seconds;
-                Minutes = Convert.ToInt32(TimerVAR.Text.Trim().Split(' ')[0])*60;
-                Seconds = Convert.ToInt32(TimerVAR.Text.Trim().Split(' ')[3]);
-                return Minutes + Seconds;
-			  }
-			  
-            }  //end ShortLink_1_ViewsLeft NOT visible
-			
-           } //end AlertLocked NOT visible
-		   
-          }// end FaucetClaim
-	      //===========//
-
-
-
-	      //===========//
-	      //ShortLink
-	      //===========//
-            if (GetBoolSetting("ShortLink"))
-            {
-              Log("ShortLink");
-			  
-              var MyCredits_VAR = ElementByXPath(" //*[@id='dropdown']/span[@class='badge badge-danger'] | //a/span[@class='badge badge-info'] ");  
-              int MyCredits_INT = Convert.ToInt32(MyCredits_VAR.Text.Trim() );	
-			  
-              if (IsVisible(MyCredits_VAR))
-              {
-                  if (MyCredits_INT < 1)  //under 1
-                  {	
-		            Log("ShortLink - empty ");		
-                  }		
-			  
-			  
-                  if (MyCredits_INT > 1)  //above 1
-                  {	
-		            Log("Go to ShortLink");	
-				
-                    ShortLink_GoToUrl_Function(); // call to URL
-				
-                    Wait();
-                    Wait(2);
-		 
-                    for(var i=1; i<=3; i++)
-                    {
-                      ShortLink_ClickAll_Function(i);
-                    }
-                  }				
-				
-                  Wait();
-                  Wait(2);
-
-              }// end MyCredits_VAR visible
-			
- 	        }// end ShortLink
-	      //===========//
-	 
-         //GoToUrl(DomainName_String);
-         ad=true; //call to success
-
-
-        //This faucet has nothing to do here. We will let Faucet Collector handle it.
-        return base.DoSolveFaucet();
-    }
-    //==========//
-	
-	
-	
-	
-	
-    /// <summary>
-    /// This method will get called after the DoSolveFaucet is completed and returned it was a success.
-    /// For example you can wait for a processing popup to go away until actual faucet claim result is on the page.
-    /// </summary>
-    public override int AfterSolveFaucet()
-    {
-        //This faucet has nothing to do here. We will let Faucet Collector handle it.
-        return base.AfterSolveFaucet();
-    }
-
-    /// <summary>
-    /// This method gets called in the end after the BeforeSolveFaucet/DoSolveFaucet and AfterSolveFaucet methods were done.
-    /// The base.CheckFaucetResult will try to find a visible element on the page using the XPath from SuccessXPath and FailXPath (see the Start method)
-    /// These properties should contain XPath expressions to find certain elements on the page.
-    /// For example if it finds one of the elements from the SuccessXPath, and it is visible, then it will flag the claim attempt as a success.
-    /// Or if it finds one of the elements from the FailXPath, and it is visible, then it will flag the claim attempt as a failure.
-    /// </summary>
-    public override int CheckFaucetResult()
-    {
-        //This faucet has nothing to do here. We will let Faucet Collector handle it.
-        return base.CheckFaucetResult();
-    }
-	
-	
-
-        //=================//
-       //ShortLink_GoToUrl_Function
-        //=================//
-
-        public void ShortLink_GoToUrl_Function()
-        {
-			
-        GoToUrl(DomainName_String + "/shortlinks.html" );
-        Wait();
-        Wait(2);
-		
-        var ShortLink_ViewsLeft = ElementByXPath (" //th[@class='text-center' and contains(text(),'Views Left')] ");
-        if (!IsVisible(ShortLink_ViewsLeft))
-        {
-          Log("ShortLink_GoToUrl_Function -  not visible");
-		  GoToUrl(DomainName_String + "/?page=shortlinks" ); //  go to here - /?page=shortlinks - sometimes the url change
-          Wait();
-          Wait(2);
-        }
-
-        }//end ShortLink_GoToUrl_Function
-        //=================//
-
-	
-	
-        //=================//
-       //ShortLink_Function
-        //=================//
-
-        public void ShortLink_Function()
-        {
-			
-        //call to ShortLink
-        ShortLinkBypasser bypasser = new ShortLinkBypasser(this);
-        bool ShorBool = bypasser.DoShortLink();
-        if (!ShorBool)
-        {
-            Log("Fail shortlink");
-        }
-
-        }//end ShortLink_Function
-        //=================//
-
-
-
-	    //================//
-        //ShortLink_ClickAll_Function
-	    //================//
-        public void ShortLink_ClickAll_Function(int number)
-        {
-    
-         var Link_All_VAR = ElementByXPath ("//tr["+number.ToString()+"]/td[4]/a[@class='btn btn-success btn-sm']"); 
-         if (IsVisible(Link_All_VAR))
-         {	
-
-		 Wait();
-		 Wait(2);	
-		 
-	     Click(Link_All_VAR);			 
-		 Log("ShortLink - Link_All_VAR" + number.ToString() );	
-		 
-		 Wait();
-		 Wait(2);
-		 
-         ShortLink_Function(); //call to ShortLink_Function		
-		 
-		 Wait();
-		 Wait(2);
-	 
-	     } //Link_All_VAR		 
-		  
-        } //ShortLink_ClickAll_Function
-        //=================//
-	
-	
-	
-	    //================//
-        //SelectCaptcha_Function
-	    //================//
-        public void SelectCaptcha_Function()
-        {
-	    var ProtectionZero = ElementByXPath("//select[@id='toggleCaptcha']/option[@value='0']"); //ProtectionZero - if the "value" = 0
-	    var CaptchaDoubleVAR = ElementByXPath("//select[@id='toggleCaptcha']/option[@value='1'] | //select[@id='toggleCaptcha']/option[@value='2']");
-		
-		if (IsVisible(ProtectionZero))
-        {
-            Log ("no need to select");
-        }	
-		  
-		if (IsVisible(CaptchaDoubleVAR))
-        {
-	        var SelectCaptchaVAR = ElementByXPath("//select[@id='toggleCaptcha']");
-            if (GetBoolSetting("SelectCaptcha"))
-            {
-                SelectOptionByValue(SelectCaptchaVAR, "1");
+                SelectOptionByValue ( ToggleCaptcha , "0" );
             }
             else
             {
-                SelectOptionByValue(SelectCaptchaVAR, "2");
+                SelectOptionByValue ( ToggleCaptcha , "1" );
+            }
+            Wait ( 1 );
+        }
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoSolveCaptcha ( );
+    }
+    public override int BeforeSolveFaucet ( )
+    {
+        if ( GetBoolSetting ( "DoShortLink" ) )
+        {
+            GoToUrl ( "http://satohero.com//shortlinks.html" );
+            Wait ( );
+            var Shortlinks = ElementsByXPath("//a[@class='btn btn-success btn-sm']");
+            if ( Shortlinks.Count>0 )
+            {
+                int NShort = Random(0, Shortlinks.Count - 1);
+
+                try
+                {
+                    string uri = Shortlinks[NShort].GetAttribute("href");
+                    if ( !string.IsNullOrEmpty ( uri ) )
+                    {
+                        ShortLinkBypasser bypasser = new ShortLinkBypasser(this);
+                        GoToUrl ( uri );
+                        Wait ( );
+                        bool cs = bypasser.DoShortLink();
+
+                        if ( cs )
+                        {
+                            Log ( "ShortlinkSuccess" );
+                        }
+                        else
+                        {
+                            Log ( "Something is wrong with the shortlink" );
+                        }
+                    }
+
+                }
+                finally
+                {
+                    if ( !Driver.Url.Contains ( "http://satohero.com/" ) )
+                    {
+
+                        GoToUrl ( "http://satohero.com/" );
+                    }
+
+                }
+
+            }
+            else
+            {
+                Log ( "No more shortlinks available" );
             }
 
-            Wait(1);
+        }
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeSolveCaptcha ( );
+    }
+
+    public override int DoSolveFaucet ( )
+    {
+        if ( Driver.Url!="http://satohero.com//" )
+        {
+            GoToUrl ( "http://satohero.com//" );
+            Wait ( );
         }
 
-        } //SelectCaptcha_Function
-        //=================//
+        var FaucetLocked = ElementByXPath("//b[contains(text(),'Faucet Locked!')]");
+        if ( IsVisible ( FaucetLocked ) )
+        {
+            if ( GetBoolSetting ( "DoShortLink" ) )
+            {
+                Log ( "We need to do another shortlink..., Faucet is still locked" );
+                return GetWaitSetting ( );
+            }
+            else
+            {
 
-	
-	
-} //end class
+                Disable ( );
+
+                return Fail ( "You need other shortlink to unlock the faucet, please do it manually or enable the option to do shortlink in the script" );
+            }
+        }
+
+        var ButtonRoll = ElementByXPath("//button[contains(text(),'Roll & Win')]");
+        if ( !IsVisible ( ButtonRoll ) )
+        {
+            return Fail ( "Button roll is not visible" );
+        }
+        var result = DoSolveCaptcha();
+        if ( result>0 )
+        {
+            return Fail ( "Fail solving captcha" );
+        }
+        ButtonRoll=ElementByXPath ( "//button[contains(text(),'Roll & Win')]" );
+        if ( !IsVisible ( ButtonRoll ) )
+        {
+            return Fail ( "Button roll is not visible" );
+        }
+        Click ( ButtonRoll );
+
+
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoSolveFaucet ( );
+    }
+}

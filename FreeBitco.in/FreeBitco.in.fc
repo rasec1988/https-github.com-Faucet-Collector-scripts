@@ -1,14 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
 using System.Threading.Tasks;
 using FaucetCollector.Script;
 
 public class FreeBitcoinScript_ : FaucetScript
 {
-    /// <summary>
-    /// List of Settings that will be shown in the bot when selecting this Faucet in the bot.
-    /// You can get the value the user entered with the methods: GetSetting("[Name of the FaucetSetting]"), GetBoolSetting and GetDateTimeSetting
-    /// </summary>
     public override FaucetSettings Settings
     {
         get
@@ -71,8 +69,8 @@ public class FreeBitcoinScript_ : FaucetScript
                         "None",
                         "100 Tickets / Roll",
                         "50 Tickets / Roll",
-						"25 tickets / roll",
-                        "10 Tickets / Roll",						
+                        "25 tickets / roll",
+                        "10 Tickets / Roll",
                         "1 Tickets / Roll",
                     },
                     Default = "None"
@@ -82,15 +80,11 @@ public class FreeBitcoinScript_ : FaucetScript
         }
     }
 
-    /// <summary>
-    /// This method gets called when the faucet is enabled and the GO button is clicked
-    /// </summary>
     public override void Start()
     {
         //Title that shows in the browser. Is used to close popups
         Title = "freebitco.in";
-        RP = -1;
-        AP = -1;
+
         //After we did try to claim on the faucet we search for these elements to determine if it was a success or a fail
         SuccessXPath = "//*[@id='free_play_result']";
         FailXPath = "//*[@id='free_play_error']";
@@ -131,15 +125,15 @@ public class FreeBitcoinScript_ : FaucetScript
     public override int DoLogin()
     {
         //Find the input field that holds the email address
-        var signInEmail = ElementById("login_form_btc_address");
-        if (signInEmail == null)
+        var signInEmail = ElementByXPath("//input[@name='btc_address']");
+        if (!IsVisible(signInEmail))
         {
             //We couldn't find it. Register it as a fail so it can reload the page and try again in 10-15 seconds.
             return Fail("Signin email input not found.");
         }
 
         var signInPassword = ElementById("login_form_password");
-        if (signInPassword == null)
+        if (!IsVisible(signInPassword))
         {
             //We couldn't find it. Register it as a fail so it can reload the page and try again in 10-15 seconds.
             return Fail("Signin password input not found.");
@@ -151,7 +145,7 @@ public class FreeBitcoinScript_ : FaucetScript
 
         //Now we search for the login submit button
         var loginButton = ElementById("login_button");
-        if (loginButton == null)
+        if (!IsVisible(loginButton))
         {
             //We couldn't find it. Register it as a fail so it can reload the page and try again in 10-15 seconds.
             return Fail("Login button not found.");
@@ -160,24 +154,32 @@ public class FreeBitcoinScript_ : FaucetScript
         //We are ready to click the login button.
         Click(loginButton);
 
+        Wait(1);
+
+        var Error = ElementByXPath("//p[@class='center reward_point_redeem_result_box reward_point_redeem_result_error']//span[@class='reward_point_redeem_result']");
+        if (IsVisible(Error))
+        {
+
+            Log(Error.Text);
+            if (Error.Text.ToLower().Contains("incorrect login details"))
+            {
+                Log("You need to put correct credentials");
+                Disable();
+            }
+            else if(Error.Text.ToLower().Contains("please check your email inbox for a link to authorize your login request."))
+            {
+                Log("Please Check your email and autorize your login");
+
+                return 450;
+            }
+
+
+        }
+
         //Let Faucet Collector continue
         return base.DoLogin();
     }
 
-    /// <summary>
-    /// This method gets called after the DoLogin method.
-    /// </summary>
-    public override int AfterLogin()
-    {
-        //we don't need to do anything here for this faucet - let Faucet Collector do its stuff.
-        return base.AfterLogin();
-    }
-
-    /// <summary>
-    /// This method gets called after the login methods are successful, so we are logged into the faucet.
-    /// If the faucet is not yet ready to claim you should return a TimeStamp value to return how long it takes before the Faucet claim can be done.
-    /// This is used to pause the script while the faucet its timer runs out.
-    /// </summary>
     public override int GetFaucetWaitTime()
     {
         var timerCheck = ElementById("time_remaining");
@@ -206,23 +208,19 @@ public class FreeBitcoinScript_ : FaucetScript
     public override int BeforeSolveCaptcha()
     {
         //select the right option for captcha
-        if (GetBoolSetting("UseDoubleCaptcha"))
+
+        var ButtonSwitch = GetBoolSetting("UseDoubleCaptcha") ?
+            ElementByXPath("//div[@id='switch_captchas_button' and contains(@onclick,'double_captchas')]")
+            : ElementByXPath("//div[@id='switch_captchas_button' and contains(@onclick,'recaptcha')]");
+
+
+        if (IsVisible(ButtonSwitch))
         {
-            ExecuteScript("SwitchCaptchas('double_captchas');");
+            Click(ButtonSwitch);
             Wait();
-            var captchaImage1 = ElementByXPath("//div[@id='botdetect_free_play_captcha']/div[1]/img");
-            var captchaImage2 = ElementByXPath("//div[@id='botdetect_free_play_captcha2']/div[1]/img");
-            if(!IsVisible(captchaImage1) || !IsVisible(captchaImage2))
-            {
-                Log("Double captcha isn't avaible now, using recaptcha");
-                ExecuteScript("SwitchCaptchas('recaptcha');");
-                Wait();
-            }
+
         }
-        else
-        {
-            ExecuteScript("SwitchCaptchas('recaptcha');");
-        }
+
 
         //Let Faucet Collector continue
         return base.BeforeSolveCaptcha();
@@ -235,439 +233,362 @@ public class FreeBitcoinScript_ : FaucetScript
     /// </summary>
     public override int DoSolveCaptcha()
     {
-        //check for the custom captcha image
-        var captchaImage1 = ElementByXPath("//div[@id='botdetect_free_play_captcha']/div[1]/img");
-        var captchaImage2 = ElementByXPath("//div[@id='botdetect_free_play_captcha2']/div[1]/img");
-        if (IsVisible(captchaImage1) && IsVisible(captchaImage2))
-        {
-            //get the input where the result of the captcha needs to be entered.
-            var captchaInput1 = ElementByXPath("//*[@id='botdetect_free_play_captcha']/input[2]");
-            var captchaInput2 = ElementByXPath("//*[@id='botdetect_free_play_captcha2']/input[2]");
-            if (!IsVisible(captchaInput1))
-            {
-                return Fail("ImageCaptcha 1 input field not found");
-            }
-            if (!IsVisible(captchaInput2))
-            {
-                return Fail("ImageCaptcha 2 input field not found");
-            }
-            //Let Faucet Collector solve this image
-            var captchaSolved1 = DoSolveImageCaptcha(captchaImage1, captchaInput1);
-            var extraTask = Task.Run(() =>
-            {
-                return DoSolveImageCaptcha(captchaImage2, captchaInput2);
-            });
-            extraTask.Wait();
-            return (captchaSolved1 + extraTask.Result);
+        //Double captcha Solve
+        var DoubleCaptchaImg = ElementsByXPath("//div[@class='captchasnet_captcha_content']").Where(x=>IsVisible(x)).ToList();
+        var DoubleCaptchaBox = ElementsByXPath("//input[@class='captchasnet_captcha_input_box']").Where(x => IsVisible(x)).ToList();
 
-        }
-        else
+        if (DoubleCaptchaImg.Count > 0 && DoubleCaptchaBox.Count==DoubleCaptchaImg.Count)
         {
-            //Let Faucet Collector continue. It will check for SolveMedia and reCAPTCHA.
+            List<Task<int>> TaskList = new List<Task<int>>();
+            
+            for(int i = 0; i < DoubleCaptchaImg.Count; i++)
+            {
+                int aux = i;
+                TaskList.Add(Task.Run(() =>
+                {
+                        return DoSolveImageCaptcha(DoubleCaptchaImg[aux], DoubleCaptchaBox[aux]);                  
+                })
+                );
+                Wait(1);
+            }
+
+            Task.WhenAll(TaskList);
+
+            return TaskList.Select(x => x.Result).Sum();
+         }
+        //Recaptcha Solve
+        if (IsVisible(ElementByXPath("//div[@class='g-recaptcha']")))
+        {
             return base.DoSolveCaptcha();
         }
-    }
 
-    /// <summary>
-    /// This method will get called after DoSolveCaptcha returned it was a success.
-    /// </summary>
-    /// <returns></returns>
-    public override int AfterSolveCaptcha()
-    {
-        //This faucet has nothing to do here. We will let Faucet Collector handle it.
-        return base.AfterSolveCaptcha();
-    }
-
-    private string GetAutoRedeemName(string autoRedeem)
-    {
-        switch (autoRedeem.ToLower())
-        {
-            case "100 reward points / roll":
-                return "free_points_100";
-            case "50 reward points / roll":
-                return "free_points_50";
-            case "25 reward points /roll":
-                return "free_points_25";
-            case "10 reward points / roll":
-                return "free_points_10";
-            case "1 reward point / roll":
-                return "free_points_1";
-            case "1000% btc bonus":
-                return "fp_bonus_1000";
-            case "500% btc bonus":
-                return "fp_bonus_500";
-            case "100% btc bonus":
-                return "fp_bonus_100";
-            case "50% btc bonus":
-                return "fp_bonus_50";
-            case "10% btc bonus":
-                return "fp_bonus_10";
-            case "100 tickets / roll":
-                return "free_lott_100";
-            case "50 tickets / roll":
-                return "free_lott_50";
-            case "25 tickets / roll":
-                return "free_lott_25";
-            case "10 tickets / roll":
-                return "free_lott_10";
-            case "1 tickets / roll":
-                return "free_lott_1";
-           
-        }
-
-        return null;
-    }
-    private int GetPointsRequired(string AutoRedeem)
-    {
-        switch (AutoRedeem.ToLower())
-        {
-            case "100 reward points / roll":
-                return 1200;
-            case "50 reward points / roll":
-                return 600;
-            case "25 reward points /roll":
-                return 300;
-            case "10 reward points / roll":
-                return 120;
-            case "1 reward point / roll":
-                return 12;
-            case "1000% btc bonus":
-                return 3200;
-            case "500% btc bonus":
-                return 1600;
-            case "100% btc bonus":
-                return 320;
-            case "50% btc bonus":
-                return 160;
-            case "10% btc bonus":
-                return 32;
-            case "100 tickets / roll":
-                return 1200;
-            case "50 tickets / roll":
-                return 600;
-            case "25 tickets / roll":
-                return 300;
-            case "10 tickets / roll":
-                return 120;
-            case "1 tickets / roll":
-                return 12;
-        }
-
+        //Not captcha visible
         return 0;
     }
+
+
+    /// <summary>
+    /// Easy manage setting of Redem Setting
+    /// </summary>
+    class RedemSetting
+    {
+
+        public RedemSetting(string Setting)
+        {
+            this.Setting = Setting;
+        }
+        /// <summary>
+        /// Setting in the script
+        /// </summary>
+        public string Setting { get; set; }
+        /// <summary>
+        /// Redem Javascript function name
+        /// </summary>
+        public enum RedemType
+        {
+            Points,
+            Btc,
+            Lottery
+        }
+        public string RedemName
+        {
+            get
+            {
+                return GetAutoRedeemName(Setting);
+            }
+        }
+
+
+
+        /// <summary>
+        /// Points required to redem that bonus
+        /// </summary>
+        public int PointsRequired
+        {
+            get
+            {
+                return GetPointsRequired(Setting);
+            }
+        }
+
+        public RedemType Type
+        {
+            get
+            {
+                return Setting.ToLower().Contains("points") ? RedemType.Points : Setting.ToLower().Contains("btc") ? RedemType.Btc : RedemType.Lottery;
+            }
+        }
+
+        private string GetAutoRedeemName(string autoRedeem)
+        {
+            if (autoRedeem == null)
+            {
+                return null;
+            }
+            switch (autoRedeem.ToLower())
+            {
+                case "100 reward points / roll":
+                    return "free_points_100";
+                case "50 reward points / roll":
+                    return "free_points_50";
+                case "25 reward points /roll":
+                    return "free_points_25";
+                case "10 reward points / roll":
+                    return "free_points_10";
+                case "1 reward point / roll":
+                    return "free_points_1";
+                case "1000% btc bonus":
+                    return "fp_bonus_1000";
+                case "500% btc bonus":
+                    return "fp_bonus_500";
+                case "100% btc bonus":
+                    return "fp_bonus_100";
+                case "50% btc bonus":
+                    return "fp_bonus_50";
+                case "10% btc bonus":
+                    return "fp_bonus_10";
+                case "100 tickets / roll":
+                    return "free_lott_100";
+                case "50 tickets / roll":
+                    return "free_lott_50";
+                case "25 tickets / roll":
+                    return "free_lott_25";
+                case "10 tickets / roll":
+                    return "free_lott_10";
+                case "1 tickets / roll":
+                    return "free_lott_1";
+
+            }
+
+            return null;
+        }
+        private int GetPointsRequired(string autoRedeem)
+        {
+            if (autoRedeem == null)
+            {
+                return 0;
+            }
+            switch (autoRedeem.ToLower())
+            {
+                case "100 reward points / roll":
+                    return 1200;
+                case "50 reward points / roll":
+                    return 600;
+                case "25 reward points /roll":
+                    return 300;
+                case "10 reward points / roll":
+                    return 120;
+                case "1 reward point / roll":
+                    return 12;
+                case "1000% btc bonus":
+                    return 3200;
+                case "500% btc bonus":
+                    return 1600;
+                case "100% btc bonus":
+                    return 320;
+                case "50% btc bonus":
+                    return 160;
+                case "10% btc bonus":
+                    return 32;
+                case "100 tickets / roll":
+                    return 1200;
+                case "50 tickets / roll":
+                    return 600;
+                case "25 tickets / roll":
+                    return 300;
+                case "10 tickets / roll":
+                    return 120;
+                case "1 tickets / roll":
+                    return 12;
+            }
+
+            return 0;
+        }
+    }
+    /// <summary>
+    /// Balance of the account
+    /// </summary>
+    public double AccountBalance
+    {
+        get {
+
+            var BalanceBox = ElementByXPath("//span[@id='balance']");
+            if (BalanceBox == null)
+            {
+                return -1;
+            }
+            double Balance;
+            if (double.TryParse(BalanceBox.Text, NumberStyles.Any, CultureInfo.InvariantCulture, out Balance))
+            {
+                return Balance;
+            }
+            return -1;
+
+        }
+    }
+    /// <summary>
+    /// Reward Points of the account
+    /// </summary>
+    public int RewardPoints
+    {
+        get
+        {
+            var RewardPointBox = ElementByXPath("//div[contains(@class,'user_reward_points')]");
+            if (RewardPointBox == null)
+            {
+                return 0;
+            }
+            string RewardPointText = ExecuteScript("return arguments[0].textContent",RewardPointBox).ToString().Replace(",","");
+      
+            int Points;
+           
+            if (int.TryParse(RewardPointText, out Points))
+            {
+
+                return Points;
+            }
+            return 0;
+        }
+
+    }
+    public int RequiredRollPoints
+    {
+        get
+        {
+            var PointsBox = ElementByXPath("//div[@id='play_without_captcha_desc']//span[@style='color:red;']");
+            if (PointsBox == null)
+            {
+                return -1;
+            }
+            string PointBoxtext = ExecuteScript("return arguments[0].textContent", PointsBox).ToString().Replace(",", "");
+          
+            int Required;
+            if (int.TryParse(PointBoxtext, out Required))
+            {
+                return Required;
+            }
+
+            return -1;
+        }
+    }
+
+
+
+
     /// <summary>
     /// This method is called right before we attempt to claim on the faucet. 
     /// Next methods that will be called are DoSolveFaucet and AfterSolveFaucet and CheckFaucetResult.
     /// </summary>
-    public static int RP;
-    public static int AP;
     public override int BeforeSolveFaucet()
     {
-        Wait(3);
-        bool bonus_points, bonus_btc, bonus_Ticket;
-        bonus_btc = ElementByXPath("//span[@id='bonus_span_fp_bonus']")!=null;
-        bonus_Ticket = ElementByXPath("//span[@id='bonus_span_free_lott']") != null;
-        bonus_points = ElementByXPath("//span[@id='bonus_span_free_points']")!=null;
-      
-        if (!((bonus_btc || GetSetting("AutoRedeemBtc") == "None") && (bonus_Ticket || GetSetting("AutoReedemTicket") == "None") && (bonus_points || GetSetting("AutoRedeemPoint") != "None")))
-        {
 
 
-            int Point_t = 0;
-            var More = ElementByXPath("//a[@class='dropbtn']");
-            if (IsVisible(More))
-            {
-                Click(More);
-                Wait();
-            }
-            var get_p_ = ElementByXPath("//a[@class='rewards_link'][contains(text(),'REWARDS')]");
-            if (IsVisible(get_p_))
-            {
-                Click(get_p_);
-                Wait(2);
-                var rp = ElementByXPath("//div[@class='reward_table_box br_0_0_5_5 user_reward_points font_bold']");
-                if (rp != null)
-                {
-                    Point_t = Convert.ToInt32(rp.Text.Replace(",", ""));
-                }
-            }
-            int required_btc=0, required_points=0, required_ticket=0;
-            try
-            {
-                required_btc = Convert.ToInt32(GetSetting("BtcBonus"));
-            }
-            catch (Exception)
-            {
-                bonus_btc = true;
-                Log("You need write a number in required points for BonusBtc");
-            }
-            try
-            {
-               required_points = Convert.ToInt32(GetSetting("PointBonus"));
-            }
-            catch (Exception)
-            {
-                Log("You need write a number in required points for BonusPoints");
-                bonus_points = true;
-            }
-            try
-            {
-                required_ticket = Convert.ToInt32(GetSetting("TicketBonus"));
-            }
-            catch (Exception)
-            {
-                Log("You need write a number in required points for BonusTickets");
-                bonus_Ticket = true;
-            }
-            if (!bonus_btc && GetSetting("AutoRedeemBtc") != "None")
-            {
-                if (required_btc <= Point_t)
-                {
-                    
-                    var autoRedeemBtcSetting = GetSetting("AutoRedeemBtc");
-                    var AutoRedeemBtc = GetAutoRedeemName(autoRedeemBtcSetting);
-                    //BTC BONUS
-                    if (!string.IsNullOrWhiteSpace(AutoRedeemBtc) && GetPointsRequired(autoRedeemBtcSetting) <= Point_t)
-                    {
-                        Log("Trying to enable reward " + autoRedeemBtcSetting);
-                        ExecuteScript(string.Format("RedeemRPProduct('{0}');", AutoRedeemBtc));
-                    }
-                    Wait();
-                    var rp = ElementByXPath("//div[@class='reward_table_box br_0_0_5_5 user_reward_points font_bold']");
-                    if (rp != null)
-                    {
-                     
-                        Point_t = Convert.ToInt32(rp.Text.Replace(",", ""));
-                    }
-                    Wait();
-                }
-            }
+        List<RedemSetting> ActualSettings = new List<RedemSetting> {
+
+            new RedemSetting(GetSetting("AutoRedeemBtc")),
+            new RedemSetting(GetSetting("AutoRedeemPoint")),
+            new RedemSetting(GetSetting("AutoRedeemTicket")),
+        }.Where(x=>x.RedemName!=null).ToList();
         
-            if (!bonus_points && GetSetting("AutoRedeemPoint") != "None")
-            {
-                if (required_points <= Point_t)
-                {
-                   
-                    var autoRedeemPointsSetting = GetSetting("AutoRedeemPoint");
-                    var AutoRedeemPoint = GetAutoRedeemName(autoRedeemPointsSetting);
-                    if (!string.IsNullOrWhiteSpace(AutoRedeemPoint) && GetPointsRequired(autoRedeemPointsSetting)<=Point_t)
-                    {
-                      
-                        Log("Trying to enable reward " + autoRedeemPointsSetting);
-                        ExecuteScript(string.Format("RedeemRPProduct('{0}');", AutoRedeemPoint));
-                    }
-                    Wait();
-                    var rp = ElementByXPath("//div[@class='reward_table_box br_0_0_5_5 user_reward_points font_bold']");
-                    if (rp != null)
-                    {
-                  
-                        Point_t = Convert.ToInt32(rp.Text.Replace(",", ""));
-                    }
-                    Wait();
-                    //Points Bonus
-                }
-            }
-          
-            if (!bonus_Ticket && GetSetting("AutoRedeemTicket") != "None")
-            {
-                if (required_ticket <= Point_t)
-                {
-                   
-                    var autoRedeemTicketSetting = GetSetting("AutoRedeemTicket");
-                    var AutoRedeemTicket = GetAutoRedeemName(autoRedeemTicketSetting);
-                 
-                    if (!string.IsNullOrWhiteSpace(AutoRedeemTicket) && GetPointsRequired(autoRedeemTicketSetting) <= Point_t)
-                    {
-                        
-                        Log("Trying to enable reward " + autoRedeemTicketSetting);
-                        ExecuteScript(string.Format("RedeemRPProduct('{0}');", AutoRedeemTicket));
-                    }
-                    Wait();
-                   
-                    Wait();
-                }
-            }
-          
-            Wait();
-            var main_f = ElementByXPath("//a[@class='free_play_link']");
-            if (IsVisible(main_f))
-            {
-                Click(main_f);
-                Wait(2);
 
-            }
-        }
-        if (GetBoolSetting("PWC"))
+        for (int i = 0; i < ActualSettings.Count; i++)
         {
-            var get_p = ElementByXPath("//a[@class='rewards_link'][contains(text(),'REWARDS')]");
-            if (IsVisible(get_p))
-            {
-                Click(get_p);
-                Wait();
-                var rp = ElementByXPath("//div[@class='reward_table_box br_0_0_5_5 user_reward_points font_bold']");
-                if (rp != null)
+            if (IsClaimable(ActualSettings[i])) {
+
+                string RedemScript = "RedeemRPProduct('"+ActualSettings[i].RedemName+"')";
+                Log(ActualSettings[i].RedemName);
+
+                ExecuteScript(RedemScript);
+
+                var RedemResult = ElementByXPath("//span[@class='reward_point_redeem_result']", 3);
+                if (IsVisible(RedemResult))
                 {
-                    AP = Convert.ToInt32(rp.Text.Replace(",", ""));
-                }
-            }
-            Wait();
-            
-            var main_frame = ElementByXPath("//a[@class='free_play_link']");
-            if (IsVisible(main_frame))
-            {
-                Click(main_frame);
-                Wait();
-                var play_wc = ElementByXPath("//div[@id='play_without_captchas_button']");
-                if (IsVisible(play_wc))
-                {
-                    Click(play_wc);
-                }
-                Wait();
-                try
-                {
-                    var get_required = ElementByXPath("//div[@class='bold center play_without_captcha_description']//span[contains(@style,'color:red')]");
-                    RP = Convert.ToInt32(get_required.Text);
-                    Wait();
-                }
-                catch (Exception)
-                {
+                    Log("Result of redem bonus (" + Enum.GetName(typeof(RedemSetting.RedemType), (int)ActualSettings[i].Type) + ") Msg:  " + RedemResult.Text);
 
                 }
+                Wait(3);
             }
         }
-       
-        //var reward = ElementById("reward_points_bonuses_main_div");
-        //if (reward == null || !reward.Displayed || string.IsNullOrWhiteSpace(reward.Text.Trim()))
-        //{
-        //    //There is no reward running at the moment. Execute auto redeem script if any selected in the bot.
-        //    var autoRedeemSetting = GetSetting("AutoRedeem");
-        //    var autoRedeem = GetAutoRedeemName(autoRedeemSetting);
-        //    if (!string.IsNullOrWhiteSpace(autoRedeem))
-        //    {
-        //        Log("Trying to enable reward " + autoRedeemSetting);
-        //        ExecuteScript(string.Format("RedeemRPProduct('{0}');", autoRedeem));
-        //    }
-        //}
-
-        //Dismiss the cookie banner
-        ExecuteScript("if($('.cc_btn_accept_all').length > 0) { $('.cc_btn_accept_all')[0].click(); }");
-
+        double Balance = AccountBalance;
+        if (Balance != -1)
+        {
+            Log("Balance in the account is: " + Balance.ToString());
+        }
         //Let Faucet Collector Continue.
         return base.BeforeSolveFaucet();
     }
 
+    private bool IsClaimable(RedemSetting setting)
+    {
+        int RewardPoints = this.RewardPoints;
+      
+        return  setting.PointsRequired != 0 && setting.PointsRequired <= RewardPoints && !BonsuExist(setting.Type);
+
+    }
+    private bool BonsuExist(RedemSetting.RedemType type)
+    {
+       bool Exist= type == RedemSetting.RedemType.Btc ? ElementByXPath("//span[@id='bonus_span_fp_bonus']", 0) != null :
+            type == RedemSetting.RedemType.Points ?
+            ElementByXPath("//span[@id='bonus_span_free_points']", 0) != null :
+            ElementByXPath("//span[@id='bonus_span_free_lott']", 0) != null;
+   
+        return Exist;
+
+    }
     /// <summary>
     /// This method gets called after the BeforeSolveFaucet. You can do the actual claiming of the faucet in here.
     /// </summary>
     /// <returns></returns>
+
     public override int DoSolveFaucet()
     {
-        int req;
-        try
+
+        bool AvailableRollWithoutPoints = this.AvailableRollWithoutPoints;
+        var ButtonSetClaimType = AvailableRollWithoutPoints ? ElementByXPath("//div[@id='play_without_captchas_button']") :ElementByXPath("//div[@id='play_with_captcha_button']");
+        if (IsVisible(ButtonSetClaimType))
         {
-            req = Convert.ToInt32(GetSetting("PWCR"));
-        }
-        catch (Exception)
-        {
-            req = 20;
-            Log("You need put a number in max points to waste");
-        }
-        if (GetBoolSetting("PWC") && RP<=AP && req>=RP)
-        {
-
-            var play_wc = ElementByXPath("//div[@id='play_without_captchas_button']");
-            if (IsVisible(play_wc))
-            {
-                Click(play_wc);
-            }
-            Wait(2, 3);
-            var button = ElementByXPath("//input[@id='free_play_form_button']");
-            if (!IsVisible(button))
-            {
-                return Fail("Submit button not found or not visible.");
-            }
-            Click(button);
-            Wait(2, 3);
-
-
-        }
-        else
-        {
-            if(GetBoolSetting("PWC") && RP >= AP)
-            {
-                Log("You do not have enough reward point, Claiming with captcha ");
-            }
-            var play_Wc = ElementByXPath("//div[@id='play_with_captcha_button']");
-            if (IsVisible(play_Wc))
-            {
-                Click(play_Wc);
-            }
-            Wait(2, 3);
-            //Find the submit button to claim on the faucet
-            var submitButton = ElementById("free_play_form_button");
-            if (!IsVisible(submitButton))
-            {
-                //Unable to find the submit button - return the failure.
-                return Fail("Submit button not found or not visible.");
-            }
-
-            //We need to solve the captcha on this page before clicking the Login button.
-            //We use the SolveCaptcha method for this. SolveCaptcha will call BeforeSolveCaptcha, DoSolveCaptcha and AfterSolveCaptcha
-            //The DoSolveCaptcha method does the actual solving - it checks if there is a SolveMedia Captcha or a reCAPTCHA present on the page 
-            //and will solves that one using the selected method entered in Faucet Collector on the Captcha tab.
-            //In this script we only override BeforeSolveCaptcha (see above) to be able to solve the custom image captcha if its visible.
-            var NormalReCaptchaVar = ElementByXPath("//div[@id='free_play_captcha_container']");
-			//div[@id='free_play_recaptcha']
-          
-
-            if (IsVisible(NormalReCaptchaVar) && (IsVisible(ElementByXPath("//div[@class='g-recaptcha']"))|| IsVisible(ElementByXPath("//div[@id='botdetect_free_play_captcha']/div[1]/img"))))
-            {
-
-                //SolveCaptcha
-                var result = DoSolveCaptcha();
-                if (result > 0)
-                {
-                    Log("Recaptcha isn't visible, trying to claim");
-                }
-
-            }
-
-            //invisible_AND_Normal_ReCaptcha
-            //=======================================//	
-
-            //ROOL
-            submitButton = ElementById("free_play_form_button");
-            Click(submitButton);
-
-        //The Captcha is solved, click the submit button
-       
+            Click(ButtonSetClaimType);
+            Wait();
         }
 
-        //Let Faucet Collector continue its work
-        return base.DoSolveFaucet();
+        var result = SolveCaptcha();
+        if (result > 0)
+        {
+            return Fail("There is a problem with doing the captcha");
+        }
+
+        var ButtonClaim = ElementByXPath("//input[@id='free_play_form_button']");
+        if (!IsVisible(ButtonClaim))
+        {
+            return Fail("Button to claim is not visible");
+        }
+        Click(ButtonClaim);
+
+
+            //Let Faucet Collector continue its work
+            return base.DoSolveFaucet();
     }
-
-    /// <summary>
-    /// This method will get called after the DoSolveFaucet is completed and returned it was a success.
-    /// This faucet shows a "Processing" window after you click the claim submit button.
-    /// We will have to wait for it to disappear before we can check for the results.
-    /// </summary>
-    public override int AfterSolveFaucet()
+    public bool AvailableRollWithoutPoints
     {
-        //Let Faucet Collector continue
-        return base.AfterSolveFaucet();
+        get
+        {
+            return GetBoolSetting("PWC") && RequiredRollPoints != -1 && RewardPoints >= RequiredRollPoints && MaxPointsWaste >= RequiredRollPoints;
+        }
     }
 
-    /// <summary>
-    /// This method gets called in the end after the BeforeSolveFaucet/DoSolveFaucet and AfterSolveFaucet methods were done.
-    /// The base.CheckFaucetResult will try to find a visible element on the page using the XPath from SuccessXPath and FailXPath (see the Start method)
-    /// These properties should contain XPath expressions to find certain elements on the page.
-    /// For example if it finds one of the elements from the SuccessXPath, and it is visible, then it will flag the claim attempt as a success.
-    /// Or if it finds one of the elements from the FailXPath, and it is visible, then it will flag the claim attempt as a failure.
-    /// </summary>
-    public override int CheckFaucetResult()
-    {
-        //This faucet has nothing to do here. We will let Faucet Collector handle it.
-        return base.CheckFaucetResult();
+    public int MaxPointsWaste { get { try
+            {
+                return Convert.ToInt32(GetSetting("PWCR"));
+
+            }
+            catch (Exception)
+            {
+                Log("There is a problem getting your max points, probably your setting is invalid");
+
+            }
+            return -1;
+
+            }
     }
+
 }
