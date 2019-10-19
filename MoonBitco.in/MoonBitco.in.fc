@@ -344,13 +344,6 @@ public class MoonBitcoinScript : FaucetScript
             return GetFaucetWaitTime();
         }
 		
-		var currentBalance = ElementByXPath("//span[contains(@title,'balance:')]");
-		if (IsVisible(currentBalance));
-			{
-				Log("Balance: " + currentBalance.Text + " BTC");
-				Wait(1);
-				ClaimSuccess();
-			}
 			
         //Find the button to open the popup window where we can solve the captcha and claim on the faucet.
         var claimButton = ElementById("SubmitButton");
@@ -475,5 +468,11 @@ public class MoonBitcoinScript : FaucetScript
     public override int CheckFaucetResult()
     {
         return base.CheckFaucetResult();
+	var currentBalance = ElementByXPath("//span[contains(@title,'balance:')]");
+		if (IsVisible(currentBalance));
+		{
+			Log("Balance: " + currentBalance.Text + " BTC");
+		}
+	return result;
     }
 }
