@@ -356,6 +356,14 @@ public class MoonDashScript : FaucetScript
             return GetFaucetWaitTime();
         }
         CloseModal();
+	
+	/// Outputs Current Balance in log
+	var currentBalance = ElementByXPath("//a[contains(@data-bind,'text: balance().toFixed(8)')]");
+	if (IsVisible(currentBalance));
+		{
+			Log("Balance: "+ currentBalance.Text);
+			Wait(1);
+			ClaimSuccess();
 
         //Find the button to open the popup window where we can solve the captcha and claim on the faucet.
         var claimButton = ElementByXPath("//button[@data-target='#ClaimModal']");
