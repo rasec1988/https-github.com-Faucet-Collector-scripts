@@ -1,34 +1,30 @@
-﻿using System;
+using System;
 using System.Text.RegularExpressions;
 using FaucetCollector.Script;
 using OpenQA.Selenium;
 
 
-public class MoonDashScript : FaucetScript
+public class MoonDogeScript : FaucetScript
 {
     /// <summary>
     /// List of Settings that will be shown in the bot when selecting this Faucet in the bot.
     /// You can get the value the user entered with the methods: GetSetting("[Name of the FaucetSetting]"), GetBoolSetting and GetDateTimeSetting
+    /// You can also create a new setting value using SetSetting("[Name you want to use]", "value")
     /// </summary>
     public override FaucetSettings Settings
     {
         get
         {
-            return new FaucetSettings("http://moondash.co.in/faucet/")
+            return new FaucetSettings("http://moondoge.co.in/")
             {
                 //We have a setting to get the email address used for the coinpot account
                 new FaucetSetting() { Name = "Email", Display = "Coinpot email addres", Type = EditorType.TextBox, Required = true },
-                //Option to use SolveMedia or reCAPTCHA
                  new FaucetSetting(){Name="SwitchC",Display="SwitchCaptcha is the other is not visible",Type=EditorType.CheckBox,Default=true},
 
                 new FaucetSetting() { Name = "UseSolveMedia", Display = "Use SolveMedia", Type = EditorType.CheckBox, Default = true }
             };
         }
     }
-
-    /// <summary>
-    /// This method gets called when the faucet is enabled and the GO button is clicked
-    /// </summary>
     public void CheckForPopup()
     {
         var Popup = ElementByXPath("//img[@title='close']");
@@ -40,34 +36,27 @@ public class MoonDashScript : FaucetScript
 
 
     }
+    /// <summary>
+    /// This method gets called when the faucet is enabled and the GO button is clicked
+    /// </summary>
     public override void Start()
     {
+        OverriteSolvemedia = false;
         //Title that shows in the browser. Is used to close popups
-        Title = "moon dash";
+        Title = "moon dogecoin";
 
         //After we did try to claim on the faucet we search for these elements to determine if it was a success or a fail
-        SuccessXPath = "//*[@id='FaucetClaimModal']";
-        OverriteSolvemedia = false;
-        FailXPath = "//*[@id='MessageModal']|//small[contains(@class,'help-block')]";
-     
+        SuccessXPath = "//div[@class='success-message']";
+        FailXPath = "//*[@id='BodyPlaceholder_FailedClaimPanel']";
 
+        //The moon faucet its counter is going up
+       
+ 
         //Let Faucet Collector start up everything
         base.Start();
     }
 
-    public bool CloseModal()
-    {
-        var Close = ElementByXPath("//div[@id='MessageModal']//button[@class='btn btn-coin'][contains(text(),'Close')]");
-        if (IsVisible(Close))
-        {
-            ExecuteScript("arguments[0].click()", Close);
-            Wait();
-            Driver.Navigate().Refresh();
-        }
-        return true;
-
-
-    }
+  
     /// <summary>
     /// This method gets called after the Start method, here you need to return if we are logged in or not.
     /// If you return false then it will call the BeforeLogin, Login and AfterLogin methods so you can login.
@@ -82,23 +71,24 @@ public class MoonDashScript : FaucetScript
             Log("Seems that the site is offline, Cloudflare is visible you need to wait");
             return false;
         }
-		  var GotoFaucet = ElementByXPath("//a[@href='faucet']");
-        if (IsVisible(GotoFaucet))
-        {
-            Click(GotoFaucet);
-            System.Threading.Thread.Sleep(400);
-            return true;
-        }
-        //If there is an element that has the class "faucetValue" then we are logged in - that element is only present when you are logged in.
-        var isLoggedIn = ElementByClass("faucetValue") != null;
-        if (isLoggedIn)
-        {
-            //We are logged in, try to disable the sounds of the faucet.
-            ExecuteScript("faucetVM.alertPlaySound(false)");
-        }
-
-        return isLoggedIn;
+        //If there is an element that has the class "SignedInPaymentAddress" then we are logged in - that element is only present when you are logged in.
+        return ElementById("SignedInPaymentAddress") != null;
     }
+
+    /// <summary>
+    /// This method gets called if IsLoggedIn returned false, right before the DoLogin method is called.
+    /// </summary>
+    public override int BeforeLogin()
+    {
+        CheckForPopup();
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeLogin();
+    }
+
+    /// <summary>
+    /// This method gets called after BeforeLogin if IsLoggedIn returned false.
+    /// It can be used to actually login the user/enter wallet details in the faucet
+    /// </summary>
     public int SolveCapt()
     {
         var XPathAdcopyRefresh = "//a[@id='adcopy-link-refresh']";
@@ -137,7 +127,6 @@ public class MoonDashScript : FaucetScript
         }
         if (tries >= 3 && GetBoolSetting("SwitchC"))
         {
-
             OverriteSolvemedia = true;
         }
 
@@ -145,40 +134,17 @@ public class MoonDashScript : FaucetScript
         return DoSolveCaptcha();
     }
 
-    /// <summary>
-    /// This method gets called if IsLoggedIn returned false, right before the DoLogin method is called.
-    /// </summary>
-    public override int BeforeLogin()
-    {
-        CheckForPopup();
-        //Find the signin button to open the login popup
-        var signInButton = ElementByXPath("//button[@data-target='#SignInModal']");
-        if (signInButton == null)
-        {
-            //Signin button not found, return an error. 
-            //It will automatically reload the page and try again in 10-15 seconds.
-            return Fail("Signin button not found.");
-        }
+    private bool OverriteSolvemedia { get; set; }
+    public override int DoInit()
+    {      
 
-        //Signin button found, now click it.
-        Click(signInButton);
-
-        //We return 0 to tell Faucet Collector it was a success.
-        //If we return a number greater than 0 it will register it as a failed and wait for the number (in seconds) before trying again.
-        //Let Faucet Collector continue - it will return 0;
-        return base.BeforeLogin(); ;
+        return base.DoInit();
     }
-
-    /// <summary>
-    /// This method gets called after BeforeLogin if IsLoggedIn returned false.
-    /// It can be used to actually login the user/enter wallet details in the faucet
-    /// </summary>
-    /// <returns></returns>
     public override int DoLogin()
     {
         //Find the input field that holds the email address
-        var signInEmail = ElementById("SignInEmailInput");
-        if (signInEmail == null)
+        var signInEmail = ElementByClass("payment-address");
+        if (!IsVisible(signInEmail))
         {
             //We couldn't find it. Register it as a fail so it can reload the page and try again in 10-15 seconds.
             return Fail("Signin email not found.");
@@ -188,14 +154,34 @@ public class MoonDashScript : FaucetScript
         SetText(signInEmail, GetSetting("Email"));
 
         //Now we search for the login submit button
-        var loginButton = ElementByXPath("//button[@type='submit' and contains(@class, 'btn-coin')]");
-        if (loginButton == null)
+        var loginButton = ElementById("SignInButton");
+        if (!IsVisible(loginButton))
         {
             //We couldn't find it. Register it as a fail so it can reload the page and try again in 10-15 seconds.
             return Fail("Login button not found.");
         }
 
-        //There is a captcha on the login page, so we need to solve that before clicking the Login button.
+        //We are ready to click the login button.
+        Click(loginButton);
+
+        //Wait a sec for the popup to load
+        Wait();
+
+        //Check if the faucet opened popups
+        var sleep = CheckForPopups();
+        if (sleep > 0)
+        {
+            return sleep;
+        }
+
+        var submitButton = ElementById("SignInSubmitButton");
+        if (!IsVisible(submitButton))
+        {
+            //We couldn't find it. Register it as a fail so it can reload the page and try again in 10-15 seconds.
+            return Fail("Login button not found.");
+        }
+
+        //There is a captcha on the login popup, so we need to solve that before clicking the submit button.
         //We use the SolveCaptcha method for this. SolveCaptcha will call BeforeSolveCaptcha, DoSolveCaptcha and AfterSolveCaptcha
         //The DoSolveCaptcha method does the actual solving - it checks if there is a SolveMedia Captcha or a reCAPTCHA present on the page 
         //and will solves that one using the selected method entered in Faucet Collector on the Captcha tab.
@@ -207,9 +193,9 @@ public class MoonDashScript : FaucetScript
             return result;
         }
 
-        //We are ready to click the login button.
-        Click(loginButton);
-
+        //Now we can click the submit button.
+        Click(submitButton);
+        
         //Let Faucet Collector continue
         return base.DoLogin();
     }
@@ -219,7 +205,21 @@ public class MoonDashScript : FaucetScript
     /// </summary>
     public override int AfterLogin()
     {
-        //we don't need to do anything here for this faucet - let Faucet Collector do its stuff.
+        //Check if the login doesn't show an error message.
+        var failedLogin = ElementById("BodyPlaceholder_FailedSignInPanel");
+        if (IsVisible(failedLogin))
+        {
+            if (failedLogin.Text.Contains("is not registered with CoinPot"))
+            {
+                //Invalid email address entered. Log and disable this faucet.
+                Log("Please enter a correct coinpot.co email address.");
+                Disable();
+            }
+
+            return Fail("Login failed: " + failedLogin.Text);
+        }
+
+        //we are good to continue
         return base.AfterLogin();
     }
 
@@ -230,7 +230,7 @@ public class MoonDashScript : FaucetScript
     /// </summary>
     public override int GetFaucetWaitTime()
     {
-        Wait(4, 5);
+        Wait();
         var TimerLoader = ElementByXPath("//img[@id='TimerLoader']");
         DateTime Timeout = DateTime.Now.AddSeconds(15);
         while (IsVisible(TimerLoader))
@@ -241,38 +241,30 @@ public class MoonDashScript : FaucetScript
                 break;
             }
         }
-        //This faucet doesn't have a count down timer, instead we try to check if the claim button is disabled. 
-        //If that is the case we probably need at least 5 minutes break
-        var disabledClaimButton = ElementByXPath("//button[contains(@class,'btn btn-coin btn-lg') and @disabled]");
-        if (IsVisible(disabledClaimButton))
+        Wait();
+        var ButtonClaim = ElementByXPath("//input[@value='claim now']");
+        if (IsVisible(ButtonClaim))
         {
-           
-                //The button is disabled, we will tell Faucet Collector to wait at least 5 minutes
-                return 5 * 60;
-            
+            return 0;
+        }       
+        else
+        {
+            return 300;
         }
-
-        //The claim button is enabled, so we can go ahead and claim.
-        return 0;
     }
 
     /// <summary>
-    /// This method is called right before a captcha will be solved.
+    /// This method is called right before a captcha will be solved. 
+    /// If you call SolveCaptcha() in other methods it will start this flow and tries to solve the captcha on the page.
     /// </summary>
     public override int BeforeSolveCaptcha()
     {
-    	
+       
 
-        //Let Faucet Collector continue
-        return base.BeforeSolveCaptcha();
+        //Return we are ready to proceed
+        return base.BeforeSolveFaucet();
     }
-    private bool OverriteSolvemedia { get; set; }
-    public override int DoInit()
-    {
 
-        return base.DoInit();
-    }
-    /// <summary><
     /// <summary>
     /// This method gets called after BeforeSolveCaptcha and it does the actual captcha solving
     /// It will automatically try to see if there is a SolveMedia captcha active or a reCAPTCHA active. 
@@ -280,7 +272,6 @@ public class MoonDashScript : FaucetScript
     /// </summary>
     public override int DoSolveCaptcha()
     {
-        //Check if the user wants to do SolveMedia or reCAPTCHA.
         if (GetBoolSetting("UseSolveMedia") && !OverriteSolvemedia)
         {
             //Make sure SolveMedia is active by clicking the link.
@@ -288,38 +279,38 @@ public class MoonDashScript : FaucetScript
             if (IsVisible(Change)) { ExecuteScript("arguments[0].click()", Change); }
             Wait(2);
           
-                IWebElement Iframe = ElementByXPath("//iframe[contains(@src,'api-secure.solvemedia')]") ?? ElementByXPath("//iframe[contains(@src,'api.solvemedia.com')]");
+                
+            
+          IWebElement Iframe = ElementByXPath("//iframe[contains(@src,'api-secure.solvemedia')]") ?? ElementByXPath("//iframe[contains(@src,'api.solvemedia.com')]");
                 if (Iframe == null && ElementByXPath("//input[@id='adcopy_response']|//input[@name='adcopy_response']")==null && GetBoolSetting("SwitchC"))
                 {
 
                     var Change2 = ElementByXPath("//a[contains(text(),'Switch to Recaptcha')]");
                     if (IsVisible(Change2)) { ExecuteScript("arguments[0].click()", Change2); }
-                 
                     Wait(2, 3);
-                    if (!IsVisible(ElementByXPath("//iframe[contains(@src,'google.com')]")))
+                    if (!IsVisible(ElementByXPath("//div[@id='captchaContainer']//iframe[contains(@src,'google.com')]")))
                     {
-                    Log("There is a problem with recaptcha");
+                    Log("There is a problem loading recaptcha");
 
-
-                }
+                    }
                 }
 
             
 
         }
-        else if(!GetBoolSetting("UseSolvemedia") ||GetBoolSetting("SwitchC"))
+        else if(!GetBoolSetting("UseSolvemedia") || GetBoolSetting("SwitchC"))
         {
-            //Make sure reCAPTCHA is active by clicking the li
+            //Make sure reCAPTCHA is active by clicking the link.
+
             var Change2 = ElementByXPath("//a[contains(text(),'Switch to Recaptcha')]");
-            if (IsVisible(Change2)) { ExecuteScript("arguments[0].click()", Change2); ; }
+            if (IsVisible(Change2)) { ExecuteScript("arguments[0].click()", Change2); }
             Wait(2, 3);
-            if (!IsVisible(ElementByXPath("//iframe[contains(@src,'google.com')]")))
+            if (!IsVisible(ElementByXPath("//div[@id='captchaContainer']//iframe[contains(@src,'google.com')]")))
             {
-                Log("There is a problem with recaptcha");
+                Log("There is a problem loading recaptcha");
 
 
             }
-
             OverriteSolvemedia = false;
 
         }
@@ -330,7 +321,10 @@ public class MoonDashScript : FaucetScript
 
         //This faucet has nothing to do here. We will let Faucet Collector handle it.
         return base.DoSolveCaptcha();
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+     
     }
+
     /// <summary>
     /// This method will get called after DoSolveCaptcha returned it was a success.
     /// </summary>
@@ -342,8 +336,8 @@ public class MoonDashScript : FaucetScript
     }
 
     /// <summary>
-    /// This method is called right before we attempt to claim on the faucet. 
-    /// Next methods that will be called are DoSolveFaucet and AfterSolveFaucet and CheckFaucetResult.
+    /// This method is called right before we attempt to claim on the faucet. So we are logged in and good to go.
+    /// Next methods that will be called are DoSolveFaucet, AfterSolveFaucet and CheckFaucetResult.
     /// </summary>
     public override int BeforeSolveFaucet()
     {
@@ -355,16 +349,17 @@ public class MoonDashScript : FaucetScript
             Log("Seems that the site is offline, Cloudflare is visible you need to wait");
             return GetFaucetWaitTime();
         }
-        CloseModal();
-	
-	
+		
+		//Find the submit button to claim on the faucet
+
+			
         //Find the button to open the popup window where we can solve the captcha and claim on the faucet.
-        var claimButton = ElementByXPath("//button[@data-target='#ClaimModal']");
+        var claimButton = ElementById("SubmitButton");
         DateTime Timeout = DateTime.Now.AddSeconds(15);
         while (!IsVisible(claimButton))
         {
             Wait();
-            claimButton = ElementByXPath("//button[@data-target='#ClaimModal']");
+            claimButton = ElementById("SubmitButton");
             if (DateTime.Now > Timeout) { break; }
 
         }
@@ -373,12 +368,59 @@ public class MoonDashScript : FaucetScript
             //We couldn't find the button, return we have a failure.
             return Fail("Claim button not found or not visible.");
         }
-        
+
         //Click the button to opent the popup window
         Click(claimButton);
 
-        //Let Faucet Collector continue
+        //Return we can continue
         return base.BeforeSolveFaucet();
+    }
+
+    /// <summary>
+    /// This method gets called after the BeforeSolveFaucet. You can do the actual claiming of the faucet in here.
+    /// </summary>
+    /// <returns></returns>
+    public override int DoSolveFaucet()
+    {
+     
+        //Find the submit button to claim on the faucet
+        var submitButton = ElementByXPath("//div[@id='CaptchaPopup']//input[@class='submit-button']");
+        if (!IsVisible(submitButton))
+        {
+            //Unable to find the submit button - return the failure.
+            return Fail("Submit button not found or not visible.");
+        }
+
+        //We need to solve the captcha on this page before clicking the Login button.
+        //We use the SolveCaptcha method for this. SolveCaptcha will call BeforeSolveCaptcha, DoSolveCaptcha and AfterSolveCaptcha
+        //The DoSolveCaptcha method does the actual solving - it checks if there is a SolveMedia Captcha or a reCAPTCHA present on the page 
+        //and will solves that one using the selected method entered in Faucet Collector on the Captcha tab.
+        //In this script we only override BeforeSolveCaptcha (see above) to enable SolveMedia or reCAPTCHA based on the user settings.
+        var result = SolveCapt();
+        if (result > 0)
+        {
+            //Unable to solve the captcha - return the failure
+            return result;
+        }
+
+        //The Captcha is solved, click the submit button
+        Click(submitButton);
+    
+        Wait();
+        
+	//click as long as there are popups...
+        submitButton = ElementByXPath("//div[@id='CaptchaPopup']//input[@class='submit-button']");
+        int attempts = 0;
+        while (IsVisible(submitButton) && attempts < 10)
+        {
+             attempts++;
+             ExecuteScript("arguments[0].click()", submitButton);
+             Wait();
+             submitButton = ElementByXPath("//div[@id='CaptchaPopup']//input[@class='submit-button']");
+        }
+
+        //We are good to continue
+        return base.DoSolveFaucet();
     }
     public bool CheckForCloudFlare(int tries = 0, int maxTries = 2)
     {
@@ -413,54 +455,6 @@ public class MoonDashScript : FaucetScript
 
         return IsNotInCloudFlare;
     }
-
-    /// <summary>
-    /// This method gets called after the BeforeSolveFaucet. You can do the actual claiming of the faucet in here.
-    /// </summary>
-    /// <returns></returns>
-    public override int DoSolveFaucet()
-    {
-      
-        //Find the submit button to claim on the faucet
-        var submitButton = ElementByXPath("//div[@id='ClaimModal']//div[@class='modal-footer']/button[contains(@class, 'btn-coin')]");
-        if (!IsVisible(submitButton))
-        {
-            //Unable to find the submit button - return the failure.
-            return Fail("Submit button not found or not visible.");
-        }
-
-        //We need to solve the captcha on this page before clicking the Login button.
-        //We use the SolveCaptcha method for this. SolveCaptcha will call BeforeSolveCaptcha, DoSolveCaptcha and AfterSolveCaptcha
-        //The DoSolveCaptcha method does the actual solving - it checks if there is a SolveMedia Captcha or a reCAPTCHA present on the page 
-        //and will solves that one using the selected method entered in Faucet Collector on the Captcha tab.
-        //In this script we only override BeforeSolveCaptcha (see above) to enable SolveMedia or reCAPTCHA based on the user settings.
-        var result =SolveCapt();
-        if (result > 0)
-        {
-            //Unable to solve the captcha - return the failure
-            return result;
-        }
-
-        //The Captcha is solved, click the submit button
-        Click(submitButton);
-
-        Wait();
-        
-	//click as long as there are popups...
-        submitButton = ElementByXPath("//div[@id='ClaimModal']//div[@class='modal-footer']/button[contains(@class, 'btn-coin')]");
-        int attempts = 0;
-        while (IsVisible(submitButton) && attempts < 10)
-        {
-             attempts++;
-             ExecuteScript("arguments[0].click()", submitButton);
-             Wait();
-             submitButton = ElementByXPath("//div[@id='ClaimModal']//div[@class='modal-footer']/button[contains(@class, 'btn-coin')]");
-        }
-
-        //Let Faucet Collector continue
-        return base.DoSolveFaucet();
-    }
-
     /// <summary>
     /// This method will get called after the DoSolveFaucet is completed and returned it was a success.
     /// This faucet shows a "Processing" window after you click the claim submit button.
@@ -468,24 +462,7 @@ public class MoonDashScript : FaucetScript
     /// </summary>
     public override int AfterSolveFaucet()
     {
-        //we create a counter so we don't wait forever
-        int attempts = 0;
-        //Find the element that is used for the "Processing" window.
-        var processing = ElementById("ProgressModal");
-        while (processing != null && processing.Displayed && attempts < 10)
-        {
-            //The "Processing" window is still there
-            //Increase the attempts, so we can exit after 30 attempts
-            attempts++;
-            //Wait one second before the next attempt
-            Wait(1);
-            //Now get the "Processing" window again.
-            processing = ElementById("ProgressModal");
-        }
-
-        //We are ready. The "Processing" window is gone or we did 30 attempts.
-        //Either way we return this is a success.
-        //Let Faucet Collector continue
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
         return base.AfterSolveFaucet();
     }
 
@@ -496,16 +473,15 @@ public class MoonDashScript : FaucetScript
     /// For example if it finds one of the elements from the SuccessXPath, and it is visible, then it will flag the claim attempt as a success.
     /// Or if it finds one of the elements from the FailXPath, and it is visible, then it will flag the claim attempt as a failure.
     /// </summary>
-
     public override int CheckFaucetResult()
     {
-        return base.CheckFaucetResult();
-	/// Outputs Current Balance in log
-	var currentBalance = ElementByXPath("//a[contains(@data-bind,'text: balance().toFixed(8)')]");
-	if (IsVisible(currentBalance));
-		{
-			Log("Balance: "+ currentBalance.Text +" Dash");
-		}
-	return result;
+        var result= base.CheckFaucetResult();
+		
+		var currentBalance = ElementByXPath("//span[contains(@title,'balance:')]");
+		if (IsVisible(currentBalance));
+			{
+				Log(currentBalance.Text);
+			}
+			return result;
     }
 }
