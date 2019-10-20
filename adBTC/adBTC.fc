@@ -9,171 +9,112 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
-using System.Text.RegularExpressions;
+using System.Linq;
 //css_ref DoubleMathCaptchaUtility.dll
 namespace Adbtc
 {
-
-
     public class TemplateScript : FaucetScript
     {
-        /// <summary>
-        /// List of Settings that will be shown in the bot when selecting this Faucet in the bot.
-        /// You can get the value the user entered with the methods: GetSetting("[Name of the FaucetSetting]"), GetBoolSetting and GetDateTimeSetting
-        /// You can also create a new setting value using SetSetting("[Name you want to use]", "value")
-        /// </summary>
+
+
         public override FaucetSettings Settings
         {
             get
             {
-                
+
                 return new FaucetSettings("https://adbtc.top/")
                 {
                     new FaucetSetting(){Name="User",Display="Email",Type=EditorType.TextBox,Required=true},
                     new FaucetSetting(){Name="Pass",Display="Password",Type=EditorType.Password,Required=true },
-                    new FaucetSetting(){Name="UseMath",Display="Use MathCaptcha",Type=EditorType.CheckBox,Default=true},
-                    new FaucetSetting(){Name="TW",Display="Time wait after finish(SECONDS)",Type=EditorType.TextBox,Default=3600},
+                    new FaucetSetting(){Name="UseMath",Display="Use MathCaptcha",Type=EditorType.CheckBox,Default=false},
                     new FaucetSetting(){Name="D",Display="Disable After Finish",Type=EditorType.CheckBox,Default=false},
                     new FaucetSetting(){Name="SA",Display="Surf in active window",Type=EditorType.CheckBox,Default=true},
                     new FaucetSetting(){Name="AS",Display="Auto Surfing",Type=EditorType.CheckBox,Default=true},
-                    new FaucetSetting(){Name="OnlyMerge",Display="OnlyMerge",Type=EditorType.CheckBox,Default=true},
-                    //insert user settings here
-                    //new FaucetSetting { 
-                    //    Name = "Name of your setting", 
-                    //    Display = "Display shown in Faucet Collector", 
-                    //    Type = EditorType.TextBox | EditorType.Password | EditorType.CheckBox | EditorType.Wallet | EditorType.Numeric | EditorType.ComboBox | EditorType.CheckComboBox, 
-                    //    Required = true | false, 
-                    //    Default = "Optionally a default value" | true | false | null.
-                    //    Items = new List<string> { "item1", "item2" } (only valid for ComboBox or CheckComboBox)
-                    //} 
+
                 };
             }
         }
 
-        /// <summary>
-        /// This method gets called when the faucet is enabled and the GO button is clicked
-        /// </summary>
+
         public override void Start()
         {
-            //Title that shows in the browser. Is used to identify and close popup windows
+
             Title = "adbtc.top|DO|YOUH|You|Please solve the";
 
-            //After we did try to claim on the faucet we search for these elements to determine if it was a success or a fail
             SuccessXPath = "//p[@class='white-text flow-text']";
             FailXPath = "//a[@class='btn-large light-blue darken-4']";
-
-            //Let Faucet Collector start up everything
             base.Start();
         }
 
-        /// <summary>
-        /// This is the first method to run after the browser is opened and the first page is loaded.
-        /// </summary>
-        public override int DoInit()
-        {
-            //Let Faucet Collector continue.
-            return base.DoInit();
-        }
 
-        /// <summary>
-        /// This method gets called after the Start method, here you need to return if we are logged in or not.
-        /// If you return false then it will call the BeforeLogin, Login and AfterLogin methods so you can login.
-        /// After those Login methods are called it will call this IsLoggedIn method again to see if the login did succeed.
-        /// If you return true Faucet Collector will store all cookies so it will probably be already logged in on the next attempt.
-        /// </summary>
         public override bool IsLoggedIn()
         {
-            //In here we can check for the presence of an element that is only present when you are logged in.
-            //In this case we check for en element with the class "loggedIn"
+
             return ElementByXPath("//a[contains(@href,'logout')]") != null;
         }
 
-        /// <summary>
-        /// This method gets called if IsLoggedIn returned false, right before the DoLogin method is called.
-        /// </summary>
+
         public override int BeforeLogin()
         {
-            //This faucet has nothing to do here. We will let Faucet Collector handle it.
+            if (Driver.Url != "https://adbtc.top/")
+            {
+                GoToUrl("https://adbtc.top/");
+                Wait();
+            }
+
+            var GotoLogin = ElementByXPath("//a[@class='btn-large lime accent-2 black-text']");
+            if (!IsVisible(GotoLogin))
+            {
+                return Fail("Go to login is not visible");
+            }
+            Click(GotoLogin);
+            Wait();
+
             return base.BeforeLogin();
         }
 
-        /// <summary>
-        /// This method gets called after BeforeLogin, but only if IsLoggedIn returned false.
-        /// It can be used to actually login the user/enter wallet details in the faucet
-        /// </summary>
-        /// <returns></returns>
-
-
-
         public override int DoLogin()
         {
-            GoToUrl("https://adbtc.top/");
-            Wait();
-            IWebElement log = ElementByXPath("//a[@class='btn-large lime accent-2 black-text']");
-            if (IsVisible(log))
+
+            var AddressBox = ElementByXPath("//input[@id='addr']");
+            if (!IsVisible(AddressBox))
             {
-                Click(log);
+                return Fail("Fail To login address box is not visible");
             }
-
-            bool Bypassed = true;
-            Wait(4);
-
-            if (IsVisible(ElementByXPath("//img[contains(@src,'adbtc.top/1captcha')]")))
-            {
-                
-                    Bypassed = Solve_MathCaptcha();
-
-               
-            }
-			else{
-			var result=DoSolveCaptcha();
-			if(result>0){
-			return Fail("Fail solving captcha");
-			
-			}
-			
-			}
-
-
-            IWebElement textBox = ElementByXPath("//input[@id='addr']");
-            if (!IsVisible(textBox))
-            {
-                return Fail("Fail Login");
-            }
-            SetText(textBox, GetSetting("User"));
-            IWebElement textPass = ElementByXPath("//input[@id='secret']");
-            if (!IsVisible(textPass))
+            IWebElement PasswordBox = ElementByXPath("//input[@id='secret']");
+            if (!IsVisible(PasswordBox))
             {
                 return Fail("Fail login");
             }
 
-            SetText(textPass, GetPassword("Pass"));
-            Wait(2);
-            if (Bypassed)
+            int result = DoSolveCaptcha();
+            if (result > 0)
             {
-                IWebElement but = ElementByXPath("//input[@id='submit_btn']");
-                Click(but);
+                return Fail("Fail Solving captcha");
             }
-            IWebElement FailLogin = ElementByXPath("//div[@class='col s12 red']//p");
-            if (IsVisible(FailLogin))
+
+            SetText(AddressBox, GetSetting("User"));
+            SetText(PasswordBox, GetPassword("Pass"));
+            Wait(1);
+
+            var ButtonLogin = ElementByXPath("//input[@id='submit_btn']");
+            if (!IsVisible(ButtonLogin))
             {
-                Log(FailLogin.Text);
+                return Fail("Fail, button login is not vibisible");
+            }
+            Click(ButtonLogin);
+
+
+            var ErrorBox = ElementByXPath("//div[@class='col s12 red']//p");
+            if (IsVisible(ErrorBox))
+            {
+                Log(ErrorBox.Text);
             }
             //This faucet has nothing to do here. We will let Faucet Collector handle it.
             return base.DoLogin();
         }
-
-        /// <summary>
-        /// This method gets called after the DoLogin method.
-        /// </summary>
-        /// 
-
-
-
-
         public static string ConvertImageToBase64String(Bitmap image_)
         {
-
             using (MemoryStream ms = new MemoryStream())
             {
                 image_.Save(ms, ImageFormat.Jpeg);
@@ -186,42 +127,45 @@ namespace Adbtc
             bool IsSolved = true;
             try
             {
-                List<IWebElement> Captchas = ElementsByXPath("//img[contains(@src,'adbtc.top/1captcha')]");
+                List<IWebElement> Captchas = ElementsByXPath("//img[contains(@src,'adbtc.top/1captcha')]").Where(x => IsVisible(x)).ToList();
                 if (Captchas.Count == 2)
                 {
                     Bitmap[] Captchas__ = new Bitmap[2];
                     Captchas__[0] = TakeScreenshot(Base.Captcha.CaptchaService.Manual, Captchas[0]);
                     Captchas__[1] = TakeScreenshot(Base.Captcha.CaptchaService.Manual, Captchas[1]);
-                    bool Merge = GetBoolSetting("OnlyMerge");
-                    DoubleMathCaptchaCuter cuter = new DoubleMathCaptchaCuter(Captchas__[0], Captchas__[1], Merge);
-                    Bitmap FullCaptcha = cuter.DoInitCut();
 
-                    FullCaptcha.Save("LogImage.png");
-                    string Base64 = ConvertImageToBase64String(FullCaptcha);
+                    DoubleMathCaptchaCuter cuter = new DoubleMathCaptchaCuter(Captchas__[0], Captchas__[1], true);
+
+                    string Base64 = ConvertImageToBase64String(cuter.DoInitCut());
                     string Fullbase = "data:image/png;base64,";
                     ExecuteScript("arguments[0].setAttribute('src','" + Fullbase + Base64 + "');", Captchas[0]);
                     Wait();
-                    int result = DoSolveImageCaptcha(Captchas[0], ElementsByXPath("//input[@type='text' and not(contains(@id,'captcha')) and not(contains(@id,'number'))]")[1]);
-
-                    if (result > 0)
+                    var TextBoxCaptcha = ElementsByXPath("//input[@type='text' and not(contains(@id,'captcha')) and not(contains(@id,'number'))]").Where(x => IsVisible(x)).LastOrDefault();
+                    if (IsVisible(TextBoxCaptcha))
                     {
-                        Log("Captcha Incorrectly resolved");
-                        Driver.Navigate().Refresh();
-                        Wait(2);
-                        return Solve_MathCaptcha_();
+                        int result = DoSolveImageCaptcha(Captchas[0], TextBoxCaptcha);
+                        if (result > 0)
+                        {
+                            Log("Captcha Incorrectly resolved");
+                            Driver.Navigate().Refresh();
+                            Wait(2);
+                            return Solve_MathCaptcha_();
+                        }
+                        else if (!IsANumber(Context.CaptchaResult.Result))
+                        {
+                            Log("Captcha is not a digit trying again");
+                            FlagCaptchaAsInvalid();
+                            Driver.Navigate().Refresh();
+                            Wait(2);
+                            return Solve_MathCaptcha_();
+
+                        }
                     }
-                    if (!IsANumber(Context.CaptchaResult.Result))
+                    else
                     {
-                        Log("Captcha is not a digit trying again");
-                        FlagCaptchaAsInvalid();
-                        Driver.Navigate().Refresh();
-                        Wait(2);
-                        return Solve_MathCaptcha_();
-
+                        Log("TextBox captcha is not visible");
+                        return false;
                     }
-
-
-
                 }
                 else
                 {
@@ -240,469 +184,129 @@ namespace Adbtc
 
         }
 
-
-
-
-        public bool Solve_MathCaptcha()
-        {
-            
-            IWebElement inp = ElementByXPath("//input[@id='number']");
-            if (!IsVisible(inp))
-            {
-                IWebElement s = ElementByXPath("//input[@class='select-dropdown']");
-                Click(s);
-                Wait();
-                IWebElement drop = ElementByXPath("//span[contains(text(),'Mathematical expression')]");
-                Click(drop);
-            }
-            Wait(2);
-            int result = DoSolveImageCaptcha(ElementByXPath("//img[contains(@src,'https://adbtc.top/1captcha')]"), ElementByXPath("//input[@id='number']"));
-            if (result > 0)
-            {
-                return false;
-            }
-            string a = Context.CaptchaResult.Result;
-            a = a.ToLower();
-            string c_r = "";
-            if (a.Length > 2)
-            {
-                //+
-                string[] s = a.Split('+');
-                if (s.Length > 1)
-                {
-                    try
-                    {
-                        int n1 = Convert.ToInt32(s[0]);
-                        int n2 = Convert.ToInt32(s[1]);
-
-                        c_r = (n1 + n2).ToString();
-
-                    }
-                    catch (Exception)
-                    {
-                        for (int i = 0; i < s[0].Length; i++)
-                        {
-                            if (!char.IsDigit(s[0][i]))
-                            {
-                                s[0].Remove(i, 1);
-                            }
-                        }
-
-                        for (int i = 0; i < s[1].Length; i++)
-                        {
-                            if (!char.IsDigit(s[1][i]))
-                            {
-                                s[1].Remove(i, 1);
-                            }
-                        }
-                        try
-                        {
-                            int n1;
-                            int n2;
-                            int.TryParse(s[0],  out n1);
-                            int.TryParse(s[1],  out n2);
-                            c_r = (n1 + n2).ToString();
-                        }
-                        catch (Exception)
-                        {
-                            FlagCaptchaAsInvalid();
-                            return false;
-                        }
-                    }
-                    if (c_r != "")
-                    {
-                        IWebElement input_captcha = ElementByXPath("//input[@id='number']");
-                        SetText(input_captcha, c_r);
-                    }
-                    else
-                    {
-                        FlagCaptchaAsInvalid();
-                        return false;
-                    }
-                }
-                //-
-                s = a.Split('-');
-                if (s.Length > 1)
-                {
-                    try
-                    {
-                        int n1 = Convert.ToInt32(s[0]);
-                        int n2 = Convert.ToInt32(s[1]);
-
-                        c_r = (n1 - n2).ToString();
-
-                    }
-                    catch (Exception)
-                    {
-                        for (int i = 0; i < s[0].Length; i++)
-                        {
-                            if (!char.IsDigit(s[0][i]))
-                            {
-                                s[0].Remove(i, 1);
-                            }
-                        }
-
-                        for (int i = 0; i < s[1].Length; i++)
-                        {
-                            if (!char.IsDigit(s[1][i]))
-                            {
-                                s[1].Remove(i, 1);
-                            }
-                        }
-                        try
-                        {
-                            int n1;
-                            int n2;
-                            int.TryParse(s[0], out  n1);
-                            int.TryParse(s[1], out  n2);
-                            c_r = (n1 - n2).ToString();
-                        }
-                        catch (Exception)
-                        {
-                            FlagCaptchaAsInvalid();
-                            return false;
-                        }
-                    }
-                    if (c_r != "")
-                    {
-                        IWebElement input_captcha = ElementByXPath("//input[@id='number']");
-                        SetText(input_captcha, c_r);
-                    }
-                    else
-                    {
-                        FlagCaptchaAsInvalid();
-                        return false;
-                    }
-                }
-
-
-                //*
-                s = a.Split('*');
-                if (s.Length > 1)
-                {
-                    try
-                    {
-                        int n1 = Convert.ToInt32(s[0]);
-                        int n2 = Convert.ToInt32(s[1]);
-
-                        c_r = (n1 * n2).ToString();
-
-                    }
-                    catch (Exception)
-                    {
-                        for (int i = 0; i < s[0].Length; i++)
-                        {
-                            if (!char.IsDigit(s[0][i]))
-                            {
-                                s[0].Remove(i, 1);
-                            }
-                        }
-
-                        for (int i = 0; i < s[1].Length; i++)
-                        {
-                            if (!char.IsDigit(s[1][i]))
-                            {
-                                s[1].Remove(i, 1);
-                            }
-                        }
-                        try
-                        {
-                            int n1;
-                            int n2;
-                            int.TryParse(s[0], out n1);
-                            int.TryParse(s[1], out n2);
-                            c_r = (n1 * n2).ToString();
-                        }
-                        catch (Exception)
-                        {
-                            return false;
-                        }
-                    }
-                    if (c_r != "")
-                    {
-                        IWebElement input_captcha = ElementByXPath("//input[@id='number']");
-                        SetText(input_captcha, c_r);
-                    }
-                    else
-                    {
-                        FlagCaptchaAsInvalid();
-                        return false;
-                    }
-                }
-
-                //X
-                s = a.Split('x');
-                if (s.Length > 1)
-                {
-                    try
-                    {
-                        int n1 = Convert.ToInt32(s[0]);
-                        int n2 = Convert.ToInt32(s[1]);
-
-                        c_r = (n1 * n2).ToString();
-
-                    }
-                    catch (Exception)
-                    {
-                        for (int i = 0; i < s[0].Length; i++)
-                        {
-                            if (!char.IsDigit(s[0][i]))
-                            {
-                                s[0].Remove(i, 1);
-                            }
-                        }
-
-                        for (int i = 0; i < s[1].Length; i++)
-                        {
-                            if (!char.IsDigit(s[1][i]))
-                            {
-                                s[1].Remove(i, 1);
-                            }
-                        }
-                        try
-                        {
-                            int n1;
-                            int n2;
-                            int.TryParse(s[0], out  n1);
-                            int.TryParse(s[1], out n2);
-                            c_r = (n1 * n2).ToString();
-                        }
-                        catch (Exception)
-                        {
-                            return false;
-                        }
-                    }
-                    if (c_r != "")
-                    {
-                        IWebElement input_captcha = ElementByXPath("//input[@id='number']");
-                        SetText(input_captcha, c_r);
-                    }
-                    else
-                    {
-                        FlagCaptchaAsInvalid();
-                        return false;
-                    }
-                }
-
-
-            }
-            Wait();
-
-
-
-
-            return true;
-        }
-        public override int AfterLogin()
-        {
-            //This faucet has nothing to do here. We will let Faucet Collector handle it.
-            return base.AfterLogin();
-        }
-
-        /// <summary>
-        /// This method gets called after the login methods are successful, so we are logged into the faucet.
-        /// If the faucet is not yet ready to claim you should return a TimeStamp value to return how long it takes before the Faucet claim can be done.
-        /// This is used to pause the script while the faucet its timer runs out.
-        /// Return the number of seconds the bot should wait.
-        /// </summary>
         public override int GetFaucetWaitTime()
         {
-            int tmw = GetIntSetting("TW");
-            if (tmw < 0)
-            {
-                tmw = 0;
-            }
-            if (C_t)
-            {
-                if (GetBoolSetting("D"))
-                {
-                    Disable();
-                }
-                C_t = false;
-                return tmw;
-            }
-            IWebElement finish = ElementByXPath("//*[contains(text(),'You watched all websites for now.')]");
+            var finish = ElementByXPath("//*[contains(text(),'You watched all websites for now.')]");
             if (IsVisible(finish))
             {
-               
+
                 return GetWaitSetting();
             }
             return 0;
-
-            //let Faucet Collector continue.
-
         }
-
-        /// <summary>
-        /// This method is called right before a captcha will be solved. 
-        /// If you call SolveCaptcha() in other methods it will start this flow and tries to solve the captcha on the page.
-        /// </summary>
-        public override int BeforeSolveCaptcha()
-        {
-
-            //This faucet has nothing to do here. We will let Faucet Collector handle it.
-            return base.BeforeSolveCaptcha();
-        }
-
-      
-        /// <summary>
-        /// This method gets called after BeforeSolveCaptcha and it does the actual captcha solving
-        /// It will automatically try to see if there is a SolveMedia captcha active or a reCAPTCHA active. 
-        /// If it finds either one it will then use the selected method on the Captcha tab of FaucetCollector to solve the Captcha.
-        /// </summary>
-        public override int DoSolveCaptcha()
-        {
-            //This faucet has nothing to do here. We will let Faucet Collector handle it.
-            return base.DoSolveCaptcha();
-        }
-
-        /// <summary>
-        /// This method will get called after DoSolveCaptcha returned it was a success.
-        /// </summary>
-        /// <returns></returns>
-        public override int AfterSolveCaptcha()
-        {
-            //This faucet has nothing to do here. We will let Faucet Collector handle it.
-            return base.AfterSolveCaptcha();
-        }
-
-        /// <summary>
-        /// This method is called right before we attempt to claim on the faucet. So we are logged in and good to go.
-        /// Next methods that will be called are DoSolveFaucet, AfterSolveFaucet and CheckFaucetResult.
-        /// </summary>
         public override int BeforeSolveFaucet()
         {
-            //This faucet has nothing to do here. We will let Faucet Collector handle it.
-            return base.DoSolveFaucet();
+            var surf = ElementByXPath("//a[@href='https://adbtc.top/surf/rotator']//li[contains(@class,'collection-item')]");
+            if (!IsVisible(surf))
+            {
+                return Fail("Go to ad area button is not visible");
+            }
+            Click(surf);
+            return base.BeforeSolveFaucet();
         }
-
-        /// <summary>
-        /// This method gets called after the BeforeSolveFaucet. You can do the actual claiming of the faucet in here.
-        /// </summary>
-        /// <returns></returns>
-        public bool C_t = false;
-
-
-
         public override int DoSolveFaucet()
         {
-            int contbreak = 0;
-            bool fs = false;
-            C_t = false;
-            IWebElement surf = ElementByXPath("//a[@href='https://adbtc.top/surf/rotator']//li[contains(@class,'collection-item')]");
-            Click(surf);
-            Wait(5);
+            bool Finished = false;
+            Wait(3);
+            int ErrorCount = 0;
             do
             {
-
                 Wait(2, 3);
-                IWebElement b = ElementByXPath("//h5[@class='red-text']");
+                var b = ElementByXPath("//h5[@class='red-text']");
                 if (IsVisible(b))
                 {
                     Log(b.Text);
 
                 }
-                //< a href = "/surf/skip/313356" class="valign-wrapper red white-text btn center animated btn-large jello">Skip</a>
-                IWebElement ButtonSkip = ElementByXPath("//a[contains(@href,'/surf/skip') and contains(@class,'valign-wrapper red white-text btn center animated btn-large jello')]");
+                // View for the site failed , skipping it.
+                var ButtonSkip = ElementByXPath("//a[contains(@href,'/surf/skip') and contains(@class,'valign-wrapper red white-text btn center animated btn-large jello')]");
                 if (IsVisible(ButtonSkip))
                 {
                     Log("Add Skiped, Refreshing site");
                     Click(ButtonSkip);
                     Wait(2);
                 }
-                IWebElement comp = ElementByXPath("//input[@type='submit']");
+                // We need to solve captcha
+                var comp = ElementByXPath("//input[@type='submit']");
                 if (IsVisible(comp))
                 {
-
-
-                    if (GetBoolSetting("UseMath"))
-
+                    var result = DoSolveCaptcha();
+                    if (result > 0)
                     {
-
-                        Solve_MathCaptcha_();
-
+                        ErrorCount++;
+                        if (ErrorCount > 3)
+                        {
+                            break;
+                        }
+                        Driver.Navigate().Refresh();
+                        Wait(1);
+                        continue;
                     }
                     else
                     {
-                        IWebElement drop = ElementByXPath("//span[contains(text(),'reCaptcha')]");
-                        IWebElement s = ElementByXPath("//input[@class='select-dropdown']");
-                        Click(s);
-                        Wait();
-                        Click(drop);
-                        Wait(2);
-                        int result = SolveCaptcha();
-                        if (result > 0)
-                        {
-                            return Fail("FAil solve Captcha");
-                        }
+                        ErrorCount = 0;
                     }
-
-                    Wait(2, 3);
-                    comp = ElementByXPath("//input[@type='submit']");
-                    Click(comp);
-
                     Wait();
+                    Click(comp);
 
                 }
                 else
                 {
-                    IWebElement finish = ElementByXPath("//*[contains(text(),'You watched all websites for now.')]");
+
+                    // We finished viewing all ads
+                    var finish = ElementByXPath("//*[contains(text(),'You watched all websites for now.')]");
                     if (IsVisible(finish))
                     {
-                        fs = true;
+                        Finished = true;
                         CheckFaucetResult();
-                                         
+
                     }
+                    //We  are ready to see the ad
                     else
                     {
-                        //var a = ElementByXPath("//html//p[3]");
-
-                        //string[] time2 = a.Text.ToLower().Replace(" ", "").Replace("sec", "").Split('|');
-                        //int t_t;
-                        //try
-                        //{
-
-                        //    int time3 = Convert.ToInt32(time2[1]);
-                        //    t_t = time3;
-                        //}
-                        //catch (Exception ex)
-                        //{
-
-                        //    t_t = 50;
-                        //}
-
-                        //< a id = "jVoReQbs" class="valign-wrapper btn pulse animated lime accent-3 black-text">/Ореn/</a>
-                        IWebElement bt = ElementByXPath("//*[contains(@class,'col') and contains(@class,'nopad offset')]//a[contains(@class,'btn')]");
+                        var bt = ElementByXPath("//*[contains(@class,'col') and contains(@class,'nopad offset')]//a[contains(@class,'btn')]");
                         if (IsVisible(bt))
                         {
-                            contbreak = 0;
-                            CheckForPopupsEnabled = false;
-                            // Unique .click 
-                            Click(bt, false);
-                            Driver.SwitchTo().Window(Driver.WindowHandles[0]);
-                            DateTime t1 = DateTime.Now.AddMinutes(3);
-                            Wait(5);
-                            while (IsVisible(ElementByXPath("//div[@class='preloader-wrapper big active']")))
+                            try
                             {
-                                Wait();
-                                if (DateTime.Now > t1)
+                                ErrorCount = 0;
+                                CheckForPopupsEnabled = false;
+                                // Unique .click 
+                                var Reward = ElementsByXPath("//b[contains(text(),'satoshi')]").Where(x => IsVisible(x)).LastOrDefault();
+                                if (Reward != null)
                                 {
-                                    break;
+                                    Log("Viewing ad you will be credited with " + Reward.Text);
+                                }
 
+                                Click(bt, false);
+                                Driver.SwitchTo().Window(Driver.WindowHandles[0]);
+                                DateTime t1 = DateTime.Now.AddMinutes(3);
+                                Wait(5);
+                                while (IsVisible(ElementByXPath("//div[@class='preloader-wrapper big active']")))
+                                {
+                                    Wait();
+                                    if (DateTime.Now > t1)
+                                    {
+                                        break;
+
+                                    }
                                 }
                             }
-                            Wait(2);
-                            CheckForPopupsEnabled = true;
-                            CheckForPopups();
-                            Wait(2);
+                            finally
+                            {
+                                Wait(2);
+                                CheckForPopupsEnabled = true;
+                                CheckForPopups();
+                            }
                         }
                         else
                         {
-                            contbreak++;
-                            Log("Something is wrong Button to see ad isn't visible");
+                            ErrorCount++;
+                            Log("Something is wrong Button to see ad isn't visible, Probably there is a problem with the site or we already have finished view the ads");
                             Wait(5);
-                            if (contbreak >= 3)
+                            if (ErrorCount >= 2)
                             {
+                                Log("We finished view of the ads");
                                 break;
                             }
                         }
@@ -710,31 +314,30 @@ namespace Adbtc
                     }
 
                 }
-            } while (!fs);
-
+            } while (!Finished);
 
 
             if (GetBoolSetting("SA"))
             {
-                IWebElement button_surf = ElementByXPath("//a[@href='http://adbtc.top/surftab/inf']");
-                if (IsVisible(button_surf))
+                var GotoSurfAds = ElementByXPath("//a[@href='http://adbtc.top/surftab/inf']");
+                if (IsVisible(GotoSurfAds))
                 {
-                    Click(button_surf);
+                    Click(GotoSurfAds);
                 }
                 else
                 {
                     GoToUrl("http://adbtc.top/surftab/inf");
                 }
                 Wait(2);
-                List<IWebElement> ads = ElementsByXPath("//a[@class='open']");
+                var ads = ElementsByXPath("//a[@class='open']").Where(x => IsVisible(x)).ToList();
                 Log(ads.Count.ToString() + " Active ads detected");
                 int n = 0;
-                int cont_b = 0;
-                while (ads.Count > n && cont_b <= 3)
+                int CountErrors = 0;
+                while (ads.Count > n && CountErrors <= 3)
                 {
                     try
                     {
-                        
+
 
                         CheckForPopupsEnabled = false;
                         Click(ads[n], false);
@@ -755,16 +358,27 @@ namespace Adbtc
                             }
                         }
                         Wait();
-                        bool solved = solve_image_catpcha();
+                        bool solved = SolveIcons();
                         if (!solved)
                         {
-                            cont_b++;
+                            CountErrors++;
                         }
                         Wait(3);
-                        if (IsVisible(ElementByXPath("//span[@id='tmr' and contains(text(),'You already watched')]")))
+                        if (IsVisible(ElementByXPath("//span[@id='tmr']")))
                         {
                             n++;
                         }
+                    }
+                    catch (Exception)
+                    {
+                        CheckForPopupsEnabled = true;
+                        CheckForPopups();
+                        Driver.SwitchTo().Window(Driver.WindowHandles[0]);
+                        CountErrors++;
+                        n++;
+                    }
+                    finally
+                    {
                         CheckForPopupsEnabled = true;
                         CheckForPopups();
                         Driver.SwitchTo().Window(Driver.WindowHandles[0]);
@@ -777,31 +391,20 @@ namespace Adbtc
                             GoToUrl("http://adbtc.top/surftab/inf");
                         }
                         Wait(3);
-                        ads = ElementsByXPath("//a[@class='open']");
-                    }
-
-                    catch (Exception)
-                    {
-                        CheckForPopupsEnabled = true;
-                        CheckForPopups();
-                        Driver.SwitchTo().Window(Driver.WindowHandles[0]);
-                        cont_b++;
-                        n++;
+                        ads = ElementsByXPath("//a[@class='open']").Where(x => IsVisible(x)).ToList(); ;
                     }
                 }
-
-
-
             }
+
             Wait();
-            if (GetBoolSetting("SA"))
+            if (GetBoolSetting("AS"))
             {
                 try
                 {
-                    IWebElement Click_ad = ElementByXPath("//a[@href='http://adbtc.top/autosurf/inf']");
-                    if (IsVisible(Click_ad))
+                    var GotoAutoSurf = ElementByXPath("//a[@href='http://adbtc.top/autosurf/inf']");
+                    if (IsVisible(GotoAutoSurf))
                     {
-                        Click(Click_ad);
+                        Click(GotoAutoSurf);
                     }
                     else
                     {
@@ -810,7 +413,7 @@ namespace Adbtc
 
                     }
                     Wait();
-                    IWebElement button = ElementByXPath("//a[@id='start']");
+                    var button = ElementByXPath("//a[@id='start']");
                     if (IsVisible(button))
                     {
                         CheckForPopupsEnabled = false;
@@ -845,32 +448,41 @@ namespace Adbtc
 
             if (GetBoolSetting("D"))
             {
+                Log("Ads finished");
                 Disable();
             }
             return GetWaitSetting();
-            //This faucet has nothing to do here. We will let Faucet Collector handle it.
- 
+
         }
-
-
-
-        /// <summary>
-        /// This method will get called after the DoSolveFaucet is completed and returned it was a success.
-        /// For example you can wait for a processing popup to go away until actual faucet claim result is on the page.
-        /// </summary>
-        public override int AfterSolveFaucet()
+        public override int DoSolveCaptcha()
         {
-            //This faucet has nothing to do here. We will let Faucet Collector handle it.
-            return base.AfterSolveFaucet();
+            var SwitchCaptcha = ElementByXPath("//input[@class='select-dropdown']");
+            if (IsVisible(SwitchCaptcha))
+            {
+                Click(SwitchCaptcha);
+                Wait(1);
+                var SelectCaptcha = GetBoolSetting("UseMath") ?
+                    ElementByXPath("//ul[contains(@id,'select-options')]//span[not(contains(text(),'reCaptcha'))]")
+                    : ElementByXPath("//span[contains(text(),'reCaptcha')]");
+
+                if (SelectCaptcha != null)
+                {
+                    Click(SelectCaptcha);
+                }
+            }
+
+            if (IsVisible(ElementByXPath("//img[contains(@src,'adbtc.top/1captcha')")))
+            {
+                return Solve_MathCaptcha_() ? 0 : 1;
+            }
+
+            return base.DoSolveCaptcha();
         }
-
-        public bool solve_image_catpcha()
+        public bool SolveIcons()
         {
-            bool IsSolved = false;
-
             try
             {
-                List<IWebElement> capt = ElementsByXPath("//img[contains(@src,'/icons/')]");
+             var capt = ElementsByXPath("//img[contains(@src,'/icons/')]");
 
                 Wait();
                 Bitmap[] icons = new Bitmap[4];
@@ -902,16 +514,13 @@ namespace Adbtc
 
                 }
                 Click(capt[result]);
-                IsSolved = true;
+                return true;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                IsSolved = false;
+                Log(ex.ToString());
             }
-
-
-
-            return IsSolved;
+            return false;
         }
         private bool CompareImage(Bitmap image1, Bitmap image2)
         {
@@ -940,27 +549,7 @@ namespace Adbtc
         }
         private static bool IsANumber(string number)
         {
-            Regex r = new Regex("^[+-]?[0-9]{1,9}(?:.[0-9]{1,2})?$");
-            if (r.IsMatch(number))
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-        }
-        /// <summary>
-        /// This method gets called in the end after the BeforeSolveFaucet/DoSolveFaucet and AfterSolveFaucet methods were done.
-        /// The base.CheckFaucetResult will try to find a visible element on the page using the XPath from SuccessXPath and FailXPath (see the Start method)
-        /// These properties should contain XPath expressions to find certain elements on the page.
-        /// For example if it finds one of the elements from the SuccessXPath, and it is visible, then it will flag the claim attempt as a success.
-        /// Or if it finds one of the elements from the FailXPath, and it is visible, then it will flag the claim attempt as a failure.
-        /// </summary>
-        public override int CheckFaucetResult()
-        {
-            //This faucet has nothing to do here. We will let Faucet Collector handle it.
-            return base.CheckFaucetResult();
+            return number.All(x => char.IsDigit(x));
         }
     }
 
