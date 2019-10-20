@@ -470,7 +470,7 @@ public class MoonLiteCoinScript_ : FaucetScript
         /// return base.CheckFaucetResult();
 		var result= base.CheckFaucetResult();
 		var currentBalance = ElementByXPath("//span[contains(@title,'balance:')]");
-		if (IsVisible(currentBalance));
+		if (IsVisible(currentBalance))
 			{
 				Log("Balance: " + currentBalance.Text + " LTC");
 			}
