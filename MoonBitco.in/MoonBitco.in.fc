@@ -32,7 +32,7 @@ public class MoonBitcoinScript : FaucetScript
     /// </summary>
     public override void Start()
     {
-
+     
         OverriteSolvemedia = false;
         //Title that shows in the browser. Is used to close popups
         Title = "moon bitcoin";
@@ -42,7 +42,7 @@ public class MoonBitcoinScript : FaucetScript
         FailXPath = "//*[@id='BodyPlaceholder_FailedClaimPanel']";
 
         //The moon faucet its counter is going up
-
+  
 
         //Let Faucet Collector start up everything
         base.Start();
@@ -62,8 +62,8 @@ public class MoonBitcoinScript : FaucetScript
     }
     public override int DoInit()
     {
-
-
+     
+    
 
         return base.DoInit();
     }
@@ -75,7 +75,7 @@ public class MoonBitcoinScript : FaucetScript
     /// </summary>
     public override bool IsLoggedIn()
     {
-
+    
         //If there is an element that has the class "SignedInPaymentAddress" then we are logged in - that element is only present when you are logged in.
         return ElementById("SignedInPaymentAddress") != null;
     }
@@ -137,7 +137,7 @@ public class MoonBitcoinScript : FaucetScript
 
         //There is a captcha on the login popup, so we need to solve that before clicking the submit button.
         //We use the SolveCaptcha method for this. SolveCaptcha will call BeforeSolveCaptcha, DoSolveCaptcha and AfterSolveCaptcha
-        //The DoSolveCaptcha method does the actual solving - it checks if there is a SolveMedia Captcha or a reCAPTCHA present on the page
+        //The DoSolveCaptcha method does the actual solving - it checks if there is a SolveMedia Captcha or a reCAPTCHA present on the page 
         //and will solves that one using the selected method entered in Faucet Collector on the Captcha tab.
         //In this script we only override BeforeSolveCaptcha (see below) to enable SolveMedia or reCAPTCHA based on the user settings.
         var result = SolveCapt();
@@ -149,7 +149,7 @@ public class MoonBitcoinScript : FaucetScript
 
         //Now we can click the submit button.
         Click(submitButton);
-
+        
         //Let Faucet Collector continue
         return base.DoLogin();
     }
@@ -245,7 +245,7 @@ public class MoonBitcoinScript : FaucetScript
         if (IsVisible(ButtonClaim))
         {
             return 0;
-        }
+        }      
         else
         {
             return 300;
@@ -254,20 +254,20 @@ public class MoonBitcoinScript : FaucetScript
     }
 
     /// <summary>
-    /// This method is called right before a captcha will be solved.
+    /// This method is called right before a captcha will be solved. 
     /// If you call SolveCaptcha() in other methods it will start this flow and tries to solve the captcha on the page.
     /// </summary>
     public override int BeforeSolveCaptcha()
     {
-
-
+       
+        
         //Return we are ready to proceed
         return base.BeforeSolveFaucet();
     }
 
     /// <summary>
     /// This method gets called after BeforeSolveCaptcha and it does the actual captcha solving
-    /// It will automatically try to see if there is a SolveMedia captcha active or a reCAPTCHA active.
+    /// It will automatically try to see if there is a SolveMedia captcha active or a reCAPTCHA active. 
     /// If it finds either one it will then use the selected method on the Captcha tab of FaucetCollector to solve the Captcha.
     /// </summary>
     public override int DoSolveCaptcha()
@@ -278,7 +278,7 @@ public class MoonBitcoinScript : FaucetScript
             //Make sure SolveMedia is active by clicking the link.
             var Change = ElementByXPath("//a[contains(text(),'Switch to SolveMedia captcha')]");
             if (IsVisible(Change)) { ExecuteScript("arguments[0].click()", Change); }
-
+            
             Wait(2);
                                     IWebElement Iframe = ElementByXPath("//iframe[contains(@src,'api-secure.solvemedia')]") ?? ElementByXPath("//iframe[contains(@src,'api.solvemedia.com')]");
                 if (Iframe == null && ElementByXPath("//input[@id='adcopy_response']|//input[@name='adcopy_response']")==null && GetBoolSetting("SwitchC"))
@@ -295,7 +295,7 @@ public class MoonBitcoinScript : FaucetScript
 
                 }
 
-
+            
 
         }
         else if(!GetBoolSetting("UseSolvemedia") || GetBoolSetting("SwitchC"))
@@ -343,8 +343,8 @@ public class MoonBitcoinScript : FaucetScript
             Log("Seems that the site is offline, Cloudflare is visible you need to wait");
             return GetFaucetWaitTime();
         }
-
-
+		
+			
         //Find the button to open the popup window where we can solve the captcha and claim on the faucet.
         var claimButton = ElementById("SubmitButton");
         DateTime Timeout = DateTime.Now.AddSeconds(15);
@@ -354,7 +354,7 @@ public class MoonBitcoinScript : FaucetScript
             claimButton = ElementById("SubmitButton");
             if (DateTime.Now > Timeout) { break; }
         }
-
+		
         if (!IsVisible(claimButton))
         {
             //We couldn't find the button, return we have a failure.
@@ -374,7 +374,7 @@ public class MoonBitcoinScript : FaucetScript
     /// <returns></returns>
     public override int DoSolveFaucet()
     {
-
+   
         var submitButton = ElementByXPath("//div[@id='CaptchaPopup']//input[@class='submit-button']");
         if (!IsVisible(submitButton))
         {
@@ -384,7 +384,7 @@ public class MoonBitcoinScript : FaucetScript
 
         //We need to solve the captcha on this page before clicking the Login button.
         //We use the SolveCaptcha method for this. SolveCaptcha will call BeforeSolveCaptcha, DoSolveCaptcha and AfterSolveCaptcha
-        //The DoSolveCaptcha method does the actual solving - it checks if there is a SolveMedia Captcha or a reCAPTCHA present on the page
+        //The DoSolveCaptcha method does the actual solving - it checks if there is a SolveMedia Captcha or a reCAPTCHA present on the page 
         //and will solves that one using the selected method entered in Faucet Collector on the Captcha tab.
         //In this script we only override BeforeSolveCaptcha (see above) to enable SolveMedia or reCAPTCHA based on the user settings.
         var result = SolveCapt();
@@ -398,7 +398,7 @@ public class MoonBitcoinScript : FaucetScript
         Click(submitButton);
 
         Wait();
-
+        
 	//click as long as there are popups...
         submitButton = ElementByXPath("//div[@id='CaptchaPopup']//input[@class='submit-button']");
         int attempts = 0;
@@ -434,7 +434,7 @@ public class MoonBitcoinScript : FaucetScript
     /// </summary>
     public bool CheckForCloudFlare(int tries=0,int maxTries=2)
     {
-
+      
         bool IsNotInCloudFlare = false;
         if (tries < maxTries)
         {
@@ -467,12 +467,14 @@ public class MoonBitcoinScript : FaucetScript
     }
     public override int CheckFaucetResult()
     {
-        return base.CheckFaucetResult();
-        var currentBalance = ElementByXPath("//span[contains(@title,'balance:')]");
-        if (IsVisible(currentBalance));
-          {
-            Log("Balance: " + currentBalance.Text + " BTC");
-          }
-          return result;
+        var result= base.CheckFaucetResult();
+		
+		var currentBalance = ElementByXPath("//span[contains(@title,'balance:')]")
+		if (IsVisible(currentBalance));
+		{
+			Log("Balance: " + currentBalance.Text + " BTC");
+		}
+		return result;
+	
     }
 }
