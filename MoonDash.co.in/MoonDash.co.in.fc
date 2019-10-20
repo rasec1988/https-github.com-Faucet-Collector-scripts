@@ -500,11 +500,11 @@ public class MoonDashScript : FaucetScript
     public override int CheckFaucetResult()
     {
         var result= base.CheckFaucetResult();
-		var currentBalance = ElementByXPath("//a[contains(@data-bind,'text: balance().toFixed(8)')]");
-		if (IsVisible(currentBalance));
-		{
-			Log("Balance: "+ currentBalance.Text +" Dash");
-		}
-		return result;
+	var currentBalance = ElementByXPath("//a[contains(@data-bind,'text: balance().toFixed(8)')]");
+	if (IsVisible(currentBalance))
+	{
+		Log("Balance: "+ currentBalance.Text +" Dash");
+	}
+	return result;
     }
 }
