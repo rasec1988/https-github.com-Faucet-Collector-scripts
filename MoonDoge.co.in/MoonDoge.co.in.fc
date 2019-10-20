@@ -477,11 +477,11 @@ public class MoonDogeScript : FaucetScript
     {
         var result= base.CheckFaucetResult();
 		
-		var currentBalance = ElementByXPath("//span[contains(@title,'balance:')]");
-		if (IsVisible(currentBalance));
-			{
-				Log(currentBalance.Text);
-			}
-			return result;
+	var currentBalance = ElementByXPath("//span[contains(@title,'balance:')]");
+	if (IsVisible(currentBalance))
+		{
+			Log(currentBalance.Text);
+		}
+		return result;
     }
 }
