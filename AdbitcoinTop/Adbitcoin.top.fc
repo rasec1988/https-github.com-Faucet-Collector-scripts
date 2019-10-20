@@ -1,0 +1,143 @@
+﻿using System;
+using System.Linq;
+using FaucetCollector.Script;
+    class AdbitcoinScript:FaucetScript
+    {
+    public override FaucetSettings Settings {
+
+        get
+        {
+            return new FaucetSettings("https://adbitcoins.top")
+            {
+                new FaucetSetting(){Name="User",Display="Username/Email",Type=EditorType.TextBox,Required=true},
+                new FaucetSetting(){Name="Pass",Display="Password",Type=EditorType.Password,Required=true},
+                
+            };
+
+        }
+    }
+    public override void Start()
+    {
+
+        Title = "Adbitcoins.top";
+
+        SuccessXPath = "//*[contains(text(),'GREAT')]";
+        FailXPath = "//div[@id='surf_status']";
+
+        base.Start();
+    }
+
+    public override int DoLogin()
+    {
+        if (!Driver.Url.Contains("https://adbitcoins.top/login"))
+        {
+            GoToUrl("https://adbitcoins.top/login");
+            Wait();
+        }
+
+        var UserBox = ElementByXPath("//input[@id='username']");
+        if (!IsVisible(UserBox))
+        {
+            return Fail("User box is not visible");
+        }
+        SetText(UserBox, GetSetting("User"));
+
+        var PassswordBox = ElementByXPath("//input[@id='password']");
+        if (!IsVisible(PassswordBox))
+        {
+            return Fail("Fail setting passwordbox");
+        }
+        SetText(PassswordBox, GetPassword("Pass"));
+        var result = DoSolveCaptcha();
+        if (result > 0)
+        {
+            return Fail("Fail solving captcha");
+        }
+        var ButtonLogin = ElementByXPath("//button[@id='button']");
+        if (!IsVisible(ButtonLogin))
+        {
+            return Fail("Button login is not visible");
+        }
+        Click(ButtonLogin);
+
+        var ErrorMessage = ElementByXPath("//span[@data-notify='message']");
+
+        if (IsVisible(ErrorMessage))
+        {
+            Log(ErrorMessage.Text);
+        }
+
+        return base.DoLogin();  
+    }
+    public override bool IsLoggedIn()
+    {
+
+        return ElementByXPath("//a[@href='/logout']") != null;
+    }
+    public override int DoSolveFaucet()
+    {
+        //Go to surf
+        GoToUrl("https://adbitcoins.top/surf");
+
+        var ButtonSurf = ElementByXPath("//button[@class='btn btn-primary start-btn']");
+        while (IsVisible(ButtonSurf))
+        {
+            try
+            {
+                CheckForPopupsEnabled = false;
+
+                Click(ButtonSurf,false);
+                Driver.SwitchTo().Window(Driver.WindowHandles.Last());
+                Wait();
+                Driver.SwitchTo().Window(Driver.WindowHandles.FirstOrDefault());
+
+                var Timer = ElementByXPath("//span[@id='timer']");
+                DateTime Timeout = DateTime.Now.AddSeconds(150);
+                while (IsVisible(Timer) && Timer.Text!="0" && !IsVisible(ElementByXPath("//button[@id='tryCaptcha']")) && DateTime.Now<Timeout)
+                {
+
+                    Wait(1);
+
+                    Timer = ElementByXPath("//span[@id='timer']");
+                }
+
+                var ButtonCaptcha = ElementByXPath("//button[@id='tryCaptcha']");
+                if (IsVisible(ButtonCaptcha))
+                {
+                    var result = DoSolveCaptcha();
+                    if (result > 0)
+                    {
+                        continue;
+
+                    }
+                    Click(ButtonCaptcha);
+                    Wait(1);
+                    CheckFaucetResult();
+                }
+            }
+            finally
+            {
+                CheckForPopupsEnabled = true;
+                CheckForPopups();              
+                Driver.SwitchTo().Window(Driver.WindowHandles.FirstOrDefault());
+                Driver.Navigate().Refresh();
+                Wait(3);
+                ButtonSurf = ElementByXPath("//button[@class='btn btn-primary start-btn']");
+            }
+        }
+        return base.DoSolveFaucet();    
+    }
+
+    public override int DoSolveCaptcha()
+    {
+        var ImgCaptcha = ElementByXPath("//img[@id='imgCaptcha']");
+        var CaptchaBox = ElementByXPath("//input[@id='captcha']");
+        if (IsVisible(ImgCaptcha) && IsVisible(CaptchaBox))
+        {
+            return DoSolveImageCaptcha(ImgCaptcha, CaptchaBox);
+        }
+
+        return base.DoSolveCaptcha();
+    }
+}
+
