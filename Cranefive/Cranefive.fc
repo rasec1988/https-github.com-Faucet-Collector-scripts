@@ -1,0 +1,245 @@
+﻿using System;
+using FaucetCollector.Script;
+using System.Linq;
+public class CranefiveScript : FaucetScript
+{
+    /// <summary>
+    /// List of Settings that will be shown in the bot when selecting this Faucet in the bot.
+    /// You can get the value the user entered with the methods: GetSetting("[Name of the FaucetSetting]"), GetBoolSetting and GetDateTimeSetting
+    /// You can also create a new setting value using SetSetting("[Name you want to use]", "value")
+    /// </summary>
+    public override FaucetSettings Settings
+    {
+        get
+        {
+            return new FaucetSettings("https://cranefive.com/")
+            {
+                new FaucetSetting()
+                {
+                    Name="User",Display="EmailAdress",Type=EditorType.TextBox,Required=true,
+                },
+                 new FaucetSetting()
+                {
+                    Name="Pass",Display="Password",Type=EditorType.Password,Required=true,
+                },
+                 new FaucetSetting()
+                 {
+                     Name="Coin",Display="Coin To Claim",Type=EditorType.ComboBox,Items=AvailableCoins.ToList(),Default=AvailableCoins.FirstOrDefault()
+                 }
+
+
+
+            };
+        }
+    }
+    readonly string[] AvailableCoins = new string[] { "ZEN", "BTG", "BSV", "EOS" };
+
+
+    string Coin { get {
+            var CoinSelected = GetSetting("Coin").ToLower();
+            if (AvailableCoins.Any(x => x.ToLower() == CoinSelected))
+            {
+                return CoinSelected;
+            }
+            return AvailableCoins.FirstOrDefault();
+        } }
+
+
+    string FaucetUrl
+    {
+        get
+        {
+            return "https://cranefive.com/faucets/" + Coin;
+        }
+    }
+    public override void Start()
+    {
+        //Title that shows in the browser. Is used to identify and close popup windows
+        Title = "faucet|2bit|sova|"+Coin.ToUpper();
+        
+      
+        //After we did try to claim on the faucet we search for these elements to determine if it was a success or a fail
+        SuccessXPath = "//p[@class='won']";
+        FailXPath = "//form[@id='catch']//p[@class='alert-danger']";
+
+        //Let Faucet Collector start up everything
+        base.Start();
+    }
+
+    public override bool IsLoggedIn()
+    {
+        GoToUrl(FaucetUrl);
+        Wait(2, 3);
+        if (IsVisible(ElementByXPath("//span[@class='countdown-row countdown-show2']")))
+        {
+            return true;
+        }
+        //In here we can check for the presence of an element that is only present when you are logged in.
+        //In this case we check for en element with the class "loggedIn"
+        return false;
+    }
+    public override int DoLogin()
+    {
+        GoToUrl("https://cranefive.com/user");
+        Wait();
+        var UserBox = ElementByXPath("//input[@name='user_email']");
+        if (!IsVisible(UserBox))
+        {
+            return Fail("Fail Box user no found");
+        }
+        SetText(UserBox, GetSetting("User"));
+        Wait();
+        var PasswordBox = ElementByXPath("//input[@name='user_pass']");
+        if (!IsVisible(PasswordBox))
+        {
+            return Fail("Box pass no found");
+        }
+        SetText(PasswordBox, GetPassword("Pass"));
+        Wait();
+        var result = DoSolveCaptcha();
+        if (result > 0)
+        {
+            return Fail("Fail solve captcha");
+        }
+        var ButtonLogin = ElementByXPath("//button[@type='submit']");
+        if (!IsVisible(ButtonLogin))
+        {
+            return Fail("Button Login no found");
+        }
+        Click(ButtonLogin);
+        Wait();
+
+        var Error = ElementByXPath("//p[@class='err']");
+        if (IsVisible(Error))
+        {
+            Log(Error.Text);
+            if(Error.Text.ToLower().Contains("password") || Error.Text.ToLower().Contains("e-mail"))
+            {
+                Disable();
+                return Fail("Your credentials are invalid please correct your credentials and them enable the script again");
+            }
+        }
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoLogin();
+    }
+
+    /// <summary>
+    /// This method gets called after the DoLogin method.
+    /// </summary>
+    public override int AfterLogin()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterLogin();
+    }
+
+    /// <summary>
+    /// This method gets called after the login methods are successful, so we are logged into the faucet.
+    /// If the faucet is not yet ready to claim you should return a TimeStamp value to return how long it takes before the Faucet claim can be done.
+    /// This is used to pause the script while the faucet its timer runs out.
+    /// Return the number of seconds the bot should wait.
+    /// </summary>
+    public override int GetFaucetWaitTime()
+    {
+        if (!Driver.Url.Contains(FaucetUrl))
+        {
+            GoToUrl(FaucetUrl);
+        }
+        Wait(2, 4);
+        var minutes = ElementByXPath("//html//span[@class='countdown-row countdown-show2']/span[1]/span[1]");
+        var seconds = ElementByXPath("//html//span[2]/span[1]");
+        if (IsVisible(minutes) && IsVisible(seconds))
+        {
+            var tt = Convert.ToInt32(minutes.Text) + Convert.ToInt32(seconds.Text);
+            return tt;
+        }
+
+        return base.GetFaucetWaitTime();
+        //let Faucet Collector continue.
+    }
+
+
+    public override int DoSolveFaucet()
+    {
+        if (!Driver.Url.Contains(FaucetUrl))
+        {
+            GoToUrl(FaucetUrl);
+        }
+        var FirstButtonClaim = ElementByXPath("//button[@id='claim']");
+        if (!IsVisible(FirstButtonClaim))
+        {
+            return Fail("Button claim not visible");
+        }
+        Click(FirstButtonClaim);
+        Wait(2, 4);
+        var ButtonGotoShort2 = ElementByXPath("//a[@rel='nofollow'][contains(text(),'Get reward')]");
+        if (!IsVisible(ButtonGotoShort2))
+        {
+            return Fail("Button claim2 not visible");
+        }
+        Click(ButtonGotoShort2);
+        Wait(2, 4);
+        DateTime Timeout = DateTime.Now.AddSeconds(20);
+
+        var ButtonNext = ElementByXPath("//button[contains(text(),'NEXT STEP')]");
+        while (!IsVisible(ButtonNext))
+        {
+            ButtonNext = ElementByXPath("//button[contains(text(),'NEXT STEP')]");
+            Wait();
+            if (DateTime.Now > Timeout) { break; }
+        }
+        Wait(1);
+        Click(ButtonNext);
+        Wait(2, 4);
+
+        int count = 0;
+        bool IsFinished = false;
+        var ButtonNext2_ = ElementByXPath("//button[@class='custom-link btn border-width-0 btn-color-432516 btn-circle btn-icon-left']");
+        Timeout = DateTime.Now.AddSeconds(20);
+        while (!IsVisible(ButtonNext2_))
+        {
+            ButtonNext2_ = ElementByXPath("//button[@class='custom-link btn border-width-0 btn-color-432516 btn-circle btn-icon-left']");
+            Wait();
+            if (DateTime.Now > Timeout) { break; }
+
+        }
+        Wait();
+        Click(ButtonNext2_);
+        Wait();
+        while (!IsFinished && count < 3)
+        {
+            var result = DoSolveCaptcha();
+            if (result > 0)
+            {
+                return Fail("Fail Solving");
+
+            }
+            var ButtonNext2 = ElementByXPath("//button[@class='btn btn-lg btn-success']");
+            DateTime Timeout_ = DateTime.Now.AddSeconds(20);
+            while (!IsVisible(ButtonNext2))
+            {
+                ButtonNext2 = ElementByXPath("//button[@class='btn btn-lg btn-success']");
+                Wait();
+                if (DateTime.Now > Timeout_) { break; }
+            }
+            Click(ButtonNext2);
+            Wait(1);
+
+            var Error = ElementByXPath("//p[contains(text(),'captcha invalid!')]");
+            if (!IsVisible(Error))
+            {
+                IsFinished = true;
+            }
+            count++;
+
+
+        }
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoSolveFaucet();
+    }
+    public override int CheckFaucetResult()
+    {
+        Reload = false;
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.CheckFaucetResult();
+    }
+}
