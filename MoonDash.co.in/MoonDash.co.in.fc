@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Text.RegularExpressions;
 using FaucetCollector.Script;
 using OpenQA.Selenium;
@@ -356,7 +356,8 @@ public class MoonDashScript : FaucetScript
             return GetFaucetWaitTime();
         }
         CloseModal();
-
+	
+	
         //Find the button to open the popup window where we can solve the captcha and claim on the faucet.
         var claimButton = ElementByXPath("//button[@data-target='#ClaimModal']");
         DateTime Timeout = DateTime.Now.AddSeconds(15);
@@ -498,6 +499,12 @@ public class MoonDashScript : FaucetScript
 
     public override int CheckFaucetResult()
     {
-        return base.CheckFaucetResult();
+        var result= base.CheckFaucetResult();
+	var currentBalance = ElementByXPath("//a[contains(@data-bind,'text: balance().toFixed(8)')]");
+	if (IsVisible(currentBalance))
+	{
+		Log("Balance: "+ currentBalance.Text +" Dash");
+	}
+	return result;
     }
 }
