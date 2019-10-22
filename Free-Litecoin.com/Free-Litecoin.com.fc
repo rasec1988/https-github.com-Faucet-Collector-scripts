@@ -65,7 +65,7 @@ public class freeLitecoinScript : FaucetScript
         Wait();
         SetText(signInPassword, GetSetting("ps"));
 
-        var loginButton = ElementByXPath("//button[contains(@class, 'btn-succes')]");
+        var loginButton = ElementByXPath("//button[@class='btn btn-primary btn-lg']");
         if (!IsVisible(loginButton))
         {
  
