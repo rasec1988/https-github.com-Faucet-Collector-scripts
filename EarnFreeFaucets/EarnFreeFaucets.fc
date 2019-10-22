@@ -1,0 +1,185 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using FaucetCollector.Script;
+//css_inc RecaptchaUtilities
+    class EarnFreeScript : FaucetScript
+    {
+
+    public override FaucetSettings Settings
+    {
+        get
+        {
+            return new FaucetSettings("about:blank")
+            {
+                new FaucetSetting(){Name="User",Display="Username",Type=EditorType.TextBox,Required=true},
+                new FaucetSetting(){Name="Pass",Display="Password",Type=EditorType.Password,Required=true},
+                //Available faucets
+                new FaucetSetting(){
+                    Name ="Faucet",
+                    Display ="Faucet",
+                    Type =EditorType.ComboBox,
+                    Items =AvailableFaucets.Keys.ToList(),
+                    Default =AvailableFaucets.Keys.FirstOrDefault()
+                }
+
+            };
+        }
+
+    }
+
+    private Dictionary<string, string> AvailableFaucets = new Dictionary<string, string>
+    {
+        {"ADA","earnfree-ada.xyz" },
+        {"ZEC","earnfree.xyz" },        
+        {"BCH","earnfree-bch.xyz" },
+        {"DASH","earnfree-dash.xyz" },
+        {"DGB","earnfree-dgb.xyz" },
+        {"ETC","earnfree-etc.xyz" },
+        {"ETH","earnfree-eth.xyz" },
+        {"LTC","earnfree-ltc.xyz" },
+        {"TRX","earnfree-trx.xyz" }
+    };
+    private string AbsoluteUrl { get
+        {
+            string SettingUrl = GetSetting("Faucet");
+            if (AvailableFaucets.ContainsKey(SettingUrl))
+            {
+                return AvailableFaucets[SettingUrl];
+            }
+            return AvailableFaucets.Values.FirstOrDefault();
+        }
+    }
+    private string Url_
+    {
+        get
+        {
+            return "https://" + AbsoluteUrl;
+        }
+    }
+    
+    public override void Start()
+    {
+        
+        Title = AvailableFaucets.FirstOrDefault(x => x.Value == AbsoluteUrl).Key;
+        SuccessXPath = "//div[@id='newClaim']";
+        FailXPath = "//span[@class='error']";
+        
+        base.Start();
+        Url = Url_;
+    }
+    public override int DoLogin()
+    {
+        string LoginUrl = Url_+"/login";
+        if (Driver.Url != LoginUrl)
+        {
+            GoToUrl(LoginUrl);
+            Wait();
+        }
+        var UserBox = ElementByXPath("//input[@name='Funame']");
+        if (!IsVisible(UserBox))
+        {
+            return Fail("User box not found");
+        }
+        var PasswordBox = ElementByXPath("//input[@name='Fpass']");
+        if (!IsVisible(PasswordBox))
+        {
+            return Fail("Password box not found");
+        }
+        SetText(UserBox, GetSetting("User"));
+        SetText(PasswordBox, GetSetting("Pass"));
+        Wait(1);
+        //We click the button remember me to save the login for further claims
+        var RememberButton = ElementByXPath("//input[@name='Freme']");
+        if (IsVisible(RememberButton))
+        {
+            Click(RememberButton);
+            Wait(1);
+        }
+
+        var LoginButton = ElementByXPath("//input[@value='Login']");
+        if (!IsVisible(LoginButton))
+        {
+            return Fail("Login button not found");
+        }
+
+        Click(LoginButton);
+        // There are another errors but not visible
+        var Error = ElementsByXPath("//span[@class='error']").FirstOrDefault(x => IsVisible(x));
+        if (Error != null)
+        {
+            Log(Error.Text);
+            if (Error.Text.Contains("Enter valid login details"))
+            {
+                Disable();
+                return Fail("You have entered invalid credentials, please review it and enable again the script");
+            }
+        }
+
+        return base.DoLogin();  
+    }
+    public override bool IsLoggedIn()
+    {
+        return ElementByXPath("//a[contains(@href,'logout')]") != null;   
+    }
+    public override int DoSolveFaucet()
+    {
+        GoToUrl(Url_ + "/faucet");
+        Wait();
+        var ButtonClaim = ElementByXPath("//button[@id='fbtn']");
+        if (!IsVisible(ButtonClaim))
+        {
+            return Fail("Button claim is not visible");
+        }
+
+        var result = DoSolveCaptcha();
+        if (result > 0)
+        {
+            return Fail("Fail solving captcha");
+        }
+
+        Click(ButtonClaim);
+
+        return base.DoSolveFaucet();    
+    }
+    public override int DoSolveCaptcha()
+    {
+
+        int result = DoSolveCaptcha();
+        if (result > 0)
+        {
+            return result;
+        }
+        RecaptchaUtility utility = new RecaptchaUtility(this);
+        utility.DoSolve();
+
+        return result;
+    }
+
+    public override int GetFaucetWaitTime()
+    {
+        var Timer = ElementByXPath("//h1[@id='demo']");
+        if (IsVisible(Timer))
+        {
+            var SplitedTimer = Timer.Text.Replace("m", "").Replace("s", "").Split(' ');
+
+            if (SplitedTimer.Length == 2)
+            {
+                return Convert.ToInt32(SplitedTimer[0]) * 60 + Convert.ToInt32(SplitedTimer[1]);
+            }
+        }
+
+        return base.GetFaucetWaitTime();
+    }
+    public override int CheckFaucetResult()
+    {
+        Reload = true;
+
+        return base.CheckFaucetResult();
+    }
+
+
+}
+
