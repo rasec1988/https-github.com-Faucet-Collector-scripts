@@ -15,7 +15,7 @@ public class freeLitecoinScript : FaucetScript
             return new FaucetSettings("https://www.free-litecoin.com/")
             {
                 new FaucetSetting() { Name = "Email", Display = "Email Address", Type = EditorType.TextBox, Required = true },
-                new FaucetSetting() { Name = "ps", Display = "password", Type = EditorType.Password, Required = true },
+                new FaucetSetting() { Name = "Pass", Display = "password", Type = EditorType.Password, Required = true },
                 new FaucetSetting() { Name = "LimitWithdraw", Display = "LimitWithdraw ", Type = EditorType.Numeric, Default = 100 },
             };
         }
@@ -63,7 +63,7 @@ public class freeLitecoinScript : FaucetScript
 
         SetText(signInUser, GetSetting("Email"));
         Wait();
-        SetText(signInPassword, GetPassword("ps"));
+        SetText(signInPassword, GetPassword("Pass"));
 
         var loginButton = ElementByXPath("//button[@class='btn btn-primary btn-lg']");
         if (!IsVisible(loginButton))
