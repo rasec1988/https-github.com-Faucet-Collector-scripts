@@ -50,7 +50,15 @@ namespace Adbtc
         public override bool IsLoggedIn()
         {
 
-            return ElementByXPath("//a[contains(@href,'logout')]") != null;
+           bool Logged= ElementByXPath("//a[contains(@href,'logout')]") != null;
+            if ( !Logged )
+            {
+                Driver.Manage ( ).Cookies.DeleteAllCookies ( );
+                Driver.Navigate ( ).Refresh ( );
+                Wait ( 1 );
+
+            }
+            return Logged;
         }
 
 
@@ -476,7 +484,7 @@ namespace Adbtc
                 }
             }
 
-            if (IsVisible(ElementByXPath("//img[contains(@src,'adbtc.top/1captcha')")))
+            if (IsVisible(ElementByXPath("//img[contains(@src,'adbtc.top/1captcha')]")))
             {
                 return Solve_MathCaptcha_() ? 0 : 1;
             }
