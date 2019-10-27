@@ -1,7 +1,7 @@
-﻿
+
 //==================//
 //script Written by: ••AviramDayan•• 22/07/2019 10:00AM - Version 1
-//Last Update: 27/09/2019 01:00AM - Version 5
+//Last Update: 27/10/2019 01:00AM - Version 6
 //==================//
 
 using System;
@@ -236,10 +236,7 @@ public class BlockSmash : FaucetScript
             int min_INT, sec_INT;
             min_INT = Convert.ToInt32(MinuteVAR.Text.Trim().Split(':')[0])*60;
             sec_INT = Convert.ToInt32(MinuteVAR.Text.Trim().Split(':')[1]);
-			
-            Driver.Close();  // Close specific chrome window
-            Driver.Quit();  // also Close the console app, that was used to kick off the chrome window
-            Driver.Dispose();  // Close the chromedriver.exe
+
 		    //return GetWaitSetting();
 			return min_INT + sec_INT;
 	        }// end MinuteVAR	
@@ -419,9 +416,6 @@ public class BlockSmash : FaucetScript
             min_INT = Convert.ToInt32(MinuteVAR.Text.Trim().Split(':')[0])*60;
             sec_INT = Convert.ToInt32(MinuteVAR.Text.Trim().Split(':')[1]);
 			
-            Driver.Close();  // Close specific chrome window
-            Driver.Quit();  // also Close the console app, that was used to kick off the chrome window
-            Driver.Dispose();  // Close the chromedriver.exe
 		    //return GetWaitSetting();
 			return min_INT + sec_INT;
 	        }// end MinuteVAR	
@@ -484,9 +478,7 @@ public class BlockSmash : FaucetScript
 			       Log("spins 0 break");				
                    //break; //if the count of "spins" is 0	
 				   //ClaimSuccess(); //Marks the claim as a success
-                   Driver.Close();  // Close specific chrome window
-                   Driver.Quit();  // also Close the console app, that was used to kick off the chrome window
-                   Driver.Dispose();  // Close the chromedriver.exe
+
                    return 1*60;    				   
 			    }	
 					    
