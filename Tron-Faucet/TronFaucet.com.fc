@@ -1,0 +1,143 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using FaucetCollector.Script;
+namespace ScriptsOfFc
+{
+    class TronFaucet :FaucetScript
+    {
+        public override FaucetSettings Settings { get {
+
+                return new FaucetSettings( FaucetUrl )
+                {
+                    new FaucetSetting(){Name="User",Display="Username/EmailAddress",Type=EditorType.TextBox,Required=true},
+                    new FaucetSetting(){Name="Password",Display="Pass",Type=EditorType.Password,Required=true}
+                };
+            
+            } }
+
+        const string FaucetUrl="https://tron-faucet.com/";
+
+        public override void Start ( )
+        {
+            SuccessXPath="//span[@class='text-success']";
+            FailXPath="//span[@class='text-danger']";
+
+
+            Title="Faucet.com";
+            base.Start ( );
+        }
+        public override int DoLogin ( )
+        {
+            if(Driver.Url!=FaucetUrl+"/account/login" )
+            {
+                GoToUrl ( FaucetUrl+"/account/login" );
+                Wait ( );
+            }
+
+            var UserBox=ElementByXPath("//input[@name='username']");
+            if ( !IsVisible ( UserBox ) )
+            {
+                return Fail ( "User box is not visible" );
+            }
+
+            var PasswordBox=ElementByXPath("//input[@name='pass_word']");
+            if ( !IsVisible ( PasswordBox ) )
+            {
+                return Fail ( "Password box is not visible" );
+            }
+
+            SetText ( UserBox , GetSetting ( "User" ) );
+            SetText ( PasswordBox , GetSetting ( "Pass" ) );
+
+
+            // Save login clicking remember me button
+            var RememberMeBtn=ElementByXPath("//input[@name='remember_me']");
+            if ( IsVisible ( RememberMeBtn ) )
+            {
+                Click ( RememberMeBtn );
+            }
+
+            var LoginBtn=ElementByXPath("//input[@name='login']");
+            if ( !IsVisible ( LoginBtn ) )
+            {
+                return Fail( "Login button is not visible" );
+            }
+            Click( LoginBtn );
+            Wait ( );
+
+            //Check for Error login
+            var ErrorLogin=ElementByXPath("//div[@class='alert alert-info alert-dismissible fade show']");
+            if ( IsVisible ( ErrorLogin ) )
+            {
+                string TextError=ErrorLogin.Text;
+                Log (  TextError );
+                TextError=TextError.ToLower ( );
+                if(TextError.Contains("password") ||TextError.Contains ( "username" ) )
+                {
+                    Disable    ( );
+                    return Fail ( "You need to put correct your credentials" );
+                }
+                
+            }
+            
+            return base.DoLogin ( );    
+        }
+        public override bool IsLoggedIn ( )
+        {
+
+            return ElementByXPath ( "//a[contains(@href,'logout')]" )!=null;
+        }
+
+        public override int DoSolveFaucet ( )
+        {
+            if ( Driver.Url!=FaucetUrl+"/page/faucet" )
+            {
+                GoToUrl ( FaucetUrl+"/page/faucet" );
+                Wait ( );
+            }
+
+            var ClaimBtn=ElementByXPath("//input[@value='Claim']");
+            if ( !IsVisible ( ClaimBtn ) )
+            {
+                return Fail
+                    ( "ClaimBtn is not visible" );
+            }
+            var result=DoSolveCaptcha();
+            if ( result>0 )
+            {
+                return Fail ( "Fail solving captcha" );
+
+            }
+
+            Click ( ClaimBtn );
+
+            return base.DoSolveFaucet ( );
+        }
+        public override int GetFaucetWaitTime ( )
+        {
+            if ( Driver.Url!=FaucetUrl+"/page/faucet" )
+            {
+                GoToUrl ( FaucetUrl+"/page/faucet" );
+                Wait ( );
+            }
+
+            var WaitElement=ElementByXPath("//span[@class='large text-warning mb-3' and contains(text(),'minutes')]");
+            if ( IsVisible ( WaitElement ) )
+            {
+                return Convert.ToInt32 ( WaitElement.Text.Split ( ' ' )[0] )*60;
+
+            }
+
+            return base.GetFaucetWaitTime ( );
+        }
+        public override int CheckFaucetResult ( )
+        {
+            Reload=true;
+
+            return base.CheckFaucetResult ( );
+        }
+    }
+}
