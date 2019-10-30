@@ -543,7 +543,7 @@ public class FreeBitcoinScript_ : FaucetScript
         {
             Log ( "There is a problem reading setting of points required for "+SettingName );
         }
-        return 0;
+        return int.MaxValue;
     }
     private bool BonsuExist(RedemSetting.RedemType type)
     {
