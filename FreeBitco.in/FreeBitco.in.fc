@@ -517,13 +517,33 @@ public class FreeBitcoinScript_ : FaucetScript
         //Let Faucet Collector Continue.
         return base.BeforeSolveFaucet();
     }
-
+    
     private bool IsClaimable(RedemSetting setting)
     {
         int RewardPoints = this.RewardPoints;
       
-        return  setting.PointsRequired != 0 && setting.PointsRequired <= RewardPoints && !BonsuExist(setting.Type);
+        return  setting.PointsRequired != 0 && setting.PointsRequired <= RewardPoints && !BonsuExist(setting.Type) && UserPointsRequeriment(setting.Type)<RewardPoints;
 
+    }
+    /// <summary>
+    /// Get setting of that the user setted for the reward.
+    /// </summary>
+    /// <param name="type">Source RedeemSetting type</param>
+    /// <returns></returns>
+    private int UserPointsRequeriment(RedemSetting.RedemType type )
+    {
+        string SettingName=type==RedemSetting.RedemType.Btc?"BtcBonus":type==RedemSetting.RedemType.Points?"PointBonus":"TicketBonus";
+
+        int Required;
+        if(int.TryParse(GetSetting(SettingName),out Required ) )
+        {
+            return Required;
+        }
+        else
+        {
+            Log ( "There is a problem reading setting of points required for "+SettingName );
+        }
+        return 0;
     }
     private bool BonsuExist(RedemSetting.RedemType type)
     {
