@@ -1,8 +1,8 @@
-﻿
+
 
 //==================//
 //script Written by: ••AviramDayan•• 10/06/2019 16:00PM
-//Last Update: 01/10/2019 22:09PM - Version 7
+//Last Update: 31/10/2019 22:09PM - Version 8
 //==================//
 
 using System;
@@ -27,8 +27,8 @@ public class firedogefaucettech : FaucetScript
             {
                 new FaucetSetting(){Name="Address",Display="doge Address",Type=EditorType.TextBox,Required=true},
 	            
-                new FaucetSetting() { Name = "SolveMedia_ReCaptcha", Display = "SolveMedia (ON/Checked) ReCaptcha (OFF/UnChecked)", Type = EditorType.CheckBox, Default = true},   
-                new FaucetSetting() { Name = "AutoDisableScript", Display = "AutoDisableScript - ON/OFF - if the owner without balance to pay", Type = EditorType.CheckBox, Default = false}, 				
+                //new FaucetSetting() { Name = "SolveMedia_ReCaptcha", Display = "SolveMedia (ON/Checked) ReCaptcha (OFF/UnChecked)", Type = EditorType.CheckBox, Default = true},   
+                new FaucetSetting() { Name = "AutoDisableScript", Display = "AutoDisableScript - ON/OFF - if the owner without balance to pay", Type = EditorType.CheckBox, Default = true}, 				
 				
 				
                 //new FaucetSetting(){Name="Email",Display="Email",Type=EditorType.TextBox,Required=false},
@@ -76,7 +76,7 @@ public class firedogefaucettech : FaucetScript
       //=======//
 	  //Protection
 	  //=======//
-      var ProtectionVAR = ElementByXPath("//div[1]/p[1 and contains (text(), 'Balance: N') ]  | //div[1]/p[1 and text()='Balance: 0 DOGE'] "); // 
+      var ProtectionVAR = ElementByXPath("//div[1]/p[1 and contains (text(), 'Balance: N') ]  | //div[1]/p[1 and text()='Balance: 0 DOGE'] | //h5[contains(text(),'maintanace')] "); // 
 				
       if(IsVisible(ProtectionVAR))
       {	  
@@ -94,7 +94,7 @@ public class firedogefaucettech : FaucetScript
 	     //Timer
 	     //=======//
 		 
-         var MinuteVAR = ElementByXPath("//div[1]/p[3 and contains(text(),'wait' )]");		
+         var MinuteVAR = ElementByXPath("//div[@class='message message-error' and contains(text(),'remaining') ]");		
          if(IsVisible(MinuteVAR)) //not Visible
          {
            var TimeVAR = Time_Function();
@@ -119,7 +119,7 @@ public class firedogefaucettech : FaucetScript
     public override bool IsLoggedIn()
     {
 	    //save Login Cookies - Check if the "Logout" exist
-        return ElementByXPath("//div[1]/p[3]") != null;
+        return ElementByXPath("//div[@class='timer']") != null;
 	 
         //return base.IsLoggedIn();
     }
@@ -136,19 +136,9 @@ public class firedogefaucettech : FaucetScript
     public override int BeforeLogin()
     {
   
-	  
-	 //var checks login or exit
-     var ExitButton = ElementByXPath("//div[1]/p[3]");
-	 
-	 //if i already Login - go to "bonus"	 
-	 if (IsVisible(ExitButton))
-	 {
         //if we already login go to here
-        GoToUrl("https://www.firedogefaucet.tech/");
-		Log("we are login "); 
-	 }	
+        GoToUrl("https://www.firedogefaucet.tech/faucet/");
 	
-		
         //This faucet has nothing to do here. We will let Faucet Collector handle it.
         return base.BeforeLogin();
     }
@@ -166,18 +156,19 @@ public class firedogefaucettech : FaucetScript
     {
 
 
-      var ExitButton = ElementByXPath("//div[1]/p[3]");
+      var ExitButton = ElementByXPath("//div[@class='timer']");
 	
 	 //if i NOT Login - go to Login Page
 	 if (!IsVisible(ExitButton))
 	 {
 	
-		GoToUrl("https://www.firedogefaucet.tech/");
+		GoToUrl("https://www.firedogefaucet.tech/faucet/");
 		Log("Go to Login "); 
 
 		Wait();		
 		Wait(2);
-
+		
+        /*
         if (GetBoolSetting("SolveMedia_ReCaptcha"))
         {
 		Log("Go to SolveMedia");		
@@ -189,6 +180,7 @@ public class firedogefaucettech : FaucetScript
 		Log("Go to ReCaptcha");
 		GoToUrl("https://firedogefaucet.tech/?cc=reCaptcha");		
         }
+		*/
 		
 		Wait(2);
 	
@@ -201,7 +193,7 @@ public class firedogefaucettech : FaucetScript
 		
 		Wait(2);
 		
-        var AddressVAR = ElementByXPath("//form/div[1]/div/input");
+        var AddressVAR = ElementByXPath("//input[@name='address' ]");
 	    if (IsVisible(AddressVAR))
 	    { 
         SetText(AddressVAR, GetSetting("Address"));
@@ -209,7 +201,7 @@ public class firedogefaucettech : FaucetScript
 	
 		Wait(2);
 
-        var ButtonLog = ElementByXPath("//input[@type='submit' and contains(text(),'Get reward!')]");
+        var ButtonLog = ElementByXPath("//input[@name='claim_coins' ]");
 	    if (IsVisible(ButtonLog))
 	    { 
         Click(ButtonLog);
@@ -381,7 +373,6 @@ public class firedogefaucettech : FaucetScript
         return base.CheckFaucetResult();
     }
 	
-	
 
         //=================//
 		//Time_Function
@@ -393,13 +384,10 @@ public class firedogefaucettech : FaucetScript
 	     //Timer
 	     //=======//
 		 
-         var MinuteVAR = ElementByXPath("//div[1]/p[3 and contains(text(),'wait' )]");
+         var MinuteVAR = ElementByXPath("//div[@class='message message-error' and contains(text(),'remaining') ]");
 			
          if(!IsVisible(MinuteVAR)) //not Visible
          {
-         Driver.Close();  // Close specific chrome window
-         Driver.Quit();  // also Close the console app, that was used to kick off the chrome window
-         Driver.Dispose();  // Close the chromedriver.exe
 		 return GetWaitSetting();
 	     }	
 			
@@ -407,13 +395,13 @@ public class firedogefaucettech : FaucetScript
          {
 	     Log("MinuteVAR");  
          //int MinuteINT = Convert.ToInt32(MinuteVAR.Text)*60;	
-         int MinuteINT = Convert.ToInt32(MinuteVAR.Text.Trim().Split(' ')[4])*60;	 // need [4] for example if we have Existing text "You have to wait 15 minutes"  it mean = You[0] have[1] to[2] wait[3] 15[4] minutes[5] 
-				
-         Driver.Close();  // Close specific chrome window
-         Driver.Quit();  // also Close the console app, that was used to kick off the chrome window
-         Driver.Dispose();  // Close the chromedriver.exe
+         var TimerVAR = ElementByXPath("//div[@class='timer']");
+
+         int min_INT = Convert.ToInt32(TimerVAR.Text.Trim().Split(':')[0])*60;
+         int sec_INT = Convert.ToInt32(TimerVAR.Text.Trim().Split(':')[1]);
+	 
 		 //return GetWaitSetting();
-         return MinuteINT;
+         return min_INT + sec_INT;
 	     }
          //=======//
 		 
