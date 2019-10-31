@@ -388,9 +388,6 @@ public class firedogefaucettech : FaucetScript
 			
          if(!IsVisible(MinuteVAR)) //not Visible
          {
-         Driver.Close();  // Close specific chrome window
-         Driver.Quit();  // also Close the console app, that was used to kick off the chrome window
-         Driver.Dispose();  // Close the chromedriver.exe
 		 return GetWaitSetting();
 	     }	
 			
@@ -402,10 +399,7 @@ public class firedogefaucettech : FaucetScript
 
          int min_INT = Convert.ToInt32(TimerVAR.Text.Trim().Split(':')[0])*60;
          int sec_INT = Convert.ToInt32(TimerVAR.Text.Trim().Split(':')[1]);
-		 
-         Driver.Close();  // Close specific chrome window
-         Driver.Quit();  // also Close the console app, that was used to kick off the chrome window
-         Driver.Dispose();  // Close the chromedriver.exe
+	 
 		 //return GetWaitSetting();
          return min_INT + sec_INT;
 	     }
