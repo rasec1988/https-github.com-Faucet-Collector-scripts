@@ -116,7 +116,7 @@ namespace ScriptsOfFc
         }
         const string FixedAdsXpath="//div[contains(@class,'ad-block') and not(contains(@class,'disabled'))]//a[contains(@href,'ads')]";
         const string OtherAdsXpath="//div[contains(@class,'ad-block') and not(contains(@class,'disabled'))]//span[@class='pointer']";
-        List<IWebElement> Ads => ElementsByXPath ( FixedAdsXpath+"|"+OtherAdsXpath ).Where(x=>IsVisible(x)).ToList();
+        List<IWebElement> Ads {get{ return ElementsByXPath ( FixedAdsXpath+"|"+OtherAdsXpath ).Where(x=>IsVisible(x)).ToList();}}
         public override int DoSolveFaucet ( )
         {
             GoToUrl ( ViewAdsUrl );
