@@ -1,0 +1,298 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using FaucetCollector.Script;
+using OpenQA.Selenium;
+
+namespace ScriptsOfFc
+{
+    class VoxinAdz : FaucetScript
+    {
+        public override FaucetSettings Settings
+        {
+            get
+            {
+
+                return new FaucetSettings ( BaseUrl )
+                 {
+                       new FaucetSetting() {
+
+                           Name="User",
+                           Type=EditorType.TextBox,
+                           Display="Username",
+                           Required=true,
+                       },
+                       new FaucetSetting ( )
+                       {
+                           Name="Pass",
+                           Type=EditorType.Password,
+                           Display="Password",
+                           Required=true
+                       }
+                 };
+            }
+        }
+        const string BaseUrl="https://www.voxinadz.com/";
+        const string ViewAdsUrl=BaseUrl+"index.php?view=ads";
+        public override void Start ( )
+        {
+            Title="VoxinAdz";
+            AdsViewed=0;
+            SuccessXPath="//div[@class='successbox']";
+            FailXPath=" //div[@class='errorbox']";
+
+
+            base.Start ( );
+        }
+        private const string FailLoginXPath="//div[@class='alert alert-danger']";
+        public override int DoLogin ( )
+        {
+            var UserBox=ElementByXPath("//input[@placeholder='Username']");
+            if ( !IsVisible ( UserBox ) )
+            {
+                return Fail
+                    ( "User box is not visible" );
+            }
+            var PasswordBox=ElementByXPath("//input[@placeholder='Password']");
+            if ( !IsVisible ( PasswordBox ) )
+            {
+                return Fail
+                    ( "Password box is not visible" );
+            }
+            SetText ( UserBox , GetSetting ( "User" ) );
+            SetText ( PasswordBox , GetPassword ( "Pass" ) );
+
+            var result=DoSolveCaptcha();
+            if ( result>0 )
+            {
+                return Fail ( "Image captcha is not visible" );
+            }
+
+            var ButtonLogin=ElementByXPath("//input[@name='login']");
+            if ( !IsVisible ( ButtonLogin ) )
+            {
+                return Fail
+                    ( "Button login is not visible" );
+            }
+            Click
+                ( ButtonLogin );
+
+            Wait ( );
+
+            var ErrorLogin=ElementByXPath(FailLoginXPath);
+            if ( !IsVisible ( ErrorLogin ) )
+            {
+                Log ( ErrorLogin.Text );
+                if ( ErrorLogin.Text.Contains ( "Invalid login details" ) )
+                {
+                    Disable ( );
+                    return Fail ( "You need to put correctly your credentials" );
+                }
+
+            }
+            return base.DoLogin ( );
+        }
+
+        public override bool IsLoggedIn ( )
+        {
+            return ElementByXPath ( "//a[contains(@href,'logout')]" )!=null;
+        }
+        public override int DoSolveCaptcha ( )
+        {
+            var CaptchaImg=ElementByXPath("//img[@id='captcha_img']");
+            var TextBoxCaptcha=IsVisible(CaptchaImg)?ElementByXPath("//input[@name='captcha']"):null;
+            if ( IsVisible ( TextBoxCaptcha ) )
+            {
+                return DoSolveImageCaptcha ( CaptchaImg , TextBoxCaptcha );
+            }
+            return base.DoSolveCaptcha ( );
+        }
+        const string FixedAdsXpath="//div[contains(@class,'ad-block') and not(contains(@class,'disabled'))]//a[contains(@href,'ads')]";
+        const string OtherAdsXpath="//div[contains(@class,'ad-block') and not(contains(@class,'disabled'))]//span[@class='pointer']";
+        List<IWebElement> Ads => ElementsByXPath ( FixedAdsXpath+"|"+OtherAdsXpath ).Where(x=>IsVisible(x)).ToList();
+        public override int DoSolveFaucet ( )
+        {
+            GoToUrl ( ViewAdsUrl );
+            Wait ( 1 );
+            int Timeout=0;
+            int N=0;
+            while(IsVisible(ElementByXPath( "//input[@value='Give me access']" ) ) || Ads.Count>N ){
+                try
+                {
+                    if ( Timeout>3 )
+                    {
+                        break;
+                    }
+                    var CaptchaBtn=ElementByXPath("//input[@value='Give me access']");
+                    if ( IsVisible ( CaptchaBtn ) )
+                    {
+                        var result=DoSolveCaptcha();
+                        if ( result>0 )
+                        {
+                            Timeout++;
+                            continue;
+                        }
+                        Click ( CaptchaBtn );
+                        Wait ( );
+
+                    }
+                    else
+                    {
+                        CheckForPopupsEnabled=false;   
+                        Click ( Ads[N],false );
+                        Wait ( 1 );
+                        Driver.SwitchTo ( ).Window ( Driver.WindowHandles.Last ( ) );
+                        DateTime timeout=DateTime.Now.AddSeconds(60);
+                        while(IsVisible(ElementByXPath( "//div[@class='adwait']" ) ) || (IsVisible(ElementByXPath( "//div[@id='progress_bar']" ) )) && DateTime.Now<timeout )
+                        {
+                            Wait ( );
+                        }
+                        Wait ( 1 );
+
+                        if(!SolvePtcCaptcha ( ) )
+                        {
+                            N++;
+                        }
+
+                        if ( CheckFaucetResult ( )!=0 )
+                        {
+                            N++;
+                        }
+                       
+
+                    }
+                 
+                }
+                catch ( Exception ex )
+                {
+                    Log ( ex.ToString ( ) );
+                    N++;
+                }
+                finally
+                {
+                    CheckForPopupsEnabled=true;
+                    Driver.SwitchTo ( ).Window ( Driver.WindowHandles[0] );
+                    CheckForPopups ( );
+                    Driver.Navigate ( ).Refresh ( );
+                    Wait (  2 );
+
+                }
+                
+
+            }
+
+            if ( AdsViewed>0 || Ads.Count==0 )
+            {
+                
+                IsSuccess=true;
+                ClaimSuccess ( );
+                Log ( "You have viewed "+AdsViewed.ToString ( ) );
+                AdsViewed=0;
+                return GetFaucetWaitTime ( );
+            }
+
+            return base.DoSolveFaucet ( );
+        }
+      
+        private List<Bitmap> LoadKnowResults ( )
+        {
+            string KnowResultsFolder = AssetDir("Other")+"\\Ptc_Captcha\\";
+
+           var KnowResultsFullDir= Directory.GetFiles ( KnowResultsFolder ).Where ( x => x.Contains ( ".png" ) ).ToList();
+            List<Bitmap> KnowResults=new List<Bitmap>();
+            for(int i=0 ;i<KnowResultsFullDir.Count ;i++ )
+            {
+                FileStream s = new FileStream(KnowResultsFullDir[i], FileMode.Open);
+                KnowResults.Add ( new Bitmap ( s ) );
+                s.Close ( );
+
+            }
+            return KnowResults;
+        }
+        public bool SolvePtcCaptcha ( )
+        {
+            bool IsSolved = false;
+            try
+            {
+                var capt = ElementByXPath("//img[@usemap='#Map']");
+                Bitmap captcha = TakeScreenshot(Base.Captcha.CaptchaService.Manual,capt);
+               List<Bitmap> icons=new List<Bitmap>();
+                List<Bitmap> KnowResults=LoadKnowResults();
+                for (int i=0 ;i<300 ;  i+=50 )
+                {
+                    icons.Add ( captcha.Clone(new Rectangle (i,0,50,50 ) , captcha.PixelFormat) );
+                }                            
+               int result_ =icons.IndexOf(icons.FirstOrDefault(x=>
+                {
+                    return KnowResults.FirstOrDefault(y=>IsSameImage(x,y))!=null;
+
+                } ));                           
+                    // How items area have not cordinates we will need to extract the javascript 
+                    var AreaCollection=ElementsByXPath("//area");
+                    if ( AreaCollection.Count>result_ )
+                    {                                 
+                        string ScriptEnd=AreaCollection[result_].GetAttribute("onclick");
+                        if ( !string.IsNullOrEmpty ( ScriptEnd ) )
+                        {
+                            ExecuteScript (ScriptEnd );
+                            Wait ( 1);
+                            IsSolved=true;
+                        }
+                    }           
+            }
+            catch ( Exception ex )
+            {
+                Log ( ex.ToString ( ) );
+            }
+            return IsSolved;
+        }
+        private bool IsSameImage ( Bitmap image1 , Bitmap image2 )
+        {
+            for ( int i = 0 ; i<image1.Height ; i++ )
+            {
+                for ( int j = 0 ; j<image1.Width ; j++ )
+                {
+                    if ( !IsSameColor ( image1.GetPixel ( j , i ) , image2.GetPixel ( j , i ) , 100 ) )
+                    {
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+        
+        private bool IsSameColor ( Color c1 , Color c2 , double thre )
+        {
+            int r = c1.R - c2.R;
+            int g = c1.G - c2.G;
+            int b = c1.B - c2.B;
+            if ( r*r+g*g+b*b>thre*thre )
+            {
+                return false;
+            }
+            return true;
+        }
+        public int AdsViewed{ get; set; }
+        public override int CheckFaucetResult ( )
+        {
+            var SuccessBox=ElementByXPath(SuccessXPath);
+            if ( IsVisible ( SuccessBox ) )
+            {
+                AdsViewed++;
+                Log ( SuccessBox.Text );
+                return 0;
+            }
+            var FailBox=ElementByXPath(FailXPath);
+            if ( IsVisible ( FailBox ) )
+            {
+                Log ( FailBox.Text );
+            }
+
+            return 1;
+        }
+    }
+}
