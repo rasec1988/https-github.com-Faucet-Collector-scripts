@@ -38,6 +38,7 @@ namespace ScriptsOfFc
         }
         const string BaseUrl="https://www.voxinadz.com/";
         const string ViewAdsUrl=BaseUrl+"index.php?view=ads";
+        const string LoginUrl=BaseUrl+"index.php?view=login";
         public override void Start ( )
         {
             Title="VoxinAdz";
@@ -51,6 +52,8 @@ namespace ScriptsOfFc
         private const string FailLoginXPath="//div[@class='alert alert-danger']";
         public override int DoLogin ( )
         {
+            GoToUrl ( LoginUrl );
+
             var UserBox=ElementByXPath("//input[@placeholder='Username']");
             if ( !IsVisible ( UserBox ) )
             {
