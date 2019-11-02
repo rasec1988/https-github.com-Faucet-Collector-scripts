@@ -87,7 +87,7 @@ namespace ScriptsOfFc
             Wait ( );
 
             var ErrorLogin=ElementByXPath(FailLoginXPath);
-            if ( !IsVisible ( ErrorLogin ) )
+            if ( IsVisible ( ErrorLogin ) )
             {
                 Log ( ErrorLogin.Text );
                 if ( ErrorLogin.Text.Contains ( "Invalid login details" ) )
