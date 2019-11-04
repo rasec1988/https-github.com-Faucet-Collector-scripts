@@ -1,0 +1,136 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using FaucetCollector.Script;
+namespace ScriptsOfFc
+{
+    class WortexFaucet:FaucetScript
+    {
+        public const string BaseUrl="https://wortex-faucet.com/";
+        public override FaucetSettings Settings { get {
+
+                return new FaucetSettings( BaseUrl)
+                {
+                    new FaucetSetting ( )
+                    {
+                        Name="User",
+                        Type=EditorType.TextBox,
+                        Required=true,
+                        Display="Email"
+                    },
+                    new FaucetSetting ( )
+                    {
+                        Name="Pass",
+                        Type=EditorType.Password,
+                        Required=true,
+                        Display="Password"
+                    }
+
+                    
+                };
+            
+            } 
+        }
+
+        public override void Start ( )
+        {
+            SuccessXPath="//h1[contains(text(),' DOGE')]";
+            FailXPath="//div[@style='padding-top: 15px;font-size: 11px; text-align:center;color: Red']";
+            Title="Wortex";
+            base.Start ( );
+        }
+
+        public override int BeforeLogin ( )
+        {
+            var GotoLoginBtn=ElementByXPath("//a[contains(text(),'LOGIN')]");
+            if ( IsVisible ( GotoLoginBtn ) )
+            {
+                Click ( GotoLoginBtn );
+                Wait ( );
+            }
+            return base.BeforeLogin ( );
+        }
+        public override int DoLogin ( )
+        {
+            var EmailBox=ElementByXPath("//input[@placeholder='Email']");
+            if ( !IsVisible ( EmailBox ) )
+            {
+                return Fail ( "Email box is not visible" );
+            }
+            SetText ( EmailBox , GetSetting ( "User" ) );
+
+            var PasswordBox=ElementByXPath("//input[@name='pass']");
+            if ( !IsVisible ( PasswordBox ) )
+            {
+                return Fail ( "Password box is not visible" );
+            }
+            SetText ( PasswordBox , GetPassword ( "Pass" ) );
+
+            var result=DoSolveCaptcha();
+            if ( result>0 )
+            {
+                return result;
+            }
+            var Loginbtn=ElementByXPath("//input[@value='LOGIN']");
+            if ( !IsVisible ( Loginbtn ) )
+            {
+                return Fail ( "Login button is not visible" );
+            }
+            Click ( Loginbtn );
+
+            var ErrorLogin=ElementByXPath("//div[@style='font-size: 11px; text-align:center;color: Red']");
+            if ( IsVisible ( ErrorLogin ) )
+            {
+                Log ( ErrorLogin.Text );
+                if(ErrorLogin.Text.Contains( "Wrong email or password" ) )
+                {
+                    Disable ( );
+                    return Fail ( "You need to enter your correct credentials" );
+                }
+            }
+            return base.DoLogin ( );    
+        }
+        public override bool IsLoggedIn ( )
+        {
+            return ElementByXPath ( "//a[@href='/?logout']" )!=null;
+        }
+        public override int DoSolveFaucet ( )
+        {
+            var Claimbtn=ElementByXPath("//input[@class='stb']");
+            if ( !IsVisible ( Claimbtn ) )
+            {
+                return Fail ( "Claim btn is not visible" );
+            }
+
+            var result=DoSolveCaptcha();
+            if ( result>0 )
+            {
+                return result;
+            }
+
+            Click ( Claimbtn );
+            Wait ( );
+            
+            return base.DoSolveFaucet ( );
+        }
+        public override int GetFaucetWaitTime ( )
+        {
+            var Timer=ElementByXPath("//div[@id='t']");
+            if ( IsVisible ( Timer ) )
+            {
+                var TimerText=Timer.Text.Trim().Split(' ');
+
+                int min;
+                int sec;
+                if(TimerText.Length==4 && int.TryParse(TimerText[0],out min) && int.TryParse(TimerText[2],out sec ) )
+                {
+                    return min*60+sec;
+                }
+
+            }
+            return base.GetFaucetWaitTime ( );
+        }
+    }
+}
