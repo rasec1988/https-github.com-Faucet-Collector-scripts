@@ -105,9 +105,9 @@ public class BloxawardsScript : FaucetScript
         }
 
         Wait();	
-	    Wait(2);
+	Wait(2);
 		
-        var ButtonLog = ElementByXPath("/html/body/div/div[4]/div/div/form/button");
+        var ButtonLog = ElementByXPath("//button[@type='submit']");
         Click(ButtonLog);
 
         Wait(2);
@@ -183,7 +183,7 @@ public class BloxawardsScript : FaucetScript
         {
             //We couldn't find the button, return we have a failure.
             Log("Claim button not found or not visible.");
-			return GetWaitSetting();
+			return GetWaitSetting(); //Fail
         }
         
         var resultClaim = SolveCaptcha();
@@ -201,7 +201,7 @@ public class BloxawardsScript : FaucetScript
 		
 		Wait(3);
 		
-		ad = true;    // if i do true - it report as succeed // only one time no multi and also required -> return GetWaitSetting();	
+		ad = true; //Success
         //return GetWaitSetting();	
 		
         return base.DoSolveFaucet();
