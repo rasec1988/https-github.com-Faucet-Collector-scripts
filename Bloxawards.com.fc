@@ -1,0 +1,224 @@
+//==================//
+//script Written by: ••AviramDayan•• 05/11/2019 00:00PM - Version 1
+//Last Update: 05/11/2019 00:00PM - Version 1
+//==================//
+
+using System;
+using FaucetCollector.Script;
+
+public class BloxawardsScript : FaucetScript
+{
+
+    public override FaucetSettings Settings
+    {
+        get
+        {
+            return new FaucetSettings(DomainName_String)
+            {
+                new FaucetSetting() { Name = "Email", Display = "E-mail", Type = EditorType.TextBox, Required = true },
+                new FaucetSetting() { Name = "Password", Display = "Password", Type = EditorType.Password, Required = true },
+            };
+        }
+    }
+
+    string DomainName_String = "https://bloxawards.com/";
+
+    public override void Start()
+    {
+        //Title that shows in the browser. Is used to identify and close popup windows
+        Title = "Bloxawards.com";
+
+        //After we did try to claim on the faucet we search for these elements to determine if it was a success or a fail
+        SuccessXPath = "//*";
+        FailXPath = "//*";
+
+        //Let Faucet Collector start up everything
+        base.Start();
+    }
+
+
+    bool ad; //custom bool
+	
+
+    public override int DoInit()
+    {
+        //Let Faucet Collector continue.
+        return base.DoInit();
+    }
+
+    public override bool IsLoggedIn()
+    {
+	    return ElementByXPath("//a[@href='/logout']") != null;
+        //return true;
+    }
+
+
+//=============//
+//BeforeLogin
+//=============//
+    public override int BeforeLogin()
+    {
+  
+        //if we already login go to here
+        GoToUrl(DomainName_String);
+	
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeLogin();
+    }
+//=============//
+//BeforeLogin
+//=============//
+
+    public override int DoLogin()
+    {
+      
+	 //var checks login or exit
+     var ExitButton = ElementByXPath("//a[@href='/logout']"); //SIGN OUT
+
+		 
+	 //if i NOT Login - go to Login Page
+	 if (!IsVisible(ExitButton))
+	 {
+		
+        //else go to normal login
+		GoToUrl(DomainName_String+"/login");
+        Wait();	
+	    Wait(2);		
+	
+        var box_user = ElementById("inputEmail");
+        SetText(box_user, GetSetting("Email"));
+		
+        Wait(2);
+		
+        var box_pass = ElementById("inputPassword");
+        SetText(box_pass, GetPassword("Password"));
+		
+        Wait(2);
+	
+        //SolveCaptcha if apper
+        var result = base.DoSolveCaptcha();
+        //RecaptchaUtility utility = new RecaptchaUtility(this);
+        //utility.DoSolve();
+        if (result > 0)
+        {
+          return Fail("fail not solve"); //return to solve again - if something wrong
+        }
+
+        Wait();	
+	    Wait(2);
+		
+        var ButtonLog = ElementByXPath("/html/body/div/div[4]/div/div/form/button");
+        Click(ButtonLog);
+
+        Wait(2);
+
+	 }	//end ExitButton
+
+
+        return base.DoLogin();
+    }
+
+
+
+
+
+    public override int AfterLogin()
+    {
+	
+    return base.AfterLogin();
+    }
+
+
+
+
+    public override int GetFaucetWaitTime()
+    {
+		
+        if (ad)
+        {
+		 ad=false;
+         return GetWaitSetting();
+        }
+		
+		//let Faucet Collector continue.
+        return base.GetFaucetWaitTime();
+    }
+
+
+
+
+    public override int BeforeSolveCaptcha()
+    {
+        return base.BeforeSolveCaptcha();
+    }
+
+    public override int DoSolveCaptcha()
+    {
+        return base.DoSolveCaptcha();
+    }
+
+    public override int AfterSolveCaptcha()
+    {
+        return base.AfterSolveCaptcha();
+    }
+
+    public override int BeforeSolveFaucet()
+    {
+        return base.BeforeSolveFaucet();
+    }
+
+
+
+
+    public override int DoSolveFaucet()
+    {
+    	
+        GoToUrl(DomainName_String+"/giveaway");
+        Wait();		
+        Wait(2);		
+	
+        var claimButton = ElementByClass("btn-main2");
+		
+        if (!IsVisible(claimButton))
+        {
+            //We couldn't find the button, return we have a failure.
+            Log("Claim button not found or not visible.");
+			return GetWaitSetting();
+        }
+        
+        var resultClaim = SolveCaptcha();
+        if (resultClaim > 0)
+        {
+            //Unable to solve the captcha - return the failure
+            return resultClaim;
+        }
+		
+        if (IsVisible(claimButton))
+        {
+			Log("claimButton - now");
+            Click(claimButton);
+        }	
+		
+		Wait(3);
+		
+		ad = true;    // if i do true - it report as succeed // only one time no multi and also required -> return GetWaitSetting();	
+        //return GetWaitSetting();	
+		
+        return base.DoSolveFaucet();
+    }
+
+
+
+    public override int AfterSolveFaucet()
+    {
+        return base.AfterSolveFaucet();
+    }
+
+
+    public override int CheckFaucetResult()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.CheckFaucetResult();
+    }
+
+} //end class
