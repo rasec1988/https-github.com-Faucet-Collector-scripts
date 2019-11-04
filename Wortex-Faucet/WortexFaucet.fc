@@ -120,9 +120,15 @@ namespace ScriptsOfFc
             var Timer=ElementByXPath("//div[@id='t']");
             if ( IsVisible ( Timer ) )
             {
-                var TimerText=Timer.Text.Replace("min","").Replace("seg","").Trim().Split(new[]{ ' ' },StringSplitOptions.RemoveEmptyEntries);
-               
-                return Convert.ToInt32 ( TimerText[0] )*60+Convert.ToInt32 ( TimerText[1] );
+                var TimerText=Timer.Text.Trim().Split(' ');
+
+                int min;
+                int sec;
+                if(TimerText.Length==4 && int.TryParse(TimerText[0],out min) && int.TryParse(TimerText[2],out sec ) )
+                {
+                    return min*60+sec;
+                }
+
             }
             return base.GetFaucetWaitTime ( );
         }
