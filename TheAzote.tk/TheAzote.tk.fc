@@ -1,0 +1,167 @@
+﻿using FaucetCollector.Script;
+
+public class TheAzoteScript : FaucetScript
+{
+    public const string BaseUrl="https://theazotedownload.tk/";
+    public const string LoginUrl=BaseUrl+"login";
+    public const string FaucetUrl=BaseUrl+"index";
+    public override FaucetSettings Settings
+    {
+        get
+        {
+            return new FaucetSettings ( BaseUrl )
+             {
+                new FaucetSetting(){
+
+                    Display="Username",
+                    Type=EditorType.TextBox,
+                    Name="User",
+                    Required=true
+                },
+                new FaucetSetting ( )
+                {
+                    Display="Password",
+                    Type=EditorType.Password,
+                    Name="Pass",
+                    Required=true
+                }
+             };
+
+        }
+
+
+    }
+    public override void Start ( )
+    {
+        SuccessXPath="//div[@class='alert alert-success']";
+
+        FailXPath="//div[@class='alert alert-danger']";
+
+        Title="The Azote";
+        base.Start ( );
+    }
+    public override int DoLogin ( )
+    {
+        GoToUrl ( LoginUrl );
+
+        var UserBox=ElementByXPath("//input[@id='username']");
+        if ( !IsVisible ( UserBox ) )
+        {
+            return Fail ( "User box not visible" );
+        }
+        var PasswordBox=ElementByXPath("//input[@id='password']");
+        if ( !IsVisible ( PasswordBox ) )
+        {
+            return Fail ( "Password box is not visible" );
+        }
+        SetText ( UserBox , GetSetting ( "User" ) );
+        SetText ( PasswordBox , GetPassword ( "Pass" ) );
+        
+        //check remember me to save login
+        var RememberMe=ElementByXPath("//input[@name='remember_me']");
+        if ( IsVisible ( RememberMe ) )
+        {
+            Click ( RememberMe );
+        }
+        
+        var LoginBtn=ElementByXPath("//input[@name='login']");
+        if ( !IsVisible ( LoginBtn ) )
+        {
+            return Fail
+                ( "Login button is not visible" );
+        }
+
+        var result=DoSolveCaptcha();
+        if ( result>0 )
+        {
+            return result;
+        }
+
+        Click ( LoginBtn );
+        Wait ( 1 );
+
+        var Error=ElementByXPath("//div[@class='alert alert-dismissable alert-info']");
+        if(IsVisible(Error))
+        {
+            Log ( Error.Text );
+            if(Error.Text.Contains( "Invalid login details , please try again" ) )
+            {
+                Disable ( );
+                return Fail ( "You need to enter correctly your credentials" );
+            }
+        }        
+        return base.DoLogin ( );
+    }
+
+    public override bool IsLoggedIn ( )
+    {
+
+        return ElementByXPath ( "//a[@href='?logout']" )!=null;
+    }
+
+    public override int DoSolveFaucet ( )
+    {
+        if ( Driver.Url!=FaucetUrl )
+        {
+            GoToUrl ( FaucetUrl );
+            Wait ( 1 );
+        }
+
+        var Claimbtn=ElementByXPath("//a[@class='btn btn-lg btn-primary']");
+        if ( !IsVisible(Claimbtn) )
+        {
+            return Fail ( "Claim btn is not visible" );
+        }
+        var result=DoSolveCaptcha();
+        if ( result>0 )
+        {
+            return result;
+        }
+
+        Click ( Claimbtn );
+
+        Wait ( 1 );
+        // The faucet doesn't contains time element so we need to catch if we need to wait after we claim the faucet
+        ClaimResult Cresult=(ClaimResult)CheckFaucetResult();
+
+        if ( Cresult==ClaimResult.Failed ) // Claim failed ( but not already claimed)
+        {
+            return base.DoSolveFaucet ( );
+        }
+        else // if the claim is success or we already claimed
+        { 
+            return GetFaucetWaitTime ( );
+        }
+
+    }
+    public enum ClaimResult
+    {
+        Failed,
+        Success,
+        AlreadyClaimed
+    }
+    public override int CheckFaucetResult ( )
+    {
+        var Success=ElementByXPath(SuccessXPath);
+        if ( IsVisible ( Success ) )
+        {
+            Log ( Success.Text );
+            IsSuccess=true;
+            ClaimSuccess ( );
+            return ( int )ClaimResult.Success;
+        }
+        var FailClaim=ElementByXPath(FailXPath);
+        if ( IsVisible ( FailClaim ) )
+        {
+            Log ( FailClaim.Text );
+            if ( FailClaim.Text.Contains ( "It has been less than 60 minutes since your last claim" ) )
+            {
+                return ( int )ClaimResult.AlreadyClaimed;
+            }
+            IsSuccess=false;
+            ClaimFailed ( );       
+        }
+        return ( int )ClaimResult.Failed;
+    }
+}
+
