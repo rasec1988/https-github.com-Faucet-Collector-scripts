@@ -154,12 +154,13 @@ public class TheAzoteScript : FaucetScript
         if ( IsVisible ( FailClaim ) )
         {
             Log ( FailClaim.Text );
+            IsSuccess=false;
+            ClaimFailed ( );
             if ( FailClaim.Text.Contains ( "It has been less than 60 minutes since your last claim" ) )
             {
                 return ( int )ClaimResult.AlreadyClaimed;
             }
-            IsSuccess=false;
-            ClaimFailed ( );       
+                
         }
         return ( int )ClaimResult.Failed;
     }
