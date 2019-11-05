@@ -1,0 +1,213 @@
+﻿using System.Collections.Generic;
+using System.Linq;
+using FaucetCollector.Script;
+//css_inc RecaptchaUtilities
+public class SkyFaucetScript : FaucetScript
+{
+    private Dictionary<string, string> AvailableFaucets=new Dictionary<string, string>
+    {
+        {"BCH","https://sky-bch.com/" },
+        {"ETH","https://sky-eth.com/" },
+    };
+    
+    // Specific Coin selected for the user
+    private string Coin
+    {
+        get
+        {
+            string coin = GetSetting ( "Coin" );
+            if ( AvailableFaucets.ContainsKey ( coin ) )
+            {
+                return AvailableFaucets[coin];
+            }
+            return AvailableFaucets.Keys.FirstOrDefault ( );
+        }
+    }
+    private string FaucetUrl
+    {
+        get
+        {
+            return BaseUrl+"faucet";
+        }
+    }
+    // Faucet Url
+    private string BaseUrl { get {
+
+            return AvailableFaucets[Coin];  
+        } 
+    }
+    private string LoginUrl
+    {
+        get
+        {
+            return BaseUrl+"login";
+        }
+    }
+    public override FaucetSettings Settings
+    {
+        get
+        {
+
+            return new FaucetSettings ( "about:blank" )
+                {
+                    new FaucetSetting()
+                    {
+                        Name="Coin",
+                        Type=EditorType.ComboBox,
+                        Default=AvailableFaucets.Keys.FirstOrDefault(),
+                        Items=AvailableFaucets.Keys.ToList()
+                    },
+                    new FaucetSetting()
+                    {
+                        Name="User",
+                        Type=EditorType.TextBox,
+                        Required=true,
+                        Display="Username"
+
+                    },
+                    new FaucetSetting ( )
+                    {
+                        Name="Pass",
+                        Type=EditorType.Password,
+                        Required=true,
+                        Display="Password"
+                    }
+
+                };
+
+        }
+    }
+    public override void Start ( )
+    {
+        SuccessXPath="//div[@id='newClaim']//b";
+        FailXPath="//span[@class='error']";
+
+        Title="SKY";
+        base.Start ( );
+
+        Url=BaseUrl;
+    }
+    public override int DoLogin ( )
+    {
+        GoToUrl ( LoginUrl );
+        Wait ( 1 );
+        var UserBox=ElementByXPath("//input[@name='Funame']");
+        if ( !IsVisible ( UserBox ) )
+        {
+            return Fail ( "User box is not visible" );
+        }
+
+        var PasswordBox=ElementByXPath("//input[@name='Fpass']");
+        if ( !IsVisible ( PasswordBox ) )
+        {
+            return Fail ( "Password box is not visible" );
+        }
+
+        SetText ( UserBox , GetSetting ( "User" ) );
+        SetText ( PasswordBox , GetPassword ( "Pass" ) );
+
+        // Click remember me to save cookies. 
+        var RememberMe=ElementByXPath("//input[@name='Freme']");
+        if ( IsVisible ( RememberMe ) )
+        {
+            Click ( RememberMe );
+        }
+        var Loginbtn=ElementByXPath("//input[@value='Login']");
+        if ( !IsVisible ( Loginbtn ) )
+        {
+            return Fail
+                ( "Login button is not visible" );
+        }
+        Click ( Loginbtn );
+        Wait ( 1 );
+        // Filter visible error
+        var Error=ElementsByXPath("//span[@class='error']").FirstOrDefault(x=>IsVisible(x));
+        if ( Error!=null )
+        {
+            //Check if the user entered invalid credentials
+            if ( Error.Text.Contains ( "Enter valid login details" ) )
+            {
+                Disable ( );
+                return Fail (Error.Text);
+            }
+            Log ( Error.Text );
+        }
+        return base.DoLogin ( );
+    }
+
+    public override bool IsLoggedIn ( )
+    {
+        return ElementByXPath ( "//a[@href='logout?logout=logout']" )!=null;
+    }
+
+    public override int BeforeSolveFaucet ( )
+    {
+        var ElementBalance=ElementByXPath("//span[@id='sBal']");
+        if ( IsVisible ( ElementBalance ) )
+        {
+            Log ( "Your balance is: "+ElementBalance.Text );
+        }
+        return base.BeforeSolveFaucet ( );
+    }
+    public override int DoSolveCaptcha ( )
+    {
+        var result= base.DoSolveCaptcha ( );
+        if ( result>0 )
+        {
+            return result;
+        }
+        RecaptchaUtility bypasser =new RecaptchaUtility(this);      
+        bypasser.DoSolve ( );
+        return result;      
+    }
+    public override int DoSolveFaucet ( )
+    {
+        if ( Driver.Url!=FaucetUrl )
+        {
+            GoToUrl ( FaucetUrl );
+            Wait ( );
+        }
+
+        var Claimbtn=ElementByXPath("//button[@id='fbtn']");
+        if ( !IsVisible ( Claimbtn ) )
+        {
+            return Fail ( "Claimbtn is not visible" );
+        }
+
+        var result=DoSolveCaptcha();
+
+        if ( result>0 ){
+
+            return result;
+
+        }
+        Click ( Claimbtn );
+        return base.DoSolveFaucet ( );
+    }
+
+    public override int CheckFaucetResult ( )
+    {
+        Reload=true;
+
+        return base.CheckFaucetResult ( );
+    }
+    public override int GetFaucetWaitTime ( )
+    {
+        var Timer=ElementByXPath("//h1[@id='demo']");
+        if ( IsVisible ( Timer ) )
+        {
+            var TimerText=Timer.Text.Trim().Split(' ');
+            int m,s;
+          
+            if(TimerText.Length==4 && int.TryParse(TimerText[0],out m) && int.TryParse(TimerText[2],out s ) )
+            {
+                return m*60+s;
+            }
+        }
+        return base.GetFaucetWaitTime ( );
+    }
+
+
+
+}
+

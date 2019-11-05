@@ -1,0 +1,95 @@
+{
+  "Rules": [
+    {
+      "Host": "*sky*",
+      "Action": "Allow",
+      "ProxyName": null,
+      "BlockStatusCode": null,
+      "Type": "Url"
+    },
+    {
+      "Host": "*google.com*",
+      "Action": "Allow",
+      "ProxyName": null,
+      "BlockStatusCode": null,
+      "Type": "Url"
+    },
+    {
+      "Host": "*gstatic*",
+      "Action": "Allow",
+      "ProxyName": null,
+      "BlockStatusCode": null,
+      "Type": "Url"
+    },
+    {
+      "Host": "*cdnjs.cloudflare.com*",
+      "Action": "Allow",
+      "ProxyName": null,
+      "BlockStatusCode": null,
+      "Type": "Url"
+    },
+    {
+      "Host": "maxcdn.bootstrapcdn.com",
+      "Action": "Allow",
+      "ProxyName": null,
+      "BlockStatusCode": null,
+      "Type": "Url"
+    },
+    {
+      "Host": "*recaptcha*",
+      "Action": "Allow",
+      "ProxyName": null,
+      "BlockStatusCode": null,
+      "Type": "Url"
+    },
+    {
+      "Host": "*stackpath.bootstrapcdn.com*",
+      "Action": "Allow",
+      "ProxyName": null,
+      "BlockStatusCode": null,
+      "Type": "Url"
+    },
+    {
+      "Host": "*code.jquery.com*",
+      "Action": "Allow",
+      "ProxyName": null,
+      "BlockStatusCode": null,
+      "Type": "Url"
+    },
+    {
+      "Host": "*cdn.datatables.net*",
+      "Action": "Allow",
+      "ProxyName": null,
+      "BlockStatusCode": null,
+      "Type": "Url"
+    },
+    {
+      "Host": "*ajax.googleapis.co*",
+      "Action": "Allow",
+      "ProxyName": null,
+      "BlockStatusCode": null,
+      "Type": "Url"
+    },
+    {
+      "Host": "*use.fontawesome.com*",
+      "Action": "Allow",
+      "ProxyName": null,
+      "BlockStatusCode": null,
+      "Type": "Url"
+    },
+    {
+      "Host": "*cdnjs.cloudflare.com*",
+      "Action": "Allow",
+      "ProxyName": null,
+      "BlockStatusCode": null,
+      "Type": "Url"
+    },
+    {
+      "Host": "*",
+      "Action": "Block",
+      "ProxyName": null,
+      "BlockStatusCode": null,
+      "Type": "Url"
+    }
+  ]
+}
