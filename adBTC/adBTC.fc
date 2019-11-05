@@ -43,6 +43,7 @@ namespace Adbtc
 
             SuccessXPath = "//p[@class='white-text flow-text']";
             FailXPath = "//a[@class='btn-large light-blue darken-4']";
+            ErrorCount=0;
             base.Start();
         }
 
@@ -51,11 +52,9 @@ namespace Adbtc
         {
 
            bool Logged= ElementByXPath("//a[contains(@href,'logout')]") != null;
-            if ( !Logged )
+            if ( Logged )
             {
-                Driver.Manage ( ).Cookies.DeleteAllCookies ( );
-                Driver.Navigate ( ).Refresh ( );
-                Wait ( 1 );
+                ErrorCount=0;
 
             }
             return Logged;
@@ -112,15 +111,24 @@ namespace Adbtc
             }
             Click(ButtonLogin);
 
-
+            
             var ErrorBox = ElementByXPath("//div[@class='col s12 red']//p");
             if (IsVisible(ErrorBox))
             {
                 Log(ErrorBox.Text);
+                ErrorCount++;
+                if ( ErrorCount>3 )
+                {
+                    Log ( "Cookies/cache problem detected, the browser will be closed" );
+                    Driver.Manage ( ).Cookies.DeleteAllCookies ( );
+                    Quit ( );
+                    Context.CleanBrowserDataNow ( );
+                }
             }
             //This faucet has nothing to do here. We will let Faucet Collector handle it.
             return base.DoLogin();
         }
+        public int ErrorCount { get; set; }
         public static string ConvertImageToBase64String(Bitmap image_)
         {
             using (MemoryStream ms = new MemoryStream())
