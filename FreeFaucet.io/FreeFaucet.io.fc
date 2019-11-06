@@ -1,0 +1,269 @@
+//==================//
+//script Written by: ••AviramDayan•• 05/11/2019 00:00PM - Version 1
+//Last Update: 06/11/2019 04:00AM - Version 1
+//==================//
+
+using System;
+using System.IO;
+using FaucetCollector.Script;
+using OpenQA.Selenium;
+//css_inc ShortLinkUtilities
+//css_inc RecaptchaUtilities
+
+public class BloxawardsScript : FaucetScript
+{
+
+    public override FaucetSettings Settings
+    {
+        get
+        {
+            return new FaucetSettings(DomainName_String)
+            {
+                new FaucetSetting() { Name = "Email", Display = "E-mail", Type = EditorType.TextBox, Required = true },
+                new FaucetSetting() { Name = "Password", Display = "Password", Type = EditorType.Password, Required = true },
+            };
+        }
+    }
+
+
+    string DomainName_String = "https://FreeFaucet.io/";
+
+
+
+    public override void Start()
+    {
+        //Title that shows in the browser. Is used to identify and close popup windows
+        Title = "Free Faucet";
+
+        //After we did try to claim on the faucet we search for these elements to determine if it was a success or a fail
+        SuccessXPath = "//*";
+        FailXPath = "//*";
+
+        //Let Faucet Collector start up everything
+        base.Start();
+    }
+
+
+    bool ad; //custom bool
+	
+
+    public override int DoInit()
+    {
+        //Let Faucet Collector continue.
+        return base.DoInit();
+    }
+
+    public override bool IsLoggedIn()
+    {
+	    return ElementByXPath("//a[contains(text(),'Logout') ]") != null;
+        //return true;
+    }
+
+
+//=============//
+//BeforeLogin
+//=============//
+    public override int BeforeLogin()
+    {
+  
+        //if we already login go to here
+        GoToUrl(DomainName_String);
+	
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeLogin();
+    }
+//=============//
+//BeforeLogin
+//=============//
+
+
+
+
+//=============//
+//DoLogin
+//=============//
+    public override int DoLogin()
+    {
+      
+	 //var checks login or exit
+     var ExitButton = ElementByXPath("//a[contains(text(),'Logout') ]"); //SIGN OUT
+
+		 
+	 //if i NOT Login - go to Login Page
+	 if (!IsVisible(ExitButton))
+	 {
+		
+        //else go to normal login
+		GoToUrl(DomainName_String+"/login");
+        Wait();	
+	    Wait(2);		
+	
+        var box_user = ElementByXPath("//div[2]/div[2]/form/div[1]/input[@name='user_name']");
+        SetText(box_user, GetSetting("Email"));
+		
+        Wait(2);
+		
+        var box_pass = ElementByXPath("//div[2]/div[2]/form/div[2]/input[@name='user_password']");
+        SetText(box_pass, GetPassword("Password"));
+		
+        Wait(2);
+	
+        //SolveCaptcha if apper
+        var result = base.DoSolveCaptcha();
+        //RecaptchaUtility utility = new RecaptchaUtility(this);
+        //utility.DoSolve();
+        if (result > 0)
+        {
+          return Fail("fail not solve"); //return to solve again - if something wrong
+        }
+
+        Wait();	
+	    Wait(2);
+		
+        var ButtonLog = ElementByXPath("//div[2]/div[2]/form/input[@type='submit']");
+        Click(ButtonLog);
+
+        Wait(2);
+
+	 }	//end ExitButton
+
+
+        return base.DoLogin();
+    }
+
+//=============//
+//DoLogin
+//=============//
+
+
+
+    public override int AfterLogin()
+    {
+	
+    return base.AfterLogin();
+    }
+
+
+
+
+    public override int GetFaucetWaitTime()
+    {
+		
+        if (ad)
+        {
+		 ad=false;
+         return GetWaitSetting();
+        }
+		
+		//let Faucet Collector continue.
+        return base.GetFaucetWaitTime();
+    }
+
+
+
+
+    public override int BeforeSolveCaptcha()
+    {
+        return base.BeforeSolveCaptcha();
+    }
+
+    public override int DoSolveCaptcha()
+    {
+        return base.DoSolveCaptcha();
+    }
+
+    public override int AfterSolveCaptcha()
+    {
+        return base.AfterSolveCaptcha();
+    }
+
+    public override int BeforeSolveFaucet()
+    {
+        return base.BeforeSolveFaucet();
+    }
+
+
+
+//=============//
+//DoSolveFaucet
+//=============//
+    public override int DoSolveFaucet()
+    {
+
+        GoToUrl(DomainName_String+"/faucets");
+        Wait();		
+        Wait(2);
+		
+        var BitcoinCardHere = ElementByXPath("//div[6]/div/div[1]/h2[contains(text(),'Bitcoin') ]");
+        if (IsVisible(BitcoinCardHere))
+        {
+        Log("BitcoinCardHere - here");
+        var ClaimBitcoinStart = ElementByXPath("//div[6]/div/div[2]/div/div[1]/div[3]/form/input[3]");
+        Click(ClaimBitcoinStart);
+        }
+		
+        Wait();		
+        Wait(2);
+		
+        var ZeroNotAvailable = ElementByXPath("//span[@class='alert alert-success' and contains(text(),'LEFT') and contains(text(),'0') ]");
+
+        if (IsVisible(ZeroNotAvailable))
+        {
+            //We couldn't find the button, return we have a failure.
+            Log("Claim - not available today");
+			return GetWaitSetting(); //Fail
+        }
+
+        Wait(2);
+
+        if (!IsVisible(ZeroNotAvailable))
+        {
+			Log("claimButton - now");
+            var claimButton = ElementByXPath("//form/div[1]/input[@type='submit']");
+            Click(claimButton);
+			
+            Wait(2);
+
+            var result = base.DoSolveCaptcha();
+            RecaptchaUtility utility = new RecaptchaUtility(this);
+            utility.DoSolve();
+            if (result > 0)
+            {
+              return Fail("fail not solve"); //return to solve again - if something wrong
+            }
+		
+        }	//end NOT ZeroNotAvailable
+		
+		
+		Wait(3);
+		
+		
+		ad = true; //Success
+        //return GetWaitSetting();	
+		
+        return base.DoSolveFaucet();
+    }
+//=============//
+//DoSolveFaucet
+//=============//
+
+
+
+
+    public override int AfterSolveFaucet()
+    {
+        return base.AfterSolveFaucet();
+    }
+
+
+
+
+    public override int CheckFaucetResult()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.CheckFaucetResult();
+    }
+
+
+
+} //end class
