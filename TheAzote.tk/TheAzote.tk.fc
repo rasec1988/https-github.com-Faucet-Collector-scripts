@@ -99,6 +99,20 @@ public class TheAzoteScript : FaucetScript
         return ElementByXPath ( "//a[@href='?logout']" )!=null;
     }
 
+    public override int GetFaucetWaitTime ( )
+    {
+        // Some times the timer appears and some times not
+        var Timer=ElementByXPath("//h3[contains(text(),'left for next claim')]");
+        if ( IsVisible ( Timer ) )
+        {
+            int Minutes;
+            if(int.TryParse(Timer.Text.Trim().Split(' ')[0],out Minutes ) )
+            {
+                return Minutes*60;
+            }
+        }
+        return base.GetFaucetWaitTime ( );
+    }
     public override int DoSolveFaucet ( )
     {
         if ( Driver.Url!=FaucetUrl )
@@ -119,7 +133,7 @@ public class TheAzoteScript : FaucetScript
         }
 
         Click ( Claimbtn );
-
+		
         Wait ( 1 );
         // The faucet doesn't contains time element so we need to catch if we need to wait after we claim the faucet
         ClaimResult Cresult=(ClaimResult)CheckFaucetResult();
@@ -130,7 +144,7 @@ public class TheAzoteScript : FaucetScript
         }
         else // if the claim is success or we already claimed
         { 
-            return GetFaucetWaitTime ( );
+            return GetWaitSetting( );
         }
 
     }
