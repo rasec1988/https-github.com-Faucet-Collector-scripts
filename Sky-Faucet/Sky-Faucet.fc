@@ -18,7 +18,7 @@ public class SkyFaucetScript : FaucetScript
             string coin = GetSetting ( "Coin" );
             if ( AvailableFaucets.ContainsKey ( coin ) )
             {
-                return AvailableFaucets[coin];
+                return coin;
             }
             return AvailableFaucets.Keys.FirstOrDefault ( );
         }
