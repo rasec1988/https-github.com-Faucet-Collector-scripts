@@ -7,6 +7,10 @@ using System;
 using System.IO;
 using FaucetCollector.Script;
 using OpenQA.Selenium;
+
+using OpenQA.Selenium.Support.UI;
+using System.Linq;
+
 //css_inc ShortLinkUtilities
 //css_inc RecaptchaUtilities
 
@@ -98,12 +102,12 @@ public class BloxawardsScript : FaucetScript
         Wait();	
 	    Wait(2);		
 	
-        var box_user = ElementByXPath("//div[2]/div[2]/form/div[1]/input[@name='user_name']");
+        var box_user = FindVisibleElement_Function(By.XPath("//input[@id='login_input_email']")); 
         SetText(box_user, GetSetting("Email"));
 		
         Wait(2);
 		
-        var box_pass = ElementByXPath("//div[2]/div[2]/form/div[2]/input[@name='user_password']");
+        var box_pass = FindVisibleElement_Function(By.XPath("//input[@id='login_input_password']"));
         SetText(box_pass, GetPassword("Password"));
 		
         Wait(2);
@@ -120,7 +124,7 @@ public class BloxawardsScript : FaucetScript
         Wait();	
 	    Wait(2);
 		
-        var ButtonLog = ElementByXPath("//div[2]/div[2]/form/input[@type='submit']");
+        var ButtonLog = FindVisibleElement_Function(By.XPath("//input[@type='submit']")); 
         Click(ButtonLog);
 
         Wait(2);
@@ -194,14 +198,16 @@ public class BloxawardsScript : FaucetScript
         Wait();		
         Wait(2);
 		
-        var BitcoinCardHere = ElementByXPath("//div[6]/div/div[1]/h2[contains(text(),'Bitcoin') ]");
+	    //GoToUrl(DomainName_String+"/claim/index.php?coin_name=bitcoin&*"); // it's impossible to do direct to specific url coin
+
+        var BitcoinCardHere = ElementByXPath("//div[7]/div/div[1]/h2[contains(text(),'Bitcoin') ]"); // this the only option
         if (IsVisible(BitcoinCardHere))
         {
         Log("BitcoinCardHere - here");
-        var ClaimBitcoinStart = ElementByXPath("//div[6]/div/div[2]/div/div[1]/div[3]/form/input[3]");
+        var ClaimBitcoinStart = ElementByXPath("//div[7]/div/div[2]/div/div[1]/div[3]/form/input[3]"); // this the only option
         Click(ClaimBitcoinStart);
         }
-		
+
         Wait();		
         Wait(2);
 		
@@ -218,6 +224,7 @@ public class BloxawardsScript : FaucetScript
 
         if (!IsVisible(ZeroNotAvailable))
         {
+
 			Log("claimButton - now");
             var claimButton = ElementByXPath("//form/div[1]/input[@type='submit']");
             Click(claimButton);
@@ -263,6 +270,34 @@ public class BloxawardsScript : FaucetScript
         //This faucet has nothing to do here. We will let Faucet Collector handle it.
         return base.CheckFaucetResult();
     }
+
+
+
+//=======================================================================//
+//FindVisibleElement_Function - if there are mutliple with the same name //
+//=======================================================================//
+private IWebElement FindVisibleElement_Function(By by, int timeout = 1)
+{
+    IWebElement result = null;
+    var wait = new WebDriverWait(Driver, TimeSpan.FromSeconds(timeout));
+    result = wait.Until(drv =>
+      {
+        var elements = drv.FindElements(by);
+        if (elements.Count > 0)
+        {
+          var res = elements.FirstOrDefault(e => IsVisible(e));
+          if (res != null)
+          {
+            return res;
+          }
+        }
+        return null;
+      });
+
+    return result;
+}
+//==========//
+
 
 
 
