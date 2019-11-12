@@ -55,6 +55,16 @@ class RollerCoin    :   FaucetScript
     {
         Coins_2048
     }
+
+    public override void Start ( )
+    {
+        Title="Rollercoin";
+
+        SuccessXPath="//div[@class='react-responsive-spritesheet-container__move']";
+        FailXPath="//*[contains(@text(),'')]";
+        
+        base.Start ( );
+    }
     // Get List of games.
     public List<string> ListOfGames
     {
@@ -141,6 +151,7 @@ class RollerCoin    :   FaucetScript
                     Click ( PlayGame );
                     Wait ( );
                     Play2048Coins ( );
+                    Wait ( 15 );
                     Log ( "Game successfully played" );
                     IsSuccess=true;
                     ClaimSuccess ( );
@@ -171,7 +182,7 @@ class RollerCoin    :   FaucetScript
             return InitializateEmptyTable();
         } 
     }
-    private const double ImgPercent=0.27;
+    private const double ImgPercent=0.28;
     /// <summary>
     /// Initializate Empty Table
     /// </summary>
@@ -213,6 +224,7 @@ class RollerCoin    :   FaucetScript
     private void Play2048Coins ( )
     {
 
+        LoadIcons ( );
         var ButtonFile=AssetDir("Other")+"\\Startbtn";
         //var ButtonFile="Startbtn.png";
         if ( !File.Exists ( ButtonFile ) )
@@ -259,7 +271,7 @@ class RollerCoin    :   FaucetScript
 
         while ( GameTableIsEmpty ( GameTable ) )
         {
-            System.Threading.Thread.Sleep ( 500 );
+            System.Threading.Thread.Sleep ( 100 );
             if ( DateTime.Now>Timeout )
             {
                 Log ( "Game table not initializated , probably there is a problem with the site" );
@@ -269,12 +281,12 @@ class RollerCoin    :   FaucetScript
             GameTable=this.GameTable;
         }
 
-        Log ( "Game table initializated" );
+        //Log ( "Game table initializated" );
         // The game is running
         while ( !GameTableIsEmpty ( GameTable ) )
         {
             SendKeyCanvas ( ConvertActionType ( GetNextAction ( GameTable ) ) );
-
+             
             //System.Threading.Thread.Sleep ( 100 );
 
             GameTable=this.GameTable;
@@ -427,7 +439,7 @@ class RollerCoin    :   FaucetScript
     public readonly string GoRight=Keys.ArrowRight;
     private void SendKeyCanvas (string KeyToSend )
     {
-        var CanvasElement=ElementByXPath("//div[@id='game1']");
+        var CanvasElement=ElementByXPath("//div[@id='game1']",0);
         if ( !IsVisible ( CanvasElement ) )
         {
             Log ( "Canvas element is not visible" );
@@ -435,11 +447,31 @@ class RollerCoin    :   FaucetScript
         }
         Actions action  = new Actions(Driver);
         action.SendKeys ( CanvasElement ,KeyToSend ).Build().Perform();
+        System.Threading.Thread.Sleep ( 10 );
+        action.SendKeys ( CanvasElement , GoUp ).Build ( ).Perform ( );
+        System.Threading.Thread.Sleep ( 10 );
+        action.SendKeys ( CanvasElement , GoLeft ).Build ( ).Perform ( );
+        System.Threading.Thread.Sleep ( 10 );
+        action.SendKeys ( CanvasElement , GoDown ).Build ( ).Perform ( );
+        System.Threading.Thread.Sleep ( 10 );
+        action.SendKeys ( CanvasElement , GoRight ).Build ( ).Perform ( );
+        System.Threading.Thread.Sleep ( 10 );
+        action.SendKeys ( CanvasElement , GoDown ).Build ( ).Perform ( );
+        System.Threading.Thread.Sleep ( 10 );
+        action.SendKeys ( CanvasElement , GoRight ).Build ( ).Perform ( );
+        System.Threading.Thread.Sleep ( 10 );
+        action.SendKeys ( CanvasElement , GoUp ).Build ( ).Perform ( );
+        System.Threading.Thread.Sleep ( 10 );
+        action.SendKeys ( CanvasElement , GoLeft ).Build ( ).Perform ( );
+        System.Threading.Thread.Sleep ( 10 );
+        action.SendKeys ( CanvasElement , KeyToSend ).Build ( ).Perform ( );
+      
+
     }
 
     private void ClickInCanvas (int offsetX,int offsetY )
     {
-        var CanvasElement=ElementByXPath("//div[@id='game1']");
+        var CanvasElement=ElementByXPath("//div[@id='game1']",0);
         if ( !IsVisible ( CanvasElement ) )
         {
             Log ( "Canvas element is not visible" );
@@ -456,7 +488,7 @@ class RollerCoin    :   FaucetScript
     { 
         get
         {
-            var CanvasElement=ElementByXPath ( "//div[@id='game1']//canvas" );
+            var CanvasElement=ElementByXPath ( "//div[@id='game1']//canvas",0 );
             if ( !IsVisible ( CanvasElement ) )
             {
                 return null;
@@ -467,8 +499,6 @@ class RollerCoin    :   FaucetScript
             {
                 Source=PointIcon.ResizeImg ( Source , CanvasWidth , CanvasHeigh );
             }
-
-            Source.Save ( "Debug.png" );
             return Source;
         } 
     }
@@ -477,30 +507,54 @@ class RollerCoin    :   FaucetScript
     {
         return !GameTable.Any ( x => x.Any ( y => y!=PointIcon.IconType.None ) );
     }
+    public class Icon
+    {
+       public string Path { get; set; }
+       public Bitmap IconImg { get; set; }
+
+        public PointIcon.IconType Type { get; set; }
+    }
+
+    List<Icon> IconsImg=new List<Icon>();
+
+
+    private void LoadIcons ( )
+    {
+        //var ListIcons=Directory.GetFiles(Directory.GetCurrentDirectory()+"\\Icons\\").Where(x=>x.Contains(".png")).ToList();
+        var ListIcons=Directory.GetFiles(AssetDir("Other")+"\\Icons\\").Where(x=>x.Contains(".png")).ToList(); 
+        for ( int i = 0 ; i<ListIcons.Count ; i++ )
+        {
+            IconsImg.Add ( new Icon
+            {
+                Path=ListIcons[i] ,
+                IconImg=PointIcon.OpenImgInBitmap ( ListIcons[i]),
+                Type=( PointIcon.IconType )Enum.Parse ( typeof ( PointIcon.IconType ) , ListIcons[i].Split ( '\\' ).Last ( ).Split ( '.' )[0] )
+            } );
+        }
+    }
     private List<List<PointIcon.IconType>> GetGameTable (Bitmap Source )
     {
         
         //Cut image to the insterested area
         Source=Source.Clone ( new Rectangle ( 54 , 82 , 600 , 600 ) , Source.PixelFormat );
 
-        var ListIcons=Directory.GetFiles(AssetDir("Other")+"\\Icons\\");
+        //var ListIcons=Directory.GetFiles(AssetDir("Other")+"\\Icons\\");
         //var ListIcons=Directory.GetFiles(Directory.GetCurrentDirectory()+"\\Icons\\");
 
-     
+
         List<PointIcon> Icons=new List<PointIcon>();
         List<Task> TaskList=new List<Task>();
-        for ( int i = 0 ; i<ListIcons.Length ; i++ )
+        for ( int i = 0 ; i<IconsImg.Count ; i++ )
         {
             Bitmap MySource=Source.Clone(new Rectangle(0,0,Source.Width,Source.Height),Source.PixelFormat);
+            //Bitmap MySource=Source;
             int Aux=i;
             TaskList.Add ( Task.Run ( ( ) =>
             {
-                Bitmap Icon=PointIcon.OpenImgInBitmap(ListIcons[Aux]);
-
-                var Location=PointIcon.GetLocations ( MySource , Icon );
+                var Location=PointIcon.GetLocations ( MySource , IconsImg[Aux].IconImg );
                 Icons.Add ( new PointIcon
                 {
-                    Type=( PointIcon.IconType )Enum.Parse ( typeof ( PointIcon.IconType ) , ListIcons[Aux].Split ( '\\' ).Last ( ).Split ( '.' )[0] ) ,
+                    Type=IconsImg[Aux].Type,
                     Locations=Location
                 } );
 
@@ -509,7 +563,7 @@ class RollerCoin    :   FaucetScript
 
         while ( TaskList.FirstOrDefault ( l => !l.IsCompleted )!=null )
         {
-            System.Threading.Thread.Sleep ( 10 );
+            System.Threading.Thread.Sleep ( 5 );
         }
         var GameTable=InitializateEmptyTable();
 
@@ -517,7 +571,7 @@ class RollerCoin    :   FaucetScript
         {
             foreach ( var cords in icon.Locations )
             {
-                GameTable[(int)cords.X/41][( int )cords.Y/41]=icon.Type;
+                GameTable[(int)(cords.X/(150*ImgPercent))][( int )(cords.Y/( 150*ImgPercent ))]=icon.Type;
 
             }
         }
@@ -590,7 +644,7 @@ class RollerCoin    :   FaucetScript
             sourceImage=ResizeImg ( sourceImage , ImgPercent );
             template=ResizeImg ( template , ImgPercent );
 
-            ExhaustiveTemplateMatching tm = new ExhaustiveTemplateMatching(0.901f);
+            ExhaustiveTemplateMatching tm = new ExhaustiveTemplateMatching(0.92f);
             // find all matchings with specified above similarity
 
             TemplateMatch[] matchings = tm.ProcessImage(sourceImage, template);
