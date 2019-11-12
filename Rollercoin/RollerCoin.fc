@@ -1,0 +1,608 @@
+﻿using AForge;
+using AForge.Imaging;
+using FaucetCollector.Script;
+using System;
+using System.Collections.Generic;
+using System.Drawing.Drawing2D;
+using System.Drawing;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using OpenQA.Selenium.Interactions;
+using OpenQA.Selenium.Interactions.Internal;
+using OpenQA.Selenium;
+
+//css_ref AForge.dll
+//css_ref AForge.Imaging.dll
+//css_ref AForge.Math.dll
+
+class RollerCoin    :   FaucetScript
+    {
+
+    public override FaucetSettings Settings { get {
+
+            return new FaucetSettings ( "https://rollercoin.com" )
+         {
+            new FaucetSetting()
+            {
+                Name="User",
+                Type=EditorType.TextBox,
+                Required=true,
+                Display="Email"
+            },
+            new FaucetSetting()
+            {
+                Name="Pass",
+                Type=EditorType.Password,
+                Required=true,
+                Display="Password"
+            },
+            new FaucetSetting ( )
+            {
+                Name="Game",
+                Type=EditorType.ComboBox,
+                Items=ListOfGames,
+                Default=ListOfGames.FirstOrDefault()
+                
+            }
+        };               
+        }
+    }
+
+    //Available Games
+    public enum Games
+    {
+        Coins_2048
+    }
+    // Get List of games.
+    public List<string> ListOfGames
+    {
+        get
+        {
+            return Enum.GetNames ( typeof ( Games ) ).ToList ( );
+        }
+    }
+    public override int DoLogin ( )
+    {
+        GoToUrl ( "https://rollercoin.com/sign-in" );
+        Wait ( 1 );
+
+        var UserBox=ElementByXPath("//input[@id='mail']");
+        if ( !IsVisible ( UserBox ) )
+        {
+            return Fail ( "User box not visible" );
+        }
+        
+        var PasswordBox=ElementByXPath("//input[@id='password']");
+        if ( !IsVisible(PasswordBox) )
+        {
+            return Fail ( "Password box is not visible" );
+        }
+
+        var ButtonLogin=ElementByXPath("//button[@class='btn btn-default-btn w-100']");
+        if ( !IsVisible ( ButtonLogin ) )
+        {
+            return Fail ( "Button login is not visible" );
+        }
+        SetText ( UserBox , GetSetting ( "User" ) );
+        SetText ( PasswordBox , GetPassword ( "Pass" ) );
+
+
+        var KeepSigned=ElementByXPath("//label[@for='keepSigned']");
+        if ( IsVisible ( KeepSigned ) )
+        {
+            Click ( KeepSigned );
+            Wait ( 1 );
+        }
+
+        Click ( ButtonLogin );
+
+        Wait ( 1 );
+
+        var Error=ElementByXPath("//p[@class='danger-text wrong-mail-error error-text']");
+        if ( IsVisible ( Error ) )
+        {
+            Log ( Error.Text );
+            if ( Error.Text.Contains ( "find user with password" ) )
+            {
+                Disable ( );
+                return Fail ( "You need to put correctly your credentials" );
+            }
+        }
+        return base.DoLogin ( );
+    }
+
+    public override bool IsLoggedIn ( )
+    {
+        return ElementByXPath ( "//a[@href='/exit']" )!=null;
+    }
+
+    public override int DoSolveFaucet ( )
+    {
+        GoToUrl ( "https://rollercoin.com/game/choose_game" );
+        Wait ( 1 );
+
+    
+
+       var GameSelected=   (Games) Enum.Parse ( typeof ( Games ) , GetSetting ( "Game" ));
+
+        if ( GameSelected==Games.Coins_2048 )
+        {
+            var GotoGame=ElementByXPath("//img[@src='/static/img/gamePreview/7-small.png?v=1.0.3']");
+            if ( IsVisible ( GotoGame ) )
+            {
+                Click ( GotoGame );
+                Wait ( );
+
+                var PlayGame=ElementByXPath("//button[@class='btn btn-cyan w-100']");
+                if ( IsVisible ( PlayGame ) )
+                {
+                    Click ( PlayGame );
+                    Wait ( );
+                    Play2048Coins ( );
+                    Log ( "Game successfully played" );
+                    IsSuccess=true;
+                    ClaimSuccess ( );
+                    
+                    return GetWaitSetting ( );
+                }
+
+            }
+
+        }
+
+
+        return base.DoSolveFaucet ( );
+    }
+    #region Game 2048Coins
+
+    private const int CanvasWidth=831;
+    private const int CanvasHeigh=717;
+
+    private List<List<PointIcon.IconType>> GameTable { get
+        {
+            Bitmap CImage=CanvasImg;
+            if ( CImage!=null )
+            {
+                return GetGameTable ( CImage );
+            }
+
+            return InitializateEmptyTable();
+        } 
+    }
+    private const double ImgPercent=0.27;
+    /// <summary>
+    /// Initializate Empty Table
+    /// </summary>
+    /// <returns>return Empty game table 4x4</returns>
+    private List<List<PointIcon.IconType>> InitializateEmptyTable ( )
+    {
+        return new List<List<PointIcon.IconType>>
+        {
+            new List<PointIcon.IconType>
+            {
+                PointIcon.IconType.None,
+                PointIcon.IconType.None,
+                PointIcon.IconType.None,
+                PointIcon.IconType.None
+            },
+            new List<PointIcon.IconType>
+            {
+                PointIcon.IconType.None,
+                PointIcon.IconType.None,
+                PointIcon.IconType.None,
+                PointIcon.IconType.None
+            },
+            new List<PointIcon.IconType>
+            {
+                PointIcon.IconType.None,
+                PointIcon.IconType.None,
+                PointIcon.IconType.None,
+                PointIcon.IconType.None
+            },
+            new List<PointIcon.IconType>
+            {
+                PointIcon.IconType.None,
+                PointIcon.IconType.None,
+                PointIcon.IconType.None,
+                PointIcon.IconType.None
+            },
+        };
+    }
+    private void Play2048Coins ( )
+    {
+
+        var ButtonFile=AssetDir("Other")+"\\Startbtn";
+        //var ButtonFile="Startbtn.png";
+        if ( !File.Exists ( ButtonFile ) )
+        {
+            Log ( "We have problems to get the button , probably assets file was not correctly loaded" );
+
+
+            return;
+        }
+
+        using ( Bitmap Imgbtn = PointIcon.OpenImgInBitmap ( ButtonFile ) )
+        {
+            Bitmap CanvasImg=this.CanvasImg;
+
+            if ( CanvasImg==null )
+            {
+                Log ( "We have problems to find the button to play" );
+                return;
+            }
+            var Location=PointIcon.GetLocations(CanvasImg,Imgbtn);
+            DateTime timeout=DateTime.Now.AddSeconds(10);
+            while ( Location.Count==0&&CanvasImg!=null&&DateTime.Now<timeout )
+            {
+                CanvasImg=this.CanvasImg;
+
+                Location=PointIcon.GetLocations ( CanvasImg , Imgbtn );
+
+                Wait ( );
+            }
+            if ( Location.Count==0 )
+            {
+                Log ( "button didn't finded" );
+                return;
+            }
+            Log ( "Cord X: "+( Location[0].X/ImgPercent ).ToString ( )+" Cord Y"+( Location[0].Y/ImgPercent ) );
+            // Click in the center of the image
+            ClickInCanvas ( ( int )( Location[0].X/ImgPercent )+Imgbtn.Width/2 , ( int )( Location[0].Y/ImgPercent )+Imgbtn.Height/2 );
+        }
+
+        Wait ( );
+        var GameTable=this.GameTable;
+
+        DateTime Timeout=DateTime.Now.AddSeconds(10);
+
+        while ( GameTableIsEmpty ( GameTable ) )
+        {
+            System.Threading.Thread.Sleep ( 500 );
+            if ( DateTime.Now>Timeout )
+            {
+                Log ( "Game table not initializated , probably there is a problem with the site" );
+                return;
+
+            }
+            GameTable=this.GameTable;
+        }
+
+        Log ( "Game table initializated" );
+        // The game is running
+        while ( !GameTableIsEmpty ( GameTable ) )
+        {
+            SendKeyCanvas ( ConvertActionType ( GetNextAction ( GameTable ) ) );
+
+            //System.Threading.Thread.Sleep ( 100 );
+
+            GameTable=this.GameTable;
+
+        }
+
+        Log ( "Game finished" );
+        var FinishBtn=AssetDir("Other")+"\\Finishbtn.png";
+        //var FinishBtn="Finishbtn.png";
+        if ( !File.Exists ( FinishBtn ) )
+        {
+            Log ( "We have problems to get the button , probably assets file was not correctly loaded" );
+            return;
+        }
+        using ( Bitmap BtnFinish = PointIcon.OpenImgInBitmap ( FinishBtn ) )
+        {
+
+            Bitmap CanvasImg=this.CanvasImg;
+
+            if ( CanvasImg==null )
+            {
+                Log ( "We have problems to find the button to finish" );
+                return;
+            }
+            var Location=PointIcon.GetLocations(CanvasImg,BtnFinish);
+            DateTime timeout=DateTime.Now.AddSeconds(10);
+            while ( Location.Count==0&&CanvasImg!=null&&DateTime.Now<timeout )
+            {
+                CanvasImg=this.CanvasImg;
+
+                Location=PointIcon.GetLocations ( CanvasImg , BtnFinish );
+
+                Wait ( );
+            }
+            if ( Location.Count==0 )
+            {
+                Log ( "button didn't finded" );
+                return;
+            }
+            Log ( "Cord X: "+( Location[0].X/ImgPercent ).ToString ( )+" Cord Y"+( Location[0].Y/ImgPercent ) );
+            // Click in the center of the image
+            ClickInCanvas ( ( int )( Location[0].X/ImgPercent )+BtnFinish.Width/2 , ( int )( Location[0].Y/ImgPercent )+BtnFinish.Height/2 );
+
+            Log ( "Game Finished" );
+        }
+
+
+        //Finishbtn.PNG
+    }
+    private enum ActionType
+    {
+        Up,
+        Down,
+        Left,
+        Right
+    }
+
+    private string ConvertActionType(ActionType action )
+    {
+        return action==ActionType.Up ? GoUp : action==ActionType.Down ? GoDown : action==ActionType.Left ? GoLeft : GoRight;
+    }
+
+    private ActionType GetNextAction ( List<List<PointIcon.IconType>> Table )
+    {
+        // Check simple Moviment 
+        for(int i=0 ;i<Table.Count ;i++ )
+        {
+            for(int j=Table[i].Count-1 ;j>=0 ;j-- )
+            {
+                // Table is empty in that position we don't have anything to check
+                if ( Table[i][j]==PointIcon.IconType.None )
+                {
+                    continue;
+                }
+                // Check if we can move Up 
+                if ( CheckUpSimpleMoviment ( Table , i , j ) )
+                {
+                    return ActionType.Up;
+                }
+                if ( CheckRightSimpleMoviment ( Table , i , j ) )
+                {
+                    return ActionType.Right;
+                }
+
+                // Check if we can move left
+            }
+        }
+
+        int N=Random(0,4);
+
+        return N==0 ? ActionType.Up : N==1 ? ActionType.Down : N==2 ? ActionType.Left : ActionType.Right;
+    }
+   private bool CheckUpSimpleMoviment ( List<List<PointIcon.IconType>> Table,int X,int Y )
+    {
+        int IndexToCheck=Y-1;
+        while (IndexToCheck>=0)
+        {
+            if ( Table[X][IndexToCheck]==PointIcon.IconType.None )
+            {
+                IndexToCheck-=1;
+                if ( IndexToCheck<0 )
+                {
+                    return false;
+                }
+                continue;
+            }
+            // Check if IsDistint
+            if ( Table[X][Y]!=Table[X][IndexToCheck] )
+            {
+                return false;
+            }
+            else
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    private bool CheckRightSimpleMoviment ( List<List<PointIcon.IconType>> Table , int X , int Y )
+    {
+        int IndexToCheck=X+1;
+        while ( Table.Count<IndexToCheck )
+        {
+            if ( Table[IndexToCheck][Y]==PointIcon.IconType.None )
+            {
+                IndexToCheck+=1;
+                if ( IndexToCheck>=Table.Count )
+                {
+                    return false;
+                }
+                continue;
+            }
+            // Check if IsDistint
+            if ( Table[X][Y]!=Table[IndexToCheck][Y] )
+            {
+                return false;
+            }
+            else
+            {
+                return true;
+            }
+        }
+        return false;
+}
+    
+    public readonly string GoDown=Keys.ArrowDown;
+    public readonly string GoUp=Keys.ArrowUp;
+    public readonly string GoLeft=Keys.ArrowLeft;
+    public readonly string GoRight=Keys.ArrowRight;
+    private void SendKeyCanvas (string KeyToSend )
+    {
+        var CanvasElement=ElementByXPath("//div[@id='game1']");
+        if ( !IsVisible ( CanvasElement ) )
+        {
+            Log ( "Canvas element is not visible" );
+            return;
+        }
+        Actions action  = new Actions(Driver);
+        action.SendKeys ( CanvasElement ,KeyToSend ).Build().Perform();
+    }
+
+    private void ClickInCanvas (int offsetX,int offsetY )
+    {
+        var CanvasElement=ElementByXPath("//div[@id='game1']");
+        if ( !IsVisible ( CanvasElement ) )
+        {
+            Log ( "Canvas element is not visible" );
+            return;
+        }
+
+        Actions action  = new Actions(Driver);
+        action.MoveToElement ( CanvasElement ,offsetX,offsetY).Click ( ).Build ( ).Perform();
+        System.Threading.Thread.Sleep ( 20 );
+        //action.Click ( ).Build ( ).Perform ( );
+    }
+
+    private Bitmap CanvasImg 
+    { 
+        get
+        {
+            var CanvasElement=ElementByXPath ( "//div[@id='game1']//canvas" );
+            if ( !IsVisible ( CanvasElement ) )
+            {
+                return null;
+            }
+            var Source = TakeScreenshot ( Base.Captcha.CaptchaService.Manual , CanvasElement );
+
+            if ( Source.Width!=CanvasWidth||Source.Height!=CanvasHeigh )
+            {
+                Source=PointIcon.ResizeImg ( Source , CanvasWidth , CanvasHeigh );
+            }
+
+            Source.Save ( "Debug.png" );
+            return Source;
+        } 
+    }
+
+    private bool GameTableIsEmpty ( List<List<PointIcon.IconType>> GameTable )
+    {
+        return !GameTable.Any ( x => x.Any ( y => y!=PointIcon.IconType.None ) );
+    }
+    private List<List<PointIcon.IconType>> GetGameTable (Bitmap Source )
+    {
+        
+        //Cut image to the insterested area
+        Source=Source.Clone ( new Rectangle ( 54 , 82 , 600 , 600 ) , Source.PixelFormat );
+
+        var ListIcons=Directory.GetFiles(AssetDir("Other")+"\\Icons\\");
+        //var ListIcons=Directory.GetFiles(Directory.GetCurrentDirectory()+"\\Icons\\");
+
+     
+        List<PointIcon> Icons=new List<PointIcon>();
+        List<Task> TaskList=new List<Task>();
+        for ( int i = 0 ; i<ListIcons.Length ; i++ )
+        {
+            Bitmap MySource=Source.Clone(new Rectangle(0,0,Source.Width,Source.Height),Source.PixelFormat);
+            int Aux=i;
+            TaskList.Add ( Task.Run ( ( ) =>
+            {
+                Bitmap Icon=PointIcon.OpenImgInBitmap(ListIcons[Aux]);
+
+                var Location=PointIcon.GetLocations ( MySource , Icon );
+                Icons.Add ( new PointIcon
+                {
+                    Type=( PointIcon.IconType )Enum.Parse ( typeof ( PointIcon.IconType ) , ListIcons[Aux].Split ( '\\' ).Last ( ).Split ( '.' )[0] ) ,
+                    Locations=Location
+                } );
+
+            } ) );
+        }
+
+        while ( TaskList.FirstOrDefault ( l => !l.IsCompleted )!=null )
+        {
+            System.Threading.Thread.Sleep ( 10 );
+        }
+        var GameTable=InitializateEmptyTable();
+
+        foreach ( var icon in Icons )
+        {
+            foreach ( var cords in icon.Locations )
+            {
+                GameTable[(int)cords.X/41][( int )cords.Y/41]=icon.Type;
+
+            }
+        }
+
+        return GameTable;
+
+    }
+
+    public class PointIcon
+    {
+        public List<AForge.Point> Locations { get; set; }
+        public IconType Type { get; set; }
+        public enum IconType
+        {
+            None,
+            Doge,
+            Litecoin,
+            Monero,
+            Rollercoin,
+            Steemit,
+            Stellar,
+            Unicoin
+        }
+
+        public static Bitmap ResizeImg ( Bitmap image , double threadshould = 0.4 )
+        {
+            double width=image.Width*threadshould;
+            double height=image.Height*threadshould;
+
+            return ResizeImg ( image , (int)width , (int)height );
+        }
+
+        public static Bitmap ResizeImg(Bitmap image ,int width ,int height )
+        {
+            var destRect = new Rectangle(0, 0, width, height);
+            var destImage = new Bitmap(width, height , System.Drawing.Imaging.PixelFormat.Format24bppRgb);
+
+            destImage.SetResolution ( image.HorizontalResolution , image.VerticalResolution );
+
+            using ( var graphics = Graphics.FromImage ( destImage ) )
+            {
+                graphics.CompositingMode=CompositingMode.SourceCopy;
+                graphics.CompositingQuality=CompositingQuality.HighQuality;
+                graphics.InterpolationMode=InterpolationMode.HighQualityBicubic;
+                graphics.SmoothingMode=SmoothingMode.HighQuality;
+                graphics.PixelOffsetMode=PixelOffsetMode.HighQuality;
+
+                using ( var wrapMode = new System.Drawing.Imaging.ImageAttributes ( ) )
+                {
+                    wrapMode.SetWrapMode ( WrapMode.TileFlipXY );
+                    graphics.DrawImage ( image , destRect , 0 , 0 , image.Width , image.Height , GraphicsUnit.Pixel , wrapMode );
+                }
+            }
+            return destImage;
+        }
+        public static Bitmap OpenImgInBitmap ( string Path )
+        {
+            using ( FileStream stream = new FileStream ( Path , FileMode.Open ) )
+            {
+                Bitmap Img=new Bitmap(stream);
+                stream.Close ( );
+                return Img;
+            }
+        }
+        public static List<AForge.Point> GetLocations ( Bitmap sourceImage , Bitmap template )
+        {
+            List<AForge.Point> ListLocations=new List<AForge.Point>();
+
+            //make sure that all images have 24 bits format and reduce the image.
+            sourceImage=ResizeImg ( sourceImage , ImgPercent );
+            template=ResizeImg ( template , ImgPercent );
+
+            ExhaustiveTemplateMatching tm = new ExhaustiveTemplateMatching(0.901f);
+            // find all matchings with specified above similarity
+
+            TemplateMatch[] matchings = tm.ProcessImage(sourceImage, template);
+
+            foreach ( TemplateMatch m in matchings )
+            {
+                ListLocations.Add ( new AForge.Point(m.Rectangle.X,m.Rectangle.Y) );
+            }
+
+            return ListLocations;
+        }
+    }
+    #endregion
+}
+
