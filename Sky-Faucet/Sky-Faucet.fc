@@ -194,16 +194,30 @@ public class SkyFaucetScript : FaucetScript
     }
     public override int GetFaucetWaitTime ( )
     {
-        var Timer=ElementByXPath("//h1[@id='demo']|//h2[@id='demo2']");
+        // FIRST POSIBLE TIMER
+        var Timer=ElementByXPath("//h1[@id='demo']");
         if ( IsVisible ( Timer ) )
         {
             var TimerText=Timer.Text.Trim().Replace("m","").Replace("s","").Split(' ');
             int m,s;
           
-            if(TimerText.Length==4 && int.TryParse(TimerText[0],out m) && int.TryParse(TimerText[2],out s ) )
+            if(TimerText.Length==2 && int.TryParse(TimerText[0],out m) && int.TryParse(TimerText[1],out s ) )
             {
                 return m*60+s;
             }
+        }
+        //SECOND POSIBLE TIMER
+        var Timer2=ElementByXPath("//h2[@id='demo2']");
+        if ( IsVisible ( Timer2 ) )
+        {
+            var TimerText=Timer2.Text.Trim().Split(' ');
+            int m,s;
+
+            if ( TimerText.Length==4&&int.TryParse ( TimerText[0] , out m )&&int.TryParse ( TimerText[2] , out s ) )
+            {
+                return m*60+s;
+            }
+
         }
         return base.GetFaucetWaitTime ( );
     }
