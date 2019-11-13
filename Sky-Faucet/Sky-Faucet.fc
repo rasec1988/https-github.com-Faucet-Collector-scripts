@@ -8,6 +8,7 @@ public class SkyFaucetScript : FaucetScript
     {
         {"BCH","https://sky-bch.com/" },
         {"ETH","https://sky-eth.com/" },
+        {"DOGE","https://sky-doge.com/"}
     };
     
     // Specific Coin selected for the user
@@ -193,10 +194,10 @@ public class SkyFaucetScript : FaucetScript
     }
     public override int GetFaucetWaitTime ( )
     {
-        var Timer=ElementByXPath("//h1[@id='demo']");
+        var Timer=ElementByXPath("//h1[@id='demo']|//h2[@id='demo2']");
         if ( IsVisible ( Timer ) )
         {
-            var TimerText=Timer.Text.Trim().Split(' ');
+            var TimerText=Timer.Text.Trim().Replace("m","").Replace("s","").Split(' ');
             int m,s;
           
             if(TimerText.Length==4 && int.TryParse(TimerText[0],out m) && int.TryParse(TimerText[2],out s ) )
