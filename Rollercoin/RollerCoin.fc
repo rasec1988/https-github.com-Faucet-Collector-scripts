@@ -139,7 +139,7 @@ class RollerCoin    :   FaucetScript
 
         if ( GameSelected==Games.Coins_2048 )
         {
-            var GotoGame=ElementByXPath("//img[@src='/static/img/gamePreview/7-small.png?v=1.0.3']");
+            var GotoGame=ElementByXPath("//img[contains(@src,'/static/img/gamePreview/7-small.png')]");
             if ( IsVisible ( GotoGame ) )
             {
                 Click ( GotoGame );
@@ -225,7 +225,7 @@ class RollerCoin    :   FaucetScript
     {
 
         LoadIcons ( );
-        var ButtonFile=AssetDir("Other")+"\\Startbtn";
+        var ButtonFile=AssetDir("Other")+"\\Startbtn.png";
         //var ButtonFile="Startbtn.png";
         if ( !File.Exists ( ButtonFile ) )
         {
@@ -465,7 +465,7 @@ class RollerCoin    :   FaucetScript
         action.SendKeys ( CanvasElement , GoLeft ).Build ( ).Perform ( );
         System.Threading.Thread.Sleep ( 10 );
         action.SendKeys ( CanvasElement , KeyToSend ).Build ( ).Perform ( );
-      
+        //2019-11-12 18:30 
 
     }
 
