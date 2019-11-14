@@ -83,12 +83,12 @@ namespace Adbtc
         public override int DoLogin()
         {
 
-            var AddressBox = ElementByXPath("//input[@id='addr']");
+            var AddressBox = ElementByXPath("//input[@id='email']");
             if (!IsVisible(AddressBox))
             {
                 return Fail("Fail To login address box is not visible");
             }
-            IWebElement PasswordBox = ElementByXPath("//input[@id='secret']");
+            var PasswordBox = ElementByXPath("//input[@id='password']");
             if (!IsVisible(PasswordBox))
             {
                 return Fail("Fail login");
