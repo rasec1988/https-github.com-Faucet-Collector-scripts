@@ -1,7 +1,7 @@
 
 //==================//
 //script Written by: ••AviramDayan•• 13/11/2019 09:00AM - Version 1
-//Last Update: 13/11/2019 09:00AM - Version 1
+//Last Update: 16/11/2019 09:00AM - Version 1
 //==================//
 
 using System;
@@ -36,18 +36,10 @@ public class RooBet : FaucetScript
                 new FaucetSetting(){Name="Password",Display="Password",Type=EditorType.Password,Required=false},
 
                 new FaucetSetting() { Name = "btc", Display = "btc - claim", Type = EditorType.CheckBox, Default =true},
-                new FaucetSetting() { Name = "LimitFaucet", Display = "LimitFaucet - write the full number of satoshi without point/decimals - 0.0 | 1.1 and etc (for example write: 100 200)", Type = EditorType.Numeric, Default = 0 },
+                new FaucetSetting() { Name = "LimitFaucet", Display = "LimitFaucet - write the full number of satoshi without point/decimals - 0.0 | 1.1 and etc (for example write: 100 200)", Type = EditorType.Numeric, Default = 1 },
 
 				new FaucetSetting() { Name = "Rain_AirDrop_Chat", Display = "Rain_AirDrop_Chat - ON/OFF", Type = EditorType.CheckBox, Default = false},		
                 new FaucetSetting(){Name="MessageChat",Display="Your Message In Chat - only need to be active to get any rain",Default = ".",Type=EditorType.TextBox,Required=false},
-
-/*
-				new FaucetSetting(){Name="WalletAddress",Display="WalletAddress",Type=EditorType.TextBox,Required=false},
-                new FaucetSetting() { Name = "AutoWithdraw", Display = "AutoWithdraw - ON/OFF", Type = EditorType.CheckBox, Default = false},	
-                new FaucetSetting() { Name = "LimitWithdraw", Display = "LimitWithdraw - write the full number of satoshi without point/decimals - 0.0 | 1.1 and etc (for example write: 100 200)", Type = EditorType.Numeric, Default = 8 },
-
-                new FaucetSetting() { Name = "AffWithdraw", Display = "AffWithdraw", Type = EditorType.CheckBox, Default = false},	
-*/
 
             };
         }
@@ -286,93 +278,9 @@ public class RooBet : FaucetScript
         if (GetBoolSetting("Rain_AirDrop_Chat"))
         {  
          RainAirDropChat_Function(); //call to RainAirDropChat_Function
-
-         Wait();
          Wait(2);
-		 
 		}// Rain_AirDrop_Chat
 		//==============//
-
-	
-/*
-		//==============//
-		//AutoWithdraw//
-		//==============//
-        if (GetBoolSetting("AutoWithdraw"))
-        {
-         GoToUrl("https://panel.bither.one/dashboard");
-         Wait();
-         Wait(2);
-
-	     AutoWithdraw_Function(); //call 
-	
-		}//end AutoWithdraw
-		//==============//
-*/
-
-
-/*	  
-    //=============//
-    //AffWithdraw
-    //=============// 
-    if (GetBoolSetting("AffWithdraw"))
-    {
-
-      var ProtectionAffiliate_NotZero = ElementByXPath("//div[contains(@class,'our_affiliate__w2 our_affiliate__gr') and starts-with(text(),'0')]");
-      if (!IsVisible(ProtectionAffiliate_NotZero)) //if the Affiliate NOT 0 - only then do stuff
-	  {
-		Log("AffWithdraw");
-		GoToUrl("https://RooBet.com/affiliate/funds");
-		Wait();
-		Wait(2);	
-
-        var MenuAccount = ElementByXPath("//div[@class='options account-options']/button[@class='selected option']");
-        if (IsVisible(MenuAccount))
-        {		
-		Log("MenuAccount");		
-        Click(MenuAccount);
-        }//end MenuAccount
-		
-		Wait(2);
-		
-        var AffiliateButton = ElementByXPath("//button[@class='option' and contains(text(),'Affiliate')]");
-        if (IsVisible(AffiliateButton))
-        {		
-		Log("AffiliateButton");		
-        Click(AffiliateButton);
-        }//end AffiliateButton
-		
-		Wait();
-		Wait(2);
-		
-		//======//
-		//btc//
-		//======//
-		Menu_Function_Affiliate(); // call to open Menu_Function_Affiliate
-		Wait();
-		Wait(2);
-		
-		var btc_Affiliate_Select = ElementByXPath("//div[@class='scrollPane']//button[1]");
-        if (IsVisible(btc_Affiliate_Select))
-        {			
-        Click(btc_Affiliate_Select);
-        Log("btc_Affiliate_Select");
-        }
-		
-		Wait(2);
-		
-		Claim_Function_Affiliate(); // call to claim button
-		
-		//======//
-
-
-		
-	  }	// end ProtectionAffiliate_NotZero
-	   
-   }//end AffWithdraw
-   //=============//	 
- */
- 
 
 
         GoToUrl("https://www.RooBet.com/");
@@ -389,8 +297,6 @@ public class RooBet : FaucetScript
         {	
 		  Log("btc - try to claim");	
           Faucet_Function(); //call
-	
-          //Menu_Function(); //call
 		  
 	      Wait();
 	      Wait(2);
@@ -442,74 +348,6 @@ public class RooBet : FaucetScript
         return base.CheckFaucetResult();
     }
 
-
-
-	    //===========//
-        //AutoWithdraw_Function
-	    //===========//
-        public void AutoWithdraw_Function()
-        {
-		  Log("AutoWithdraw_Function");	
-		  
-	     //It's saved, snippets, saved for future work
-
-/*
-        var BalanceVAR = ElementByXPath("//span[@class='my-balance']");
-        double BalanceDOUBLE; 
-        double.TryParse(BalanceVAR.Text.Trim(), out BalanceDOUBLE); //decimals  0.1  1.1  2.2  etc
-  
-        double MyAmount;        
-        double.TryParse(GetSetting("LimitWheel"), out MyAmount);
-*/
-	
-        var balance = ElementByXPath("//div[1]/h3/span[@class='m-widget24__stats m--font-brand bither-balance']");
-        string BalanceSTRING = balance.Text.Trim().Split('.')[0];
-        int BalanceINT = Convert.ToInt32(BalanceSTRING);
-
-        int MyAmount;
-        Int32.TryParse(GetSetting("LimitWithdraw"), out MyAmount);
-
-        if (BalanceINT < MyAmount) // - 1000
-        {
-			Log("AutoWithdraw - Under <");
-           //do all stuff
-        }
- 
-        if (BalanceINT > MyAmount) // the Default Limit to withdraw is 1000
-        {
-			Log("AutoWithdraw - Above >");
-            //GoToUrl("https://panel.bither.one/withdraw");
-
-            var WalletCheck = ElementByXPath("//input[@class='form-control' and (@readonly) ]");
-	        if (!IsVisible(WalletCheck))  //if NOT visible "readonly" so set the wallet
-	        {
-            Log("WalletCheck - set wallet ");
-		    var WalletAddressVAR = ElementByXPath("//input[@class='form-control']");
-		    SetText(WalletAddressVAR, GetSetting("WalletAddress"));
-            }
-			
-			Wait();
-			Wait(2);
-
-            var WheelButton = ElementByXPath("//button[@id='withdraw-btn' and (@disabled) ]");
-			
-            if (IsVisible(WheelButton)) //if visible "disabled" 
-            {
-             Log("AutoWithdraw - not visible ");
-            }				
-	        if (!IsVisible(WheelButton))  //if NOT visible "disabled" so click on claim button
-	        {
-			 Log("AutoWithdraw - Click on WheelButton");
-			 Click(WheelButton);
-			}
-			
-			Wait();
-        }
-		
-		
-        } //AutoWithdraw_Function
-	    //===========//	
-	
 
 
         //=========//
@@ -586,18 +424,6 @@ public class RooBet : FaucetScript
 		//=========//
 		
 		
-		
-        //=========//
-        //Menu_Function
-		//=========//
-        public void Menu_Function()
-        {	
-        Log("Menu_Function");		
-        var MenuVAR = ElementByXPath("//div[2]/div[@class='balanceDropdown']");       			
-        Click(MenuVAR);
-		}//end Menu_Function
-		//=========//
-
 
 
 
@@ -617,164 +443,6 @@ public class RooBet : FaucetScript
 
 
 
-    //=========//
-    //SolveCaptcha_RightSquare_Function
-    //=========//
-    public int SolveCaptcha_RightSquare_Function()
-    {	
-		
-	   //It's saved, snippets, saved for future work	
-       while (true)
-       {
-
-          var Section1_PART_1 = ElementByXPath("//section/div[2]/div/div[2]/div[ 1 ]/div[1]");
-          var Section1_PART_2 = ElementByXPath("//section/div[2]/div/div[2]/div[ 1 ]/div[2]");
-          var Section1_PART_3 = ElementByXPath("//section/div[2]/div/div[2]/div[ 1 ]/div[3]");
-          var Section1_PART_4 = ElementByXPath("//section/div[2]/div/div[2]/div[ 1 ]/div[4]");
-
-          var Section2_PART_1 = ElementByXPath("//section/div[2]/div/div[2]/div[ 2 ]/div[1]");
-          var Section2_PART_2 = ElementByXPath("//section/div[2]/div/div[2]/div[ 2 ]/div[2]");
-          var Section2_PART_3 = ElementByXPath("//section/div[2]/div/div[2]/div[ 2 ]/div[3]");
-          var Section2_PART_4 = ElementByXPath("//section/div[2]/div/div[2]/div[ 2 ]/div[4]");
-
-          var Section3_PART_1 = ElementByXPath("//section/div[2]/div/div[2]/div[ 3 ]/div[1]");
-          var Section3_PART_2 = ElementByXPath("//section/div[2]/div/div[2]/div[ 3 ]/div[2]");
-          var Section3_PART_3 = ElementByXPath("//section/div[2]/div/div[2]/div[ 3 ]/div[3]");
-          var Section3_PART_4 = ElementByXPath("//section/div[2]/div/div[2]/div[ 3 ]/div[4]");
-
-          var Section4_PART_1 = ElementByXPath("//section/div[2]/div/div[2]/div[ 4 ]/div[1]");
-          var Section4_PART_2 = ElementByXPath("//section/div[2]/div/div[2]/div[ 4 ]/div[2]");
-          var Section4_PART_3 = ElementByXPath("//section/div[2]/div/div[2]/div[ 4 ]/div[3]");
-          var Section4_PART_4 = ElementByXPath("//section/div[2]/div/div[2]/div[ 4 ]/div[4]");
-
-          int RandomButton = Random(0, 15);
- 
-          var ButtonToClick = 
-		  ( 
-          RandomButton == 0 && IsVisible(Section1_PART_1) ) ? Section1_PART_1 
-          : 
-          RandomButton == 1 && IsVisible(Section1_PART_2) ? Section1_PART_2 
-          : 
-          RandomButton == 2 && IsVisible(Section1_PART_3) ? Section1_PART_3
-          : 		  
-          RandomButton == 3 && IsVisible(Section1_PART_4) ? Section1_PART_4
-          : 	
-          RandomButton == 4 && IsVisible(Section2_PART_1) ? Section2_PART_1 
-          : 
-          RandomButton == 5 && IsVisible(Section2_PART_2) ? Section2_PART_2 
-          : 
-          RandomButton == 6 && IsVisible(Section2_PART_3) ? Section2_PART_3
-          : 		  
-          RandomButton == 7 && IsVisible(Section2_PART_4) ? Section2_PART_4
-          : 			  
-          RandomButton == 8 && IsVisible(Section3_PART_1) ? Section3_PART_1 
-          : 
-          RandomButton == 9 && IsVisible(Section3_PART_2) ? Section3_PART_2 
-          : 
-          RandomButton == 10 && IsVisible(Section3_PART_3) ? Section3_PART_3
-          : 		  
-          RandomButton == 11 && IsVisible(Section3_PART_4) ? Section3_PART_4
-          : 	
-          RandomButton == 12 && IsVisible(Section4_PART_1) ? Section4_PART_1 
-          : 
-          RandomButton == 13 && IsVisible(Section4_PART_2) ? Section4_PART_2 
-          : 
-          RandomButton == 14 && IsVisible(Section4_PART_3) ? Section4_PART_3
-          : 
-          IsVisible(Section4_PART_4) ? Section4_PART_4 : null;
-
-
-          if (IsVisible(ButtonToClick)) //ButtonToClick !=null
-          {
-             Click(ButtonToClick);
-		     Log("Click on ButtonToClick");	
-			 
-             Wait(3);
-		     Log("Wait");		
-			 
-             if (IsVisible(ElementByXPath ("//strong[contains(text(),'Game Over')] | //div[@class='faucet-timer' and contains(text(),':')] ") )) 
-             {	
-			  Log("Game Over");	
-              break; //if the count of "spins" is 0	
-		     }	 
-
-             Driver.Navigate().Refresh();
-		     Log("Refresh");
-
-             Wait(2);
-		     Log("Wait");
-			 
-             OpenFaucetTab_Faunction(); // call to open faucet tab
-
-             Wait(2);
-		     Log("Wait");
-
-	      }//end ButtonToClick
-	 
-
-       } //end  while true
-          
-		
-          /*
-          GetestCaptchaUtilities.GetestCaptcha getestCaptcha = new GetestCaptchaUtilities.GetestCaptcha(this);
-          bool res2=  getestCaptcha.DoInitSolve();
-          */
-		
-		
-          /*
-          var Arrow = FindCorrectArrow();
-          if(IsVisible(Arrow))
-		  {
-              Log("SolveCaptcha_RightSquare_Function - Arrow");	
-
-              var ToMove = ElementByXPath("//div[@class='verify-sub-block']");
-              if (IsVisible(ToMove))
-              {
-                  Log("SolveCaptcha_RightSquare_Function - ToMove");	
-                  Actions actions = new Actions(Driver);
-                  actions.DragAndDrop(ToMove, Arrow).Build().Perform();
-                  Wait();
-
-			  }
-          }
-          */
-      
-       return 0;
-    }// end SolveCaptcha_RightSquare_Function
-    //=========//
-
-	
-	
-
-        //=========//
-        //Menu_Function_Affiliate
-		//=========//
-        public void Menu_Function_Affiliate()
-        {	
-        Log("Menu_Function_Affiliate");		
-        var MenuVAR = ElementByXPath("//div[@class='affiliateBalance']/div[@class='balanceDropdown']");       			
-        Click(MenuVAR);
-		}//end Menu_Function_Affiliate
-		//=========//
-		
-		
-        //=========//
-        //Claim_Function_Affiliate
-		//=========//
-        public void Claim_Function_Affiliate()
-        {			
-		
-        var ClaimVAR = ElementByXPath("//button[@class='btnDefault claimButton' and not (@disabled) ]");  
-        if (IsVisible(ClaimVAR))
-        {	
-        Log("Claim_Function_Affiliate");	
-        Click(ClaimVAR);
-        }//end ClaimVAR
-		
-		}//end Claim_Function_Affiliate
-		//=========//
-		
-		
 
 
     //===========//
@@ -818,51 +486,7 @@ public class RooBet : FaucetScript
     }
     //=========//
 	
-		
 
-    public bool SeeIfThereisColor(Bitmap Image)
-    {
-	   //It's saved, snippets, saved for future work
-        bool ContainsColor = false;
-        for(int i = 0; i < Image.Width && ! ContainsColor; i++)
-        {
-            for(int j = 0; j < Image.Height; j++)
-            {
-                if(Image.GetPixel(i,j)!=Color.FromArgb(0,0,0) && Image.GetPixel(i,j)!=Color.FromArgb(255, 255, 255))
-                {
-                    ContainsColor = true;
-                    break;
-                }
-            }
-        }
-
-        return ContainsColor;
-
-    }
-	
-	
-    private IWebElement FindCorrectArrow()
-    {
-	   //It's saved, snippets, saved for future work
-        var Arrows = ElementsByXPath("//div[@class='verify-gap']");
-        int n = 0;
-        foreach(var arrow in Arrows)
-        {
-            if(SeeIfThereisColor(TakeScreenshot(Base.Captcha.CaptchaService.Manual,arrow)))
-            {
-                Log("Element is" + n.ToString());
-                return arrow;
-
-            }
-            n++;
-
-        }
-        return null;
-
-    }
-	
-	
-	
 	
 } //end public class
 
