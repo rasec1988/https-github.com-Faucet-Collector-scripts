@@ -1,5 +1,7 @@
 ﻿using System;
 using FaucetCollector.Script;
+using OpenQA.Selenium;
+using OpenQA.Selenium.Interactions;
 
 public class FreeBchCash : FaucetScript
 {
@@ -109,13 +111,24 @@ public class FreeBchCash : FaucetScript
         {
             return Fail("Button isn't visible");
         }
-        Click(button);
+         HumanClick ( button );
+		 
 		var Error=ElementByXPath(FailXPath);
 		if(IsVisible(Error)){
 		Log(Error.Text);
 		}
         //This faucet has nothing to do here. We will let Faucet Collector handle it.
         return base.DoLogin();
+    }
+	
+	 public void HumanClick ( IWebElement element )
+    {
+        Actions actions =new Actions(Driver);
+
+        actions.MoveToElement ( element , element.Size.Width/2 , element.Size.Height/2 ).Build ( ).Perform ( );
+        Wait (1 );
+        actions.Click ( ).Build ( ).Perform ( );
+
     }
 
     /// <summary>
@@ -178,6 +191,10 @@ public class FreeBchCash : FaucetScript
     /// </summary>
     public override int DoSolveCaptcha()
     {
+	  if ( ElementByXPath ( "//div[contains(@class,'g-recaptcha')]" )==null )
+        {
+            return 0;
+        }
         //This faucet has nothing to do here. We will let Faucet Collector handle it.
         return base.DoSolveCaptcha();
     }
