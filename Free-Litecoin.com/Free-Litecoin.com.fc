@@ -1,5 +1,7 @@
 using System;
 using FaucetCollector.Script;
+using OpenQA.Selenium;
+using OpenQA.Selenium.Interactions;
 
 public class freeLitecoinScript : FaucetScript
 {
@@ -57,7 +59,7 @@ public class freeLitecoinScript : FaucetScript
         }
 
         SetText(signInUser, GetSetting("Email"));
-        Wait();
+        Wait(1);
         SetText(signInPassword, GetPassword("Pass"));
 
         var loginButton = ElementByXPath("//button[@class='btn btn-primary btn-lg']");
@@ -67,7 +69,7 @@ public class freeLitecoinScript : FaucetScript
             return Fail("Login button not found.");
         }
 
-        Wait();
+        Wait(1);
 
         //Solve the captcha
         var result = SolveCaptcha();
@@ -77,15 +79,25 @@ public class freeLitecoinScript : FaucetScript
             return result;
         }
 
-        Wait(3);
+       Wait(1);
 
 
-        Click(loginButton);
+        HumanClick(loginButton);
 
 
         return base.DoLogin();
     }
 
+	public void HumanClick ( IWebElement element )
+    {
+        Actions actions =new Actions(Driver);
+
+        actions.MoveToElement ( element , element.Size.Width/2 , element.Size.Height/2 ).Build ( ).Perform ( );
+        Wait (1 );
+        actions.Click ( ).Build ( ).Perform ( );
+
+    }
+	
     public override int AfterLogin()
     {
 		var body = ElementByXPath("//body");
@@ -128,6 +140,11 @@ public class freeLitecoinScript : FaucetScript
     public override int DoSolveCaptcha()
     {
 
+	    if ( ElementByXPath ( "//div[contains(@class,'g-recaptcha')]" )==null )
+        {
+            return 0;
+        }
+		
         return base.DoSolveCaptcha();
     }
 
