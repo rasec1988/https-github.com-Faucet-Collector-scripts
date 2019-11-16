@@ -1,4 +1,7 @@
 ﻿using FaucetCollector.Script;
+using OpenQA.Selenium;
+using OpenQA.Selenium.Interactions;
+
 public class FreeEthereumScript : FaucetScript
 {
     /// <summary>
@@ -32,7 +35,6 @@ public class FreeEthereumScript : FaucetScript
         //Let Faucet Collector start up everything
         base.Start();
     }
-
     public override bool IsLoggedIn()
     {
         //In here we can check for the presence of an element that is only present when you are logged in.
@@ -61,12 +63,14 @@ public class FreeEthereumScript : FaucetScript
             return Fail("Email box is not visible");
         }
         SetText(EmailBox, GetSetting("User"));
+        Wait ( 1 );
         var PasswordBox = ElementByXPath("//input[@name='password']");
         if (!IsVisible(PasswordBox))
         {
             return Fail("Password box is not visible");
         }
         SetText(PasswordBox, GetPassword("Pass"));
+        Wait ( 1 );
 
         var ButtonLogin = ElementByXPath("//button[@class='btn btn-lg btn-primary g-recaptcha text-center']");
         if (!IsVisible(ButtonLogin))
@@ -75,12 +79,14 @@ public class FreeEthereumScript : FaucetScript
 
         }
         var result = DoSolveCaptcha();
-        if (result > 0)
+        if ( result>0 )
         {
-            return Fail("Fail solving captcha");
+            return Fail ( "Fail solving captcha" );
         }
-       
-        Click(ButtonLogin);
+
+
+        HumanClick ( ButtonLogin );
+
         var ErrorLogin = ElementByXPath("//div[@class='flash info']");
         if (IsVisible(ErrorLogin))
         {
@@ -97,7 +103,25 @@ public class FreeEthereumScript : FaucetScript
         //This faucet has nothing to do here. We will let Faucet Collector handle it.
         return base.DoLogin();
     }
+    public void HumanClick ( IWebElement element )
+    {
+        Actions actions =new Actions(Driver);
 
+        actions.MoveToElement ( element , element.Size.Width/2 , element.Size.Height/2 ).Build ( ).Perform ( );
+        Wait (1 );
+        actions.Click ( ).Build ( ).Perform ( );
+
+    }
+
+    public override int DoSolveCaptcha ( )
+    {
+        if ( ElementByXPath ( "//div[contains(@class,'g-recaptcha')]" )==null )
+        {
+            return 0;
+        }
+
+        return base.DoSolveCaptcha ( );
+    }
     public override int GetFaucetWaitTime()
     {
         var MinuteElement = ElementByXPath("//span[@id='cislo1']");
