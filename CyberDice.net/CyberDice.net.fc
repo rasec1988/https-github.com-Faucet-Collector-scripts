@@ -1,0 +1,484 @@
+
+//==================//
+//script Written by: ••AviramDayan•• 13/11/2019 09:00AM - Version 1
+//Last Update: 17/11/2019 09:00AM - Version 1
+//==================//
+
+using System;
+using System.Drawing;
+using FaucetCollector.Script;
+using System.Threading.Tasks;
+using System.Collections.Generic;
+using OpenQA.Selenium;
+using OpenQA.Selenium.Interactions;
+
+//css_inc recaptchaUtilities
+//css_inc AntiBotLinksUtility
+//css_ref ImageProcessing
+//css_ref ProcessingImagesUsingLockBits
+//css_inc GetestCaptcha
+
+public class CyberDice : FaucetScript
+{
+    /// <summary>
+    /// List of Settings that will be shown in the bot when selecting this Faucet in the bot.
+    /// You can get the value the user entered with the mdogeods: GetSetting("[Name of the FaucetSetting]"), GetBoolSetting and GetDateTimeSetting
+    /// You can also create a new setting value using SetSetting("[Name you want to use]", "value")
+    /// </summary>
+    public override FaucetSettings Settings
+    {
+        get
+        {
+			
+            return new FaucetSettings("https://CyberDice.net/")
+            {
+                new FaucetSetting(){Name="Email",Display="Email",Type=EditorType.TextBox,Required=false},
+                new FaucetSetting(){Name="Password",Display="Password",Type=EditorType.Password,Required=false},
+
+                new FaucetSetting() { Name = "btc", Display = "btc - claim", Type = EditorType.CheckBox, Default =true},
+                new FaucetSetting() { Name = "LimitFaucet", Display = "LimitFaucet - write the full number of satoshi without point/decimals - 0.0 | 1.1 and etc (for example write: 100 200)", Type = EditorType.Numeric, Default = 1 },
+
+				new FaucetSetting() { Name = "Rain_AirDrop_Chat", Display = "Rain_AirDrop_Chat - ON/OFF", Type = EditorType.CheckBox, Default = false},		
+                new FaucetSetting(){Name="MessageChat",Display="Your Message In Chat - only need to be active to get any rain",Default = ".",Type=EditorType.TextBox,Required=false},
+
+            };
+        }
+    }
+
+	
+//============================================================//
+//the number of "successes" in the script - when are finished  
+//============================================================//
+    public override void Start()
+    {
+        ad = false;
+       
+        //Title that shows in the browser. Is used to identify and close popup windows
+        Title = "CyberDice";
+
+		SuccessXPath = "//*";  //*[@id='']
+        FailXPath = "//*"; //*[@id='']
+	
+        //TimerIsCountingUp = true;
+		
+        //Let Faucet Collector start up everything
+        base.Start();
+    }
+//============================================================//
+//the number of "successes" in the script - when are finished  
+//============================================================//
+
+	
+    bool ad; //custom bool
+
+
+    public override int DoInit()
+    {
+	
+        //Let Faucet Collector continue.
+        return base.DoInit();
+    }
+
+	
+//==================//
+//save Login Cookies 
+//==================//
+    public override bool IsLoggedIn()
+    {
+	    //save Login Cookies - Check if the "Logout" exist
+        return ElementByXPath ("//li[@class='header__menu-item' and contains(text(),'Logout') ] | //li[@class='header__menu-item' and contains(text(),'Log out') ] | //span[@class='link' and contains(text(),'Log Out') ] | //span[@class='link' and contains(text(),'Logout') ]  ") != null; //Profile Menu in Top
+	 
+        //return base.IsLoggedIn();
+    }
+//==================//
+//save Login Cookies 
+//==================//	
+
+
+
+
+//=============//
+//BeforeLogin
+//=============//
+    public override int BeforeLogin()
+    {
+		
+
+        //if we already login go to here
+        GoToUrl("https://www.CyberDice.net/");
+
+		
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeLogin();
+    }
+//=============//
+//BeforeLogin
+//=============//
+
+	
+
+
+	
+//========//
+//DoLogin
+//========//
+ public override int DoLogin()
+ {
+	
+  var ExitButton = ElementByXPath ("//li[@class='header__menu-item' and contains(text(),'Logout') ] | //li[@class='header__menu-item' and contains(text(),'Log out') ] | //span[@class='link' and contains(text(),'Log Out') ] | //span[@class='link' and contains(text(),'Logout') ]  ");   //Profile Menu in Top
+
+  //if i NOT Login - go to Login Page
+  if (!IsVisible(ExitButton))
+  {
+
+        GoToUrl("https://www.CyberDice.net/");
+        Wait();		
+        Wait(2);
+
+        var StartOpenLogin = ElementByXPath("//a[@class='cta' and contains(text(),'Log in')] | //span[contains(text(),'Log In')]");
+	    if (IsVisible(StartOpenLogin))
+	    { 
+        Click(StartOpenLogin);
+		}
+
+		Wait(2);
+/*
+        var StartOpen_2_Login = ElementByXPath("//span[contains(text(),'Login')]");
+	    if (IsVisible(StartOpen_2_Login))
+	    { 
+        Click(StartOpen_2_Login);
+		}
+*/		
+		Wait(2);
+		
+        var box_user = ElementByXPath("//input[@name='auth-username']");
+        SetText(box_user, GetSetting("Email"));
+		
+		Wait(2);
+		
+        var box_pass = ElementByXPath("//input[@name='auth-password']");
+        SetText(box_pass, GetPassword("Password"));
+
+		Wait(4);
+		
+        var ButtonLog = ElementByXPath("//button[@class='btn btn--green']");
+        Click(ButtonLog);
+		
+		Wait(4);
+		
+        var RecaptchaOpen_Iframe = ElementByXPath ("//iframe[contains(@src,'recaptcha/api2/bframe' | 'recaptcha/api2/anchor')]");  // ("//iframe[contains(@src,'recaptcha/api2/anchor')]")
+        if (IsVisible(RecaptchaOpen_Iframe))
+		{
+        //SolveCaptcha if apper
+        var result = base.DoSolveCaptcha();
+        RecaptchaUtility utility = new RecaptchaUtility(this);
+        utility.DoSolve();
+		}
+
+/*		
+        var Error_Message = ElementByXPath ("//div[@id='add_err']/div/div[@class='message' and contains(text(),'fille' | 'captcha' ) ]");
+        if (IsVisible(Error_Message))
+        {
+            Log("Error_Message - Appear - we return after 1 min ");
+            return 1*60; //we return after 1 min
+        }
+*/		
+		Wait();	
+
+  } // end ExitButton
+
+        
+       return base.DoLogin();
+    }
+//========//
+//DoLogin
+//========//
+ 
+
+
+//========//
+//AfterLogin
+//========//
+ public override int AfterLogin()
+ {
+
+    //we are good to continue
+    return base.AfterLogin();
+
+ }
+//========//
+//AfterLogin
+//========//
+
+
+	
+
+//================//
+//GetFaucetWaitTime
+//================//
+    public override int GetFaucetWaitTime()
+    {
+
+        if (ad)
+        {
+		    //Log("return ad");
+			ad=false;
+            return GetWaitSetting();
+        }
+
+		//let Faucet Collector continue.
+        return base.GetFaucetWaitTime();
+    }
+//================//
+//GetFaucetWaitTime
+//================//
+
+
+
+    public override int BeforeSolveCaptcha()
+    {
+ 
+        //Return we are ready to proceed
+        return base.BeforeSolveFaucet();
+    }
+
+	
+    public override int DoSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoSolveCaptcha();
+    }
+
+	
+    public override int AfterSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterSolveCaptcha();
+    }
+
+	
+    public override int BeforeSolveFaucet()
+    {
+        //Return we can continue
+        return base.BeforeSolveFaucet();
+    }
+  
+	
+	
+//==============//
+//DoSolveFaucet
+//==============//
+ public override int DoSolveFaucet()
+  {
+	
+		//==============//
+		//Rain_AirDrop_Chat//
+		//==============//	
+
+        if (GetBoolSetting("Rain_AirDrop_Chat"))
+        {  
+         RainAirDropChat_Function(); //call to RainAirDropChat_Function
+         Wait(2);		 
+		}// Rain_AirDrop_Chat
+		//==============//
+
+
+        GoToUrl("https://www.CyberDice.net/");
+		Log("Go to faucet");	
+		
+		Wait();
+		Wait(2);	
+		
+
+		//======//
+		//btc//
+		//======//
+        if (GetBoolSetting("btc"))
+        {	
+		  Log("btc - try to claim");	
+          Faucet_Function(); //call
+		  
+	      Wait();
+	      Wait(2);
+
+		}
+        //=====//	
+
+		ad = true;    // if i do true - it report as succeed // only one time no multi and also required -> return GetWaitSetting();	
+        //return GetWaitSetting();	
+	
+        //We are good to continue
+        return base.DoSolveFaucet();
+ }
+//==============//
+//DoSolveFaucet
+//==============///
+	
+	
+	
+	
+	
+//==============//
+//AfterSolveFaucet
+//==============//
+  public override int AfterSolveFaucet()
+  {
+
+   //This faucet has nothing to do here. We will let Faucet Collector handle it.
+   return base.AfterSolveFaucet();
+   
+  }
+	
+//==============//
+//AfterSolveFaucet
+//==============//
+
+
+
+    /// <summary>
+    /// This mdogeod gets called in the end after the BeforeSolveFaucet/DoSolveFaucet and AfterSolveFaucet mdogeods were done.
+    /// The base.CheckFaucetResult will try to find a visible element on the page using the XPath from SuccessXPath and FailXPath (see the Start mdogeod)
+    /// These properties should contain XPath expressions to find certain elements on the page.
+    /// For example if it finds one of the elements from the SuccessXPath, and it is visible, then it will flag the claim attempt as a success.
+    /// Or if it finds one of the elements from the FailXPath, and it is visible, then it will flag the claim attempt as a failure.
+    /// </summary>
+    public override int CheckFaucetResult()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.CheckFaucetResult();
+    }
+
+
+        //=========//
+        //Faucet_Function
+		//=========//
+        public int Faucet_Function()
+        {	
+		
+        //click on MainMenu
+        var MainMenu = ElementByXPath("//div[@class='header__menu-main'] | //span[contains(@class,'button-user-wallet')] ");
+        if (IsVisible(MainMenu)) 
+        {
+         Click(MainMenu);
+         Log("click on MainMenu ");
+        }
+		
+        Wait();	
+        Wait(2);
+/*	
+        //Btc_Choose
+        var Btc_Choose = ElementByXPath("//li[@class='btc']");
+        Click(Btc_Choose);
+        Log("click on Btc_Choose ");
+*/
+        Wait();	
+        Wait(2);
+
+        //cahck balance
+        var balance = ElementByXPath("//span[@class='header__wallet-value'] | //span[@class='user-wallet-balance']");
+        string BalanceSTRING = balance.Text.Trim().Split('.')[1];
+        int BalanceINT = Convert.ToInt32(BalanceSTRING);
+
+        int MyAmount;
+        Int32.TryParse(GetSetting("LimitFaucet"), out MyAmount);
+
+        if (BalanceINT > MyAmount) // if above 0
+        {
+			Log("LimitFaucet - the balance above 0 > not good");
+        }
+ 
+        if (BalanceINT < MyAmount) // if under "0"
+        {
+	       Log("LimitFaucet - the balance under 0 < good");
+
+           OpenFaucetTab_Faunction(); // call to open faucet tab
+
+		   var TimerRun = ElementByXPath("//p[contains(text(),'be zero')] "); 
+           if (!IsVisible(TimerRun)) //if "TimerRun" NOT visible
+		   {		
+	   
+             Wait();	
+             Wait(2);
+
+             var RecaptchaOpen_Iframe = ElementByXPath ("//iframe[contains(@src,'recaptcha/api2/bframe' | 'recaptcha/api2/anchor')]");  // ("//iframe[contains(@src,'recaptcha/api2/anchor')]")
+             if (IsVisible(RecaptchaOpen_Iframe))
+		     {
+             //SolveCaptcha if apper
+             var result = base.DoSolveCaptcha();
+             RecaptchaUtility utility = new RecaptchaUtility(this);
+             utility.DoSolve();
+		     }
+			 
+             Wait(4);
+			 
+		     var ButtonFaucet = ElementByXPath("//button[contains(text(),'Claim')] | //button[contains(text(),'claim')]"); 
+	         Click(ButtonFaucet);
+			 
+		   } //end if TimerRun
+		  
+        }
+
+         return 0;
+		}//end Faucet_Function
+		//=========//
+		
+		
+		
+        //=========//
+        //OpenFaucetTab_Faunction
+		//=========//
+        public void OpenFaucetTab_Faunction()
+        {	
+	       Log("click on FaucetTab");
+           var FaucetTab = ElementByXPath("//li[@class='header__menu-item' and contains(text(),'Faucet') ] | //li[@class='faucet-link' and contains(text(),'Faucet') ] ");
+           Click(FaucetTab);
+		   
+		}//end OpenFaucetTab_Faunction
+		//=========//
+	
+
+
+    //===========//
+    //RainAirDropChat_Function//
+    //===========//
+    public void RainAirDropChat_Function()
+    {	
+
+           GoToUrl("https://www.CyberDice.net/");
+		   Log("Rain_AirDrop_Chat: Go to bonus Chat");	
+		   
+           var ChatAlready_Open = ElementByXPath("//div[@class='chat__container chat__container--opened']"); //ChatAlready_Open
+           var ChatAlready_Close = ElementByXPath("//div[@class='chat__container']"); //ChatAlready_Close
+
+           if (IsVisible(ChatAlready_Close))
+           {
+           var ChatButton = ElementByXPath("//button[@class='header__chat header__menu header__menu-main ']"); //ChatAlready_Close
+           Click(ChatButton);
+		   Log("Rain_AirDrop_Chat: click on ChatAlready_Close - to open the chat");
+		   } 	
+		   
+           if (IsVisible(ChatAlready_Open))
+           {
+			Log("Rain_AirDrop_Chat: ChatAlready_Open");
+		   }   
+   
+	       Wait();
+		   Wait(2);	
+		   
+           var ChatInput_VAR = ElementByXPath("//textarea[@name='chat']"); //ChatInput_VAR
+           SetText(ChatInput_VAR, GetSetting("MessageChat"));
+		   
+	       Wait();
+		   Wait(2);			   
+
+           Driver.Navigate().Refresh(); //RefrashPage	
+
+           Wait();
+           Wait(2);				   
+		   
+    }
+    //=========//
+	
+
+	
+} //end public class
