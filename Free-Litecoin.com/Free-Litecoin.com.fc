@@ -2,7 +2,8 @@ using System;
 using FaucetCollector.Script;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Interactions;
-
+//css_ref HumanActions.dll;
+using HumanActions;
 public class freeLitecoinScript : FaucetScript
 {
     public override FaucetSettings Settings
@@ -43,7 +44,7 @@ public class freeLitecoinScript : FaucetScript
 
     public override int DoLogin()
     {
-
+		 DriverHumanActions humanActions=new DriverHumanActions(Driver);
         var signInUser = ElementById("usr");
         if (!IsVisible(signInUser))
         {
@@ -58,9 +59,9 @@ public class freeLitecoinScript : FaucetScript
             return Fail("Password input not found.");
         }
 
-        SetText(signInUser, GetSetting("Email"));
+        humanActions.SetText(signInUser, GetSetting("Email"));
         Wait(1);
-        SetText(signInPassword, GetPassword("Pass"));
+        humanActions.SetText(signInPassword, GetPassword("Pass"));
 
         var loginButton = ElementByXPath("//button[@class='btn btn-primary btn-lg']");
         if (!IsVisible(loginButton))
@@ -82,7 +83,7 @@ public class freeLitecoinScript : FaucetScript
        Wait(1);
 
 
-        HumanClick(loginButton);
+        humanActions.Click(loginButton);
 
 
         return base.DoLogin();
