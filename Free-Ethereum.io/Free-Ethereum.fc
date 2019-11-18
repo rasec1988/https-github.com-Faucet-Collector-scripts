@@ -1,7 +1,8 @@
 ﻿using FaucetCollector.Script;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Interactions;
-
+using HumanActions;
+//css_ref HumanActions.dll;
 public class FreeEthereumScript : FaucetScript
 {
     /// <summary>
@@ -57,35 +58,33 @@ public class FreeEthereumScript : FaucetScript
 
     public override int DoLogin()
     {
-        var EmailBox = ElementByXPath("//div[@class='input-group']//input[@name='email']");
+			DriverHumanActions humanActions=new DriverHumanActions(Driver);
+         var EmailBox = ElementByXPath("//form[@class='form']//input[@name='email']");
         if (!IsVisible(EmailBox))
         {
-            return Fail("Email box is not visible");
+            return Fail("Email box isn't visible");
         }
-        SetText(EmailBox, GetSetting("User"));
-        Wait ( 1 );
+        humanActions.SetText(EmailBox, GetSetting("User"));
         var PasswordBox = ElementByXPath("//input[@name='password']");
         if (!IsVisible(PasswordBox))
         {
-            return Fail("Password box is not visible");
+            return Fail("Password box isn't visible");
         }
-        SetText(PasswordBox, GetPassword("Pass"));
-        Wait ( 1 );
-
-        var ButtonLogin = ElementByXPath("//button[@class='btn btn-lg btn-primary g-recaptcha text-center']");
-        if (!IsVisible(ButtonLogin))
+        humanActions.SetText(PasswordBox, GetPassword("Pass"));
+		
+		 var button = ElementByXPath("//button[contains(text(),'Login')]");
+        if (!IsVisible(button))
         {
-            return Fail("Button login not visible");
-
+            return Fail("Button isn't visible");
         }
+		
         var result = DoSolveCaptcha();
-        if ( result>0 )
+        if (result > 0)
         {
-            return Fail ( "Fail solving captcha" );
+            return Fail("Fail solve captcha");
         }
-
-
-        HumanClick ( ButtonLogin );
+       
+        humanActions.Click( button );
 
         var ErrorLogin = ElementByXPath("//div[@class='flash info']");
         if (IsVisible(ErrorLogin))
