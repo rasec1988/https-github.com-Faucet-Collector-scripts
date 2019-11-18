@@ -3,7 +3,7 @@ using FaucetCollector.Script;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Interactions;
 //css_ref HumanActions.dll;
-
+using HumanActions;
 public class FreeBchCash : FaucetScript
 {
     /// <summary>
