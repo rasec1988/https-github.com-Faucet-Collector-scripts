@@ -3,6 +3,8 @@ using System.Globalization;
 using FaucetCollector.Script;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Interactions;
+using HumanActions;
+//css_ref HumanActions.dll;
 public class FreeDocoinScript : FaucetScript
 {
     /// <summary>
@@ -95,19 +97,20 @@ public class FreeDocoinScript : FaucetScript
     /// <returns></returns>
     public override int DoLogin()
     {
+	 DriverHumanActions humanActions=new DriverHumanActions(Driver);
         var UserBox = ElementByXPath("//form[@class='form']//input[@name='email']");
         if (!IsVisible(UserBox))
         {
             return Fail("Fail login,UserBox is not visible");
         }
-        SetText(UserBox, GetSetting("User"));
+        humanActions.SetText(UserBox, GetSetting("User"));
 
         var PasswordBox = ElementByXPath("//input[@name='password']");
         if (!IsVisible(PasswordBox))
         {
             return Fail("Fail login, Password box is not visible");
         }
-        SetText(PasswordBox, GetPassword("Pass"));
+        humanActions.SetText(PasswordBox, GetPassword("Pass"));
 
         var result = DoSolveCaptcha();
         if (result > 0)
@@ -121,7 +124,7 @@ public class FreeDocoinScript : FaucetScript
             return Fail("Button isn't visible");
         }
 		
-		 HumanClick (button);
+		 humanActions.Click (button);
         //This faucet has nothing to do here. We will let Faucet Collector handle it.
         return base.DoLogin();
     }
