@@ -1,0 +1,536 @@
+
+//==================//
+//script Written by: ••AviramDayan•• 13/11/2019 09:00AM - Version 1
+//Last Update: 18/11/2019 09:00AM - Version 1
+//==================//
+
+using System;
+using System.Drawing;
+using FaucetCollector.Script;
+using System.Threading.Tasks;
+using System.Collections.Generic;
+using OpenQA.Selenium;
+using OpenQA.Selenium.Interactions;
+
+//css_inc recaptchaUtilities
+//css_inc AntiBotLinksUtility
+//css_ref ImageProcessing
+//css_ref ProcessingImagesUsingLockBits
+//css_inc GetestCaptcha
+
+public class TrustDice : FaucetScript
+{
+    /// <summary>
+    /// List of Settings that will be shown in the bot when selecting this Faucet in the bot.
+    /// You can get the value the user entered with the mdogeods: GetSetting("[Name of the FaucetSetting]"), GetBoolSetting and GetDateTimeSetting
+    /// You can also create a new setting value using SetSetting("[Name you want to use]", "value")
+    /// </summary>
+    public override FaucetSettings Settings
+    {
+        get
+        {
+			
+            return new FaucetSettings("https://TrustDice.win/")
+            {
+                new FaucetSetting(){Name="Email",Display="Email",Type=EditorType.TextBox,Required=false},
+                new FaucetSetting(){Name="Password",Display="Password",Type=EditorType.Password,Required=false},
+
+                new FaucetSetting() { Name = "btc", Display = "btc - claim", Type = EditorType.CheckBox, Default =true},
+                //new FaucetSetting() { Name = "LimitFaucet", Display = "LimitFaucet - write the full number of satoshi without point/decimals - 0.0 | 1.1 and etc (for example write: 100 200)", Type = EditorType.Numeric, Default = 1 },
+
+				new FaucetSetting() { Name = "Rain_AirDrop_Chat", Display = "Rain_AirDrop_Chat - ON/OFF", Type = EditorType.CheckBox, Default = false},		
+                new FaucetSetting(){Name="MessageChat",Display="Your Message In Chat - only need to be active to get any rain",Default = ".",Type=EditorType.TextBox,Required=false},
+
+            };
+        }
+    }
+
+	
+//============================================================//
+//the number of "successes" in the script - when are finished  
+//============================================================//
+    public override void Start()
+    {
+        ad = false;
+       
+        //Title that shows in the browser. Is used to identify and close popup windows
+        Title = "TrustDice.win";
+
+		SuccessXPath = "//*";  //*[@id='']
+        FailXPath = "//*"; //*[@id='']
+	
+        //TimerIsCountingUp = true;
+		
+        //Let Faucet Collector start up everything
+        base.Start();
+    }
+//============================================================//
+//the number of "successes" in the script - when are finished  
+//============================================================//
+
+	
+    bool ad; //custom bool
+
+
+    public override int DoInit()
+    {
+	
+        //Let Faucet Collector continue.
+        return base.DoInit();
+    }
+
+	
+//==================//
+//save Login Cookies 
+//==================//
+    public override bool IsLoggedIn()
+    {
+	    //save Login Cookies - Check if the "Logout" exist
+        return ElementByXPath ("//span[@class='register-btn' and contains(text(),'Deposit')]") != null; 
+	 
+        //return base.IsLoggedIn();
+    }
+//==================//
+//save Login Cookies 
+//==================//	
+
+
+
+
+//=============//
+//BeforeLogin
+//=============//
+    public override int BeforeLogin()
+    {
+		
+
+        //if we already login go to here
+        GoToUrl("https://www.TrustDice.win/");
+
+		
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeLogin();
+    }
+//=============//
+//BeforeLogin
+//=============//
+
+	
+
+
+	
+//========//
+//DoLogin
+//========//
+ public override int DoLogin()
+ {
+	
+  var ExitButton = ElementByXPath ("//span[@class='register-btn' and contains(text(),'Deposit')]");
+
+  //if i NOT Login - go to Login Page
+  if (!IsVisible(ExitButton))
+  {
+
+        GoToUrl("https://www.TrustDice.win/");
+        Wait();		
+        Wait(4);
+/*
+        var StartOpenLogin = ElementByXPath("//span[contains(text(),'Login')]");
+	    if (IsVisible(StartOpenLogin))
+	    { 
+        Click(StartOpenLogin);
+		}
+		
+        Wait(4);
+*/
+        var StartOpen_2_Login = ElementByXPath("//nav[contains(@class,'tab_tab-title-items')]/span[2]");
+	    if (IsVisible(StartOpen_2_Login))
+	    { 
+        Click(StartOpen_2_Login);
+		}	
+
+		Wait(2);
+		
+        var box_user = ElementByXPath("//input[@name='username']");
+        SetText(box_user, GetSetting("Email"));
+		
+		Wait(2);
+		
+        var box_pass = ElementByXPath("//input[@name='password']");
+        SetText(box_pass, GetPassword("Password"));
+
+		Wait(4);
+		
+        var ButtonLog = ElementByXPath("//button[@type='submit' and contains(text(),'Login')]");
+        Click(ButtonLog);
+		
+		Wait(4);
+		
+        SolveCaptcha_RightSquare_Function(); // call to SolveCaptcha
+		
+/*		
+        var RecaptchaOpen_Iframe = ElementByXPath ("//iframe[contains(@src,'recaptcha/api2/bframe' | 'recaptcha/api2/anchor')]");  // ("//iframe[contains(@src,'recaptcha/api2/anchor')]")
+        if (IsVisible(RecaptchaOpen_Iframe))
+		{
+        //SolveCaptcha if apper
+        var result = base.DoSolveCaptcha();
+        RecaptchaUtility utility = new RecaptchaUtility(this);
+        utility.DoSolve();
+		}
+*/
+
+		Wait();	
+
+  } // end ExitButton
+
+        
+       return base.DoLogin();
+    }
+//========//
+//DoLogin
+//========//
+ 
+
+
+//========//
+//AfterLogin
+//========//
+ public override int AfterLogin()
+ {
+
+    //we are good to continue
+    return base.AfterLogin();
+
+ }
+//========//
+//AfterLogin
+//========//
+
+
+	
+
+//================//
+//GetFaucetWaitTime
+//================//
+    public override int GetFaucetWaitTime()
+    {
+
+        if (ad)
+        {
+		    //Log("return ad");
+			ad=false;
+			 
+             var HourVAR = ElementByXPath("//div[contains(@class,'faucet_countdown')]/span[1]") ;
+             var MinVAR = ElementByXPath("//div[contains(@class,'faucet_countdown')]/span[3]") ;
+             var SecVAR = ElementByXPath("//div[contains(@class,'faucet_countdown')]/span[5]") ; 
+			 
+             int hour,min,sec;
+             hour = Convert.ToInt32(HourVAR.Text)*3600;
+             min = Convert.ToInt32(MinVAR.Text)*60;
+             sec = Convert.ToInt32(SecVAR.Text);
+             return hour+min+sec;
+
+
+            //return GetWaitSetting();
+        }
+
+		//let Faucet Collector continue.
+        return base.GetFaucetWaitTime();
+    }
+//================//
+//GetFaucetWaitTime
+//================//
+
+
+
+    public override int BeforeSolveCaptcha()
+    {
+ 
+        //Return we are ready to proceed
+        return base.BeforeSolveFaucet();
+    }
+
+	
+    public override int DoSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoSolveCaptcha();
+    }
+
+	
+    public override int AfterSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterSolveCaptcha();
+    }
+
+	
+    public override int BeforeSolveFaucet()
+    {
+        //Return we can continue
+        return base.BeforeSolveFaucet();
+    }
+  
+	
+	
+//==============//
+//DoSolveFaucet
+//==============//
+ public override int DoSolveFaucet()
+  {
+	
+        GoToUrl("https://TrustDice.win/faucet");
+		Log("Go to faucet");	
+		
+		Wait();
+		Wait(2);	
+		
+		
+		//==============//
+		//Rain_AirDrop_Chat//
+		//==============//	
+
+        if (GetBoolSetting("Rain_AirDrop_Chat"))
+        {  
+         RainAirDropChat_Function(); //call to RainAirDropChat_Function
+         Wait(2);		 
+		}// Rain_AirDrop_Chat
+		//==============//
+
+		Wait(2);
+
+		//======//
+		//btc//
+		//======//
+        if (GetBoolSetting("btc"))
+        {	
+		  Log("btc - try to claim");	
+          Faucet_Function(); //call
+		  
+	      Wait();
+	      Wait(2);
+
+		}
+        //=====//	
+
+		ad = true;    // if i do true - it report as succeed // only one time no multi and also required -> return GetWaitSetting();	
+        //return GetWaitSetting();	
+	
+        //We are good to continue
+        return base.DoSolveFaucet();
+ }
+//==============//
+//DoSolveFaucet
+//==============///
+	
+	
+	
+	
+	
+//==============//
+//AfterSolveFaucet
+//==============//
+  public override int AfterSolveFaucet()
+  {
+
+   //This faucet has nothing to do here. We will let Faucet Collector handle it.
+   return base.AfterSolveFaucet();
+   
+  }
+	
+//==============//
+//AfterSolveFaucet
+//==============//
+
+
+
+    /// <summary>
+    /// This mdogeod gets called in the end after the BeforeSolveFaucet/DoSolveFaucet and AfterSolveFaucet mdogeods were done.
+    /// The base.CheckFaucetResult will try to find a visible element on the page using the XPath from SuccessXPath and FailXPath (see the Start mdogeod)
+    /// These properties should contain XPath expressions to find certain elements on the page.
+    /// For example if it finds one of the elements from the SuccessXPath, and it is visible, then it will flag the claim attempt as a success.
+    /// Or if it finds one of the elements from the FailXPath, and it is visible, then it will flag the claim attempt as a failure.
+    /// </summary>
+    public override int CheckFaucetResult()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.CheckFaucetResult();
+    }
+
+
+        //=========//
+        //Faucet_Function
+		//=========//
+        public int Faucet_Function()
+        {	
+
+		   var TimerRun = ElementByXPath("//div[contains(@class,'faucet_countdown')]"); 
+		   
+		   
+           if (IsVisible(TimerRun)) //if "TimerRun" NOT visible
+		   {	
+	         Log("Faucet - CountDownTimer here - we return after the existing time");
+
+             var HourVAR = ElementByXPath("//div[contains(@class,'faucet_countdown')]/span[1]") ;
+             var MinVAR = ElementByXPath("//div[contains(@class,'faucet_countdown')]/span[3]") ;
+             var SecVAR = ElementByXPath("//div[contains(@class,'faucet_countdown')]/span[5]") ; 
+			 
+             int hour,min,sec;
+             hour = Convert.ToInt32(HourVAR.Text)*3600;
+             min = Convert.ToInt32(MinVAR.Text)*60;
+             sec = Convert.ToInt32(SecVAR.Text);
+             return hour+min+sec;
+			 
+		   } //end TimerRun - visible
+		   
+		   
+           if (!IsVisible(TimerRun)) //if "TimerRun" NOT visible
+		   {		
+		   
+	         Log("Faucet - Claim");
+
+             Wait(2);
+			 
+		     var ButtonFaucet = ElementByXPath("//div[contains(@class,'faucet_claim-panel__GGcxk faucet_BTC')]/button"); //("//button[contains(text(),'Claim')] | //button[contains(text(),'claim')]")
+	         Click(ButtonFaucet);
+			 
+             Wait(2);
+			 
+             SolveCaptcha_RightSquare_Function(); // call to SolveCaptcha
+			 
+             Wait(4);
+			 
+             /*
+             var RecaptchaOpen_Iframe = ElementByXPath ("//iframe[contains(@src,'recaptcha/api2/bframe' | 'recaptcha/api2/anchor')]");  // ("//iframe[contains(@src,'recaptcha/api2/anchor')]")
+             if (IsVisible(RecaptchaOpen_Iframe))
+		     {
+             //SolveCaptcha if apper
+             var result = base.DoSolveCaptcha();
+             RecaptchaUtility utility = new RecaptchaUtility(this);
+             utility.DoSolve();
+		     }
+			 */
+			 
+		   } //end TimerRun - NOT visible
+		  
+         return 0;
+		}//end Faucet_Function
+		//=========//
+		
+		
+		
+        //=========//
+        //OpenFaucetTab_Faunction
+		//=========//
+        public void OpenFaucetTab_Faunction()
+        {	
+	       Log("click on FaucetTab");
+           var FaucetTab = ElementByXPath("//li[@class='header__menu-item' and contains(text(),'Faucet') ] | //li[@class='faucet-link' and contains(text(),'Faucet') ] ");
+           Click(FaucetTab);
+		   
+		}//end OpenFaucetTab_Faunction
+		//=========//
+	
+
+
+    //===========//
+    //RainAirDropChat_Function//
+    //===========//
+    public void RainAirDropChat_Function()
+    {	
+
+		   Log("Rain_AirDrop_Chat: Go to bonus Chat");	
+		   
+           var ChatAlready_Open = ElementByXPath("//div[contains(@class,'chatroom_show')]"); //ChatAlready_Open
+           var ChatAlready_Close = ElementByXPath("//div[contains(@class,'chatroom_expand')]"); //ChatAlready_Close
+
+           if (IsVisible(ChatAlready_Close))
+           {
+           var ChatButton = ElementByXPath("//div[@class='chatroom-btn-wrapper']"); //ChatAlready_Close
+           Click(ChatButton);
+		   Log("Rain_AirDrop_Chat: click on ChatAlready_Close - to open the chat");
+		   } 	
+		   
+           if (IsVisible(ChatAlready_Open))
+           {
+			Log("Rain_AirDrop_Chat: ChatAlready_Open");
+		   }   
+   
+	       Wait();
+		   Wait(2);	
+		   
+           var ChatInput_VAR = ElementByXPath("//textarea[@id='chat-input']"); //ChatInput_VAR
+           SetText(ChatInput_VAR, GetSetting("MessageChat"));
+		   
+	       Wait();
+		   Wait(2);			   
+
+           Driver.Navigate().Refresh(); //RefrashPage	
+
+           Wait();
+           Wait(2);				   
+		   
+    }
+    //=========//
+
+
+
+ //=========================//
+ //SolveCaptcha_RightSquare_Function
+ //=========================//
+ public int SolveCaptcha_RightSquare_Function()
+ {	
+		
+        Log("SolveCaptcha_RightSquare_Function");
+		
+        /*
+        GetestCaptchaUtilities.GetestCaptcha getestCaptcha = new GetestCaptchaUtilities.GetestCaptcha(this);
+        bool res2=  getestCaptcha.DoInitSolve();
+        */
+		
+		
+/*
+        //SolveCaptcha_RightSquare
+        var Arrow = FindCorrectArrow();
+        if(IsVisible(Arrow))
+		{
+            Log("SolveCaptcha_RightSquare_Function - Arrow");	
+
+            var ToMove = ElementByXPath("//div[@class='verify-sub-block']");
+            if (IsVisible(ToMove))
+            {
+                Log("SolveCaptcha_RightSquare_Function - ToMove");	
+                Actions actions = new Actions(Driver);
+                actions.DragAndDrop(ToMove, Arrow).Build().Perform();
+                Wait();
+
+			}
+        }
+*/
+
+        //Geetest Captcha
+	    if (IsVisible(ElementByXPath("//div[@class='geetest_panel geetest_wind' and contains(@style,'display: block;')]")))
+        {
+            int result = 0;
+            GetestCaptchaUtilities.GetestCaptcha getestCaptcha = new GetestCaptchaUtilities.GetestCaptcha(this);
+            bool res2=  getestCaptcha.DoInitSolve();
+            Wait(2);
+  
+                if (!res2)
+                {
+                    result = 1;
+                }
+			
+            return result;
+        }
+        //=============//
+	
+	
+  return 0;
+  
+  }// end SolveCaptcha_RightSquare_Function
+  //=========//
+
+
+	
+} //end public class
