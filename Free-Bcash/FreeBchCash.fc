@@ -2,6 +2,7 @@
 using FaucetCollector.Script;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Interactions;
+//css_ref HumanActions.dll;
 
 public class FreeBchCash : FaucetScript
 {
@@ -85,6 +86,7 @@ public class FreeBchCash : FaucetScript
     /// <returns></returns>
     public override int DoLogin()
     {
+		DriverHumanActions humanActions=new DriverHumanActions(Driver);
         if(Driver.Url!= "https://www.free-bcash.com/")
         {
             GoToUrl("https://www.free-bcash.com/");
@@ -94,13 +96,13 @@ public class FreeBchCash : FaucetScript
         {
             return Fail("Email box isn't visible");
         }
-        SetText(EmailBox, GetSetting("User"));
+        humanActions.SetText(EmailBox, GetSetting("User"));
         var PasswordBox = ElementByXPath("//input[@name='password']");
         if (!IsVisible(PasswordBox))
         {
             return Fail("Password box isn't visible");
         }
-        SetText(PasswordBox, GetPassword("Pass"));
+        humanActions.SetText(PasswordBox, GetPassword("Pass"));
         var result = DoSolveCaptcha();
         if (result > 0)
         {
@@ -111,7 +113,7 @@ public class FreeBchCash : FaucetScript
         {
             return Fail("Button isn't visible");
         }
-         HumanClick ( button );
+        humanActions.Click( button );
 		 
 		var Error=ElementByXPath(FailXPath);
 		if(IsVisible(Error)){
