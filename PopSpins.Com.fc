@@ -1,7 +1,7 @@
 
 //==================//
 //script Written by: ••AviramDayan•• 21/07/2019 18:15AM - Version 1 
-//Last Update: 17/11/2019 01:00AM - Version 14
+//Last Update: 19/11/2019 01:00AM - Version 15
 //==================//
 
 using System;
@@ -347,6 +347,14 @@ public class popspins : FaucetScript
             {
 
             var SpinButton = ElementByXPath("//input[@id='playFancy' and @value='Play'] | //input[@id='playFancy' and @class='pulsen2'] ") ;
+
+            if(!IsVisible(SpinButton))
+            {
+			 Title = "POP Spins";
+			 Log("break the first SpinButton - not found");
+             break; //break the all true (true)
+			}//end SpinButton
+
             if(IsVisible(SpinButton))
             {
 			 Title = "POP Spins";
