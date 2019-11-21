@@ -48,6 +48,390 @@ public class YannikScript : FaucetScript
     /// If you return false then it will call the BeforeLogin, Login and AfterLogin methods so you can login.
     /// After those Login methods are called it will call this IsLoggedIn method again to see if the login did succeed.
     /// If you return true Faucet Collector will store all cookies so it will probably be already logged in on the next attempt.
+//==================//
+//script Written by: ••AviramDayan•• 14/06/2018 09:00AM - Version 1
+//Last Update: 21/11/2019 09:00AM - Version 28
+//==================//
+
+using FaucetCollector.Script;
+using System;
+using System.Collections.Generic;
+using System.Drawing;
+//css_inc RecaptchaUtilities
+
+
+public class YannikScript : FaucetScript
+{
+    /// <summary>
+    /// List of Settings that will be shown in the bot when selecting this Faucet in the bot.
+    /// You can get the value the user entered with the methods: GetSetting("[Name of the FaucetSetting]"), GetBoolSetting and GetDateTimeSetting
+    /// </summary>
+    public override FaucetSettings Settings
+    {
+        get
+        {
+            return new FaucetSettings("http://Yannik.biz")
+            {
+                //We have a setting to get the email address used for Yannik
+                new FaucetSetting() { Name = "Email", Display = "Email", Type = EditorType.TextBox, Required = true },
+                //new FaucetSetting(){Name="Captcha",Display="Captcha:",Type=EditorType.ComboBox,Items=new List<string>{"Solvemedia","Recaptcha","IconCaptcha"}, Default="Solvemedia"},
+				//new FaucetSetting(){Name="Bonus24Hours",Display="Claim Bonus after 24 hours",Type=EditorType.CheckBox,Default=true},
+            };
+        }
+    }
+
+
+
+    /// <summary>
+    /// This method gets called when the faucet is enabled and the GO button is clicked
+    /// </summary>
+    public override void Start()
+    {
+        ad = false;
+       
+        //Title that shows in the browser. Is used to identify and close popup windows
+        Title = "Yannik.biz";
+
+		SuccessXPath = "//*";  //*[@id='']
+        FailXPath = "//*"; //*[@id='']
+	
+        //TimerIsCountingUp = true;
+		
+        //Let Faucet Collector start up everything
+        base.Start();
+    }
+
+	
+    bool ad; //custom bool
+	
+	
+	
+    public override int DoInit()
+    {
+			
+
+		
+        //Let Faucet Collector continue.
+        return base.DoInit();
+    }
+
+
+
+//==================//
+//save Login Cookies 
+//==================//
+    public override bool IsLoggedIn()
+    {
+	    //save Login Cookies - Check if the "Logout" exist
+        return ElementByXPath("//div[@class='btn-group-vertical']") != null;
+	 
+	    //return true;
+	 
+        //return base.IsLoggedIn();
+    }
+//==================//
+//save Login Cookies 
+//==================//	
+
+
+
+
+//=============//
+//BeforeLogin
+//=============//
+    public override int BeforeLogin()
+    {
+
+		
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeLogin();
+    }
+//=============//
+//BeforeLogin
+//=============//
+
+
+
+//========//
+//DoLogin
+//========//
+    public override int DoLogin()
+    {
+	
+     var ExitButton = ElementByXPath("//div[@class='btn-group-vertical']");
+
+
+	 //if i NOT Login - go to Login Page
+	 if (!IsVisible(ExitButton))
+	 {
+
+		GoToUrl("http://Yannik.biz");
+		Wait();		
+		Wait(6);
+   
+        var StartOpenLogin = ElementByXPath("//button[@data-target='#Loginmodal']");
+	    if (IsVisible(StartOpenLogin))
+	    { 
+        Click(StartOpenLogin);
+		}
+		Wait();
+		Wait(2);
+		
+/*	
+        var Address_VAR = ElementByXPath("//input[@id='form-field-wallet_addr']");
+        SetText(Address_VAR, GetSetting("Address"));
+*/
+	
+        var box_user = ElementByXPath("//input[@name='address']");
+        SetText(box_user, GetSetting("Email"));
+		
+		Wait(2);
+		
+/*		
+        var box_pass = ElementByXPath("//input[@id='login_pw']");
+        SetText(box_pass, GetPassword("Password"));
+*/		
+		Wait(2);	
+	
+        var ButtonLog = ElementByXPath("//button[@class='g-recaptcha btn btn-info']");
+        Click(ButtonLog);
+		
+		Wait(2);
+		
+        SolveCaptcha_Function(); //call to SolveCaptcha_Function
+
+		Wait();	
+
+	 } // end ExitButton
+
+        
+       return base.DoLogin();
+    }
+//========//
+//DoLogin
+//========//
+
+
+
+//========//
+//AfterLogin
+//========//
+ public override int AfterLogin()
+ {
+ 
+  
+    //we are good to continue
+    return base.AfterLogin();
+
+ }
+//========//
+//AfterLogin
+//========//
+
+
+
+
+	
+
+//================//
+//GetFaucetWaitTime
+//================//
+    public override int GetFaucetWaitTime()
+    {
+		
+      if (ad)
+      {
+        Log("ad true");
+		ad=false;
+		
+        var Timer = ElementByXPath("//div[@id='claimTimer']//b");
+		
+        if(IsVisible(Timer))
+        {
+          return Convert.ToInt32(Timer.Text);
+        }
+		
+        if(!IsVisible(Timer))
+        {
+		return 10*60;	
+        }
+		
+      }//end ad true
+		
+
+        return base.GetFaucetWaitTime();
+    }
+	
+
+//================//
+//GetFaucetWaitTime
+//================//
+
+
+
+    public override int BeforeSolveCaptcha()
+    {
+
+
+        //Let Faucet Collector continue
+        return base.BeforeSolveCaptcha();
+    }
+
+
+    public override int DoSolveCaptcha()
+    {
+        //check for the custom captcha image
+        return base.DoSolveCaptcha();
+    }
+
+
+    public override int AfterSolveCaptcha()
+    {
+
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterSolveCaptcha();
+    }
+
+    public override int BeforeSolveFaucet()
+    {
+   
+        //Let Faucet Collector Continue.
+        return base.BeforeSolveFaucet();
+    }
+
+
+
+//================//
+//DoSolveFaucet
+//================//
+    public override int DoSolveFaucet()
+    {
+
+        Title = "Yannik.biz";
+		Wait(2);
+		
+        //Timer - time check
+        var Timer = ElementByXPath("//div[@id='claimTimer']//b");
+        if(IsVisible(Timer))
+        {
+		return Convert.ToInt32(Timer.Text);	
+        }
+		//end Timer
+
+        var FaucetTab = ElementByXPath("//button[contains(@onclick,'Faucet')]");
+	    if (IsVisible(FaucetTab))
+	    { 
+        Click(FaucetTab);
+        Log("FaucetTab");
+		}
+		Wait();
+		Wait(2);
+		
+        var BitcoinFaucetTab = ElementByXPath("//div/a[contains(@onclick,'BTCFaucet')]");
+	    if (IsVisible(BitcoinFaucetTab))
+	    { 
+        Click(BitcoinFaucetTab);
+        Log("BitcoinFaucetTab");
+		}
+		Wait();
+		Wait(2);
+
+        var FaucetButton = ElementByXPath("//button[@id='mybutton']");
+	    if (IsVisible(FaucetButton))
+	    { 
+        Click(FaucetButton);
+        Log("FaucetButton");
+		}
+		Wait();
+		Wait(2);
+
+        var Faucet_2_CallBackButton = ElementByXPath("//button[@data-callback='onSubmit']");
+	    if (IsVisible(Faucet_2_CallBackButton))
+	    { 
+        Click(Faucet_2_CallBackButton);
+        Log("Faucet_2_CallBackButton");
+		}
+		Wait();
+		Wait(2);		
+		
+        SolveCaptcha_Function(); //call to SolveCaptcha_Function
+		
+		Wait();
+	
+		ad = true; //success	
+			
+        //Let Faucet Collector continue its work
+        return base.DoSolveFaucet();
+    }
+
+//================//
+//DoSolveFaucet
+//================//
+
+
+
+    //=================//
+    //AfterSolveFaucet//
+    //================//
+    public override int AfterSolveFaucet()
+    {
+
+        //Let Faucet Collector continue
+        return base.AfterSolveFaucet();
+    }
+    //=================//
+    //AfterSolveFaucet//
+    //================//
+
+
+
+    /// <summary>
+    /// This method gets called in the end after the BeforeSolveFaucet/DoSolveFaucet and AfterSolveFaucet methods were done.
+    /// The base.CheckFaucetResult will try to find a visible element on the page using the XPath from SuccessXPath and FailXPath (see the Start method)
+    /// These properties should contain XPath expressions to find certain elements on the page.
+    /// For example if it finds one of the elements from the SuccessXPath, and it is visible, then it will flag the claim attempt as a success.
+    /// Or if it finds one of the elements from the FailXPath, and it is visible, then it will flag the claim attempt as a failure.
+    /// </summary>
+    public override int CheckFaucetResult()
+    {
+        return base.CheckFaucetResult();
+
+    }
+	
+	
+	
+    //======================//
+    //SolveCaptcha_Function//
+    //======================//
+    public int SolveCaptcha_Function()
+    {
+
+      // SolveCaptcha
+      var RecaptchaOpenInvisible = ElementByXPath("//iframe[contains(@src,'recaptcha/api2/anchor')]");
+      if (IsVisible(RecaptchaOpenInvisible))
+      {
+         var result = base.DoSolveCaptcha();
+         RecaptchaUtility utility = new RecaptchaUtility(this);
+         utility.DoSolve();
+         if (result > 0)
+         {
+            return Fail("fail not solve"); //return to solve again - if something wrong
+         }
+		
+         //ExecuteScript("onSubmit");
+
+      } //end RecaptchaOpenInvisible
+
+      return 0;
+		
+    }
+    //======================//
+    //SolveCaptcha_Function//
+    //======================//
+	
+	
+	
+} //end class
     /// </summary>
     public override bool IsLoggedIn()
     {
