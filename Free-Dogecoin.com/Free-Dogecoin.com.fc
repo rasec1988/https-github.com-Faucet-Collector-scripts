@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Globalization;
 using FaucetCollector.Script;
 using OpenQA.Selenium;
@@ -21,6 +21,7 @@ public class FreeDocoinScript : FaucetScript
                 new FaucetSetting(){Name="User",Display="Email",Type=EditorType.TextBox,Required=true},
                 new FaucetSetting(){Name="Pass",Display="Password",Type=EditorType.Password,Required=true},
                 new FaucetSetting(){Name="AutoWithdraw",Display="AutoWithdraw",Type=EditorType.CheckBox,Default=true},
+				new FaucetSetting(){Name="WithdrawAmt",Display="Withdraw Threshold (> Minimum Withdraw + Fees)",Type=EditorType.Numeric,Required=false,Default=70},
                 
               
                 //insert user settings here
@@ -228,15 +229,17 @@ public class FreeDocoinScript : FaucetScript
 
             }
             bool SuccessWithdraw = false;
-            if(Balance>37.5)
+			var total = GetIntSetting("WithdrawAmt");
+            if(Balance > total)
+			
             {
                 
                 GoToUrl("https://www.free-dogecoin.com/withdraw/");
                 Wait();
-                var BalanceBox = ElementByXPath("//input[@id='cryptowithdraw']");
-                if (IsVisible(BalanceBox))
+                var PasteALL = ElementByXPath("//button[@id='withdrawbuttonpasteall']");
+                if (IsVisible(PasteALL))
                 {
-                    SetText(BalanceBox, (Balance-2).ToString());
+                    Click(PasteALL);
                 }
                 Wait();
                 var WithdrawButton = ElementByXPath("//button[@id='withdrawbutton']");
