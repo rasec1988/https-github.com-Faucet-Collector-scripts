@@ -1,7 +1,10 @@
-﻿using System;
+using System;
 using System.Globalization;
 using FaucetCollector.Script;
-//css_inc RecaptchaUtilities
+using OpenQA.Selenium;
+using OpenQA.Selenium.Interactions;
+using HumanActions;
+//css_ref HumanActions.dll;
 public class FreeDocoinScript : FaucetScript
 {
     /// <summary>
@@ -18,6 +21,7 @@ public class FreeDocoinScript : FaucetScript
                 new FaucetSetting(){Name="User",Display="Email",Type=EditorType.TextBox,Required=true},
                 new FaucetSetting(){Name="Pass",Display="Password",Type=EditorType.Password,Required=true},
                 new FaucetSetting(){Name="AutoWithdraw",Display="AutoWithdraw",Type=EditorType.CheckBox,Default=true},
+				new FaucetSetting(){Name="WithdrawAmt",Display="Withdraw Amount",Type=EditorType.Numeric,Required=false,Default=70},
                 
               
                 //insert user settings here
@@ -94,19 +98,20 @@ public class FreeDocoinScript : FaucetScript
     /// <returns></returns>
     public override int DoLogin()
     {
+	 DriverHumanActions humanActions=new DriverHumanActions(Driver);
         var UserBox = ElementByXPath("//form[@class='form']//input[@name='email']");
         if (!IsVisible(UserBox))
         {
             return Fail("Fail login,UserBox is not visible");
         }
-        SetText(UserBox, GetSetting("User"));
+        humanActions.SetText(UserBox, GetSetting("User"));
 
         var PasswordBox = ElementByXPath("//input[@name='password']");
         if (!IsVisible(PasswordBox))
         {
             return Fail("Fail login, Password box is not visible");
         }
-        SetText(PasswordBox, GetPassword("Pass"));
+        humanActions.SetText(PasswordBox, GetPassword("Pass"));
 
         var result = DoSolveCaptcha();
         if (result > 0)
@@ -119,11 +124,22 @@ public class FreeDocoinScript : FaucetScript
         {
             return Fail("Button isn't visible");
         }
-        Click(button);
+		
+		 humanActions.Click (button);
         //This faucet has nothing to do here. We will let Faucet Collector handle it.
         return base.DoLogin();
     }
 
+	
+	 public void HumanClick ( IWebElement element )
+    {
+        Actions actions =new Actions(Driver);
+
+        actions.MoveToElement ( element , element.Size.Width/2 , element.Size.Height/2 ).Build ( ).Perform ( );
+        Wait (1 );
+        actions.Click ( ).Build ( ).Perform ( );
+
+    }
     /// <summary>
     /// This method gets called after the DoLogin method.
     /// </summary>
@@ -168,16 +184,15 @@ public class FreeDocoinScript : FaucetScript
     /// </summary>
     public override int DoSolveCaptcha()
     {
-        //This faucet has nothing to do here. We will let Faucet Collector handle it.
-        var result= base.DoSolveCaptcha();
-        if (result > 0)
+		
+	  if ( ElementByXPath ( "//div[contains(@class,'g-recaptcha')]" )==null )
         {
-            return result;
+            return 0;
         }
+		
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoSolveCaptcha();
       
-
-        Wait(1);
-            return result;
     }
 
     /// <summary>
@@ -214,7 +229,9 @@ public class FreeDocoinScript : FaucetScript
 
             }
             bool SuccessWithdraw = false;
-            if(Balance>37.5)
+			var total = GetIntSetting("WithdrawAmt");
+            if(Balance > total)
+			
             {
                 
                 GoToUrl("https://www.free-dogecoin.com/withdraw/");
