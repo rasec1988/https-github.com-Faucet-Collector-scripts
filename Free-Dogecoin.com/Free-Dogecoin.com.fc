@@ -21,7 +21,7 @@ public class FreeDocoinScript : FaucetScript
                 new FaucetSetting(){Name="User",Display="Email",Type=EditorType.TextBox,Required=true},
                 new FaucetSetting(){Name="Pass",Display="Password",Type=EditorType.Password,Required=true},
                 new FaucetSetting(){Name="AutoWithdraw",Display="AutoWithdraw",Type=EditorType.CheckBox,Default=true},
-				new FaucetSetting(){Name="WithdrawAmt",Display="Withdraw Amount",Type=EditorType.Numeric,Required=false,Default=70},
+				new FaucetSetting(){Name="WithdrawAmt",Display="Withdraw Amount (Must include fees)",Type=EditorType.Numeric,Required=false,Default=70},
                 
               
                 //insert user settings here
@@ -236,10 +236,10 @@ public class FreeDocoinScript : FaucetScript
                 
                 GoToUrl("https://www.free-dogecoin.com/withdraw/");
                 Wait();
-                var BalanceBox = ElementByXPath("//input[@id='cryptowithdraw']");
-                if (IsVisible(BalanceBox))
+                var PasteALL = ElementByXPath("//button[@id='withdrawbuttonpasteall']");
+                if (IsVisible(PasteALL))
                 {
-                    SetText(BalanceBox, (Balance-2).ToString());
+                    Click(PasteALL);
                 }
                 Wait();
                 var WithdrawButton = ElementByXPath("//button[@id='withdrawbutton']");
