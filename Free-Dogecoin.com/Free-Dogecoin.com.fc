@@ -21,7 +21,7 @@ public class FreeDocoinScript : FaucetScript
                 new FaucetSetting(){Name="User",Display="Email",Type=EditorType.TextBox,Required=true},
                 new FaucetSetting(){Name="Pass",Display="Password",Type=EditorType.Password,Required=true},
                 new FaucetSetting(){Name="AutoWithdraw",Display="AutoWithdraw",Type=EditorType.CheckBox,Default=true},
-				new FaucetSetting(){Name="WithdrawAmt",Display="Withdraw Amount (Must include fees)",Type=EditorType.Numeric,Required=false,Default=70},
+				new FaucetSetting(){Name="WithdrawAmt",Display="Withdraw Threshold (Must include fees)",Type=EditorType.Numeric,Required=false,Default=70},
                 
               
                 //insert user settings here
