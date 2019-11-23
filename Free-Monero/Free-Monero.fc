@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Globalization;
 using FaucetCollector.Script;
+//css_ref HumanActions.dll;
+using HumanActions;
 public class FreeMonero : FaucetScript
 {
     /// <summary>
@@ -90,36 +92,37 @@ public class FreeMonero : FaucetScript
     /// <returns></returns>
     public override int DoLogin ( )
     {
-        var EmailBox = ElementByXPath("//form[@class='form']//input[@name='email']");
-        if ( !IsVisible ( EmailBox ) )
-        {
-            return Fail ( "Email box is not visible" );
-        }
-        SetText ( EmailBox , GetSetting ( "User" ) );
-        var PasswordBox = ElementByXPath("//input[@name='password']");
-        if ( !IsVisible ( PasswordBox ) )
-        {
-            return Fail ( "Password box is not visible" );
-        }
-        SetText ( PasswordBox , GetPassword ( "Pass" ) );
+			DriverHumanActions humanActions=new DriverHumanActions(Driver);
+			var UserBox = ElementByXPath("//form[@class='form']//input[@name='email']");
+            if (!IsVisible(UserBox))
+            {
+             
+                return Fail("Fail login,UserBox is not visible");
+            }
+            humanActions.SetText ( UserBox, GetSetting("User"));
 
-        var ButtonLogin = ElementByXPath("//button[@class='btn btn-lg btn-primary g-recaptcha text-center']");
-        if ( !IsVisible ( ButtonLogin ) )
-        {
-            return Fail ( "Button login not visible" );
+            var PasswordBox = ElementByXPath("//input[@name='password']");
+            if (!IsVisible(PasswordBox))
+            {
+                return Fail("Fail login, Password box is not visible");
+            }
+            humanActions. SetText (PasswordBox, GetSetting("Pass"));
 
-        }
-        var result = DoSolveCaptcha();
-        if ( result>0 )
-        {
-            return Fail ( "Fail solving captcha" );
-        }
+            var result = DoSolveCaptcha();
+            if (result > 0)
+            {
+                return Fail("Fail solve captcha");
+            }
 
-
-        Click ( ButtonLogin );
-        var ErrorLogin = ElementByXPath("//div[@class='flash info']");
-        if ( IsVisible ( ErrorLogin ) )
-        {
+            var button = ElementByXPath("//button[contains(text(),'Login')]");
+            if (!IsVisible(button))
+            {
+                return Fail("Button isn't visible");
+            }
+            humanActions. Click (button);
+			var ErrorLogin = ElementByXPath("//div[@class='flash info']");
+			if ( IsVisible ( ErrorLogin ) )
+			{
             Log ( ErrorLogin.Text );
             if ( ErrorLogin.Text.Contains ( "Incorrect login detail" ) )
             {
@@ -127,7 +130,7 @@ public class FreeMonero : FaucetScript
                 return Fail ( "You need to set your credentials correctly" );
             }
 
-        }
+			}
 
 
         //This faucet has nothing to do here. We will let Faucet Collector handle it.
@@ -188,6 +191,10 @@ public class FreeMonero : FaucetScript
     /// </summary>
     public override int DoSolveCaptcha ( )
     {
+	 if ( ElementByXPath ( "//div[contains(@class,'g-recaptcha')]" )==null )
+        {
+            return 0;
+        }
         //This faucet has nothing to do here. We will let Faucet Collector handle it.
         return base.DoSolveCaptcha ( );
     }
