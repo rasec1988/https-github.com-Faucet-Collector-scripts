@@ -1,7 +1,7 @@
 
 //==================//
 //script Written by: ••AviramDayan•• 26/05/2019 04:00PM - Version 1
-//Last Update: 05/11/2019 21:00AM - Version 14
+//Last Update: 22/11/2019 11:00AM - Version 15
 //==================//
 
 using System;
@@ -172,58 +172,7 @@ public class luckyfishorg : FaucetScript
 		Wait();		
 		Wait(2);
      
-        var StartOpenLogin = ElementByXPath("//div[@class='left' and contains(text(),'LOGIN')]");
-	    if (IsVisible(StartOpenLogin))
-	    { 
-        Click(StartOpenLogin);
-		}
-
-		Wait(2);
-		
-        var box_user = ElementByXPath("//input[@placeholder='Username']");
-        SetText(box_user, GetSetting("Email"));
-		
-		Wait(2);
-		
-        var box_pass = ElementByXPath("//input[@placeholder='Password']");
-        SetText(box_pass, GetPassword("Password"));
-		
-		Wait(2);
-/*		
-       //SolveCaptcha if apper
-        var result = DoSolveCaptcha();
-        if (result > 0)
-        {
-            return Fail("Fail solving captcha");
-        }
-*/		
-		Wait(4);
-		
-        var ButtonLog = ElementByXPath("//button[@class='el-button el-button--primary is-plain']");
-        Click(ButtonLog);
-		
-		Wait(5);
-		
-        var SecurityQuestion = ElementByXPath("//h2[@class='loginTwoFactor_title' and contains(text(),'SECURITY')]");
-	    if (IsVisible(SecurityQuestion))
-	    { 
-        SetText(box_user, GetSetting("Email"));
-		Wait(2);
-        var Button_2_Log = ElementByXPath("//button[@class='el-button el-button--primary is-plain']");
-        Click(Button_2_Log);
-		}
-		
-		Wait(2);
-				
-/*		
-        var Error_Message = ElementByXPath ("//div[@id='add_err']/div/div[@class='message' and contains(text(),'fille' | 'captcha' ) ]");
-        if (IsVisible(Error_Message))
-        {
-            Log("Error_Message - Appear - we return after 1 min ");
-            return 1*60; //we return after 1 min
-        }
-*/		
-		Wait();	
+        Login_General_Function(); //call
 
 	 } // end ExitButton
 
@@ -314,10 +263,9 @@ public class luckyfishorg : FaucetScript
 //==============//
  public override int DoSolveFaucet()
   {
-
+        Title = "LuckyFish.io";
         GoToUrl("https://www.luckyfish.io/");
-		Log("Go to faucet");	
-		
+		Log("Go to home");	
 		Wait();
 		Wait(2);	
 		
@@ -327,31 +275,40 @@ public class luckyfishorg : FaucetScript
      //=============// 
      if (GetBoolSetting("AffWithdraw"))
      {
-	 
-		Log("AffWithdraw");
+        Title = "Luckyfish Affiliate";
+        GoToUrl("https://a.luckyfish.io/home/statistic");
+		Wait();
+		Wait(2);
+		Log("AffWithdraw");		
 
-        var AffiliateButton = ElementByXPath("//li[@class='left deposit affiliate']");   
-	    if (IsVisible(AffiliateButton))
+        var StartOpenLogin = ElementByXPath("//div[@class='left' and contains(text(),'LOGIN')] | //button[@class='LogIn'] ");
+	    if (IsVisible(StartOpenLogin))
 	    { 
-        Click(AffiliateButton);
-		Log("AffiliateButton");
+          Login_General_Function(); // call to Login_General_Function
 		}
-
-        Wait(2);
-		
-        var WithdrawTab = ElementByXPath("//body/section/div/div[2]/ul[2 and @class='affiliate_ul clear']/li[2 and contains(text(),'WITHDRAWALS')]");   
+         
+        var WithdrawTab = ElementByXPath("//li[@class='withDraw']");   
 	    if (IsVisible(WithdrawTab))
 	    { 
         Click(WithdrawTab);
 		Log("WithdrawTab");
 		}
+        Wait();
+        Wait(2);
+		
+        var Withdraw_2_Tab = ElementByXPath("//ul[@class='withdraw_menu']/li[contains(text(),'LUCKYFISH')]");   
+	    if (IsVisible(Withdraw_2_Tab))
+	    { 
+        Click(Withdraw_2_Tab);
+		Log("Withdraw_2_Tab");
+		}	
 		
         Wait(2);
 
         //do all stuff	
         MenuCoins_Faunction(); //call
         Wait(2);
-        var btc_w_VAR = ElementByXPath("//div[6]/div[1]/div[1]/ul/li[1]/span");  
+        var btc_w_VAR = ElementByXPath("//ul[@class='el-scrollbar__view el-select-dropdown__list']/li[1]");  
         Click(btc_w_VAR);
         Wait(2);
         WithdrawEndButton_Faunction(); //call
@@ -360,7 +317,7 @@ public class luckyfishorg : FaucetScript
 
         MenuCoins_Faunction(); //call	
         Wait(2);	
-        var doge_w_VAR = ElementByXPath("//div[6]/div[1]/div[1]/ul/li[2]/span");   
+        var doge_w_VAR = ElementByXPath("//ul[@class='el-scrollbar__view el-select-dropdown__list']/li[2]");   
         Click(doge_w_VAR);	
         Wait(2);
         WithdrawEndButton_Faunction(); //call
@@ -369,7 +326,7 @@ public class luckyfishorg : FaucetScript
 
         MenuCoins_Faunction(); //call	
         Wait(2);	
-        var ltc_w_VAR = ElementByXPath("//div[6]/div[1]/div[1]/ul/li[3]/span");   
+        var ltc_w_VAR = ElementByXPath("//ul[@class='el-scrollbar__view el-select-dropdown__list']/li[3]");   
         Click(ltc_w_VAR);	
         Wait(2);
         WithdrawEndButton_Faunction(); //call
@@ -378,7 +335,7 @@ public class luckyfishorg : FaucetScript
 
         MenuCoins_Faunction(); //call	
         Wait(2);	
-        var eth_w_VAR = ElementByXPath("//div[6]/div[1]/div[1]/ul/li[4]/span");   
+        var eth_w_VAR = ElementByXPath("//ul[@class='el-scrollbar__view el-select-dropdown__list']/li[4]");   
         Click(eth_w_VAR);	
         Wait(2);
         WithdrawEndButton_Faunction(); //call
@@ -387,7 +344,7 @@ public class luckyfishorg : FaucetScript
 
         MenuCoins_Faunction(); //call
         Wait(2);
-        var bch_w_VAR = ElementByXPath("//div[6]/div[1]/div[1]/ul/li[5]/span");  
+        var bch_w_VAR = ElementByXPath("//ul[@class='el-scrollbar__view el-select-dropdown__list']/li[5]");  
         Click(bch_w_VAR);	
         Wait(2);
         WithdrawEndButton_Faunction(); //call
@@ -396,7 +353,7 @@ public class luckyfishorg : FaucetScript
 
         MenuCoins_Faunction(); //call
         Wait(2);
-        var xlm_w_VAR = ElementByXPath("//div[6]/div[1]/div[1]/ul/li[6]/span");   
+        var xlm_w_VAR = ElementByXPath("//ul[@class='el-scrollbar__view el-select-dropdown__list']/li[6]");   
         Click(xlm_w_VAR);	
         Wait(2);
         WithdrawEndButton_Faunction(); //call
@@ -405,7 +362,7 @@ public class luckyfishorg : FaucetScript
 
         MenuCoins_Faunction(); //call
         Wait(2);
-        var eos_w_VAR = ElementByXPath("//div[6]/div[1]/div[1]/ul/li[7]/span");   
+        var eos_w_VAR = ElementByXPath("//ul[@class='el-scrollbar__view el-select-dropdown__list']/li[7]");   
         Click(eos_w_VAR);	
         Wait(2);
         WithdrawEndButton_Faunction(); //call	
@@ -414,7 +371,7 @@ public class luckyfishorg : FaucetScript
 
         MenuCoins_Faunction(); //call
         Wait(2);
-        var xrp_w_VAR = ElementByXPath("//div[6]/div[1]/div[1]/ul/li[8]/span");   
+        var xrp_w_VAR = ElementByXPath("//ul[@class='el-scrollbar__view el-select-dropdown__list']/li[8]");   
         Click(xrp_w_VAR);	
         Wait(2);
         WithdrawEndButton_Faunction(); //call	
@@ -423,7 +380,7 @@ public class luckyfishorg : FaucetScript
 
         MenuCoins_Faunction(); //call
         Wait(2);
-        var dash_w_VAR = ElementByXPath("//div[6]/div[1]/div[1]/ul/li[9]/span");   
+        var dash_w_VAR = ElementByXPath("//ul[@class='el-scrollbar__view el-select-dropdown__list']/li[9]");   
         Click(dash_w_VAR);	
         Wait(2);
         WithdrawEndButton_Faunction(); //call		
@@ -432,7 +389,7 @@ public class luckyfishorg : FaucetScript
 
         MenuCoins_Faunction(); //call
         Wait(2);
-        var zec_w_VAR = ElementByXPath("//div[6]/div[1]/div[1]/ul/li[10]/span");   
+        var zec_w_VAR = ElementByXPath("//ul[@class='el-scrollbar__view el-select-dropdown__list']/li[10]");   
         Click(zec_w_VAR);	
         Wait(2);
         WithdrawEndButton_Faunction(); //call
@@ -441,7 +398,7 @@ public class luckyfishorg : FaucetScript
 
         MenuCoins_Faunction(); //call
         Wait(2);
-        var usdt_w_VAR = ElementByXPath("//div[6]/div[1]/div[1]/ul/li[11]/span"); 
+        var usdt_w_VAR = ElementByXPath("//ul[@class='el-scrollbar__view el-select-dropdown__list']/li[11]"); 
         Click(usdt_w_VAR);	
         Wait(2);
         WithdrawEndButton_Faunction(); //call	
@@ -450,7 +407,7 @@ public class luckyfishorg : FaucetScript
 
         MenuCoins_Faunction(); //call
         Wait(2);
-        var bsv_w_VAR = ElementByXPath("//div[6]/div[1]/div[1]/ul/li[12]/span");  
+        var bsv_w_VAR = ElementByXPath("//ul[@class='el-scrollbar__view el-select-dropdown__list']/li[12]");  
         Click(bsv_w_VAR);	
         Wait(2);
         WithdrawEndButton_Faunction(); //call	
@@ -459,7 +416,7 @@ public class luckyfishorg : FaucetScript
 
         MenuCoins_Faunction(); //call
         Wait(2);
-        var btg_w_VAR = ElementByXPath("//div[6]/div[1]/div[1]/ul/li[13]/span"); 
+        var btg_w_VAR = ElementByXPath("//ul[@class='el-scrollbar__view el-select-dropdown__list']/li[13]"); 
         Click(btg_w_VAR);	
         Wait(2);
         WithdrawEndButton_Faunction(); //call	
@@ -468,7 +425,7 @@ public class luckyfishorg : FaucetScript
 
         MenuCoins_Faunction(); //call
         Wait(2);
-        var bat_w_VAR = ElementByXPath("//div[6]/div[1]/div[1]/ul/li[14]/span"); 
+        var bat_w_VAR = ElementByXPath("//ul[@class='el-scrollbar__view el-select-dropdown__list']/li[14]"); 
         Click(bat_w_VAR);	
         Wait(2);
         WithdrawEndButton_Faunction(); //call	
@@ -477,7 +434,7 @@ public class luckyfishorg : FaucetScript
 
         MenuCoins_Faunction(); //call
         Wait(2);
-        var hot_w_VAR = ElementByXPath("//div[6]/div[1]/div[1]/ul/li[15]/span"); 
+        var hot_w_VAR = ElementByXPath("//ul[@class='el-scrollbar__view el-select-dropdown__list']/li[15]"); 
         Click(hot_w_VAR);	
         Wait(2);
         WithdrawEndButton_Faunction(); //call	
@@ -486,7 +443,7 @@ public class luckyfishorg : FaucetScript
 
         MenuCoins_Faunction(); //call
         Wait(2);
-        var link_w_VAR = ElementByXPath("//div[6]/div[1]/div[1]/ul/li[16]/span"); 
+        var link_w_VAR = ElementByXPath("//ul[@class='el-scrollbar__view el-select-dropdown__list']/li[16]"); 
         Click(link_w_VAR);	
         Wait(2);
         WithdrawEndButton_Faunction(); //call	
@@ -495,7 +452,7 @@ public class luckyfishorg : FaucetScript
 
         MenuCoins_Faunction(); //call
         Wait(2);
-        var omg_w_VAR = ElementByXPath("//div[6]/div[1]/div[1]/ul/li[17]/span"); 
+        var omg_w_VAR = ElementByXPath("//ul[@class='el-scrollbar__view el-select-dropdown__list']/li[17]"); 
         Click(omg_w_VAR);	
         Wait(2);
         WithdrawEndButton_Faunction(); //call	
@@ -504,7 +461,7 @@ public class luckyfishorg : FaucetScript
 
         MenuCoins_Faunction(); //call
         Wait(2);
-        var ht_w_VAR = ElementByXPath("//div[6]/div[1]/div[1]/ul/li[18]/span"); 
+        var ht_w_VAR = ElementByXPath("//ul[@class='el-scrollbar__view el-select-dropdown__list']/li[18]"); 
         Click(ht_w_VAR);	
         Wait(2);
         WithdrawEndButton_Faunction(); //call	
@@ -513,7 +470,7 @@ public class luckyfishorg : FaucetScript
 
         MenuCoins_Faunction(); //call
         Wait(2);
-        var usdc_w_VAR = ElementByXPath("//div[6]/div[1]/div[1]/ul/li[19]/span"); 
+        var usdc_w_VAR = ElementByXPath("//ul[@class='el-scrollbar__view el-select-dropdown__list']/li[19]"); 
         Click(usdc_w_VAR);	
         Wait(2);
         WithdrawEndButton_Faunction(); //call	
@@ -522,7 +479,7 @@ public class luckyfishorg : FaucetScript
 
         MenuCoins_Faunction(); //call
         Wait(2);
-        var tusd_w_VAR = ElementByXPath("//div[6]/div[1]/div[1]/ul/li[20]/span"); 
+        var tusd_w_VAR = ElementByXPath("//ul[@class='el-scrollbar__view el-select-dropdown__list']/li[20]"); 
         Click(tusd_w_VAR);	
         Wait(2);
         WithdrawEndButton_Faunction(); //call	
@@ -531,11 +488,20 @@ public class luckyfishorg : FaucetScript
 
         MenuCoins_Faunction(); //call
         Wait(2);
-        var pax_w_VAR = ElementByXPath("//div[6]/div[1]/div[1]/ul/li[21]/span"); 
+        var pax_w_VAR = ElementByXPath("//ul[@class='el-scrollbar__view el-select-dropdown__list']/li[21]"); 
         Click(pax_w_VAR);	
         Wait(2);
         WithdrawEndButton_Faunction(); //call	
 		Log("WithdrawEndButton - pax");	
+        Wait(2);
+
+        MenuCoins_Faunction(); //call
+        Wait(2);
+        var trx_w_VAR = ElementByXPath("//ul[@class='el-scrollbar__view el-select-dropdown__list']/li[22]"); 
+        Click(trx_w_VAR);	
+        Wait(2);
+        WithdrawEndButton_Faunction(); //call	
+		Log("WithdrawEndButton - trx");	
         Wait(2);
 		
      }// end AffWithdraw
@@ -551,6 +517,12 @@ public class luckyfishorg : FaucetScript
      if (GetBoolSetting("AllCoinsFaucets"))
      {	
 
+        Title = "LuckyFish.io";
+        GoToUrl("https://www.luckyfish.io/");
+		Log("Go to faucet");	
+		Wait();
+		Wait(2);	
+		
 		//======//
 		//btc//
 		//======//
@@ -562,7 +534,7 @@ public class luckyfishorg : FaucetScript
 
 	    Wait(2);
 
-        var btc_VAR = ElementByXPath("//div[@x-placement='bottom-start']/div[1]/div[1]/ul/li[1]");   
+        var btc_VAR = ElementByXPath("//ul[contains(@class,'el-scrollbar__view')]/li[1 and contains(@icon,'btc')]"); //("//div[@x-placement='bottom-start']/div[1]/div[1]/ul/li[1]")
         if (IsVisible(btc_VAR))
         {		
 		Log("btc");		
@@ -600,7 +572,7 @@ public class luckyfishorg : FaucetScript
 
 	    Wait(2);
 
-        var doge_VAR = ElementByXPath("//div[@x-placement='bottom-start']/div[1]/div[1]/ul/li[2]");   
+        var doge_VAR = ElementByXPath("//ul[contains(@class,'el-scrollbar__view')]/li[2 and contains(@icon,'doge')]");   
         if (IsVisible(doge_VAR))
         {	
 		Log("doge");
@@ -638,7 +610,7 @@ public class luckyfishorg : FaucetScript
 
 	    Wait(2);
 
-        var ltc_VAR = ElementByXPath("//div[@x-placement='bottom-start']/div[1]/div[1]/ul/li[3]");   
+        var ltc_VAR = ElementByXPath("//ul[contains(@class,'el-scrollbar__view')]/li[3 and contains(@icon,'ltc')]");   
         if (IsVisible(ltc_VAR))
         {	
 		Log("ltc");			
@@ -676,7 +648,7 @@ public class luckyfishorg : FaucetScript
 
 	    Wait(2);
 
-        var eth_VAR = ElementByXPath("//div[@x-placement='bottom-start']/div[1]/div[1]/ul/li[4]");   
+        var eth_VAR = ElementByXPath("//ul[contains(@class,'el-scrollbar__view')]/li[4 and contains(@icon,'eth')]");   
         if (IsVisible(eth_VAR))
         {	
 		Log("eth");	
@@ -714,7 +686,7 @@ public class luckyfishorg : FaucetScript
 
 	    Wait(2);
 
-        var bch_VAR = ElementByXPath("//div[@x-placement='bottom-start']/div[1]/div[1]/ul/li[5]");   
+        var bch_VAR = ElementByXPath("//ul[contains(@class,'el-scrollbar__view')]/li[5 and contains(@icon,'bch')]");   
         if (IsVisible(bch_VAR))
         {	
 		Log("bch");
@@ -742,9 +714,9 @@ public class luckyfishorg : FaucetScript
         //=========//				
 			
 		//======//
-		//xlm//
+		//dash//
 		//======//
-        if (GetBoolSetting("xlm"))
+        if (GetBoolSetting("dash"))
         {
         FaucetButton_Function(); //call
 		
@@ -752,12 +724,12 @@ public class luckyfishorg : FaucetScript
 
 	    Wait(2);
 
-        var xlm_VAR = ElementByXPath("//div[@x-placement='bottom-start']/div[1]/div[1]/ul/li[6]");   
-        if (IsVisible(xlm_VAR))
+        var dash_VAR = ElementByXPath("//ul[contains(@class,'el-scrollbar__view')]/li[6 and contains(@icon,'dash')]");   
+        if (IsVisible(dash_VAR))
         {	
-		Log("xlm");
-        Click(xlm_VAR);
-        }//end xlm_VAR	
+		Log("dash");
+        Click(dash_VAR);
+        }//end dash_VAR	
 		
 	    Wait(2);
 				
@@ -776,82 +748,6 @@ public class luckyfishorg : FaucetScript
           }	 				
         }// end  UserCustomTimeLimitFaucet_CheckBox	
 		
-		}// GetBoolSetting - xlm
-        //=========//					
-			
-		//======//
-		//xrp//
-		//======//
-        if (GetBoolSetting("xrp"))
-        {
-        FaucetButton_Function(); //call
-	
-        Menu_Function(); //call
-
-	    Wait(2);
-
-        var xrp_VAR = ElementByXPath("//div[@x-placement='bottom-start']/div[1]/div[1]/ul/li[7]");   
-        if (IsVisible(xrp_VAR))
-        {	
-		Log("xrp");	
-        Click(xrp_VAR);
-        }//end xrp_VAR	
-		
-	    Wait(2);
-				
-        SolveCaptcha_RightSquare_Function(); //call
-	
-	    Wait(2);
-		
-        Claim_Function(); //call
-
-        if (GetBoolSetting("UserCustomTimeLimitFaucet_CheckBox"))
-        {		
-          var customTime = CustomReturn_Faunction();
-          if (customTime > 0) 
-          {
-              return customTime;
-          }	 		 		
-        }// end  UserCustomTimeLimitFaucet_CheckBox	
-		
-		}// GetBoolSetting - xrp
-        //=========//					
-			
-		//======//
-		//dash//
-		//======//
-        if (GetBoolSetting("dash"))
-        {	
-        FaucetButton_Function(); //call
-	
-        Menu_Function(); //call
-
-	    Wait(2);
-
-        var dash_VAR = ElementByXPath("//div[@x-placement='bottom-start']/div[1]/div[1]/ul/li[8]");   
-        if (IsVisible(dash_VAR))
-        {
-		Log("dash");			
-        Click(dash_VAR);
-        }//end dash_VAR	
-		
-	    Wait(2);
-				
-        SolveCaptcha_RightSquare_Function(); //call
-	
-	    Wait(2);
-		
-        Claim_Function(); //call
-
-        if (GetBoolSetting("UserCustomTimeLimitFaucet_CheckBox"))
-        {		
-          var customTime = CustomReturn_Faunction();
-          if (customTime > 0) 
-          {
-              return customTime;
-          }	 			
-        }// end  UserCustomTimeLimitFaucet_CheckBox	
-		
 		}// GetBoolSetting - dash
         //=========//					
 			
@@ -861,15 +757,15 @@ public class luckyfishorg : FaucetScript
         if (GetBoolSetting("zec"))
         {
         FaucetButton_Function(); //call
-			
+	
         Menu_Function(); //call
 
 	    Wait(2);
-		
-        var zec_VAR = ElementByXPath("//div[@x-placement='bottom-start']/div[1]/div[1]/ul/li[9]");   
+
+        var zec_VAR = ElementByXPath("//ul[contains(@class,'el-scrollbar__view')]/li[7 and contains(@icon,'zec')]");   
         if (IsVisible(zec_VAR))
-        {
-		Log("zec");			
+        {	
+		Log("zec");	
         Click(zec_VAR);
         }//end zec_VAR	
 		
@@ -891,463 +787,8 @@ public class luckyfishorg : FaucetScript
         }// end  UserCustomTimeLimitFaucet_CheckBox	
 		
 		}// GetBoolSetting - zec
-        //=========//				
-			
-		//======//
-		//usdt//
-		//======//
-        if (GetBoolSetting("usdt"))
-        {
-        FaucetButton_Function(); //call
-			
-        Menu_Function(); //call
+        //=========//
 
-	    Wait(2);
-			
-        var usdt_VAR = ElementByXPath("//div[@x-placement='bottom-start']/div[1]/div[1]/ul/li[10]");   
-        if (IsVisible(usdt_VAR))
-        {
-		Log("usdt");	
-        Click(usdt_VAR);
-        }//end usdt_VAR	
-		
-	    Wait(2);
-				
-        SolveCaptcha_RightSquare_Function(); //call
-	
-	    Wait(2);
-		
-        Claim_Function(); //call
-
-        if (GetBoolSetting("UserCustomTimeLimitFaucet_CheckBox"))
-        {		
-          var customTime = CustomReturn_Faunction();
-          if (customTime > 0) 
-          {
-              return customTime;
-          }	 		 		
-        }// end  UserCustomTimeLimitFaucet_CheckBox	
-		
-		}// GetBoolSetting - usdt
-        //=========//				
-			
-		//======//
-		//bsv//
-		//======//
-        if (GetBoolSetting("bsv"))
-        {
-        FaucetButton_Function(); //call
-			
-        Menu_Function(); //call
-
-	    Wait(2);
-			
-        var bsv_VAR = ElementByXPath("//div[@x-placement='bottom-start']/div[1]/div[1]/ul/li[11]");   
-        if (IsVisible(bsv_VAR))
-        {
-		Log("bsv");			
-        Click(bsv_VAR);
-        }//end bsv_VAR	
-		
-	    Wait(2);
-				
-        SolveCaptcha_RightSquare_Function(); //call
-	
-	    Wait(2);
-		
-        Claim_Function(); //call
-
-        if (GetBoolSetting("UserCustomTimeLimitFaucet_CheckBox"))
-        {		
-          var customTime = CustomReturn_Faunction();
-          if (customTime > 0) 
-          {
-              return customTime;
-          }	 					
-        }// end  UserCustomTimeLimitFaucet_CheckBox	
-		
-		}// GetBoolSetting - bsv
-        //=========//		
-
-		//======//
-		//btg//
-		//======//
-        if (GetBoolSetting("btg"))
-        {
-        FaucetButton_Function(); //call
-			
-        Menu_Function(); //call
-
-	    Wait(2);
-			
-        var btg_VAR = ElementByXPath("//div[@x-placement='bottom-start']/div[1]/div[1]/ul/li[12]");   
-        if (IsVisible(btg_VAR))
-        {	
-		Log("btg");	
-        Click(btg_VAR);
-        }//end btg_VAR	
-		
-	    Wait(2);
-				
-        SolveCaptcha_RightSquare_Function(); //call
-	
-	    Wait(2);
-		
-        Claim_Function(); //call
-
-        if (GetBoolSetting("UserCustomTimeLimitFaucet_CheckBox"))
-        {		
-          var customTime = CustomReturn_Faunction();
-          if (customTime > 0) 
-          {
-              return customTime;
-          }	 				
-        }// end  UserCustomTimeLimitFaucet_CheckBox	
-		
-		}// GetBoolSetting - btg
-        //=========//	
-			
-		//======//
-		//eos//
-		//======//
-        if (GetBoolSetting("eos"))
-        {
-        FaucetButton_Function(); //call
-			
-        Menu_Function(); //call
-
-	    Wait(2);
-			
-        var eos_VAR = ElementByXPath("//div[@x-placement='bottom-start']/div[1]/div[1]/ul/li[13]");   
-        if (IsVisible(eos_VAR))
-        {	
-		Log("eos");	
-        Click(eos_VAR);
-        }//end eos_VAR	
-		
-	    Wait(2);
-				
-        SolveCaptcha_RightSquare_Function(); //call
-	
-	    Wait(2);
-		
-        Claim_Function(); //call
-
-        if (GetBoolSetting("UserCustomTimeLimitFaucet_CheckBox"))
-        {		
-          var customTime = CustomReturn_Faunction();
-          if (customTime > 0) 
-          {
-              return customTime;
-          }	 			
-        }// end  UserCustomTimeLimitFaucet_CheckBox	
-		
-		}// GetBoolSetting - eos
-        //=========//	
-			
-		//======//
-		//link//
-		//======//
-        if (GetBoolSetting("link"))
-        {
-        FaucetButton_Function(); //call
-			
-        Menu_Function(); //call
-
-	    Wait(2);
-			
-        var link_VAR = ElementByXPath("//div[@x-placement='bottom-start']/div[1]/div[1]/ul/li[14]");   
-        if (IsVisible(link_VAR))
-        {	
-		Log("link");	
-        Click(link_VAR);
-        }//end link_VAR	
-		
-	    Wait(2);
-				
-        SolveCaptcha_RightSquare_Function(); //call
-	
-	    Wait(2);
-		
-        Claim_Function(); //call
-
-        if (GetBoolSetting("UserCustomTimeLimitFaucet_CheckBox"))
-        {		
-          var customTime = CustomReturn_Faunction();
-          if (customTime > 0) 
-          {
-              return customTime;
-          }	 		 		
-        }// end  UserCustomTimeLimitFaucet_CheckBox	
-		
-		}// GetBoolSetting - link
-        //=========//	
-			
-		//======//
-		//bat//
-		//======//
-        if (GetBoolSetting("bat"))
-        {
-        FaucetButton_Function(); //call
-			
-        Menu_Function(); //call
-
-	    Wait(2);
-			
-        var bat_VAR = ElementByXPath("//div[@x-placement='bottom-start']/div[1]/div[1]/ul/li[15]");   
-        if (IsVisible(bat_VAR))
-        {	
-		Log("bat");	
-        Click(bat_VAR);
-        }//end bat_VAR	
-		
-	    Wait(2);
-				
-        SolveCaptcha_RightSquare_Function(); //call
-	
-	    Wait(2);
-		
-        Claim_Function(); //call
-
-        if (GetBoolSetting("UserCustomTimeLimitFaucet_CheckBox"))
-        {		
-          var customTime = CustomReturn_Faunction();
-          if (customTime > 0) 
-          {
-              return customTime;
-          }	 			
-        }// end  UserCustomTimeLimitFaucet_CheckBox	
-		
-		}// GetBoolSetting - bat
-        //=========//	
-			
-		//======//
-		//omg//
-		//======//
-        if (GetBoolSetting("omg"))
-        {
-        FaucetButton_Function(); //call
-			
-        Menu_Function(); //call
-
-	    Wait(2);
-			
-        var omg_VAR = ElementByXPath("//div[@x-placement='bottom-start']/div[1]/div[1]/ul/li[16]");   
-        if (IsVisible(omg_VAR))
-        {	
-		Log("omg");	
-        Click(omg_VAR);
-        }//end omg_VAR	
-		
-	    Wait(2);
-				
-        SolveCaptcha_RightSquare_Function(); //call
-	
-	    Wait(2);
-		
-        Claim_Function(); //call
-
-        if (GetBoolSetting("UserCustomTimeLimitFaucet_CheckBox"))
-        {		
-          var customTime = CustomReturn_Faunction();
-          if (customTime > 0) 
-          {
-              return customTime;
-          }	 		 		
-        }// end  UserCustomTimeLimitFaucet_CheckBox	
-		
-		}// GetBoolSetting - omg
-        //=========//	
-			
-		//======//
-		//hot//
-		//======//
-        if (GetBoolSetting("hot"))
-        {
-        FaucetButton_Function(); //call
-			
-        Menu_Function(); //call
-
-	    Wait(2);
-			
-        var hot_VAR = ElementByXPath("//div[@x-placement='bottom-start']/div[1]/div[1]/ul/li[17]");   
-        if (IsVisible(hot_VAR))
-        {	
-		Log("hot");	
-        Click(hot_VAR);
-        }//end hot_VAR	
-		
-	    Wait(2);
-				
-        SolveCaptcha_RightSquare_Function(); //call
-	
-	    Wait(2);
-		
-        Claim_Function(); //call
-
-        if (GetBoolSetting("UserCustomTimeLimitFaucet_CheckBox"))
-        {		
-          var customTime = CustomReturn_Faunction();
-          if (customTime > 0) 
-          {
-              return customTime;
-          }	 				
-        }// end  UserCustomTimeLimitFaucet_CheckBox	
-		
-		}// GetBoolSetting - hot
-        //=========//	
-			
-		//======//
-		//ht//
-		//======//
-        if (GetBoolSetting("ht"))
-        {
-        FaucetButton_Function(); //call
-			
-        Menu_Function(); //call
-
-	    Wait(2);
-			
-        var ht_VAR = ElementByXPath("//div[@x-placement='bottom-start']/div[1]/div[1]/ul/li[18]");   
-        if (IsVisible(ht_VAR))
-        {	
-		Log("ht");	
-        Click(ht_VAR);
-        }//end ht_VAR	
-		
-	    Wait(2);
-				
-        SolveCaptcha_RightSquare_Function(); //call
-	
-	    Wait(2);
-		
-        Claim_Function(); //call
-
-        if (GetBoolSetting("UserCustomTimeLimitFaucet_CheckBox"))
-        {		
-          var customTime = CustomReturn_Faunction();
-          if (customTime > 0) 
-          {
-              return customTime;
-          }	 				
-        }// end  UserCustomTimeLimitFaucet_CheckBox	
-		
-		}// GetBoolSetting - ht
-        //=========//	
-			
-		//======//
-		//usdc//
-		//======//
-        if (GetBoolSetting("usdc"))
-        {
-        FaucetButton_Function(); //call
-			
-        Menu_Function(); //call
-
-	    Wait(2);
-			
-        var usdc_VAR = ElementByXPath("//div[@x-placement='bottom-start']/div[1]/div[1]/ul/li[19]");   
-        if (IsVisible(usdc_VAR))
-        {	
-		Log("usdc");	
-        Click(usdc_VAR);
-        }//end usdc_VAR	
-		
-	    Wait(2);
-				
-        SolveCaptcha_RightSquare_Function(); //call
-	
-	    Wait(2);
-		
-        Claim_Function(); //call
-
-        if (GetBoolSetting("UserCustomTimeLimitFaucet_CheckBox"))
-        {		
-          var customTime = CustomReturn_Faunction();
-          if (customTime > 0) 
-          {
-              return customTime;
-          }	 				
-        }// end  UserCustomTimeLimitFaucet_CheckBox	
-		
-		}// GetBoolSetting - usdc
-        //=========//	
-			
-		//======//
-		//tusd//
-		//======//
-        if (GetBoolSetting("tusd"))
-        {
-        FaucetButton_Function(); //call
-			
-        Menu_Function(); //call
-
-	    Wait(2);
-			
-        var tusd_VAR = ElementByXPath("//div[@x-placement='bottom-start']/div[1]/div[1]/ul/li[20]");   
-        if (IsVisible(tusd_VAR))
-        {	
-		Log("tusd");	
-        Click(tusd_VAR);
-        }//end tusd_VAR	
-		
-	    Wait(2);
-				
-        SolveCaptcha_RightSquare_Function(); //call
-	    
-	    Wait(2);
-		
-        Claim_Function(); //call
-
-        if (GetBoolSetting("UserCustomTimeLimitFaucet_CheckBox"))
-        {		
-          var customTime = CustomReturn_Faunction();
-          if (customTime > 0) 
-          {
-              return customTime;
-          }	 		 		
-        }// end  UserCustomTimeLimitFaucet_CheckBox	
-		
-		}// GetBoolSetting - tusd
-        //=========//	
-			
-		//======//
-		//pax//
-		//======//
-        if (GetBoolSetting("pax"))
-        {
-        FaucetButton_Function(); //call
-			
-        Menu_Function(); //call
-
-	    Wait(2);
-			
-        var pax_VAR = ElementByXPath("//div[@x-placement='bottom-start']/div[1]/div[1]/ul/li[21]");   
-        if (IsVisible(pax_VAR))
-        {	
-		Log("pax");	
-        Click(pax_VAR);
-        }//end pax_VAR	
-		
-	    Wait(2);
-				
-        SolveCaptcha_RightSquare_Function(); //call
-	
-	    Wait(2);
-		
-        Claim_Function(); //call
-
-        if (GetBoolSetting("UserCustomTimeLimitFaucet_CheckBox"))
-        {		
-          var customTime = CustomReturn_Faunction();
-          if (customTime > 0) 
-          {
-              return customTime;
-          }	 		 		
-        }// end  UserCustomTimeLimitFaucet_CheckBox	
-		
-		}// GetBoolSetting - pax
-        //=========//	
 		
      }// end AllCoinsFaucets 
 
@@ -1519,6 +960,73 @@ public class luckyfishorg : FaucetScript
     }
 
 
+
+     //=============//
+     //Login_General_Function
+     //=============// 
+      public int Login_General_Function()
+      {
+
+        var StartOpenLogin = ElementByXPath("//div[@class='left' and contains(text(),'LOGIN')] | //button[@class='LogIn'] ");
+	    if (IsVisible(StartOpenLogin))
+	    { 
+        Click(StartOpenLogin);
+		}
+
+		Wait(2);
+		
+        var box_user = ElementByXPath("//input[@placeholder='Username']");
+        SetText(box_user, GetSetting("Email"));
+		
+		Wait(2);
+		
+        var box_pass = ElementByXPath("//input[@placeholder='Password']");
+        SetText(box_pass, GetPassword("Password"));
+		
+		Wait(2);
+/*		
+       //SolveCaptcha if apper
+        var result = DoSolveCaptcha();
+        if (result > 0)
+        {
+            return Fail("Fail solving captcha");
+        }
+*/		
+		Wait(4);
+		
+        var ButtonLog = ElementByXPath("//button[@class='el-button el-button--primary is-plain']");
+        Click(ButtonLog);
+		
+		Wait(5);
+		
+        var SecurityQuestion = ElementByXPath("//h2[@class='loginTwoFactor_title' and contains(text(),'SECURITY')]");
+	    if (IsVisible(SecurityQuestion))
+	    { 
+        SetText(box_user, GetSetting("Email"));
+		Wait(2);
+        var Button_2_Log = ElementByXPath("//button[@class='el-button el-button--primary is-plain']");
+        Click(Button_2_Log);
+		}
+		
+		Wait(2);
+				
+/*		
+        var Error_Message = ElementByXPath ("//div[@id='add_err']/div/div[@class='message' and contains(text(),'fille' | 'captcha' ) ]");
+        if (IsVisible(Error_Message))
+        {
+            Log("Error_Message - Appear - we return after 1 min ");
+            return 1*60; //we return after 1 min
+        }
+*/		
+		Wait();
+		
+	    return 0;
+		
+      } //end Login_General_Function
+     //=============// 
+	 
+
+
         //=========//
         //FaucetButton_Function
 		//=========//
@@ -1649,8 +1157,9 @@ public class luckyfishorg : FaucetScript
        //=============// 
         public void MenuCoins_Faunction()
         {
-        var MenuCoins = ElementByXPath("//div[1]/div/div/div[@class='el-input el-input--suffix']");   		
+        var MenuCoins = ElementByXPath("//div[@class='currency_content']/div[@class='el-select']");   
         Click(MenuCoins);	
+        Log("MenuCoins - Affiliate");
 		}// end MenuCoins_Faunction
 		//=============// 
 
@@ -1659,21 +1168,64 @@ public class luckyfishorg : FaucetScript
        //=============// 
         public void MenuCoins_2_Faunction()
         {
-        var MenuCoins = ElementByXPath("//div[2]/div/div[@class='el-input el-input--suffix']");   		
-        Click(MenuCoins);	
+        var MenuCoins = ElementByXPath("//div[2]/div/div[@class='el-input el-input--suffix']");   	
+        Click(MenuCoins);
+        Log("MenuCoins - Faucet");
 		}// end MenuCoins_2_Faunction
 		//=============// 
 		
 		
-       //=============//
-       //WithdrawEndButton_Faunction
-       //=============// 
-        public void WithdrawEndButton_Faunction()
+     //=============//
+     //WithdrawEndButton_Faunction
+     //=============// 
+      public int WithdrawEndButton_Faunction()
+      {
+
+        var balance = ElementByXPath("//div[@class='available_balance_content']");
+        string BalanceSTRING = balance.Text.Trim().Split('.')[1];
+        int BalanceINT = Convert.ToInt32(BalanceSTRING);
+
+        if (BalanceINT < 1) 
         {
-        var WithdrawEndButton = ElementByXPath ("//div[@class='button' and contains(text(),'WITHDRAW') ]"); 
-        Click(WithdrawEndButton);	
-		}// end WithdrawEndButton_Faunction
-		//=============// 	
+            Log("Affiliate - < Under - not good ");
+        }
+
+        if (BalanceINT > 1) 
+        {
+        Log("Affiliate - > Above - good do stuff");
+		
+        var WithdrawEndButton = ElementByXPath("//div[@class='withdraw_to_luckyfish_btn']/div[@class='button']"); 
+        Click(WithdrawEndButton);
+        Log("Affiliate - WithdrawEndButton");
+		
+        Wait();
+        Wait(2);
+		
+        var box_user = ElementByXPath("//div[@class='el-dialog__body']/input[@type='text']");
+        SetText(box_user, GetSetting("Email"));
+        Log("Affiliate - set Email");
+	
+		Wait(2);
+		
+        var box_pass = ElementByXPath("//div[@class='el-dialog__body']/input[@type='password']");
+        SetText(box_pass, GetPassword("Password"));
+        Log("Affiliate - set Password");
+		
+		Wait(2);
+		
+        var ConfirmButton = ElementByXPath("//span[@class='dialog-footer']/button[@class='el-button el-button--primary']"); 
+        Click(ConfirmButton);
+        Log("Affiliate - ConfirmButton");
+		
+        Wait();
+		
+        } //end > Above
+
+        return 0;
+
+      }// end WithdrawEndButton_Faunction
+      //=============// 	
+
 
  
        //=============//
@@ -1970,9 +1522,9 @@ public class luckyfishorg : FaucetScript
 		Wait();		
 		Wait(2);	
 		
-		}// end WithdrawEndButton_Faunction
+		}// end AllSlotsGames_Function
 		//=============// 	
+
 
 	
 } //end public class
-
