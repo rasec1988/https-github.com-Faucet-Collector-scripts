@@ -1,8 +1,7 @@
-﻿
 
 //==================//
 //script Written by: ••AviramDayan•• 13/09/2019 22:09PM - Version 1
-//Last Update: 13/09/2019 22:09PM - Version 1
+//Last Update: 24/11/2019 22:09PM - Version 2
 //==================//
 
 using System;
@@ -184,7 +183,7 @@ public class firebitcoinfaucettech : FaucetScript
         var box_pass = ElementByXPath("//input[@id='partner_password']");
         SetText(box_pass, GetPassword("Password"));
 		
-		Wait(2);	
+		Wait(5);	
 		
 /*
         if (GetBoolSetting("SolveMedia_ReCaptcha"))
@@ -207,17 +206,9 @@ public class firebitcoinfaucettech : FaucetScript
 		Log("ReCaptchaButtonStart - LOGIN");
 		}
 
-		Wait(2);
+		Wait(5);
 		
-       //SolveCaptcha if apper
-        var result = base.DoSolveCaptcha();
-        RecaptchaUtility utility = new RecaptchaUtility(this);
-        utility.DoSolve();
-		
-        if (result > 0)
-        {
-            return Fail("Fail solving captcha");
-        }
+        SolveCaptcha_Function(); // call to SolveCaptcha_Function
 		
 		Wait(2);
 
@@ -331,7 +322,6 @@ public class firebitcoinfaucettech : FaucetScript
  public override int DoSolveFaucet()
   {
 
-
         var BtcTab = ElementByXPath("//li[@id='tab_bonus']");
 	    if (IsVisible(BtcTab))
 	    { 
@@ -339,75 +329,82 @@ public class firebitcoinfaucettech : FaucetScript
 		Log("BtcTab");
 		}
 		
-		Wait(2);
 		
-        var AddressVAR = ElementByXPath("//input[@id='bonus_purse']");
-	    if (IsVisible(AddressVAR))
-	    { 
-        SetText(AddressVAR, GetSetting("Address"));
-		}	
+        var ClaimButton = ElementByXPath("//input[contains(@onclick,'get_bonus')]");
 		
-		Wait(5);
-
-        var ReCaptchaButtonStart = ElementByXPath("//div[@class='rc-anchor-logo-portrait']");  //different
-	    if (IsVisible(ReCaptchaButtonStart))
+	    if (!IsVisible(ClaimButton)) //not visible
 	    { 
-        Click(ReCaptchaButtonStart);
-		Log("ReCaptchaButtonStart - faucet");
+	      Time_Function();//call to time options
+		  Log("ClaimButton - not visible - return to time");
 		}
-
-		Wait(2);
 		
-        var ReCaptcha2ButtonStart = ElementByXPath("//div[@class='g-recaptcha-inner']");  //different
-	    if (IsVisible(ReCaptcha2ButtonStart))
+	    if (IsVisible(ClaimButton)) //visible
 	    { 
-        Click(ReCaptcha2ButtonStart);
-		Log("ReCaptcha2ButtonStart - faucet2");
-		}
+		   Log("ClaimButton - do stuff");
+		   Wait(2);
+		
+           var AddressVAR = ElementByXPath("//input[@id='bonus_purse']");
+	       if (IsVisible(AddressVAR))
+	       { 
+           SetText(AddressVAR, GetSetting("Address"));
+		   }	
+		
+		   Wait(5);
 
-		Wait(2);		
+           var ReCaptchaButtonStart = ElementByXPath("//div[@class='rc-anchor-logo-portrait']");  //different
+	       if (IsVisible(ReCaptchaButtonStart))
+	       { 
+           Click(ReCaptchaButtonStart);
+		   Log("ReCaptchaButtonStart - faucet");
+		   }
+
+		   Wait(2);
+		
+           var ReCaptcha2ButtonStart = ElementByXPath("//div[@class='g-recaptcha-inner']");  //different
+	       if (IsVisible(ReCaptcha2ButtonStart))
+	       { 
+           Click(ReCaptcha2ButtonStart);
+		   Log("ReCaptcha2ButtonStart - faucet2");
+		   }
+
+		   Wait(5);		
 			
-		
-       //SolveCaptcha if apper
-        var result = base.DoSolveCaptcha();
-        RecaptchaUtility utility = new RecaptchaUtility(this);
-        utility.DoSolve();
-		
-        if (result > 0)
-        {
-            return Fail("Fail solving captcha");
-        }
-	
-		Wait(2);
+           SolveCaptcha_Function(); //call to SolveCaptcha_Function
+ 
+		   Wait(2);
 
-        var ButtonLog = ElementByXPath("//input[@id='bonus_button']");
-	    if (IsVisible(ButtonLog))
-	    { 
-        Click(ButtonLog);
-		}
+           var ButtonLog = ElementByXPath("//input[@onclick='return get_bonus()']");
+	       if (IsVisible(ButtonLog))
+	       { 
+           Click(ButtonLog);
+		   }
 		
-		Wait(2);
+		   Wait(2);
 		
-        //================//
-		//AutoDisableScript
-        //================//
-        if (GetBoolSetting("AutoDisableScript"))
-        {
-          var ProtectionVAR = ElementByXPath("//div[@class='alert alert-danger' and contains(text(),'please try again' | 'insufficient funds to send') ]");			
-          if(IsVisible(ProtectionVAR))
-          {	 
-		  Log("AutoDisableScript - No balance");
-          Disable();
-          return 1;
-		  }
+           //================//
+		   //AutoDisableScript
+           //================//
+           if (GetBoolSetting("AutoDisableScript"))
+           {
+             var ProtectionVAR = ElementByXPath("//div[@class='alert alert-danger' and contains(text(),'please try again' | 'insufficient funds to send') ]");			
+             if(IsVisible(ProtectionVAR))
+             {	 
+		     Log("AutoDisableScript - No balance");
+             Disable();
+             return 1;
+		     }
 		  
-        }
-        //================//
+           }
+           //================//
 	  
-		Wait(10);	
+		   Wait(10);	
+		   
+	    } // end ClaimButton - visible
+
 		
-		ad = true;    // if i do true - it report as succeed // only one time no multi and also required -> return GetWaitSetting();	
+		ad = true;    // success
         //return GetWaitSetting();	
+	
 	
         //We are good to continue
         return base.DoSolveFaucet();
@@ -462,27 +459,22 @@ public class firebitcoinfaucettech : FaucetScript
 	     //Timer
 	     //=======//
 		 
-         var MinuteVAR = ElementByXPath("//div[1]/p[3 and contains(text(),'wait' )]");
-			
+         var MinuteVAR = ElementByXPath("//input[@id='bonus_button' and contains(text(),'Time' )]");
+	
          if(!IsVisible(MinuteVAR)) //not Visible
          {
-         Driver.Close();  // Close specific chrome window
-         Driver.Quit();  // also Close the console app, that was used to kick off the chrome window
-         Driver.Dispose();  // Close the chromedriver.exe
 		 return GetWaitSetting();
 	     }	
-			
+		
          if(IsVisible(MinuteVAR)) //Visible
          {
 	     Log("MinuteVAR");  
-         //int MinuteINT = Convert.ToInt32(MinuteVAR.Text)*60;	
-         int MinuteINT = Convert.ToInt32(MinuteVAR.Text.Trim().Split(' ')[4])*60;	 // need [4] for example if we have Existing text "You have to wait 15 minutes"  it mean = You[0] have[1] to[2] wait[3] 15[4] minutes[5] 
-				
-         Driver.Close();  // Close specific chrome window
-         Driver.Quit();  // also Close the console app, that was used to kick off the chrome window
-         Driver.Dispose();  // Close the chromedriver.exe
-		 //return GetWaitSetting();
-         return MinuteINT;
+         var TimeVar = ElementByXPath("//input[@id='bonus_button']");
+
+         int min,sec;
+         min = Convert.ToInt32(TimeVar.Text.Trim().Replace("Time left: ", "").Split('.')[0])*60;
+         sec = Convert.ToInt32(TimeVar.Text.Trim().Replace("Time left: ", "").Split('.')[1]);
+         return min+sec;
 	     }
          //=======//
 		 
@@ -490,8 +482,38 @@ public class firebitcoinfaucettech : FaucetScript
 		 
         }//	Time_Function
         //=================//	
+
+
+
+	//======================//
+    //SolveCaptcha_Function//
+    //======================//
+    public int SolveCaptcha_Function()
+    {
+
+      // SolveCaptcha
+      var RecaptchaOpenInvisible = ElementByXPath("//button[contains(@class,'reload')] | //button[contains(@id,'reload')] | //iframe[contains(@src,'recaptcha/api2/anchor')] "); //x2 reload - for recaptcha popup after click on button | iframe for general
+      if (IsVisible(RecaptchaOpenInvisible))
+      {
+         var result = base.DoSolveCaptcha();
+         RecaptchaUtility utility = new RecaptchaUtility(this);
+         utility.DoSolve();
+         if (result > 0)
+         {
+            return Fail("fail not solve"); //return to solve again - if something wrong
+         }
 		
+         //ExecuteScript("onSubmit");
+
+      } //end RecaptchaOpenInvisible
+
+      return 0;
+		
+    }
+    //======================//
+    //SolveCaptcha_Function//
+    //======================//
 
 	
+	
 } //end public class
-
