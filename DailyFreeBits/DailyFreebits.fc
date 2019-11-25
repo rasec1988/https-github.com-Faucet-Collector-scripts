@@ -64,7 +64,7 @@ public class DailyFreebitsScript : FaucetScript
     {
         //In here we can check for the presence of an element that is only present when you are logged in.
         //In this case we check for en element with the class "loggedIn"
-        return ElementByXPath("//button[contains(text(),'Cash out all')]") != null;
+        return ElementByXPath( "//button[contains(text(),'Cash out all')]|//span[@id='claim_time']" ) != null;
     }
 
     /// <summary>
@@ -121,20 +121,13 @@ public class DailyFreebitsScript : FaucetScript
     {
         var claim_time = ElementByXPath("//span[@id='claim_time']");
         if (IsVisible(claim_time))
-        {
-            try
-            {
+        {    
                 string[] lt= new string[3];
                 lt = claim_time.Text.Split(':');
-                int h = Convert.ToInt32(lt[0]) * 60 * 60;
-                int m = Convert.ToInt32(lt[1]) * 60;
-                int s = Convert.ToInt32(lt[2]);
-                return h + m + s;
-            }
-            catch (Exception)
-            {
-                return 3600;
-            }
+                if ( lt.Length==3&&int.TryParse ( lt[0] , out h )&&int.TryParse ( lt[1] , out m )&&int.TryParse ( lt[2] , out s ) )
+                {
+                    return h*3600+m*60+s;
+                }
         }
         return 0;
         //let Faucet Collector continue.
