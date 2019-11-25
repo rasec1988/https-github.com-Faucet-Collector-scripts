@@ -18,7 +18,7 @@ public class FreeEthereumScript : FaucetScript
             {
                 new FaucetSetting(){Name="User",Type=EditorType.TextBox,Required=true,Display="Email"},
                 new FaucetSetting(){Name="Pass",Type=EditorType.Password,Required=true,Display="Password"},
-                 new FaucetSetting(){Name="AutoWithdraw",Display="AutoWithdraw",Type=EditorType.CheckBox,Default=true}
+                 
             };
         }
     }
@@ -144,63 +144,7 @@ public class FreeEthereumScript : FaucetScript
     }
 
     public override int BeforeSolveFaucet ( )
-    {
-        if ( GetBoolSetting ( "AutoWithdraw" ) )
-        {
-            float Balance = 0;
-            var CryptoValue = ElementByXPath("//a[@id='cryptovalue']");
-            if(!float.TryParse ( CryptoValue.Text , out Balance ) )
-            {
-
-                Log ( "Something is wrong getting balance" );
-
-            }
-
-
-            bool SuccessWithdraw = false;
-            if ( Balance>=0.0020000 )
-            {
-
-                GoToUrl ( "https://www.free-ethereum.io/withdraw/" );
-                Wait ( );
-                var BalanceBox = ElementByXPath("//input[@id='cryptowithdraw']");
-                if ( IsVisible ( BalanceBox ) )
-                {
-                    SetText ( BalanceBox , Balance.ToString ( ) );
-                }
-                Wait ( );
-                var WithdrawButton = ElementByXPath("//button[@id='withdrawbutton']");
-                if ( IsVisible ( WithdrawButton ) )
-                {
-                    var result = DoSolveCaptcha();
-                    if ( result>0 )
-                    {
-                        return base.BeforeSolveFaucet ( );
-                    }
-                    Click ( WithdrawButton );
-                    Wait ( );
-                }
-                var WithdrawResult = ElementByXPath("//h2[@id='withdrawresult']");
-                if ( IsVisible ( WithdrawResult ) )
-                {
-                    SuccessWithdraw=true;
-                    string WithdrawResultText = WithdrawResult.Text;
-                    Log ( WithdrawResultText );
-                    if ( WithdrawResultText.Contains ( "Your address is not valid" ) )
-                    {
-                        Log ( "You need to set your wallet correctly" );
-                        SetSetting ( "AutoWithdraw" , false );
-
-                    }
-
-                }
-
-            }
-            if ( !SuccessWithdraw )
-            {
-                Log ( "Your balance is "+Balance.ToString ( ) );
-            }
-        }
+    {       
         return base.BeforeSolveFaucet ( );
     }
     public override int DoSolveFaucet()
