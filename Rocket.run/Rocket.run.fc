@@ -1,7 +1,6 @@
-
 //==================//
 //script Written by: ••AviramDayan•• 13/11/2019 09:00AM - Version 1
-//Last Update: 17/11/2019 09:00AM - Version 1
+//Last Update: 25/11/2019 09:00AM - Version 2
 //==================//
 
 using System;
@@ -40,6 +39,8 @@ public class Rocket : FaucetScript
 
 				new FaucetSetting() { Name = "Rain_AirDrop_Chat", Display = "Rain_AirDrop_Chat - ON/OFF", Type = EditorType.CheckBox, Default = false},		
                 new FaucetSetting(){Name="MessageChat",Display="Your Message In Chat - only need to be active to get any rain",Default = ".",Type=EditorType.TextBox,Required=false},
+				
+				new FaucetSetting() { Name = "AutoAffiliate", Display = "AutoAffiliate - ON/OFF", Type = EditorType.CheckBox, Default = false},		
 
             };
         }
@@ -269,7 +270,35 @@ public class Rocket : FaucetScript
 		Log("Go to faucet");	
 		Wait();
 		Wait(2);		
+
+		//==============//
+		//AutoAffiliate//
+		//==============//	
+
+        if (GetBoolSetting("AutoAffiliate"))
+        {
+        GoToUrl("https://rocket.run/#referral");
+		Log("Go to AutoAffiliate");	
+		Wait();
+
+         var IncentivesTab = ElementByXPath("//ul[@class='links']/li[@class='collectable']");
+	     if (IsVisible(IncentivesTab))
+	     { 
+         Click(IncentivesTab);
+         Log("Click IncentivesTab");
+		 }
 		
+         var ClaimAffiliate = ElementByXPath("//button[contains(text(),'Incentives')]");
+	     if (IsVisible(ClaimAffiliate))
+	     { 
+         Click(ClaimAffiliate);
+         Log("Click ClaimAffiliate");
+		 }
+			
+		}// AutoAffiliate
+		//==============//
+
+
 		//==============//
 		//Rain_AirDrop_Chat//
 		//==============//	
