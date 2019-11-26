@@ -1,0 +1,491 @@
+
+//==================//
+//script Written by: ••AviramDayan•• 13/08/2019 03:00AM - Version 1
+//Last Update: 26/11/2019 03:00AM - Version 3
+//==================//
+
+using System;
+using FaucetCollector.Script;
+using OpenQA.Selenium;
+using OpenQA.Selenium.Interactions;
+using System.Text.RegularExpressions;
+//css_inc RecaptchaUtilities
+//css_inc ShortLinkUtilities
+
+public class freebtc : FaucetScript
+{
+    /// <summary>
+    /// List of Settings that will be shown in the bot when selecting this Faucet in the bot.
+    /// You can get the value the user entered with the methods: GetSetting("[Name of the FaucetSetting]"), GetBoolSetting and GetDateTimeSetting
+    /// You can also create a new setting value using SetSetting("[Name you want to use]", "value")
+    /// </summary>
+    public override FaucetSettings Settings
+    {
+        get
+        {
+			
+            return new FaucetSettings("https://mysocial.fun/")
+            {
+
+                new FaucetSetting(){Name="Email",Display="Email OR UserName",Type=EditorType.TextBox,Required=true},
+                new FaucetSetting(){Name="Password",Display="Password",Type=EditorType.Password,Required=true},
+                new FaucetSetting() { Name = "FaucetClaim", Display = "FaucetClaim - ON/OFF - all coins", Type = EditorType.CheckBox, Default = true},	
+				
+                new FaucetSetting() { Name = "Doge", Display = "Doge - ON/OFF", Type = EditorType.CheckBox, Default = true},	
+                new FaucetSetting() { Name = "Asafe", Display = "Asafe - ON/OFF", Type = EditorType.CheckBox, Default = true},	
+                new FaucetSetting() { Name = "Poscoin", Display = "Poscoin - ON/OFF", Type = EditorType.CheckBox, Default = true},	
+                new FaucetSetting() { Name = "X6coin", Display = "X6coin - ON/OFF", Type = EditorType.CheckBox, Default = true},	
+                new FaucetSetting() { Name = "Zer-dex", Display = "Zer-dex - ON/OFF", Type = EditorType.CheckBox, Default = true},	
+				
+                new FaucetSetting(){Name="Address_Doge",Display="Address_Doge",Type=EditorType.TextBox,Required=false},
+                new FaucetSetting(){Name="Address_Asafe",Display="Address_Asafe",Type=EditorType.TextBox,Required=false},	
+                new FaucetSetting(){Name="Address_Poscoin",Display="Address_Poscoin",Type=EditorType.TextBox,Required=false},	
+                new FaucetSetting(){Name="Address_X6coin",Display="Address_X6coin",Type=EditorType.TextBox,Required=false},	
+                new FaucetSetting(){Name="Address_Zer-dex",Display="Address_Zer-dex",Type=EditorType.TextBox,Required=false},	
+
+            };
+        }
+    }
+
+
+    //My DomainName
+    //string DomainName_String = "";
+    //==========//
+
+	
+//============================================================//
+//the number of "successes" in the script - when are finished  
+//============================================================//
+    public override void Start()
+    {
+        ad = false;
+       
+        //Title that shows in the browser. Is used to identify and close popup windows
+        Title = "x6 Social Media Crypto Club";
+
+		SuccessXPath = "//*";  //*[@id='']
+        FailXPath = "//*"; //*[@id='']
+	
+        //TimerIsCountingUp = true;
+		
+        //Let Faucet Collector start up everything
+        base.Start();
+    }
+//============================================================//
+//the number of "successes" in the script - when are finished  
+//============================================================//
+
+	
+    bool ad; //custom bool
+
+
+    public override int DoInit()
+    {
+			
+
+		
+        //Let Faucet Collector continue.
+        return base.DoInit();
+    }
+
+	
+//==================//
+//save Login Cookies 
+//==================//
+    public override bool IsLoggedIn()
+    {
+	    //save Login Cookies - Check if the "Logout" exist
+        return ElementByXPath ("//a[@title='Log Out'] | //a/i[@class='ps-icon-off']") != null;
+	 
+	    //return true;
+	 
+        //return base.IsLoggedIn();
+    }
+//==================//
+//save Login Cookies 
+//==================//	
+
+
+
+
+//=============//
+//BeforeLogin
+//=============//
+    public override int BeforeLogin()
+    {
+		
+
+     GoToUrl("https://www.mysocial.fun/");
+
+		
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeLogin();
+    }
+//=============//
+//BeforeLogin
+//=============//
+
+	
+
+
+	
+//========//
+//DoLogin
+//========//
+    public override int DoLogin()
+    {
+	
+     var ExitButton = ElementByXPath("//a[@title='Log Out'] | //a/i[@class='ps-icon-off']");
+
+
+	 //if i NOT Login - go to Login Page
+	 if (!IsVisible(ExitButton))
+	 {
+
+		GoToUrl("https://www.mysocial.fun/login");
+		Wait();		
+		Wait(2);
+
+        var box_user = ElementByXPath("//input[@name='username']");
+        SetText(box_user, GetSetting("Email"));
+		
+		Wait(2);
+		
+        var box_pass = ElementByXPath("//input[@name='password']");
+        SetText(box_pass, GetPassword("Password"));
+	
+		Wait(2);	
+
+        // SolveCaptcha
+        var RecaptchaOpenInvisible = ElementByXPath("//iframe[contains(@src,'recaptcha/api2/anchor')]");
+        if (IsVisible(RecaptchaOpenInvisible))
+		{
+		
+           //var result = DoSolveCaptcha(); // call to SolveCaptcha
+
+           var result = base.DoSolveCaptcha();
+           RecaptchaUtility utility = new RecaptchaUtility(this);
+           utility.DoSolve();
+           if (result > 0)
+           {
+              return Fail("fail not solve"); //return to solve again - if something wrong
+           }
+		
+           //ExecuteScript("enableSigninBtn");
+
+        } //end RecaptchaOpenInvisible
+
+		Wait(3);
+		
+        var ButtonLog = ElementByXPath("//button[@class='ps-btn ps-btn-login']");
+        Click(ButtonLog);
+
+		Wait();	
+
+	 } // end ExitButton
+
+        
+       return base.DoLogin();
+    }
+//========//
+//DoLogin
+//========//
+ 
+
+
+//========//
+//AfterLogin
+//========//
+ public override int AfterLogin()
+ {
+ 
+  
+    //we are good to continue
+    return base.AfterLogin();
+
+ }
+//========//
+//AfterLogin
+//========//
+
+
+            
+	
+
+//================//
+//GetFaucetWaitTime
+//================//
+ public override int GetFaucetWaitTime()
+ {
+
+     if (ad)
+     {
+		 ad=false;
+	     //return GetWaitSetting();
+		 
+         var TimerExist_VAR = ElementByXPath("//span[@class='countdown' and contains(text(),':')]");		
+	     if (IsVisible(TimerExist_VAR)) // TimerExist_VAR - visible
+	     {
+             var TimeVAR = ElementByXPath("//span[@class='countdown']");	
+             int MinINT;
+             MinINT = Convert.ToInt32(TimeVAR.Text.Trim().Split(':')[1])*60;
+             return MinINT;
+		 }
+		 
+     } //end ad
+
+   //let Faucet Collector continue.
+   return base.GetFaucetWaitTime();
+ }
+//================//
+//GetFaucetWaitTime
+//================//
+
+
+
+    public override int BeforeSolveCaptcha()
+    {
+ 
+        //Return we are ready to proceed
+        return base.BeforeSolveFaucet();
+    }
+
+	
+    public override int DoSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoSolveCaptcha();
+    }
+
+	
+    public override int AfterSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterSolveCaptcha();
+    }
+
+	
+    public override int BeforeSolveFaucet()
+    {
+        //Return we can continue
+        return base.BeforeSolveFaucet();
+    }
+  
+	
+	
+//==============//
+//DoSolveFaucet
+//==============//
+ public override int DoSolveFaucet()
+  {
+
+      //==============//
+      //FaucetClaim//
+      //==============//
+      if (GetBoolSetting("FaucetClaim"))
+      {
+
+         if (GetBoolSetting("Doge"))
+         {
+            GoToUrl("https://www.mysocial.fun/Doge/");
+		    Log("FaucetClaim - Doge");
+            Wait();
+            Wait(2);
+			
+            FaucetStuff_Function(); //call		
+         } // end FaucetClaim - Doge
+		 
+         if (GetBoolSetting("Asafe"))
+         {
+            GoToUrl("https://www.mysocial.fun/Asafe/");
+		    Log("FaucetClaim - Asafe");
+            Wait();
+            Wait(2);
+			
+            FaucetStuff_Function(); //call		
+         } // end FaucetClaim - Asafe
+		 
+         if (GetBoolSetting("Poscoin"))
+         {
+            GoToUrl("https://www.mysocial.fun/Poscoin/");
+		    Log("FaucetClaim - Poscoin");
+            Wait();
+            Wait(2);
+			
+            FaucetStuff_Function(); //call		
+         } // end FaucetClaim - Poscoin
+		 
+         if (GetBoolSetting("X6coin"))
+         {
+            GoToUrl("https://www.mysocial.fun/free-coin/");
+		    Log("FaucetClaim - X6coin");
+            Wait();
+            Wait(2);
+			
+            FaucetStuff_Function(); //call		
+         } // end FaucetClaim - X6coin								
+		 
+         if (GetBoolSetting("Zer-dex"))
+         {
+            GoToUrl("https://www.mysocial.fun/Zer-dex/");
+		    Log("FaucetClaim - Zer-dex");
+            Wait();
+            Wait(2);
+			
+            FaucetStuff_Function(); //call		
+         } // end FaucetClaim - Zer-dex
+						
+      }// end FaucetClaim	 
+ 
+
+      var TimerExist_VAR = ElementByXPath("//span[@class='countdown' and contains(text(),':')]");		
+	  if (IsVisible(TimerExist_VAR)) // TimerExist_VAR - visible
+	  {
+	   ad = true; // success
+      }
+		 
+	  if (!IsVisible(TimerExist_VAR)) // TimerExist_VAR - visible
+	  {
+	   TimeOptions_Function(); // fail
+      }
+
+      //We are good to continue
+      return base.DoSolveFaucet();
+ }
+//==============//
+//DoSolveFaucet
+//==============///
+	
+	
+	
+	
+	
+//==============//
+//AfterSolveFaucet
+//==============//
+  public override int AfterSolveFaucet()
+  {
+
+   //This faucet has nothing to do here. We will let Faucet Collector handle it.
+   return base.AfterSolveFaucet();
+   
+  }
+	
+//==============//
+//AfterSolveFaucet
+//==============//
+
+
+
+    /// <summary>
+    /// This method gets called in the end after the BeforeSolveFaucet/DoSolveFaucet and AfterSolveFaucet methods were done.
+    /// The base.CheckFaucetResult will try to find a visible element on the page using the XPath from SuccessXPath and FailXPath (see the Start method)
+    /// These properties should contain XPath expressions to find certain elements on the page.
+    /// For example if it finds one of the elements from the SuccessXPath, and it is visible, then it will flag the claim attempt as a success.
+    /// Or if it finds one of the elements from the FailXPath, and it is visible, then it will flag the claim attempt as a failure.
+    /// </summary>
+    public override int CheckFaucetResult()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.CheckFaucetResult();
+    }
+	
+
+
+	    //===========//
+        //FaucetStuff_Function
+	    //===========//
+        public int FaucetStuff_Function()
+        {
+
+         var TimerExist_VAR = ElementByXPath("//span[@class='countdown' and contains(text(),':')]");		
+	     if (IsVisible(TimerExist_VAR)) // TimerExist_VAR - visible
+	     {
+             var TimeVAR = ElementByXPath("//span[@class='countdown']");	
+             int MinINT;
+             MinINT = Convert.ToInt32(TimeVAR.Text.Trim().Split(':')[1])*60;
+             return MinINT;
+		 }
+	
+	     if (!IsVisible(TimerExist_VAR)) // TimerExist_VAR NOT visible
+	     {
+		   var RollButton = ElementByXPath("//input[@value='Claim']");	
+	       if (IsVisible(RollButton))
+	       {	
+
+             var result = base.DoSolveCaptcha();
+             RecaptchaUtility utility = new RecaptchaUtility(this);
+             utility.DoSolve();
+             if (result > 0)
+             {
+              return Fail("fail not solve"); //return to solve again - if something wrong
+			 }
+			 
+             Wait(2);
+             Wait();
+		  
+	         Click(RollButton);
+	         Log("RollButton");	
+
+             Wait(2);		
+ 
+             Driver.Navigate().Refresh();
+		
+             Wait();	
+             
+			 /*
+		     var ErrorText = ElementByXPath("//p[contains(text(),'incorrect') ]") ;	
+	         if (IsVisible(ErrorText))
+	         {	
+	          return 1*60;
+	          Log("ErrorText - return after 1 min");	
+		     }
+		     */
+			 
+	       } //end RollButton
+	     }
+		 
+
+           //TIME NOT visible at all
+	       if (!IsVisible(ElementByXPath ("//span[@class='countdown' and contains(text(),':')]") ))  //not visible
+	       {
+           return Fail("Time Not visible - fail not solve"); //return to solve again - if something wrong
+		   } //end TimerExist_VAR NOT visible
+		   
+	     return 0;   
+		   
+        } //FaucetStuff_Function
+	    //===========//	
+		
+		
+
+	    //===========//
+        //TimeOptions_Function
+	    //===========//
+        public int TimeOptions_Function()
+        {
+			
+         var TimerExist_VAR = ElementByXPath("//span[@class='countdown' and contains(text(),':')]");	
+		 
+	     if (!IsVisible(TimerExist_VAR)) // TimerExist_VAR - visible
+	     {
+	         return GetWaitSetting();
+		 }
+
+	     if (IsVisible(TimerExist_VAR)) // TimerExist_VAR - visible
+	     {
+             var TimeVAR = ElementByXPath("//span[@class='countdown']");	
+             int MinINT;
+             MinINT = Convert.ToInt32(TimeVAR.Text.Trim().Split(':')[1])*60;
+             return MinINT;
+		 }
+
+	     return 0;   
+		   
+        } //TimeOptions_Function
+	    //===========//	
+
+
+
+	
+} //end public class
