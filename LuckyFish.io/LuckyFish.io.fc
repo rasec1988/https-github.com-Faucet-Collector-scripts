@@ -1,7 +1,7 @@
 
 //==================//
 //script Written by: ••AviramDayan•• 26/05/2019 04:00PM - Version 1
-//Last Update: 22/11/2019 11:00AM - Version 15
+//Last Update: 26/11/2019 11:00AM - Version 16
 //==================//
 
 using System;
@@ -1002,9 +1002,10 @@ public class luckyfishorg : FaucetScript
         var SecurityQuestion = ElementByXPath("//h2[@class='loginTwoFactor_title' and contains(text(),'SECURITY')]");
 	    if (IsVisible(SecurityQuestion))
 	    { 
-        SetText(box_user, GetSetting("Email"));
+        var box_2_user = ElementByXPath("//div[@class='loginTwoFactor_input']/input"); //diffrent
+        SetText(box_2_user, GetSetting("Email"));
 		Wait(2);
-        var Button_2_Log = ElementByXPath("//button[@class='el-button el-button--primary is-plain']");
+        var Button_2_Log = ElementByXPath("//div[@class='loginTwoFactor_button']");
         Click(Button_2_Log);
 		}
 		
@@ -1524,6 +1525,8 @@ public class luckyfishorg : FaucetScript
 		
 		}// end AllSlotsGames_Function
 		//=============// 	
+
+
 
 
 	
