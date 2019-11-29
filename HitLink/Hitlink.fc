@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using FaucetCollector.Script;
+//css_ref ImageProcessing.dll
+using ImageProcessing.UsingColors;
 using OpenQA.Selenium;
-using OpenQA.Selenium.Interactions;
 
 public class HitLink : FaucetScript
 {
@@ -22,7 +24,6 @@ public class HitLink : FaucetScript
                 new FaucetSetting(){Name="Pass",Display="Password",Type=EditorType.Password,Required=true},
                 new FaucetSetting(){Name="N",Display="Nº claims (The bot will paused after do this number of surf)",Type=EditorType.TextBox,Default=10},
                 new FaucetSetting(){Name="Play",Display="PlayBonusSurf",Type=EditorType.CheckBox,Default=false},
-                new FaucetSetting(){Name="Time",Display="Time To wait (in minutes)",Type=EditorType.Numeric,Default=60},
                 //insert user settings here
                 //new FaucetSetting { 
                 //    Name = "Name of your setting", 
@@ -45,8 +46,8 @@ public class HitLink : FaucetScript
         Title = "HitLink";
 
         //After we did try to claim on the faucet we search for these elements to determine if it was a success or a fail
-        SuccessXPath = "//frame[1]";
-        FailXPath = "//div[class='btn btn-red']";
+        SuccessXPath ="//font[contains(text(),'You must add a site below before surfing')]";
+        FailXPath ="//font[contains(text(),'You must add a site below before surfing')]";
 
         //Let Faucet Collector start up everything
         base.Start();
@@ -71,147 +72,58 @@ public class HitLink : FaucetScript
     {
         //In here we can check for the presence of an element that is only present when you are logged in.
         //In this case we check for en element with the class "loggedIn"
-        return ElementByXPath("//a[@title='Logout']") != null;
+        return ElementByXPath( "//a[@href='members.php?mf=lo']" ) != null;
     }
 
-    /// <summary>
-    /// This method gets called if IsLoggedIn returned false, right before the DoLogin method is called.
-    /// </summary>
-    public override int BeforeLogin()
-    {
-        //This faucet has nothing to do here. We will let Faucet Collector handle it.
-        return base.BeforeLogin();
-    }
 
-    /// <summary>
-    /// This method gets called after BeforeLogin, but only if IsLoggedIn returned false.
-    /// It can be used to actually login the user/enter wallet details in the faucet
-    /// </summary>
-    /// <returns></returns>
     public override int DoLogin()
     {
-        if(!GotoiFimNot("http://www.hitlink.com/public/login.php")){
-		
-		Driver.Navigate().Refresh();
-		
-		
-		}
-        Wait();
-        var User_box = ElementByXPath("//input[@name='loginid']");
-        if (!IsVisible(User_box))
+
+        GoToUrl ( "https://www.hitlink.com/login.php?s=noauth" );
+
+        Wait(1);
+        var UserBox = ElementByXPath("//input[@name='login']");
+        if (!IsVisible(UserBox))
         {
             return Fail("User box not visilbe");
         }
-        SetText(User_box, GetSetting("User"));
-        Wait();
-        var pass_Box = ElementByXPath("//input[@name='pwdid']");
-        if (!IsVisible(pass_Box))
+
+        var PasswordBox = ElementByXPath("//input[@name='password']");
+        if (!IsVisible(PasswordBox))
         {
             return Fail("Password box is not visible");
         }
-        SetText(pass_Box, GetPassword("Pass"));
-        Wait();
 
-        var button = ElementByXPath("//input[@value='Login']");
-        if (!IsVisible(button))
+        SetText(PasswordBox, GetPassword("Pass"));
+        SetText ( UserBox , GetSetting ( "User" ) );
+        Wait (1);
+
+        var ButtonLogin = ElementByXPath("//input[@value='Login']");
+        if (!IsVisible(ButtonLogin))
         {
             return Fail("Button is not visible");
         }
-        Click(button);
-        Wait();
+        Click(ButtonLogin);
+        Wait(1);
+
+
 
         //This faucet has nothing to do here. We will let Faucet Collector handle it.
         return base.DoLogin();
     }
 
-    /// <summary>
-    /// This method gets called after the DoLogin method.
-    /// </summary>
-    public override int AfterLogin()
+    public override int BeforeSolveFaucet ( )
     {
-        //This faucet has nothing to do here. We will let Faucet Collector handle it.
-        return base.AfterLogin();
+     
+            GoToUrl ( "http://www.hitlink.com/surfing.php" );
+        
+        return base.BeforeSolveFaucet ( );
     }
-
-    /// <summary>
-    /// This method gets called after the login methods are successful, so we are logged into the faucet.
-    /// If the faucet is not yet ready to claim you should return a TimeStamp value to return how long it takes before the Faucet claim can be done.
-    /// This is used to pause the script while the faucet its timer runs out.
-    /// Return the number of seconds the bot should wait.
-    /// </summary>
-    public override int GetFaucetWaitTime()
-    {
-        int time_wait;
-        try
-        {
-            time_wait = GetIntSetting("Time");
-        }
-        catch (Exception)
-        {
-            time_wait = 60;
-        }
-        if (cs)
-        {
-            return time_wait*60;
-        }
-        //let Faucet Collector continue.
-        return base.GetFaucetWaitTime();
-    }
-
-    /// <summary>
-    /// This method is called right before a captcha will be solved. 
-    /// If you call SolveCaptcha() in other methods it will start this flow and tries to solve the captcha on the page.
-    /// </summary>
-    public override int BeforeSolveCaptcha()
-    {
-        //This faucet has nothing to do here. We will let Faucet Collector handle it.
-        return base.BeforeSolveCaptcha();
-    }
-
-    /// <summary>
-    /// This method gets called after BeforeSolveCaptcha and it does the actual captcha solving
-    /// It will automatically try to see if there is a SolveMedia captcha active or a reCAPTCHA active. 
-    /// If it finds either one it will then use the selected method on the Captcha tab of FaucetCollector to solve the Captcha.
-    /// </summary>
-    public override int DoSolveCaptcha()
-    {
-        //This faucet has nothing to do here. We will let Faucet Collector handle it.
-        return base.DoSolveCaptcha();
-    }
-
-    /// <summary>
-    /// This method will get called after DoSolveCaptcha returned it was a success.
-    /// </summary>
-    /// <returns></returns>
-    public override int AfterSolveCaptcha()
-    {
-        //This faucet has nothing to do here. We will let Faucet Collector handle it.
-        return base.AfterSolveCaptcha();
-    }
-
-    /// <summary>
-    /// This method is called right before we attempt to claim on the faucet. So we are logged in and good to go.
-    /// Next methods that will be called are DoSolveFaucet, AfterSolveFaucet and CheckFaucetResult.
-    /// </summary>
-    public override int BeforeSolveFaucet()
-    {
-        //This faucet has nothing to do here. We will let Faucet Collector handle it.
-        return base.BeforeSolveCaptcha();
-    }
-
-    /// <summary>
-    /// This method gets called after the BeforeSolveFaucet. You can do the actual claiming of the faucet in here.
-    /// </summary>
-    /// <returns></returns>
-    static bool cs;
     public override int DoSolveFaucet()
     {
 
 
-        cs = false;
-
-        GotoiFimNot("http://www.hitlink.com/public/members/surf/surf.php");
-
+       
         int cont = 0;
         Wait();
         int N_claims;
@@ -237,7 +149,7 @@ public class HitLink : FaucetScript
                    // Log("INIT");
                     Wait(2,3);
                 try {
-                    Driver.SwitchTo().Frame(ElementByXPath("//frame[2]"));
+
 
                     if (GetBoolSetting("Play"))
                     {
@@ -274,18 +186,19 @@ public class HitLink : FaucetScript
                             Wait();
                         }
                     }
-                    Driver.SwitchTo().DefaultContent();
+
 
                 }
                 catch (Exception)
                 {
-                    Driver.SwitchTo().DefaultContent();
+
                 }
                 Wait();
-                Driver.SwitchTo().Frame(ElementByXPath("//frame[1]"));
+                //Driver.SwitchTo().Frame(ElementByXPath("//frame[1]"));
                     Wait();
-                   // Log("SWITCH");
-                    while (IsVisible(ElementByXPath("//div[@id='timer']")))
+                // Log("SWITCH");
+                var Timer=ElementByXPath("//div[@id='timer']");
+                    while (IsVisible(Timer) && !Timer.Text.Contains("GO") )
                     {
                         Wait();
                     }
@@ -302,7 +215,7 @@ public class HitLink : FaucetScript
 
                     Wait();
 
-                    Driver.SwitchTo().DefaultContent();
+                    //Driver.SwitchTo().DefaultContent();
                     cont++;
                 }
                 catch (Exception)
@@ -317,13 +230,12 @@ public class HitLink : FaucetScript
             }
 
 
+        CheckFaucetResult();
+       
+        return GetWaitSetting ( );
 
-            cs = true;
-            //This faucet has nothing to do here. We will let Faucet Collector handle it.
-  
-        
-        cs = true;
-        return base.DoSolveFaucet();
+
+
        
     }
     public Bitmap ChangeImageSize(Bitmap pImg, int pWidth, int pHeigth)
@@ -352,247 +264,110 @@ public class HitLink : FaucetScript
         return vBitmap;
 
     }
-    public bool Solve_Image()
-    {
+
+    private bool Solve_Image ( )
+    { 
+        Wait ( );
+
         bool IsSolved = false;
-        try
-        {
-            var PrincipalIcon = ElementByXPath("//img[contains(@title,'Click the matching')]");
-        //    Log("INIT");
-            Bitmap[] icons = new Bitmap[5];
-            icons[0] = TakeScreenshot(Base.Captcha.CaptchaService.Manual,PrincipalIcon);
-            if(icons[0].Width!=59 || icons[0].Height != 52)
-            {
-                icons[0] = ChangeImageSize(icons[0], 59, 52);
-            }
-            icons[0] = icons[0].Clone(new Rectangle(1, 1, 57, 50), icons[0].PixelFormat);
-          //  Log("Get image 1 finish, get image2");
-            var surfImage = ElementByXPath("//img[@class='surfImage']");
-            Bitmap Aux = TakeScreenshot(Base.Captcha.CaptchaService.Manual, surfImage);
-            if(Aux.Width!=228 || Aux.Height!= 50)
-            {
-                Aux = ChangeImageSize(Aux, 228, 50);
-            }
-            icons[1] = Aux.Clone(new Rectangle(0, 0, 57, 50), Aux.PixelFormat);
-            icons[2] = Aux.Clone(new Rectangle(57, 0, 57, 50), Aux.PixelFormat);
-            icons[3] = Aux.Clone(new Rectangle(114, 0, 57, 50), Aux.PixelFormat);
-            icons[4] = Aux.Clone(new Rectangle(171, 0, 57, 50), Aux.PixelFormat);
-            //Log("get image 2 finish");
-            int solution = -1;
-            int[] pixels = new int[4];
-            for (int i = 0; i < 4; i++)
-            {
-                pixels[i] = Different_pixels(icons[0], icons[i + 1]);
-            }
-            //Log("Count pixels");
-            int minor = pixels[0];
-            solution = 0;
-            for (int i = 1; i < 4; i++)
-            {
-                if (minor > pixels[i])
-                {
-                    minor = pixels[i];
-                    solution = i;
-                }
-
-            }
-   //         Log("Set solution");
-
-            Wait();
-
-    
-
-            if (solution != -1)
-            {
-                //Log(solution.ToString());
-                int x2 = 0;
-                int y2 = 0;
-
-                //if (solution == 2)
-                //{
-                //    x2 += 59;
-                //}
-                //if (solution == 3)
-                //{
-                //    x2 += 57;
-                //}
-                //if (solution == 4)
-                //{
-                //    x2 += 57;
-                //}
-                //Wait();
-                //Log("After Click");
-                //Actions builder = new Actions(Driver);
-                //builder.MoveToElement(surfImage, x2, y2).Click().Perform();
-                //Log("Performed");
-                Driver.SwitchTo().DefaultContent();
-                Wait();
-                ExecuteScript("var frames=document.getElementsByTagName('frameset');function iframeRef( frameRef ) {return frameRef.contentWindow? frameRef.contentWindow.document: frameRef.contentDocument}var inside=iframeRef(frames[0].children[0]);parent.oknext=1;var index=inside.getElementsByName('surf_click_index');index[0].value='" + solution + "';var submit=inside.getElementById('hoversurf_form');submit.submit();");
-                //Log("final");
-                IsSolved = true;
-                Wait();
-            }
-
-        }
-        catch (Exception ex)
-        {
-            IsSolved = false;
-           // Log(ex.ToString());
-        }
-
-        return IsSolved;
-
-    }
-    /// <summary>
-    /// This method will get called after the DoSolveFaucet is completed and returned it was a success.
-    /// For example you can wait for a processing popup to go away until actual faucet claim result is on the page.
-    /// </summary>
-    /// 
-    
-    public override int AfterSolveFaucet()
-    {
-        //This faucet has nothing to do here. We will let Faucet Collector handle it.
-        return base.AfterSolveFaucet();
-    }
-    private int Different_pixels(Bitmap image1,Bitmap image2)
-    {
+        Bitmap[] icons = new Bitmap[5];
+        icons[0]=TakeScreenshot ( Base.Captcha.CaptchaService.Manual , ElementByXPath ( "//img[contains(@src,'surficon.php?ts=')]" ) );
+        
+        Wait ( );
+        var other_icons = ElementByXPath("//div[@id='myform']//td");
+        Bitmap Principal_ = TakeScreenshot(Base.Captcha.CaptchaService.Manual, other_icons);
         int cont = 0;
-        for(int i = 0; i < image1.Width; i++)
+        for ( int i = 0 ; i<4 ; i++ )
         {
-            for(int j = 0; j < image1.Height; j++){
+            icons[i+1]=Principal_.Clone ( new Rectangle ( cont , 0 , 75 , 75 ) , Principal_.PixelFormat );
+           
+            cont+=75;
 
-                if (image1.GetPixel(i, j) != image2.GetPixel(i, j))
-                {
-                    cont++;
-                }
-            }
         }
-
-        return cont;
-    }
-
-    
-    /// <summary>
-    /// This method gets called in the end after the BeforeSolveFaucet/DoSolveFaucet and AfterSolveFaucet methods were done.
-    /// The base.CheckFaucetResult will try to find a visible element on the page using the XPath from SuccessXPath and FailXPath (see the Start method)
-    /// These properties should contain XPath expressions to find certain elements on the page.
-    /// For example if it finds one of the elements from the SuccessXPath, and it is visible, then it will flag the claim attempt as a success.
-    /// Or if it finds one of the elements from the FailXPath, and it is visible, then it will flag the claim attempt as a failure.
-    /// </summary>
-    public override int CheckFaucetResult()
-    {
-        //This faucet has nothing to do here. We will let Faucet Collector handle it.
-        return base.CheckFaucetResult();
-    }
-    private Bitmap GetElementScreenShort(IWebDriver driver, IWebElement element, string name)
-    {
-        Actions actions = new Actions(driver);
-        actions.MoveToElement(element);
-        actions.Perform();
-        Screenshot sc = ((ITakesScreenshot)driver).GetScreenshot();
-        var img = Image.FromStream(new MemoryStream(sc.AsByteArray)) as Bitmap;
-        var x = ExecuteScript("let coords = arguments[0].getBoundingClientRect();return coords.left;", element);
-        var y = ExecuteScript("let coords = arguments[0].getBoundingClientRect();return coords.top;", element);
-        int x2 = Convert.ToInt32(x);
-        int y2 = Convert.ToInt32(y);
-        var width = ExecuteScript("let coords = arguments[0].getBoundingClientRect();return coords.width;", element);
-        var height = ExecuteScript("let coords = arguments[0].getBoundingClientRect();return coords.height;", element);
-        int width2 = Convert.ToInt32(width);
-        int height2 = Convert.ToInt32(height);
-
-        if (Convert.ToInt32(name) != 4)
+        for ( int i = 0 ; i<5 ; i++ )
         {
-            img = img.Clone(new Rectangle(x2, y2, width2, height2), img.PixelFormat);
+            icons[i].Save ( i.ToString ( )+".png" );
         }
-        else
-        {
-            img = img.Clone(new Rectangle(x2, y2, width2, height2), img.PixelFormat);
-        }
-        img.Save(name + ".png");
+        string assets_d = AssetDir("Other");
+        assets_d+="\\HitLink\\";
+        FileStream reader = new FileStream(assets_d + "world.png", FileMode.Open);
+        Bitmap world = new Bitmap(Image.FromStream(reader));
 
-        return img;
-    }
-  
-    public bool WaitForElement(string XPathElement, int time_max, bool IsVisible_, bool not_visible)
-    {
-        DateTime t1 = DateTime.Now.AddSeconds(time_max);
-        bool breaked = false;
-        var element = ElementByXPath(XPathElement);
-        if (IsVisible_)
+        reader.Close ( );
+        reader=new FileStream ( assets_d+"person.png" , FileMode.Open );
+        Bitmap person = new Bitmap(Image.FromStream(reader));
+        reader.Close ( );
+        reader=new FileStream ( assets_d+"food.png" , FileMode.Open );
+        Bitmap food = new Bitmap(Image.FromStream(reader));
+        reader.Close ( );
+        reader=new FileStream ( assets_d+"animal.png" , FileMode.Open );
+        Bitmap animal = new Bitmap(Image.FromStream(reader));
+        reader.Close ( );
+        Wait ( );
+        List<MyImage> Types = new List<MyImage>();
+
+        MyImage ImageToad = new MyImage(icons[0], Color.Blue);
+
+        Types.Add ( new MyImage ( icons[0] , Color.Blue ) );// Main image
+
+        Types.Add ( new MyImage ( world , Color.Blue ) );//World
+
+        Types.Add ( new MyImage ( person , Color.Blue ) );//Person
+
+        Types.Add ( new MyImage ( food , Color.Blue ) );//FOOD
+
+        Types.Add ( new MyImage ( animal , Color.Blue ) ); // IS ANIMAL
+
+
+        ImageProcessing.UsingColors.CorrectImageSelector CompareFirst = new  ImageProcessing.UsingColors.CorrectImageSelector (Types[0]);
+
+        for ( int i = 1 ; i<5 ; i++ )
         {
-            if (not_visible)
+            CompareFirst.AddNewSecundaryImg ( Types[i] );
+
+        }
+        CompareFirst.CalculatePosition ( );
+
+
+        int type = CompareFirst.GetPosition()[0];
+        Log ( type.ToString ( ) );
+        int solution = -1;
+        string Type_S=type==0?"world":type==1?"person":type==2?"food":"animal";
+        List<CorrectImageSelector> SecondCompare = new List<CorrectImageSelector>();
+
+
+        for ( int j = 1 ; j<5 ; j++ )
+        {
+
+            SecondCompare.Add ( new CorrectImageSelector ( new MyImage ( icons[j] , Color.Blue ) ) );
+            for ( int i = 1 ; i<=2 ; i++ )
             {
 
-                while (IsVisible(element))
-                {
-                    Wait();
-                    if (DateTime.Now > t1)
-                    {
-                        breaked = true;
-                        break;
-                    }
-                    element = ElementByXPath(XPathElement);
-                }
-            }
-            else
-            {
-                while (!IsVisible(element))
-                {
-                    Wait();
-                    if (DateTime.Now > t1)
-                    {
-                        breaked = true;
-                        break;
-                    }
-                    element = ElementByXPath(XPathElement);
-                }
+
+                reader=new FileStream ( assets_d+Type_S+i.ToString ( )+".png" , FileMode.Open );
+                Bitmap tocomp = new Bitmap(Image.FromStream(reader));
+                reader.Close ( );
+                SecondCompare[j-1].AddNewSecundaryImg ( new MyImage ( tocomp , Color.Blue ) , true );
+
             }
         }
-        else
+        
+        int High = 0;
+        for ( int i = 0 ; i<SecondCompare.Count ; i++ )
         {
-            if (not_visible)
+            if ( SecondCompare[i].GetSpecificScore ( SecondCompare[i].GetPosition ( )[0] )>High )
             {
-                while (!(element == null))
-                {
-
-                    Wait();
-                    if (DateTime.Now > t1)
-                    {
-                        breaked = true;
-                        break;
-                    }
-                    element = ElementByXPath(XPathElement);
-                }
-
-            }
-            else
-            {
-
-                while (element == null)
-                {
-
-                    Wait();
-                    if (DateTime.Now > t1)
-                    {
-                        breaked = true;
-                        break;
-                    }
-                    element = ElementByXPath(XPathElement);
-                }
-
+                solution=i;
+                High=SecondCompare[i].GetSpecificScore ( SecondCompare[i].GetPosition ( )[0] );
             }
         }
-        Wait();
 
-        return !breaked;
-    }
-    private bool GotoiFimNot(string url)
-    {
-        if (!Driver.Url.Contains(url))
+        if ( solution!=-1 )
         {
-            GoToUrl(url);
-            return true;
+            var elements = ElementsByXPath("//img[contains(@onclick,'return surfbar_click(')]");
+            Click ( elements[solution] );
+            IsSolved=true;
         }
-        return false;
+        return IsSolved;
     }
 }
