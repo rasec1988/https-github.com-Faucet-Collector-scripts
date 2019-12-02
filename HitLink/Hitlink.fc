@@ -18,7 +18,7 @@ public class HitLink : FaucetScript
     {
         get
         {
-            return new FaucetSettings("http://www.hitlink.com")
+            return new FaucetSettings ( "http://www.hitlink.com" )
             {
                 new FaucetSetting(){Name="User",Display="Username",Type=EditorType.TextBox,Required=true},
                 new FaucetSetting(){Name="Pass",Display="Password",Type=EditorType.Password,Required=true},
@@ -40,26 +40,27 @@ public class HitLink : FaucetScript
     /// <summary>
     /// This method gets called when the faucet is enabled and the GO button is clicked
     /// </summary>
-    public override void Start()
+    public override void Start ( )
     {
         //Title that shows in the browser. Is used to identify and close popup windows
-        Title = "HitLink";
+        Title="HitLink";
 
         //After we did try to claim on the faucet we search for these elements to determine if it was a success or a fail
-        SuccessXPath ="//font[contains(text(),'You must add a site below before surfing')]";
-        FailXPath ="//font[contains(text(),'You must add a site below before surfing')]";
+        SuccessXPath="//b[contains(text(),'Credited')]";
+        FailXPath="//font[contains(text(),'You must add a site below before surfing')]";
 
         //Let Faucet Collector start up everything
-        base.Start();
+        base.Start ( );
     }
 
     /// <summary>
     /// This is the first method to run after the browser is opened and the first page is loaded.
     /// </summary>
-    public override int DoInit()
+    public override int DoInit ( )
     {
+        LoadImages ( );
         //Let Faucet Collector continue.
-        return base.DoInit();
+        return base.DoInit ( );
     }
 
     /// <summary>
@@ -68,206 +69,226 @@ public class HitLink : FaucetScript
     /// After those Login methods are called it will call this IsLoggedIn method again to see if the login did succeed.
     /// If you return true Faucet Collector will store all cookies so it will probably be already logged in on the next attempt.
     /// </summary>
-    public override bool IsLoggedIn()
+    public override bool IsLoggedIn ( )
     {
         //In here we can check for the presence of an element that is only present when you are logged in.
         //In this case we check for en element with the class "loggedIn"
-        return ElementByXPath( "//a[@href='members.php?mf=lo']" ) != null;
+        return ElementByXPath ( "//a[@href='members.php?mf=lo']" )!=null;
     }
 
 
-    public override int DoLogin()
+    public override int DoLogin ( )
     {
 
         GoToUrl ( "https://www.hitlink.com/login.php?s=noauth" );
 
-        Wait(1);
+        Wait ( 1 );
         var UserBox = ElementByXPath("//input[@name='login']");
-        if (!IsVisible(UserBox))
+        if ( !IsVisible ( UserBox ) )
         {
-            return Fail("User box not visilbe");
+            return Fail ( "User box not visilbe" );
         }
 
         var PasswordBox = ElementByXPath("//input[@name='password']");
-        if (!IsVisible(PasswordBox))
+        if ( !IsVisible ( PasswordBox ) )
         {
-            return Fail("Password box is not visible");
+            return Fail ( "Password box is not visible" );
         }
 
-        SetText(PasswordBox, GetPassword("Pass"));
+        SetText ( PasswordBox , GetPassword ( "Pass" ) );
         SetText ( UserBox , GetSetting ( "User" ) );
-        Wait (1);
+        Wait ( 1 );
 
         var ButtonLogin = ElementByXPath("//input[@value='Login']");
-        if (!IsVisible(ButtonLogin))
+        if ( !IsVisible ( ButtonLogin ) )
         {
-            return Fail("Button is not visible");
+            return Fail ( "Button is not visible" );
         }
-        Click(ButtonLogin);
-        Wait(1);
+        Click ( ButtonLogin );
+        Wait ( 1 );
 
 
 
         //This faucet has nothing to do here. We will let Faucet Collector handle it.
-        return base.DoLogin();
+        return base.DoLogin ( );
     }
 
     public override int BeforeSolveFaucet ( )
     {
-     
-            GoToUrl ( "http://www.hitlink.com/surfing.php" );
-        
+
+        GoToUrl ( "http://www.hitlink.com/surfing.php" );
+
         return base.BeforeSolveFaucet ( );
     }
-    public override int DoSolveFaucet()
+    public override int DoSolveFaucet ( )
     {
 
 
-       
+
         int cont = 0;
-        Wait();
+        Wait ( );
         int N_claims;
         try
         {
-          N_claims = Convert.ToInt32(GetSetting("N"));
+            N_claims=Convert.ToInt32 ( GetSetting ( "N" ) );
         }
-        catch (Exception)
+        catch ( Exception )
         {
-            N_claims = 1000;
+            N_claims=1000;
         }
         var surf = ElementByXPath("//input[@value='Start Surf']");
-        if (IsVisible(surf))
+        if ( IsVisible ( surf ) )
         {
-            Click(surf);
+            Click ( surf );
         }
 
-            Wait(4);
-            while (cont <= N_claims)
+        Wait ( 4 );
+        while ( cont<=N_claims )
+        {
+            try
             {
-                try
-                {
-                   // Log("INIT");
-                    Wait(2,3);
+                // Log("INIT");
+                Wait ( 2 , 3 );
                 try {
 
 
-                    if (GetBoolSetting("Play"))
+                    if ( GetBoolSetting ( "Play" ) )
                     {
-                       
+
                         IWebElement color;
                         int rnd = Random(1, 3);
-                        if (rnd == 1) {
+                        if ( rnd==1 ) {
 
-                            color=ElementByXPath("//input[@type='image' and @value='red']");
+                            color=ElementByXPath ( "//input[@type='image' and @value='red']|//input[@value='monster-red']" );
                         }
-                        else if (rnd == 2)
+                        else if ( rnd==2 )
                         {
-                            color = ElementByXPath("//input[@type='image' and @value='green']");
+                            color=ElementByXPath ( "//input[@type='image' and @value='green']|//input[@value='monster-green']" );
                         }
                         else
                         {
-                            color = ElementByXPath("//input[@type='image' and @value='blue']");
+                            color=ElementByXPath ( "//input[@type='image' and @value='blue']|//input[@value='monster-blue']" );
 
                         }
-                        if (IsVisible(color))
+                        if ( IsVisible ( color ) )
                         {
 
-                            Click(color);
-                            Wait();
+                            Click ( color );
+                            Wait ( );
                         }
 
                     }
                     else
                     {
-                        var button = ElementByXPath("//input[@name='w' and @value='Withdraw']");
-                        if (IsVisible(button))
+                        var button = ElementByXPath("//input[@name='w2'");
+                        if ( IsVisible ( button ) )
                         {
-                            Click(button);
-                            Wait();
+                            Click ( button );
+                            Wait ( );
                         }
                     }
 
 
                 }
-                catch (Exception)
+                catch ( Exception )
                 {
 
                 }
-                Wait();
+                Wait ( );
                 //Driver.SwitchTo().Frame(ElementByXPath("//frame[1]"));
-                    Wait();
+                Wait ( );
                 // Log("SWITCH");
                 var Timer=ElementByXPath("//div[@id='timer']");
-                    while (IsVisible(Timer) && !Timer.Text.Contains("GO") )
-                    {
-                        Wait();
-                    }
-
-
-                    bool solved = Solve_Image();
-                    //Log("SOLVED");
-                    Wait();
-                    if (!solved)
-                    {
-                        Driver.Navigate().Refresh();
-                        CheckForPopups();
-                    }
-
-                    Wait();
-
-                    //Driver.SwitchTo().DefaultContent();
-                    cont++;
-                }
-                catch (Exception)
+                DateTime timeout=DateTime.Now.AddSeconds(30);
+                while ( IsVisible ( Timer )&&!Timer.Text.Contains ( "GO" )&&DateTime.Now<timeout )
                 {
+                    Wait ( );
+                }
+
+
+                bool solved = Solve_Image();
+                //Log("SOLVED");
+                Wait ( );
+                if ( !solved )
+                {
+                    Driver.Navigate ( ).Refresh ( );
+                    CheckForPopups ( );
+                }
+
+                var Success_=ElementByXPath(SuccessXPath);
+                if ( IsVisible ( Success_ ) )
+                {
+                    Log ( Success_.Text );
                     cont++;
                 }
-            if (cont == N_claims)
+            }
+            catch ( Exception )
             {
-                Log(cont.ToString() + " Succesfull Surfed sites");
+                cont++;
+            }
+            finally
+            {
+
+                Log ( "Surfing site Nº "+( cont+1 ).ToString ( ) );
             }
 
+            if ( cont==N_claims )
+            {
+                Log ( cont.ToString ( )+" Succesfull Surfed sites" );
             }
 
+        }
 
-        CheckFaucetResult();
-       
+
+        CheckFaucetResult ( );
+
         return GetWaitSetting ( );
 
 
 
-       
+
     }
-    public Bitmap ChangeImageSize(Bitmap pImg, int pWidth, int pHeigth)
-    {
+    private Bitmap person { get; set; }
+    private Bitmap world { get; set; }
+    private Bitmap food { get; set; }
 
-        //Creating new bitmap
+    private Bitmap animal {get;set;}
 
-        Bitmap vBitmap = new Bitmap(pWidth, pHeigth);
-
-        using (Graphics vGraphics = Graphics.FromImage((Image)vBitmap))
-
+   private string assets_d
+    {   get
         {
 
-            //Specifi interpolation
+            return AssetDir ( "Other" )+"\\HitLink\\";
+        } }
 
-            vGraphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
+    
+private bool LoadImages ( )
+    {
+        try
+        {
+            FileStream reader = new FileStream(assets_d + "world.png", FileMode.Open);
+            Bitmap world = new Bitmap(Image.FromStream(reader));
 
-            //Draw
-
-            vGraphics.DrawImage(pImg, 0, 0, pWidth, pHeigth);
-
+            reader.Close ( );
+            reader=new FileStream ( assets_d+"person.png" , FileMode.Open );
+            Bitmap person = new Bitmap(Image.FromStream(reader));
+            reader.Close ( );
+            reader=new FileStream ( assets_d+"food.png" , FileMode.Open );
+            Bitmap food = new Bitmap(Image.FromStream(reader));
+            reader.Close ( );
+            reader=new FileStream ( assets_d+"animal.png" , FileMode.Open );
+            Bitmap animal = new Bitmap(Image.FromStream(reader));
+            reader.Close ( );
         }
-
-        //return image
-
-        return vBitmap;
-
+        catch
+        {
+            return false;
+        }
+        return true;
     }
-
     private bool Solve_Image ( )
     { 
-        Wait ( );
+
 
         bool IsSolved = false;
         Bitmap[] icons = new Bitmap[5];
@@ -276,34 +297,13 @@ public class HitLink : FaucetScript
         Wait ( );
         var other_icons = ElementByXPath("//div[@id='myform']//td");
         Bitmap Principal_ = TakeScreenshot(Base.Captcha.CaptchaService.Manual, other_icons);
-        int cont = 0;
-        for ( int i = 0 ; i<4 ; i++ )
-        {
-            icons[i+1]=Principal_.Clone ( new Rectangle ( cont , 0 , 75 , 75 ) , Principal_.PixelFormat );
-           
-            cont+=75;
 
-        }
-        for ( int i = 0 ; i<5 ; i++ )
+        for ( int i = 0 ; i<Principal_.Width ; i+=75)
         {
-            icons[i].Save ( i.ToString ( )+".png" );
+            icons[i+1]=Principal_.Clone ( new Rectangle ( i , 0 , 75 , 75 ) , Principal_.PixelFormat );
         }
-        string assets_d = AssetDir("Other");
-        assets_d+="\\HitLink\\";
-        FileStream reader = new FileStream(assets_d + "world.png", FileMode.Open);
-        Bitmap world = new Bitmap(Image.FromStream(reader));
-
-        reader.Close ( );
-        reader=new FileStream ( assets_d+"person.png" , FileMode.Open );
-        Bitmap person = new Bitmap(Image.FromStream(reader));
-        reader.Close ( );
-        reader=new FileStream ( assets_d+"food.png" , FileMode.Open );
-        Bitmap food = new Bitmap(Image.FromStream(reader));
-        reader.Close ( );
-        reader=new FileStream ( assets_d+"animal.png" , FileMode.Open );
-        Bitmap animal = new Bitmap(Image.FromStream(reader));
-        reader.Close ( );
-        Wait ( );
+    
+       
         List<MyImage> Types = new List<MyImage>();
 
         MyImage ImageToad = new MyImage(icons[0], Color.Blue);
@@ -335,7 +335,7 @@ public class HitLink : FaucetScript
         string Type_S=type==0?"world":type==1?"person":type==2?"food":"animal";
         List<CorrectImageSelector> SecondCompare = new List<CorrectImageSelector>();
 
-
+        FileStream reader;
         for ( int j = 1 ; j<5 ; j++ )
         {
 
