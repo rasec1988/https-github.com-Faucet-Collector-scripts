@@ -259,7 +259,7 @@ public class CannonBux_ : FaucetScript
                         CheckForPopupsEnabled = false;
                         Click(Ads[n], false);
                         Wait();
-                        var reddot = ElementsByXPath("//div[contains(@class,'cell c_adf')]//img[contains(@src,'/imagens/reddot')]");
+                        var reddot = ElementsByXPath("//div[contains(@class,'cell c_adf')]//img[contains(@src,'imagens') and contains(@src,'dot')]");
                         if (IsVisible(reddot[n]))
                         {
                             Click(reddot[n]);
