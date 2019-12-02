@@ -1,4 +1,9 @@
-﻿using System;
+//============================================//
+//script Written first by: cgerabit 10/07/2018 14:00PM version 1
+//script Written last updates by: AviramDayan 02/12/2019 21:00PM version 19
+//============================================//
+
+using System;
 using System.Drawing;
 using System.IO;
 using FaucetCollector.Script;
@@ -240,7 +245,7 @@ public class CannonBux_ : FaucetScript
         Wait();
 
         var Ads = ElementsByXPath("//div[contains(@class,'cell c_adf')]//div[contains(@onmouseover,'h')]");
-       
+
         Log(Ads.Count + " Standard ads detected");
         try
         {
@@ -258,17 +263,20 @@ public class CannonBux_ : FaucetScript
                     {
                         CheckForPopupsEnabled = false;
                         Click(Ads[n], false);
-                        Wait();
+                        Wait(2);
+                        var AdsX2 = ElementByXPath("//div[contains(@class,'inB on')]/span[contains(@id,'da')]/a");
+                        Click(AdsX2);
+                        Wait(20);
                         var reddot = ElementsByXPath("//div[contains(@class,'cell c_adf')]//img[contains(@src,'imagens') and contains(@src,'dot')]");
                         if (IsVisible(reddot[n]))
                         {
                             Click(reddot[n]);
                         }
                         Driver.SwitchTo().Window(Driver.WindowHandles[1]);
-                        Wait(5);
+                        Wait(2);
                         bool breaked = false;
                        
-                        DateTime t2 = DateTime.Now.AddSeconds(20);
+                        DateTime t2 = DateTime.Now.AddSeconds(40);
                         while (IsVisible(ElementByXPath("//div[@id='omt1']//div[@class='msgDv2']")))
                         {
 
@@ -282,7 +290,7 @@ public class CannonBux_ : FaucetScript
                         }
                         Wait();
                         DateTime t1 = DateTime.Now.AddSeconds(40);
-                        var errorbox = ElementByXPath("//div[@class='errorMn1']");
+                        var errorbox = ElementByXPath("//a[@class='errorMn1']");
                         if (IsVisible(errorbox) || breaked)
                         {
                             n++;
@@ -294,7 +302,7 @@ public class CannonBux_ : FaucetScript
                         }
 
                         Wait();
-                        while (IsVisible(ElementByXPath("//canvas[@id='cnvs']"))){
+                        while (!IsVisible(ElementByXPath("//canvas[@id='cnvs' and contains(@style,'none')]"))){
 
                             Wait();
                             if (DateTime.Now > t1)
@@ -324,7 +332,8 @@ public class CannonBux_ : FaucetScript
                     Wait(2, 3);
                    
                     Ads = ElementsByXPath("//div[contains(@class,'cell c_adf')]//div[contains(@onmouseover,'h')]");
-            
+                    //AdsX2 = ElementsByXPath("//div[contains(@class,'inB on')]/span[contains(@id,'da')]/a");
+
                 }
                 catch (Exception)
                 {
@@ -343,7 +352,7 @@ public class CannonBux_ : FaucetScript
                     Wait(2, 3);
                     
                      Ads = ElementsByXPath("//div[contains(@class,'cell c_adf')]//div[contains(@onmouseover,'h')]");
-                  
+                     //AdsX2 = ElementsByXPath("//div[contains(@class,'inB on')]/span[contains(@id,'da')]/a");
                 }
             }
         }
@@ -377,12 +386,12 @@ public class CannonBux_ : FaucetScript
                     }
                     
               
-                    Wait(1);
+                    Wait(15);
                     Driver.SwitchTo().Window(Driver.WindowHandles[1]);
-                    Wait();
+                    Wait(2);
                     bool breaked = false;
 
-                    DateTime t2 = DateTime.Now.AddSeconds(20);
+                    DateTime t2 = DateTime.Now.AddSeconds(40);
                     while (IsVisible(ElementByXPath("//div[@id='omt1']//div[@class='msgDv2']")))
                     {
 
@@ -408,7 +417,7 @@ public class CannonBux_ : FaucetScript
                     }
 
                     Wait();
-                    while (IsVisible(ElementByXPath("//canvas[@id='cnvs']")))
+                    while (!IsVisible(ElementByXPath("//canvas[@id='cnvs' and contains(@style,'none')]")))
                     {
 
                         Wait();
