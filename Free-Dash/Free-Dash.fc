@@ -81,7 +81,7 @@ class Free_Dash : FaucetScript
         {
             return Fail ( "Password box not visible" );
         }
-        humanActions.SetText ( PasswordBox , GetSetting ( "Pass" ) );
+        humanActions.SetText ( PasswordBox , GetPassword ( "Pass" ) );
 
         var result=DoSolveCaptcha();
         if ( result>0 )
