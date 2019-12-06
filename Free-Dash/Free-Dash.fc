@@ -1,8 +1,8 @@
 ﻿using FaucetCollector.Script;
 using HumanActions;
 //css_ref HumanActions.dll;
-//css_ref RecaptchaUtilities
-//css_ref BaseUtility
+//css_inc RecaptchaUtilities
+//css_inc BaseUtility
 class Free_Dash : FaucetScript
 {
     public override FaucetSettings Settings
@@ -81,7 +81,7 @@ class Free_Dash : FaucetScript
         {
             return Fail ( "Password box not visible" );
         }
-        humanActions.SetText ( PasswordBox , GetSetting ( "Pass" ) );
+        humanActions.SetText ( PasswordBox , GetPassword ( "Pass" ) );
 
         var result=DoSolveCaptcha();
         if ( result>0 )
