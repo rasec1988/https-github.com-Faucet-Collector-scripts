@@ -1,8 +1,8 @@
 ﻿using FaucetCollector.Script;
 using HumanActions;
 //css_ref HumanActions.dll;
-//css_ref RecaptchaUtilities
-//css_ref BaseUtility
+//css_inc RecaptchaUtilities
+//css_inc BaseUtility
 class Free_Dash : FaucetScript
 {
     public override FaucetSettings Settings
