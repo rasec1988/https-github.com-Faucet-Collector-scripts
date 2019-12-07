@@ -11,6 +11,7 @@ using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 //css_ref DoubleMathCaptchaUtility.dll
+//css_inc RecaptchaUtilities
 namespace Adbtc
 {
     public class TemplateScript : FaucetScript
@@ -68,6 +69,8 @@ namespace Adbtc
                 GoToUrl("https://adbtc.top/");
                 Wait();
             }
+          
+            CheckCloudFlare ( );
 
             var GotoLogin = ElementByXPath("//a[@class='btn-large lime accent-2 black-text']");
             if (!IsVisible(GotoLogin))
@@ -79,7 +82,24 @@ namespace Adbtc
 
             return base.BeforeLogin();
         }
+          
+        private void CheckCloudFlare ( )
+         {
+            if(IsVisible(ElementByXPath( "//h1[@data-translate='challenge_headline']" ) ))
+            {
 
+                var result=DoSolveCaptcha();
+                if ( result>0 )
+                {
+                    return;
+                }
+
+                RecaptchaUtility recaptchaUtility=new RecaptchaUtility(this);
+                recaptchaUtility.DoSolve ( );
+                Wait ( 1 );
+
+            }
+        }
         public override int DoLogin()
         {
 
