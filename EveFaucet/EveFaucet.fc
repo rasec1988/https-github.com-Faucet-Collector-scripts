@@ -1,0 +1,189 @@
+﻿
+using System.Collections.Generic;
+using System.Linq;
+using FaucetCollector.Script;
+class EveFaucetScript : FaucetScript
+{
+
+    public override FaucetSettings Settings
+    {
+        get
+        {
+
+            return new FaucetSettings ( "about:blank" )
+        {
+            new FaucetSetting(){
+            Name="User",
+            Type=EditorType.TextBox,
+            Required=true,
+            Display="Email"
+
+            },
+            new FaucetSetting ( )
+            {
+                Name="Pass",
+                Type=EditorType.Password,
+                Required=true,
+                Display="Password"
+            },
+            new FaucetSetting ( )
+            {
+                Name="Faucet",
+                Type=EditorType.ComboBox,
+                Display="Faucet Selected:",
+                Default=Faucets.Keys.FirstOrDefault(),
+                Items=Faucets.Keys.ToList()
+            }
+
+
+        };
+
+        }
+    }
+
+    private string BaseUrl { get
+        {
+
+            string Key=GetSetting("Faucet");
+
+            if ( Faucets.ContainsKey ( Key ) ) {
+                return Faucets[Key];
+             }
+
+            Log ( "Something is wrong with the faucet that you selected" );
+            return Faucets.Values.FirstOrDefault ( );
+
+        } 
+    }
+
+    private string LoginUrl { get
+
+        {
+            return BaseUrl+"?a=login";
+
+        }
+    }
+    private string ClaimUrl
+    {
+        get
+        {
+            return BaseUrl+"?a=roll";
+        }
+    }
+    
+    Dictionary<string,string> Faucets =new Dictionary<string, string>
+    {
+        {"Ripple","https://evexrp.xyz/" },
+        {"TRON","https://evetrx.xyz/" },
+        {"DOGE", "https://evedoge.xyz/" },
+        {"LTC","https://eveltc.xyz/" }
+
+    };
+    public override void Start ( )
+    {
+        base.Start ( );
+
+        Title=GetSetting ( "Faucet" );
+
+      SuccessXPath="//div[contains(text(),'Win')]";
+        FailXPath="//div[contains(text(),'Error')]";
+        GoToUrl ( BaseUrl );
+    }
+    public override int DoLogin ( )
+    {
+        GoToUrl ( LoginUrl );
+        Wait (  );
+
+        var EmailBox=ElementByXPath("//input[@name='auname']");
+        if ( !IsVisible(EmailBox) )
+        {
+            return Fail ( "Email box is not visible" );
+        }
+        SetText ( EmailBox , GetSetting ( "User" ) );
+
+        var PasswordBox=ElementByXPath("//input[@name='aunpae']");
+        if ( !IsVisible(PasswordBox) )
+        {
+            return Fail ( "Password box is not visible" );
+
+        }
+        SetText ( PasswordBox , GetPassword ( "Pass" ) );
+
+        var result=DoSolveCaptcha();
+        if ( result>0 )
+        {
+            return result;
+        }
+
+        var ButtonLogin=ElementByXPath("//a[contains(text(),'Sign In')]");
+        if ( !IsVisible(ButtonLogin) )
+        {
+
+            return Fail ( "Button login not visible" );
+        }
+        Click ( ButtonLogin );
+
+
+
+        var Error=ElementByXPath("//div[contains(text(),'Error')]");
+            if ( IsVisible(Error) )
+            {
+                Log ( Error.Text );
+            }
+       
+
+
+
+        return base.DoLogin ( );
+    }
+
+    public override bool IsLoggedIn ( )
+    {
+
+        return ElementByXPath ( "//a[@href='/?a=logout']" )!=null;
+
+    }
+
+    public override int DoSolveFaucet ( )
+    {
+        GoToUrl ( ClaimUrl );
+        Wait (  );
+
+        var ButtonClaim=ElementByXPath("//a[contains(text(),'ROLL NOW')]");
+        if ( !IsVisible(ButtonClaim ))
+        {
+            return Fail ( "Buton claim not visible" );
+        }
+
+        var result=DoSolveCaptcha();
+        if ( result>0 )
+        {
+            return result;
+        }
+
+
+        Click ( ButtonClaim );
+
+
+
+        return base.DoSolveFaucet ( );
+    }
+
+    public override int GetFaucetWaitTime ( )
+    {
+        var MinuteTimer=ElementByXPath("//div[@id='t']//div[1]");
+        var SecondTimer=ElementByXPath("//div[@id='t']//div[2]");
+        if(IsVisible(MinuteTimer) &&IsVisible ( SecondTimer ) )
+        {
+
+            int m,s;
+            if(int.TryParse(MinuteTimer.Text,out m) && int.TryParse( SecondTimer.Text ,out s) )
+            {
+                return m*60+s;
+            }
+        }
+
+        return base.GetFaucetWaitTime ( );
+    }
+}
+
