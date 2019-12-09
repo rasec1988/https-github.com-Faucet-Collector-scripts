@@ -151,7 +151,18 @@ class RollerCoin    :   FaucetScript
                     Click ( PlayGame );
                     Wait ( );
                     Play2048Coins ( );
-                    Wait ( 15 );
+                    Wait ( 7 );
+
+                    var ButtonCaptcha=ElementByXPath("//button[@class='w-100 btn btn-primary']");
+                    if ( IsVisible ( ButtonCaptcha ) )
+                    {
+                        DoSolveCaptcha ( );
+                        Wait ( 1 );
+                        Click ( ButtonCaptcha );
+                    }
+
+                    Wait ( 8 );
+                   
                     Log ( "Game successfully played" );
                     IsSuccess=true;
                     ClaimSuccess ( );
@@ -165,6 +176,19 @@ class RollerCoin    :   FaucetScript
 
 
         return base.DoSolveFaucet ( );
+    }
+
+    public override int DoSolveCaptcha ( )
+    {
+        var Img=ElementByXPath("//img[contains(@src,'data:image/png;base64')]");
+        var TextBox=ElementByXPath("//input[@type='text']");
+
+        if(IsVisible(Img) &&IsVisible ( TextBox ) )
+        {
+          return  DoSolveImageCaptcha ( Img , TextBox );
+        }
+
+        return 0;
     }
     #region Game 2048Coins
 
