@@ -1,7 +1,7 @@
 
 //==================//
 //script Written by: ••AviramDayan•• 05/12/2018 06:00AM 
-//Last Update: 01/10/2019 04:00PM - Version 48
+//Last Update: 11/12/2019 20:00PM - Version 51
 //==================//
 
 using System;
@@ -45,7 +45,7 @@ public class discordapp_ : FaucetScript
 				new FaucetSetting(){Name="Discordtip_LaccsFaucet_DOGE_WalletAddress",Display="WalletAddress DOGE",Type=EditorType.TextBox,Required=false},
                 */
                 new FaucetSetting(){Name="Discordtip_LaccsFaucet_BTC_OnOff",Display="LaccsFaucet BTC - AirDrop - On/off",Type=EditorType.CheckBox,Default=true},	
-                new FaucetSetting(){Name="LaccsFaucet_BTC_Average",Display="LaccsFaucet BTC - Average - On/off - if ON type !avon | if OFF type !avoff ",Type=EditorType.CheckBox,Default=true},	
+                new FaucetSetting(){Name="LaccsFaucet_BTC_Boost",Display="LaccsFaucet BTC - Boost - On/off - if ON type !faucet boost - you can boost a Bitcoin transaction (speeding it up)",Type=EditorType.CheckBox,Default=true},	
                 new FaucetSetting(){Name="Discordtip_LaccsFaucet_BTC_AutoWithdraw",Display="AutoWithdraw BTC - On/off",Type=EditorType.CheckBox,Default=false},		
 				new FaucetSetting(){Name="Discordtip_LaccsFaucet_BTC_AmountToWithdraw",Display="AmountToWithdraw BTC - for my opinion i set default from 0.10 mbtc Equal to 10000 satoshi (Because of a high withdrawal fee)",Default="0.10",Type=EditorType.TextBox,Required=false},
 				new FaucetSetting(){Name="Discordtip_LaccsFaucet_BTC_WalletAddress",Display="WalletAddress BTC",Type=EditorType.TextBox,Required=false},
@@ -600,11 +600,11 @@ public class discordapp_ : FaucetScript
         GoToUrl("https://discordapp.com/channels/406508543034916865/566695331295920138");
 		Log("Discordtip_FaucetCollector: go to to claim in channel  | FaucetCollector "); 	
 		Wait();
-		Wait(6);
+		Wait(12);
         
 		Reaction_Function(); //call to Reaction_Function
 		
-        var ReactionButton_Full_After_Check = ElementByXPath("//div[@class='reaction-1ELvT8 reactionMe-23mbRf'] //img[contains(@src,'/assets/612f3fc9dedfd368820b55c4cf259c07.svg')]");
+        var ReactionButton_Full_After_Check = ElementByXPath("//div[@class='reaction-1ELvT8 reactionMe-23mbRf'] //img[contains(@src,'assets/b052a4bef57')]");
 	    if (IsVisible(ReactionButton_Full_After_Check))
         {
 		Log("Discordtip_FaucetCollector: Click On Reaction - done"); 				
@@ -942,11 +942,11 @@ public class discordapp_ : FaucetScript
         GoToUrl("https://discordapp.com/channels/513793195814158346/548173204792016897");
 		Log("Discordtip_LaccsFaucet_DOGE: go to to claim in channel  | LaccsFaucet - Doge "); 	
 		Wait();
-		Wait(6);
+		Wait(12);
         
 		Reaction_Function(); //call to Reaction_Function
 		
-        var ReactionButton_Full_After_Check = ElementByXPath("//div[@class='reaction-1ELvT8 reactionMe-23mbRf'] //img[contains(@src,'/assets/612f3fc9dedfd368820b55c4cf259c07.svg')]");
+        var ReactionButton_Full_After_Check = ElementByXPath("//div[@class='reaction-1ELvT8 reactionMe-23mbRf'] //img[contains(@src,'assets/b052a4bef57')]");
 	    if (IsVisible(ReactionButton_Full_After_Check))
         {
 		Log("Discordtip_LaccsFaucet_DOGE: Click On Reaction - done"); 				
@@ -1317,17 +1317,11 @@ public class discordapp_ : FaucetScript
         if (IsVisible(TextCommand))
         {
 			
-		  if (GetBoolSetting("LaccsFaucet_BTC_Average"))
+		  if (GetBoolSetting("LaccsFaucet_BTC_Boost"))
           {
-            SetText(TextCommand,"!avon");
+            SetText(TextCommand,"!faucet boost");
             Enter_Laccs_Function(); //call to Enter_Laccs_Function
 		  }
-		  if (!GetBoolSetting("LaccsFaucet_BTC_Average"))
-          {
-            SetText(TextCommand,"!avoff"); 
-            Enter_Laccs_Function(); //call to Enter_Laccs_Function
-		  }		  
-		  
             SetText(TextCommand,"!claim");
 		    Wait(2);
             Enter_Laccs_Function(); //call to Enter_Laccs_Function
@@ -1344,7 +1338,7 @@ public class discordapp_ : FaucetScript
 		/*
 		Reaction_Function(); //call to Reaction_Function
 		
-        var ReactionButton_Full_After_Check = ElementByXPath("//div[@class='reaction-1ELvT8 reactionMe-23mbRf'] //img[contains(@src,'/assets/612f3fc9dedfd368820b55c4cf259c07.svg')]");
+        var ReactionButton_Full_After_Check = ElementByXPath("//div[@class='reaction-1ELvT8 reactionMe-23mbRf'] //img[contains(@src,'assets/b052a4bef57')]");
 	    if (IsVisible(ReactionButton_Full_After_Check))
         {
 		Log("Discordtip_LaccsFaucet_BTC: Click On Reaction - done"); 			
@@ -1701,11 +1695,11 @@ public class discordapp_ : FaucetScript
         GoToUrl("https://discordapp.com/channels/552600601586827274/552600801642807308");
 		Log("Discordtip_LaccsFaucet_LTC: go to to claim in channel  | LaccsFaucet - LTC "); 	
 		Wait();
-		Wait(6);
+		Wait(12);
 	
 		Reaction_Function(); //call to Reaction_Function
 		
-        var ReactionButton_Full_After_Check = ElementByXPath("//div[@class='reaction-1ELvT8 reactionMe-23mbRf'] //img[contains(@src,'/assets/612f3fc9dedfd368820b55c4cf259c07.svg')]");
+        var ReactionButton_Full_After_Check = ElementByXPath("//div[@class='reaction-1ELvT8 reactionMe-23mbRf'] //img[contains(@src,'assets/b052a4bef57')]");
 	    if (IsVisible(ReactionButton_Full_After_Check))
         {
 		Log("Discordtip_LaccsFaucet_LTC: Click On Reaction - done"); 			
@@ -1852,29 +1846,23 @@ public class discordapp_ : FaucetScript
            Log("You do not have permission to send messages in this channel.");		   
 		  } 
 		  
-          var Reaction_General_apper = ElementByXPath("//span[@class='embedTitle-3OXDkz']");
-          var ReactionButton_Full = ElementByXPath("//div[@class='reaction-1ELvT8 reactionMe-23mbRf'] //img[contains(@src,'/assets/612f3fc9dedfd368820b55c4cf259c07.svg')]");
-          var ReactionButton_Clean = ElementByXPath("//div[@class='reaction-1ELvT8'] //img[contains(@src,'/assets/612f3fc9dedfd368820b55c4cf259c07.svg')]");
+		  Wait(3);
+		  
+          var Reaction_General_apper = ElementByXPath("//div[contains(@class,'embedTitle') and contains(text(),'airdrop')]");
+          var ReactionButton_Full = ElementByXPath("//div[@class='reaction-1ELvT8 reactionMe-23mbRf'] //img[contains(@src,'assets/b052a4bef57')]");
+          var ReactionButton_Clean = ElementByXPath("//div[@class='reaction-1ELvT8'] //img[contains(@src,'assets/b052a4bef57')]");
 		  
           if (!IsVisible(Reaction_General_apper)) //if not apper at all
           {
 		   //do not do anything
            Log("Reaction - airdrop not exist right now");
           }  
-		  
-          if (IsVisible(Reaction_General_apper) && IsVisible(ReactionButton_Full) )
-          {
-		   //do not do anything
-           Log("ReactionButton_Full - you already claim");
-          }  
-		  
-          if (IsVisible(Reaction_General_apper) && IsVisible(ReactionButton_Clean) )
-          {
+
            Log("ReactionButton_Clean - click");
 		   Wait(3);
 		   Click(ReactionButton_Clean);
 		   Wait();
-          }
+
   
         return true;
   } //end Reaction_Function
