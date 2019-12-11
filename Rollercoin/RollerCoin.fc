@@ -151,18 +151,26 @@ class RollerCoin    :   FaucetScript
                     Click ( PlayGame );
                     Wait ( );
                     Play2048Coins ( );
-                    Wait ( 7 );
 
-                    var ButtonCaptcha=ElementByXPath("//button[@class='w-100 btn btn-primary']");
+                    var ButtonCaptcha=ElementByXPath("//button[contains(@class,'w-100 btn btn-primary')]");
+                    DateTime timeout=DateTime.Now.AddSeconds(20);
+                    while ( !IsVisible ( ButtonCaptcha ) && DateTime.Now<timeout )
+                    {
+                        Wait ( );
+                        ButtonCaptcha=ElementByXPath ( "//button[contains(@class,'w-100 btn btn-primary')]" );
+
+                    }
+
                     if ( IsVisible ( ButtonCaptcha ) )
                     {
                         DoSolveCaptcha ( );
                         Wait ( 1 );
-                        Click ( ButtonCaptcha );
-                    }
 
-                    Wait ( 8 );
-                   
+                        ButtonCaptcha=ElementByXPath ( "//button[contains(@class,'w-100 btn btn-primary')]" );
+                        Click ( ButtonCaptcha );
+                        Wait ( 8 );
+                    }                 
+                  
                     Log ( "Game successfully played" );
                     IsSuccess=true;
                     ClaimSuccess ( );
@@ -185,7 +193,12 @@ class RollerCoin    :   FaucetScript
 
         if(IsVisible(Img) &&IsVisible ( TextBox ) )
         {
+            Log ( "Solving captcha" );
           return  DoSolveImageCaptcha ( Img , TextBox );
+        }
+        else
+        {
+            Log ( "Img or textbox not visible" );
         }
 
         return 0;
