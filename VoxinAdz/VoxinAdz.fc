@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using FaucetCollector.Script;
 using OpenQA.Selenium;
-
+using OpenQA.Selenium.Interactions;
 namespace ScriptsOfFc
 {
     class VoxinAdz : FaucetScript
@@ -106,7 +106,7 @@ namespace ScriptsOfFc
         }
         public override int DoSolveCaptcha ( )
         {
-            var CaptchaImg=ElementByXPath("//img[@id='captcha_img']");
+            var CaptchaImg=ElementByXPath("//img[@id='captcha_img']|//img[@id='captchaimg']");
             var TextBoxCaptcha=IsVisible(CaptchaImg)?ElementByXPath("//input[@name='captcha']"):null;
             if ( IsVisible ( TextBoxCaptcha ) )
             {
@@ -140,6 +140,12 @@ namespace ScriptsOfFc
                             continue;
                         }
                         Click ( CaptchaBtn );
+						 var Loader=ElementByXPath("//div[@id='l2loader2validation']");
+                        DateTime time=DateTime.Now.AddSeconds(20);
+                        while ( IsVisible ( Loader )  && DateTime.Now<time)
+                        {
+                            Wait ( );
+                        }
                         Wait ( );
 
                     }
@@ -221,6 +227,8 @@ namespace ScriptsOfFc
             bool IsSolved = false;
             try
             {
+			Wait(2);
+
                 var capt = ElementByXPath("//img[@usemap='#Map']");
                 Bitmap captcha = TakeScreenshot(Base.Captcha.CaptchaService.Manual,capt);
                List<Bitmap> icons=new List<Bitmap>();
@@ -229,20 +237,28 @@ namespace ScriptsOfFc
                 {
                     icons.Add ( captcha.Clone(new Rectangle (i,0,50,50 ) , captcha.PixelFormat) );
                 }                            
+			
                int result_ =icons.IndexOf(icons.FirstOrDefault(x=>
                 {
                     return KnowResults.FirstOrDefault(y=>IsSameImage(x,y))!=null;
 
-                } ));                           
+                } ));  
+			
                     // How items area have not cordinates we will need to extract the javascript 
                     var AreaCollection=ElementsByXPath("//area");
                     if ( AreaCollection.Count>result_ )
-                    {                                 
+                    { 
+			
                         string ScriptEnd=AreaCollection[result_].GetAttribute("onclick");
                         if ( !string.IsNullOrEmpty ( ScriptEnd ) )
                         {
-                            ExecuteScript (ScriptEnd );
-                            Wait ( 1);
+                            //ExecuteScript (ScriptEnd );
+							Actions Action=new Actions(Driver);
+							Action.MoveToElement ( capt , (result_*50)+25 , 25 ).Build().Perform();
+							System.Threading.Thread.Sleep ( 300 );
+							Action.Click ( ).Build ( ).Perform ( );
+                            Wait ( 2,5 );
+						
                             IsSolved=true;
                         }
                     }           
