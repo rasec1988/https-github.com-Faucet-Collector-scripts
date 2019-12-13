@@ -1,7 +1,7 @@
 
 //==================//
 //script Written by: ••AviramDayan•• 05/12/2018 06:00AM 
-//Last Update: 11/12/2019 20:00PM - Version 51
+//Last Update: 13/12/2019 23:00PM - Version 52
 //==================//
 
 using System;
@@ -45,7 +45,7 @@ public class discordapp_ : FaucetScript
 				new FaucetSetting(){Name="Discordtip_LaccsFaucet_DOGE_WalletAddress",Display="WalletAddress DOGE",Type=EditorType.TextBox,Required=false},
                 */
                 new FaucetSetting(){Name="Discordtip_LaccsFaucet_BTC_OnOff",Display="LaccsFaucet BTC - AirDrop - On/off",Type=EditorType.CheckBox,Default=true},	
-                new FaucetSetting(){Name="LaccsFaucet_BTC_Boost",Display="LaccsFaucet BTC - Boost - On/off - if ON type !faucet boost - you can boost a Bitcoin transaction (speeding it up)",Type=EditorType.CheckBox,Default=true},	
+                new FaucetSetting(){Name="LaccsFaucet_BTC_Boost",Display="LaccsFaucet BTC - Boost - On/off - if ON - type !faucet boost - you can boost a Bitcoin transaction (speeding it up)",Type=EditorType.CheckBox,Default=true},	
                 new FaucetSetting(){Name="Discordtip_LaccsFaucet_BTC_AutoWithdraw",Display="AutoWithdraw BTC - On/off",Type=EditorType.CheckBox,Default=false},		
 				new FaucetSetting(){Name="Discordtip_LaccsFaucet_BTC_AmountToWithdraw",Display="AmountToWithdraw BTC - for my opinion i set default from 0.10 mbtc Equal to 10000 satoshi (Because of a high withdrawal fee)",Default="0.10",Type=EditorType.TextBox,Required=false},
 				new FaucetSetting(){Name="Discordtip_LaccsFaucet_BTC_WalletAddress",Display="WalletAddress BTC",Type=EditorType.TextBox,Required=false},
@@ -600,7 +600,7 @@ public class discordapp_ : FaucetScript
         GoToUrl("https://discordapp.com/channels/406508543034916865/566695331295920138");
 		Log("Discordtip_FaucetCollector: go to to claim in channel  | FaucetCollector "); 	
 		Wait();
-		Wait(12);
+		Wait(15);
         
 		Reaction_Function(); //call to Reaction_Function
 		
@@ -635,7 +635,7 @@ public class discordapp_ : FaucetScript
             Driver.Navigate().Refresh();
 			Wait();
 			Wait(5);
-            var SearchBarMainVar = ElementByXPath("//input[@placeholder='Find or start a conversation'] | //div[1]/div/div/input");
+            var SearchBarMainVar = ElementByXPath("//button[contains(text(),'Find or start')] | //div[1]/div/div/button");
             Click(SearchBarMainVar);
             Wait();
             var SearchBar2Var = ElementByXPath("//input[@class='input-2VB9rf'] | //div[3]/div/div/input");		
@@ -656,13 +656,13 @@ public class discordapp_ : FaucetScript
             Wait();
 			
 	        //inputDiscordMessageVar
-			var inputDiscordMessageVar = ElementByXPath("//textarea[@placeholder='Message @Discordtip'] | //form/div/div/div/textarea");       
+			var inputDiscordMessageVar = ElementByXPath("//div[contains(@aria-label,'Message') and contains(@class,'markup')]");       
 			SetText(inputDiscordMessageVar,"!balance doge"); // BalanceToCheck - balance doge
 			
             Wait(2);
         
 	        // click - Enter Keyboard
-            var Element2ToEnter = ElementByXPath("//textarea[@placeholder='Message @Discordtip'] | //form/div/div/div/textarea"); 
+            var Element2ToEnter = ElementByXPath("//div[contains(@aria-label,'Message') and contains(@class,'markup')]"); 
 	        if (IsVisible(Element2ToEnter))
             {
 			Log("enter massage active - !balance doge");
@@ -683,7 +683,7 @@ public class discordapp_ : FaucetScript
 			 //var LastElement= ElementVAR[ElementVAR.Count - 1]; // HERE IS YOUR LastElement ELEMENT
 				
              //Withdraw DOGE		
-   			 var inputDiscord2MessageVar = ElementByXPath("//textarea[@placeholder='Message @Discordtip'] | //form/div/div/div/textarea");       
+   			 var inputDiscord2MessageVar = ElementByXPath("//div[contains(@aria-label,'Message') and contains(@class,'markup')]");     
 		     SetText(inputDiscord2MessageVar,"!withdraw " + GetSetting("Discordtip_LaccsFaucet_DOGE_WalletAddress") + " " + GetSetting("Discordtip_LaccsFaucet_DOGE_AmountToWithdraw") + " doge");
 
              //}
@@ -692,7 +692,7 @@ public class discordapp_ : FaucetScript
             Wait();
 			
 	        // click - Enter Keyboard
-            var Element3ToEnter = ElementByXPath("//textarea[@placeholder='Message @Discordtip'] | //form/div/div/div/textarea"); 
+            var Element3ToEnter = ElementByXPath("//div[contains(@aria-label,'Message') and contains(@class,'markup')]"); 
 	        if (IsVisible(Element3ToEnter))
             {
 			Log("enter massage active - !withdraw");
@@ -705,8 +705,8 @@ public class discordapp_ : FaucetScript
 			
 		
 			//confirm            
-			var Element4ToEnter = ElementByXPath("//textarea[@placeholder='Message @Discordtip'] | //form/div/div/div/textarea"); 
-            var confirm = ElementByXPath ("//div[42]/div[1]/div[1]/h2/time[contains(text(),'Today')]");
+			var Element4ToEnter = ElementByXPath("//div[contains(@aria-label,'Message') and contains(@class,'markup')]"); 
+            var confirm = ElementByXPath ("//span[contains(text(),'Today at')]");
 	        if (IsVisible(confirm))
             {
             SetText(Element4ToEnter,"yes");
@@ -942,7 +942,7 @@ public class discordapp_ : FaucetScript
         GoToUrl("https://discordapp.com/channels/513793195814158346/548173204792016897");
 		Log("Discordtip_LaccsFaucet_DOGE: go to to claim in channel  | LaccsFaucet - Doge "); 	
 		Wait();
-		Wait(12);
+		Wait(15);
         
 		Reaction_Function(); //call to Reaction_Function
 		
@@ -975,7 +975,7 @@ public class discordapp_ : FaucetScript
             Driver.Navigate().Refresh();
 			Wait();
 			Wait(5);
-            var SearchBarMainVar = ElementByXPath("//input[@placeholder='Find or start a conversation'] | //div[1]/div/div/input");
+            var SearchBarMainVar = ElementByXPath("//button[contains(text(),'Find or start')] | //div[1]/div/div/button");
             Click(SearchBarMainVar);
             Wait();
             var SearchBar2Var = ElementByXPath("//input[@class='input-2VB9rf'] | //div[3]/div/div/input");		
@@ -996,13 +996,13 @@ public class discordapp_ : FaucetScript
             Wait();
 			
 	        //inputDiscordMessageVar
-			var inputDiscordMessageVar = ElementByXPath("//textarea[@placeholder='Message @Discordtip'] | //form/div/div/div/textarea");       
+			var inputDiscordMessageVar = ElementByXPath("//div[contains(@aria-label,'Message') and contains(@class,'markup')]");       
 			SetText(inputDiscordMessageVar,"$bal btc"); // BalanceToCheck - balance mbtc
 			
             Wait(2);
         
 	        // click - Enter Keyboard
-            var Element2ToEnter = ElementByXPath("//textarea[@placeholder='Message @Discordtip'] | //form/div/div/div/textarea"); 
+            var Element2ToEnter = ElementByXPath("//div[contains(@aria-label,'Message') and contains(@class,'markup')]"); 
 	        if (IsVisible(Element2ToEnter))
             {
 			Log("enter massage active - $bal btc");
@@ -1031,7 +1031,7 @@ public class discordapp_ : FaucetScript
 			 //var LastElement= ElementVAR[ElementVAR.Count - 1]; // HERE IS YOUR LastElement ELEMENT
 				
              //Withdraw BTC		
-   			 var inputDiscord2MessageVar = ElementByXPath("//textarea[@placeholder='Message @Discordtip'] | //form/div/div/div/textarea");       
+   			 var inputDiscord2MessageVar = ElementByXPath("//div[contains(@aria-label,'Message') and contains(@class,'markup')]");      
 		     SetText(inputDiscord2MessageVar,"$withdraw " + GetSetting("Discordtip_LaccsFaucet_BTC_WalletAddress") + " " + GetSetting("Discordtip_LaccsFaucet_BTC_AmountToWithdraw") + " mbtc");
 
              //}
@@ -1048,7 +1048,7 @@ public class discordapp_ : FaucetScript
             Wait();
 			
 	        // click - Enter Keyboard
-            var Element3ToEnter = ElementByXPath("//textarea[@placeholder='Message @Discordtip'] | //form/div/div/div/textarea"); 
+            var Element3ToEnter = ElementByXPath("//div[contains(@aria-label,'Message') and contains(@class,'markup')]"); 
 	        if (IsVisible(Element3ToEnter))
             {
 			Log("enter massage active - !withdraw");
@@ -1061,8 +1061,8 @@ public class discordapp_ : FaucetScript
 			
 		
 			//confirm            
-			var Element4ToEnter = ElementByXPath("//textarea[@placeholder='Message @Discordtip'] | //form/div/div/div/textarea"); 
-            var confirm = ElementByXPath ("//div[42]/div[1]/div[1]/h2/time[contains(text(),'Today')]");
+			var Element4ToEnter = ElementByXPath("//div[contains(@aria-label,'Message') and contains(@class,'markup')]"); 
+            var confirm = ElementByXPath("//span[contains(text(),'Today at')]");
 	        if (IsVisible(confirm))
             {
             SetText(Element4ToEnter,"yes");
@@ -1312,28 +1312,28 @@ public class discordapp_ : FaucetScript
 		Wait(6);
 		
         //TextCommand            
-        var TextCommand = ElementByXPath ("//textarea[contains(@placeholder,'Message')] | //textarea[@class='textAreaEnabledNoAttach-1WxUwj textArea-2Spzkt textArea-2Spzkt scrollbarGhostHairline-1mSOM1 scrollbar-3dvm_9']");
+        var TextCommand = ElementByXPath("//div[contains(@class,'innerEnabled')]/div[contains(@class,'textAreaEnabled')]");
 	        
         if (IsVisible(TextCommand))
         {
-			
 		  if (GetBoolSetting("LaccsFaucet_BTC_Boost"))
           {
             SetText(TextCommand,"!faucet boost");
-            Enter_Laccs_Function(); //call to Enter_Laccs_Function
+            //Enter_Laccs_Function(); //call to Enter_Laccs_Function
 		  }
             SetText(TextCommand,"!claim");
 		    Wait(2);
             Enter_Laccs_Function(); //call to Enter_Laccs_Function
-			
+
         } //end TextCommand visible
-			
+		
+
 	    if (!IsVisible(TextCommand)) 
         {
 		 Log("Error - Invite Invalid apper - we return after FC time"); 	
          return GetWaitSetting();	
         } //end TextCommand NOT visible
-	
+  
 	
 		/*
 		Reaction_Function(); //call to Reaction_Function
@@ -1371,7 +1371,7 @@ public class discordapp_ : FaucetScript
             Driver.Navigate().Refresh();
 			Wait();
 			Wait(5);
-            var SearchBarMainVar = ElementByXPath("//input[@placeholder='Find or start a conversation'] | //div[1]/div/div/input");
+            var SearchBarMainVar = ElementByXPath("//button[contains(text(),'Find or start')] | //div[1]/div/div/button");
             Click(SearchBarMainVar);
             Wait();
             var SearchBar2Var = ElementByXPath("//input[@class='input-2VB9rf'] | //div[3]/div/div/input");		
@@ -1392,13 +1392,13 @@ public class discordapp_ : FaucetScript
             Wait();
 			
 	        //inputDiscordMessageVar
-			var inputDiscordMessageVar = ElementByXPath("//textarea[@placeholder='Message @Discordtip'] | //form/div/div/div/textarea");       
+			var inputDiscordMessageVar = ElementByXPath("//div[contains(@aria-label,'Message') and contains(@class,'markup')]");       
 			SetText(inputDiscordMessageVar,"!balance ltc"); // BalanceToCheck - balance mltc
 			
             Wait(2);
         
 	        // click - Enter Keyboard
-            var Element2ToEnter = ElementByXPath("//textarea[@placeholder='Message @Discordtip'] | //form/div/div/div/textarea"); 
+            var Element2ToEnter = ElementByXPath("//div[contains(@aria-label,'Message') and contains(@class,'markup')]"); 
 	        if (IsVisible(Element2ToEnter))
             {
 			Log("enter massage active - !balance ltc");
@@ -1427,7 +1427,7 @@ public class discordapp_ : FaucetScript
 			 //var LastElement= ElementVAR[ElementVAR.Count - 1]; // HERE IS YOUR LastElement ELEMENT
 				
              //Withdraw LTC		
-   			 var inputDiscord2MessageVar = ElementByXPath("//textarea[@placeholder='Message @Discordtip'] | //form/div/div/div/textarea");       
+   			 var inputDiscord2MessageVar = ElementByXPath("//div[contains(@aria-label,'Message') and contains(@class,'markup')]");       
 		     SetText(inputDiscord2MessageVar,"!withdraw " + GetSetting("Discordtip_LaccsFaucet_LTC_WalletAddress") + " " + GetSetting("Discordtip_LaccsFaucet_LTC_AmountToWithdraw") + " mltc");
 
              //}
@@ -1444,7 +1444,7 @@ public class discordapp_ : FaucetScript
             Wait();
 			
 	        // click - Enter Keyboard
-            var Element3ToEnter = ElementByXPath("//textarea[@placeholder='Message @Discordtip'] | //form/div/div/div/textarea"); 
+            var Element3ToEnter = ElementByXPath("//div[contains(@aria-label,'Message') and contains(@class,'markup')]"); 
 	        if (IsVisible(Element3ToEnter))
             {
 			Log("enter massage active - !withdraw");
@@ -1457,8 +1457,8 @@ public class discordapp_ : FaucetScript
 			
 		
 			//confirm            
-			var Element4ToEnter = ElementByXPath("//textarea[@placeholder='Message @Discordtip'] | //form/div/div/div/textarea"); 
-            var confirm = ElementByXPath ("//div[42]/div[1]/div[1]/h2/time[contains(text(),'Today')]");
+			var Element4ToEnter = ElementByXPath("//div[contains(@aria-label,'Message') and contains(@class,'markup')]"); 
+            var confirm = ElementByXPath("//span[contains(text(),'Today at')]");
 	        if (IsVisible(confirm))
             {
             SetText(Element4ToEnter,"yes");
@@ -1695,7 +1695,7 @@ public class discordapp_ : FaucetScript
         GoToUrl("https://discordapp.com/channels/552600601586827274/552600801642807308");
 		Log("Discordtip_LaccsFaucet_LTC: go to to claim in channel  | LaccsFaucet - LTC "); 	
 		Wait();
-		Wait(12);
+		Wait(15);
 	
 		Reaction_Function(); //call to Reaction_Function
 		
@@ -1756,15 +1756,17 @@ public class discordapp_ : FaucetScript
       //=================//
       //Enter_Laccs_Function
       //=================//	
-      public void Enter_Laccs_Function()
+      public int Enter_Laccs_Function()
       {
-         var TextCommand = ElementByXPath ("//textarea[contains(@placeholder,'Message')] | //textarea[@class='textAreaEnabledNoAttach-1WxUwj textArea-2Spzkt textArea-2Spzkt scrollbarGhostHairline-1mSOM1 scrollbar-3dvm_9']");
+         var TextCommand = ElementByXPath("//div[contains(@class,'innerEnabled')]/div[contains(@class,'textAreaEnabled')]");
 	     //Enter Keyboard
          Log("TextCommand");
          Actions Builder4Act = new Actions(Driver);
          Builder4Act.MoveToElement(TextCommand).Build().Perform(); 
          Wait(3);
          Builder4Act.SendKeys(Keys.Enter).Build().Perform(); 
+		 
+		 return 0;
       }
       //=================//	
 	  
@@ -1839,7 +1841,7 @@ public class discordapp_ : FaucetScript
   private bool Reaction_Function()
   {
 
-		  var InputTextToCheckBefore = ElementByXPath("//div/textarea[@placeholder='You do not have permission to send messages in this channel.']"); 
+		  var InputTextToCheckBefore = ElementByXPath("//div[contains(text(),'You do not have permission')]"); 
 		  if (IsVisible(InputTextToCheckBefore)) //if the input NOT Lock - only then set text	
           {
 		   //do not do anything
