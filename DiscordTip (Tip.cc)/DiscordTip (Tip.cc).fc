@@ -1,7 +1,7 @@
 
 //==================//
 //script Written by: ••AviramDayan•• 05/12/2018 06:00AM 
-//Last Update: 13/12/2019 23:00PM - Version 52
+//Last Update: 15/12/2019 21:30PM - Version 53
 //==================//
 
 using System;
@@ -635,43 +635,25 @@ public class discordapp_ : FaucetScript
             Driver.Navigate().Refresh();
 			Wait();
 			Wait(5);
-            var SearchBarMainVar = ElementByXPath("//button[contains(text(),'Find or start')] | //div[1]/div/div/button");
+            var SearchBarMainVar = ElementByXPath("//div[contains(@class,'searchBar')]"); //button[contains(text(),'Find or start')]
             Click(SearchBarMainVar);
             Wait();
             var SearchBar2Var = ElementByXPath("//input[@class='input-2VB9rf'] | //div[3]/div/div/input");		
             SetText(SearchBar2Var,ServerNameID_String); // set ServerNameID_String
             Wait();
 			
-	        // click - Enter Keyboard
-            var ElementToEnter = ElementByClass("input-2VB9rf");
-	        if (IsVisible(ElementToEnter))
-            {
-            Actions BuilderAct = new Actions(Driver);
-            BuilderAct.MoveToElement(ElementToEnter).Build().Perform(); 
-            Wait(3);
-            BuilderAct.SendKeys(Keys.Enter).Build().Perform(); 
-			}
-	        //==============//
+			Enter_SearchBar_Start_Function();
 			
             Wait();
 			
 	        //inputDiscordMessageVar
 			var inputDiscordMessageVar = ElementByXPath("//div[contains(@aria-label,'Message') and contains(@class,'markup')]");       
-			SetText(inputDiscordMessageVar,"!balance doge"); // BalanceToCheck - balance doge
-			
+			//SetText(inputDiscordMessageVar,"$bal doge"); // BalanceToCheck - balance doge
+            SetText_bal_doge_AutoWithdraw_SendKeys_Way_Function();
+			Log("enter massage active - $bal doge");  
             Wait(2);
-        
-	        // click - Enter Keyboard
-            var Element2ToEnter = ElementByXPath("//div[contains(@aria-label,'Message') and contains(@class,'markup')]"); 
-	        if (IsVisible(Element2ToEnter))
-            {
-			Log("enter massage active - !balance doge");
-            Actions Builder2Act = new Actions(Driver);
-            Builder2Act.MoveToElement(Element2ToEnter).Build().Perform(); 
-            Wait(3);
-            Builder2Act.SendKeys(Keys.Enter).Build().Perform(); 
-			}
-	        //==============//
+
+            Enter_SendKeys_General_Discord_Input_Function();
 	
             Wait(4);
 
@@ -684,24 +666,20 @@ public class discordapp_ : FaucetScript
 				
              //Withdraw DOGE		
    			 var inputDiscord2MessageVar = ElementByXPath("//div[contains(@aria-label,'Message') and contains(@class,'markup')]");     
-		     SetText(inputDiscord2MessageVar,"!withdraw " + GetSetting("Discordtip_LaccsFaucet_DOGE_WalletAddress") + " " + GetSetting("Discordtip_LaccsFaucet_DOGE_AmountToWithdraw") + " doge");
+		     //SetText(inputDiscord2MessageVar,"$withdraw " + GetSetting("Discordtip_LaccsFaucet_DOGE_WalletAddress") + " " + GetSetting("Discordtip_LaccsFaucet_DOGE_AmountToWithdraw") + " doge");
+
+			 //SetText_SendKeys_Way
+			 Actions Builder4Act = new Actions(Driver);
+             Builder4Act.MoveToElement(inputDiscord2MessageVar).Build().Perform(); 
+             Wait(3);
+             Builder4Act.SendKeys(inputDiscord2MessageVar,"$withdraw " + GetSetting("Discordtip_LaccsFaucet_DOGE_WalletAddress") + " " + GetSetting("Discordtip_LaccsFaucet_DOGE_AmountToWithdraw") + " doge").Build().Perform();
 
              //}
 			 
 
             Wait();
 			
-	        // click - Enter Keyboard
-            var Element3ToEnter = ElementByXPath("//div[contains(@aria-label,'Message') and contains(@class,'markup')]"); 
-	        if (IsVisible(Element3ToEnter))
-            {
-			Log("enter massage active - !withdraw");
-            Actions Builder3Act = new Actions(Driver);
-            Builder3Act.MoveToElement(Element3ToEnter).Build().Perform(); 
-            Wait(3);
-            Builder3Act.SendKeys(Keys.Enter).Build().Perform(); 
-			}
-	        //==============//
+            Enter_SendKeys_General_Discord_Input_Function();
 			
 		
 			//confirm            
@@ -709,17 +687,11 @@ public class discordapp_ : FaucetScript
             var confirm = ElementByXPath ("//span[contains(text(),'Today at')]");
 	        if (IsVisible(confirm))
             {
-            SetText(Element4ToEnter,"yes");
+            //SetText(Element4ToEnter,"yes");
+			SetText_yes_AutoWithdraw_SendKeys_Way_Function();
 		    Wait(2);
 			
-	        // click - Enter Keyboard
-			Log("enter massage active - yes");
-            Actions Builder4Act = new Actions(Driver);
-            Builder4Act.MoveToElement(Element4ToEnter).Build().Perform(); 
-            Wait(3);
-            Builder4Act.SendKeys(Keys.Enter).Build().Perform(); 
-            }// end confirm
-
+            Enter_SendKeys_General_Discord_Input_Function();
 
 	    }// end LaccsFaucet_DOGE_AutoWithdraw
         //==============================//
@@ -793,7 +765,7 @@ public class discordapp_ : FaucetScript
 		Wait();
         Wait(3);		
 
-        Notifications_Function(); //call if it apper
+        //Notifications_Function(); //call if it apper
 
         var WonPe_SkipButton = ElementByXPath("//*[@id='skip_button']"); //WonPe - wait for - Continue 
 
@@ -818,7 +790,7 @@ public class discordapp_ : FaucetScript
 		CheckForPopupsEnabled = true;
         CheckForPopups();
 
-        Notifications_Function(); //call if it apper
+        //Notifications_Function(); //call if it apper
 
         var LinkShrink_GetLink = ElementByXPath("//div[@id='skip' and @style='display: none;']"); //LinkShrink - wait for - GetLink
 
@@ -867,7 +839,7 @@ public class discordapp_ : FaucetScript
 		Wait();
         Wait(3);		
 
-        Notifications_Function(); //call if it apper
+        //Notifications_Function(); //call if it apper
 
         var WonPe_SkipButton_DOGE = ElementByXPath("//*[@id='skip_button']"); //WonPe - wait for - Continue 
 
@@ -892,7 +864,7 @@ public class discordapp_ : FaucetScript
 		CheckForPopupsEnabled = true;
         CheckForPopups();
 
-        Notifications_Function(); //call if it apper
+        //Notifications_Function(); //call if it apper
       
         var LinkShrink_2_GetLink = ElementByXPath("//div[@id='skip' and @style='display: none;']"); //LinkShrink - wait for - GetLink
 
@@ -975,43 +947,26 @@ public class discordapp_ : FaucetScript
             Driver.Navigate().Refresh();
 			Wait();
 			Wait(5);
-            var SearchBarMainVar = ElementByXPath("//button[contains(text(),'Find or start')] | //div[1]/div/div/button");
+            var SearchBarMainVar = ElementByXPath("//div[contains(@class,'searchBar')]"); //button[contains(text(),'Find or start')]
             Click(SearchBarMainVar);
             Wait();
             var SearchBar2Var = ElementByXPath("//input[@class='input-2VB9rf'] | //div[3]/div/div/input");		
             SetText(SearchBar2Var,ServerNameID_String); // set text & find @Discordtip#2087
             Wait();
 			
-	        // click - Enter Keyboard
-            var ElementToEnter = ElementByClass("input-2VB9rf");
-	        if (IsVisible(ElementToEnter))
-            {
-            Actions BuilderAct = new Actions(Driver);
-            BuilderAct.MoveToElement(ElementToEnter).Build().Perform(); 
-            Wait(3);
-            BuilderAct.SendKeys(Keys.Enter).Build().Perform(); 
-			}
-	        //==============//
+            Enter_SearchBar_Start_Function();
 			
             Wait();
 			
 	        //inputDiscordMessageVar
 			var inputDiscordMessageVar = ElementByXPath("//div[contains(@aria-label,'Message') and contains(@class,'markup')]");       
-			SetText(inputDiscordMessageVar,"$bal btc"); // BalanceToCheck - balance mbtc
+			//SetText(inputDiscordMessageVar,"$bal btc"); // BalanceToCheck - balance mbtc
+            SetText_bal_btc_AutoWithdraw_SendKeys_Way_Function();
+			Log("enter massage active - $bal btc");  
 			
             Wait(2);
-        
-	        // click - Enter Keyboard
-            var Element2ToEnter = ElementByXPath("//div[contains(@aria-label,'Message') and contains(@class,'markup')]"); 
-	        if (IsVisible(Element2ToEnter))
-            {
-			Log("enter massage active - $bal btc");
-            Actions Builder2Act = new Actions(Driver);
-            Builder2Act.MoveToElement(Element2ToEnter).Build().Perform(); 
-            Wait(3);
-            Builder2Act.SendKeys(Keys.Enter).Build().Perform(); 
-			}
-	        //==============//
+
+            Enter_SendKeys_General_Discord_Input_Function();
 	
             Wait(4);
 
@@ -1032,8 +987,14 @@ public class discordapp_ : FaucetScript
 				
              //Withdraw BTC		
    			 var inputDiscord2MessageVar = ElementByXPath("//div[contains(@aria-label,'Message') and contains(@class,'markup')]");      
-		     SetText(inputDiscord2MessageVar,"$withdraw " + GetSetting("Discordtip_LaccsFaucet_BTC_WalletAddress") + " " + GetSetting("Discordtip_LaccsFaucet_BTC_AmountToWithdraw") + " mbtc");
-
+		     //SetText(inputDiscord2MessageVar,"$withdraw " + GetSetting("Discordtip_LaccsFaucet_BTC_WalletAddress") + " " + GetSetting("Discordtip_LaccsFaucet_BTC_AmountToWithdraw") + " mbtc");
+			 
+			 //SetText_SendKeys_Way
+             Actions Builder4Act = new Actions(Driver);
+             Builder4Act.MoveToElement(inputDiscord2MessageVar).Build().Perform(); 
+             Wait(3);
+		     Builder4Act.SendKeys(inputDiscord2MessageVar,"$withdraw " + GetSetting("Discordtip_LaccsFaucet_BTC_WalletAddress") + " " + GetSetting("Discordtip_LaccsFaucet_BTC_AmountToWithdraw") + " mbtc").Build().Perform();
+			 
              //}
 			 
              /*
@@ -1046,34 +1007,19 @@ public class discordapp_ : FaucetScript
 			 */
 			 
             Wait();
-			
-	        // click - Enter Keyboard
-            var Element3ToEnter = ElementByXPath("//div[contains(@aria-label,'Message') and contains(@class,'markup')]"); 
-	        if (IsVisible(Element3ToEnter))
-            {
-			Log("enter massage active - !withdraw");
-            Actions Builder3Act = new Actions(Driver);
-            Builder3Act.MoveToElement(Element3ToEnter).Build().Perform(); 
-            Wait(3);
-            Builder3Act.SendKeys(Keys.Enter).Build().Perform(); 
-			}
-	        //==============//
-			
+
+            Enter_SendKeys_General_Discord_Input_Function();
 		
 			//confirm            
 			var Element4ToEnter = ElementByXPath("//div[contains(@aria-label,'Message') and contains(@class,'markup')]"); 
             var confirm = ElementByXPath("//span[contains(text(),'Today at')]");
 	        if (IsVisible(confirm))
             {
-            SetText(Element4ToEnter,"yes");
-		    Wait(2);
-			
-	        // click - Enter Keyboard
+            //SetText(Element4ToEnter,"yes");	
+			SetText_yes_AutoWithdraw_SendKeys_Way_Function();
 			Log("enter massage active - yes");
-            Actions Builder4Act = new Actions(Driver);
-            Builder4Act.MoveToElement(Element4ToEnter).Build().Perform(); 
-            Wait(3);
-            Builder4Act.SendKeys(Keys.Enter).Build().Perform(); 
+		    Wait(2);
+            Enter_SendKeys_General_Discord_Input_Function();
             }// end confirm
 
 
@@ -1112,8 +1058,6 @@ public class discordapp_ : FaucetScript
         }
 		
 		Wait(5);	
-		
-		
 				
 	    var inviteServer1Button = ElementByXPath("//button[@type='button']/div"); //[text()='Accept Invite']
 	    var ContinueToDiscordServer1Button = ElementByXPath("//button[@class='marginTop40-i-78cZ button-3k0cO7 button-38aScr lookFilled-1Gx00P colorBrand-3pXr91 sizeLarge-1vSeWK fullWidth-1orjjo grow-q77ONN']/div[text()='Continue to Discord']"); 
@@ -1159,7 +1103,7 @@ public class discordapp_ : FaucetScript
 		Wait();
         Wait(3);	
 
-        Notifications_Function(); //call if it apper
+        //Notifications_Function(); //call if it apper
 
         var WonPe_SkipButton = ElementByXPath("//*[@id='skip_button']"); //WonPe - wait for - Continue 
 		//if the start button not visible - in the first page
@@ -1184,7 +1128,7 @@ public class discordapp_ : FaucetScript
 		CheckForPopupsEnabled = true;
         CheckForPopups();
 
-        Notifications_Function(); //call if it apper
+        //Notifications_Function(); //call if it apper
 
         var LinkShrink_GetLink = ElementByXPath("//div[@id='skip' and @style='display: none;']"); //LinkShrink - wait for - GetLink
 
@@ -1232,7 +1176,7 @@ public class discordapp_ : FaucetScript
 		Wait();
         Wait(3);		
 
-        Notifications_Function(); //call if it apper
+        //Notifications_Function(); //call if it apper
 
         var WonPe_SkipButton_BTC = ElementByXPath("//*[@id='skip_button']"); //WonPe - wait for - Continue 
 
@@ -1257,7 +1201,7 @@ public class discordapp_ : FaucetScript
 		CheckForPopupsEnabled = true;
         CheckForPopups();
 
-        Notifications_Function(); //call if it apper
+        //Notifications_Function(); //call if it apper
 
         var LinkShrink_2_GetLink = ElementByXPath("//div[@id='skip' and @style='display: none;']"); //LinkShrink - wait for - GetLink
 
@@ -1316,14 +1260,19 @@ public class discordapp_ : FaucetScript
 	        
         if (IsVisible(TextCommand))
         {
+
 		  if (GetBoolSetting("LaccsFaucet_BTC_Boost"))
           {
-            SetText(TextCommand,"!faucet boost");
-            //Enter_Laccs_Function(); //call to Enter_Laccs_Function
+			Wait(2);
+			SetText_2_Laccs_SendKeys_Way_Function(); //call to SetText SendKeys Way
+            //SetText(TextCommand,"!faucet boost");
+            Enter_SendKeys_General_Discord_Input_Function(); //call to Enter_SendKeys_General_Discord_Input_Function
 		  }
-            SetText(TextCommand,"!claim");
+		  
+			SetText_1_Laccs_SendKeys_Way_Function(); //call to SetText SendKeys Way
+            //SetText(Text2Command,"!claim");
 		    Wait(2);
-            Enter_Laccs_Function(); //call to Enter_Laccs_Function
+            Enter_SendKeys_General_Discord_Input_Function(); //call to Enter_SendKeys_General_Discord_Input_Function
 
         } //end TextCommand visible
 		
@@ -1371,43 +1320,26 @@ public class discordapp_ : FaucetScript
             Driver.Navigate().Refresh();
 			Wait();
 			Wait(5);
-            var SearchBarMainVar = ElementByXPath("//button[contains(text(),'Find or start')] | //div[1]/div/div/button");
+            var SearchBarMainVar = ElementByXPath("//div[contains(@class,'searchBar')]"); //button[contains(text(),'Find or start')]
             Click(SearchBarMainVar);
             Wait();
             var SearchBar2Var = ElementByXPath("//input[@class='input-2VB9rf'] | //div[3]/div/div/input");		
             SetText(SearchBar2Var,ServerNameID_String); // set text & find @Discordtip#2087
             Wait();
 			
-	        // click - Enter Keyboard
-            var ElementToEnter = ElementByClass("input-2VB9rf");
-	        if (IsVisible(ElementToEnter))
-            {
-            Actions BuilderAct = new Actions(Driver);
-            BuilderAct.MoveToElement(ElementToEnter).Build().Perform(); 
-            Wait(3);
-            BuilderAct.SendKeys(Keys.Enter).Build().Perform(); 
-			}
-	        //==============//
+            Enter_SearchBar_Start_Function();
 			
             Wait();
 			
 	        //inputDiscordMessageVar
 			var inputDiscordMessageVar = ElementByXPath("//div[contains(@aria-label,'Message') and contains(@class,'markup')]");       
-			SetText(inputDiscordMessageVar,"!balance ltc"); // BalanceToCheck - balance mltc
-			
+			//SetText(inputDiscordMessageVar,"$bal ltc"); // BalanceToCheck - balance mltc
+            SetText_bal_ltc_AutoWithdraw_SendKeys_Way_Function();
+			Log("enter massage active - $bal ltc");  
+
             Wait(2);
-        
-	        // click - Enter Keyboard
-            var Element2ToEnter = ElementByXPath("//div[contains(@aria-label,'Message') and contains(@class,'markup')]"); 
-	        if (IsVisible(Element2ToEnter))
-            {
-			Log("enter massage active - !balance ltc");
-            Actions Builder2Act = new Actions(Driver);
-            Builder2Act.MoveToElement(Element2ToEnter).Build().Perform(); 
-            Wait(3);
-            Builder2Act.SendKeys(Keys.Enter).Build().Perform(); 
-			}
-	        //==============//
+
+            Enter_SendKeys_General_Discord_Input_Function();
 	
             Wait(4);
 
@@ -1428,9 +1360,15 @@ public class discordapp_ : FaucetScript
 				
              //Withdraw LTC		
    			 var inputDiscord2MessageVar = ElementByXPath("//div[contains(@aria-label,'Message') and contains(@class,'markup')]");       
-		     SetText(inputDiscord2MessageVar,"!withdraw " + GetSetting("Discordtip_LaccsFaucet_LTC_WalletAddress") + " " + GetSetting("Discordtip_LaccsFaucet_LTC_AmountToWithdraw") + " mltc");
-
-             //}
+		     //SetText(inputDiscord2MessageVar,"$withdraw " + GetSetting("Discordtip_LaccsFaucet_LTC_WalletAddress") + " " + GetSetting("Discordtip_LaccsFaucet_LTC_AmountToWithdraw") + " mltc");
+			 
+			 //SetText_SendKeys_Way
+			 Actions Builder4Act = new Actions(Driver);
+             Builder4Act.MoveToElement(inputDiscord2MessageVar).Build().Perform(); 
+             Wait(3);
+             Builder4Act.SendKeys(inputDiscord2MessageVar,"$withdraw " + GetSetting("Discordtip_LaccsFaucet_LTC_WalletAddress") + " " + GetSetting("Discordtip_LaccsFaucet_LTC_AmountToWithdraw") + " mltc").Build().Perform();
+             
+			 //}
 			 
              /*
              else  // ElementVAR.Count > 0 && BalanceINT > MyAmount && !IsVisible(ElementVAR[0])
@@ -1443,33 +1381,17 @@ public class discordapp_ : FaucetScript
 			 
             Wait();
 			
-	        // click - Enter Keyboard
-            var Element3ToEnter = ElementByXPath("//div[contains(@aria-label,'Message') and contains(@class,'markup')]"); 
-	        if (IsVisible(Element3ToEnter))
-            {
-			Log("enter massage active - !withdraw");
-            Actions Builder3Act = new Actions(Driver);
-            Builder3Act.MoveToElement(Element3ToEnter).Build().Perform(); 
-            Wait(3);
-            Builder3Act.SendKeys(Keys.Enter).Build().Perform(); 
-			}
-	        //==============//
-			
-		
+            Enter_SendKeys_General_Discord_Input_Function();
+
 			//confirm            
 			var Element4ToEnter = ElementByXPath("//div[contains(@aria-label,'Message') and contains(@class,'markup')]"); 
             var confirm = ElementByXPath("//span[contains(text(),'Today at')]");
 	        if (IsVisible(confirm))
             {
-            SetText(Element4ToEnter,"yes");
+            //SetText(Element4ToEnter,"yes");
+			SetText_yes_AutoWithdraw_SendKeys_Way_Function();
 		    Wait(2);
-			
-	        // click - Enter Keyboard
-			Log("enter massage active - yes");
-            Actions Builder4Act = new Actions(Driver);
-            Builder4Act.MoveToElement(Element4ToEnter).Build().Perform(); 
-            Wait(3);
-            Builder4Act.SendKeys(Keys.Enter).Build().Perform(); 
+            Enter_SendKeys_General_Discord_Input_Function();
             }// end confirm
 
 
@@ -1545,7 +1467,7 @@ public class discordapp_ : FaucetScript
 		Wait();
         Wait(3);		
 
-        Notifications_Function(); //call if it apper
+        //Notifications_Function(); //call if it apper
 
         var WonPe_SkipButton = ElementByXPath("//*[@id='skip_button']"); //WonPe - wait for - Continue 
 
@@ -1570,7 +1492,7 @@ public class discordapp_ : FaucetScript
 		CheckForPopupsEnabled = true;
         CheckForPopups();
 
-        Notifications_Function(); //call if it apper
+        //Notifications_Function(); //call if it apper
      
         var LinkShrink_GetLink = ElementByXPath("//div[@id='skip' and @style='display: none;']"); //LinkShrink - wait for - GetLink
 
@@ -1618,7 +1540,7 @@ public class discordapp_ : FaucetScript
 		Wait();
         Wait(3);		
 
-        Notifications_Function(); //call if it apper
+        //Notifications_Function(); //call if it apper
 
         var WonPe_SkipButton_LTC = ElementByXPath("//*[@id='skip_button']"); //WonPe - wait for - Continue 
 
@@ -1643,7 +1565,7 @@ public class discordapp_ : FaucetScript
 		CheckForPopupsEnabled = true;
         CheckForPopups();
 
-        Notifications_Function(); //call if it apper
+        //Notifications_Function(); //call if it apper
     
         var LinkShrink_2_GetLink = ElementByXPath("//div[@id='skip' and @style='display: none;']"); //LinkShrink - wait for - GetLink
 
@@ -1753,10 +1675,12 @@ public class discordapp_ : FaucetScript
     }
 
 
+
+
       //=================//
-      //Enter_Laccs_Function
+      //Enter_SendKeys_General_Discord_Input_Function
       //=================//	
-      public int Enter_Laccs_Function()
+      public int Enter_SendKeys_General_Discord_Input_Function()
       {
          var TextCommand = ElementByXPath("//div[contains(@class,'innerEnabled')]/div[contains(@class,'textAreaEnabled')]");
 	     //Enter Keyboard
@@ -1770,7 +1694,132 @@ public class discordapp_ : FaucetScript
       }
       //=================//	
 	  
+	
+      //=================//
+      //SetText_1_Laccs_SendKeys_Way_Function
+      //=================//	
+      public int SetText_1_Laccs_SendKeys_Way_Function()
+      {
+         var TextCommand = ElementByXPath("//div[contains(@class,'innerEnabled')]/div[contains(@class,'textAreaEnabled')]");
+	     //SetText Keyboard
+         Log("TextCommand");
+         Actions Builder4Act = new Actions(Driver);
+         Builder4Act.MoveToElement(TextCommand).Build().Perform(); 
+         Wait(3);
+         Builder4Act.SendKeys(TextCommand, "!claim").Build().Perform();
+		 
+		 return 0;
+      }
+      //=================//	
 	  
+	  
+      //=================//
+      //SetText_2_Laccs_SendKeys_Way_Function
+      //=================//	
+      public int SetText_2_Laccs_SendKeys_Way_Function()
+      {
+         var TextCommand = ElementByXPath("//div[contains(@class,'innerEnabled')]/div[contains(@class,'textAreaEnabled')]");
+	     //SetText Keyboard
+         Log("TextCommand");
+         Actions Builder4Act = new Actions(Driver);
+         Builder4Act.MoveToElement(TextCommand).Build().Perform(); 
+         Wait(3);
+         Builder4Act.SendKeys(TextCommand, "!faucet boost").Build().Perform();
+		 
+		 return 0;
+      }
+      //=================//	
+	
+	
+	
+      //=================//
+      //Enter_SearchBar_Start_Function
+      //=================//	
+      public int Enter_SearchBar_Start_Function()
+      {
+        var ElementToEnter = ElementByClass("input-2VB9rf");
+	    if (IsVisible(ElementToEnter))
+        {
+        Actions BuilderAct = new Actions(Driver);
+        BuilderAct.MoveToElement(ElementToEnter).Build().Perform(); 
+        Wait(3);
+        BuilderAct.SendKeys(Keys.Enter).Build().Perform(); 
+		}
+
+		 return 0;
+      }
+      //=================//	
+	
+	
+      //=================//
+      //SetText_yes_AutoWithdraw_SendKeys_Way_Function
+      //=================//	
+      public int SetText_yes_AutoWithdraw_SendKeys_Way_Function()
+      {
+         var TextCommand = ElementByXPath("//div[contains(@class,'innerEnabled')]/div[contains(@class,'textAreaEnabled')]");
+	     //SetText Keyboard
+         Log("TextCommand");
+         Actions Builder4Act = new Actions(Driver);
+         Builder4Act.MoveToElement(TextCommand).Build().Perform(); 
+         Wait(3);
+         Builder4Act.SendKeys(TextCommand, "yes").Build().Perform();
+		 
+		 return 0;
+      }
+      //=================//	
+
+
+      //=================//
+      //SetText_bal_doge_AutoWithdraw_SendKeys_Way_Function
+      //=================//	
+      public int SetText_bal_doge_AutoWithdraw_SendKeys_Way_Function()
+      {
+         var TextCommand = ElementByXPath("//div[contains(@class,'innerEnabled')]/div[contains(@class,'textAreaEnabled')]");
+	     //SetText Keyboard
+         Log("TextCommand");
+         Actions Builder4Act = new Actions(Driver);
+         Builder4Act.MoveToElement(TextCommand).Build().Perform(); 
+         Wait(3);
+         Builder4Act.SendKeys(TextCommand, "$bal doge").Build().Perform();
+		 
+		 return 0;
+      }
+      //=================//	
+
+      //=================//
+      //SetText_bal_btc_AutoWithdraw_SendKeys_Way_Function
+      //=================//	
+      public int SetText_bal_btc_AutoWithdraw_SendKeys_Way_Function()
+      {
+         var TextCommand = ElementByXPath("//div[contains(@class,'innerEnabled')]/div[contains(@class,'textAreaEnabled')]");
+	     //SetText Keyboard
+         Log("TextCommand");
+         Actions Builder4Act = new Actions(Driver);
+         Builder4Act.MoveToElement(TextCommand).Build().Perform(); 
+         Wait(3);
+         Builder4Act.SendKeys(TextCommand, "$bal btc").Build().Perform();
+		 
+		 return 0;
+      }
+      //=================//	
+
+      //=================//
+      //SetText_bal_ltc_AutoWithdraw_SendKeys_Way_Function
+      //=================//	
+      public int SetText_bal_ltc_AutoWithdraw_SendKeys_Way_Function()
+      {
+         var TextCommand = ElementByXPath("//div[contains(@class,'innerEnabled')]/div[contains(@class,'textAreaEnabled')]");
+	     //SetText Keyboard
+         Log("TextCommand");
+         Actions Builder4Act = new Actions(Driver);
+         Builder4Act.MoveToElement(TextCommand).Build().Perform(); 
+         Wait(3);
+         Builder4Act.SendKeys(TextCommand, "$bal ltc").Build().Perform();
+		 
+		 return 0;
+      }
+      //=================//	
+
 	
   //=================//
   //CheckCloudFlare Function
