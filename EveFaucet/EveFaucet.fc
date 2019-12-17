@@ -76,7 +76,10 @@ class EveFaucetScript : FaucetScript
         {"Ripple","https://evexrp.xyz/" },
         {"TRON","https://evetrx.xyz/" },
         {"DOGE", "https://evedoge.xyz/" },
-        {"LTC","https://eveltc.xyz/" }
+        {"LTC","https://eveltc.xyz/" },
+		{"BCH","https://evebch.xyz/" },
+		{"XMR","https://evexmr.xyz/" }
+		
 
     };
     public override void Start ( )
