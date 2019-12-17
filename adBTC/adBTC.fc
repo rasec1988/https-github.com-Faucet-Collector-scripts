@@ -495,17 +495,27 @@ namespace Adbtc
             return GetWaitSetting();
 
         }
+
+        private bool UseMath
+        {
+            get
+            {
+                return GetBoolSetting ( "UseMath" );
+            }
+        }
         public override int DoSolveCaptcha()
         {
-            var SwitchCaptcha = ElementByXPath("//input[@class='select-dropdown']");
-            if (IsVisible(SwitchCaptcha))
+            bool UseMath=this.UseMath;
+            bool NeedChange= !(IsVisible ( ElementByXPath ( "//img[contains(@src,'adbtc.top/1captcha')]" ) )==UseMath);
+
+            var SwitchCaptcha = NeedChange?ElementByXPath("//input[contains(@class,'select-dropdown')]"):null;
+            if (IsVisible(SwitchCaptcha) )
             {
+                string ActualCaptchaValue=SwitchCaptcha.GetAttribute("value");
                 Click(SwitchCaptcha);
                 Wait(1);
-                var SelectCaptcha = GetBoolSetting("UseMath") ?
-                    ElementByXPath("//ul[contains(@id,'select-options')]//span[not(contains(text(),'reCaptcha'))]")
-                    : ElementByXPath("//span[contains(text(),'reCaptcha')]");
 
+                var SelectCaptcha=ElementByXPath("//ul[contains(@id,'select-options')//span[not(contains(text(),'"+ActualCaptchaValue+"'))]");          
                 if (SelectCaptcha != null)
                 {
                     Click(SelectCaptcha);
