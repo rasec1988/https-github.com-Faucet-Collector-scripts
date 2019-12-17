@@ -73,9 +73,12 @@ class HitBits : FaucetScript
         {
             Log ( ErrorLogin.Text );
         }
-
+    
+      
         return base.DoLogin ( );
     }
+
+   
     public override int DoSolveCaptcha ( )
     {
         string CaptchaType=GetBoolSetting("UseSolvemedia")?"SolveMedia":"Recaptcha";
@@ -118,6 +121,12 @@ class HitBits : FaucetScript
         }
 
         var NextBtn=ElementByXPath("//div[contains(@class,'level-item')]//div//button[contains(@class,'button is-primary')]");
+        DateTime timeout=DateTime.Now.AddSeconds(10);
+        while((!IsVisible(NextBtn) ||!NextBtn.Enabled) && DateTime.Now<timeout )
+        {
+            Wait ( );
+            NextBtn=ElementByXPath ( "//div[contains(@class,'level-item')]//div//button[contains(@class,'button is-primary')]" );
+        }
         if ( !IsVisible ( NextBtn ) )
         {
             return Fail ( "Next button not found" );
@@ -178,7 +187,7 @@ class HitBits : FaucetScript
         if ( RaidFightNumber>0 )
         {
             GoToUrl ( RaidUrl );
-            Wait ( );
+            Wait (3,4 );
             int ActualLevel=this.ActualLevel;
 
             if ( ( ActualLevel+75 )>=( RaidFightNumber-1 )*50 )
@@ -188,7 +197,7 @@ class HitBits : FaucetScript
                 if ( IsVisible ( GotoRaidButton ) )
                 {
                     Click ( GotoRaidButton );
-                    Wait ( 2 );
+                    Wait ( 3,4 );
                     int count=0;
                     var PlayButton=this.PlayButton;
                     while ( EnergyLevel>0&&count<10&&PlayButton!=null )
@@ -201,7 +210,7 @@ class HitBits : FaucetScript
                         {
                             Wait ( );
                         }
-                        var Success=ElementByXPath("//li[contains(text(),'You hit for')]");
+                        var Success=ElementsByXPath("//li[contains(text(),'You hit for')]").LastOrDefault();
                         if ( IsVisible ( Success ) )
                         {
                             Log ( Success.Text );
