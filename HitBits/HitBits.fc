@@ -2,7 +2,6 @@
 using System.Linq;
 using FaucetCollector.Script;
 using OpenQA.Selenium;
-using OpenQA.Selenium.Interactions;
 
 class HitBits : FaucetScript
 {
