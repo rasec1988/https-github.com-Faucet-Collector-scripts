@@ -210,7 +210,7 @@ class HitBits : FaucetScript
                         {
                             Wait ( );
                         }
-                        var Success=ElementByXPath("//li[contains(text(),'You hit for')]");
+                        var Success=ElementsByXPath("//li[contains(text(),'You hit for')]").LastOrDefault();
                         if ( IsVisible ( Success ) )
                         {
                             Log ( Success.Text );
