@@ -47,13 +47,12 @@ class EveFaucetScript : FaucetScript
             string Key=GetSetting("Faucet");
 
             if ( Faucets.ContainsKey ( Key ) ) {
-                Title=Title.Contains ( Key ) ? Title : Key;
+
                 return Faucets[Key];
              }
 
             Log ( "Something is wrong with the faucet that you selected" );
             var FirstKey=Faucets.Keys.FirstOrDefault();
-            Title=Title.Contains ( FirstKey ) ? Title : Key;
             return Faucets[FirstKey];
 
         } 
