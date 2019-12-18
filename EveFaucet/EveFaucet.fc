@@ -47,11 +47,14 @@ class EveFaucetScript : FaucetScript
             string Key=GetSetting("Faucet");
 
             if ( Faucets.ContainsKey ( Key ) ) {
+                Title=Title.Contains ( Key ) ? Title : Key;
                 return Faucets[Key];
              }
 
             Log ( "Something is wrong with the faucet that you selected" );
-            return Faucets.Values.FirstOrDefault ( );
+            var FirstKey=Faucets.Keys.FirstOrDefault();
+            Title=Title.Contains ( Key ) ? Title : Key;
+            return Faucets[FirstKey];
 
         } 
     }
@@ -70,16 +73,15 @@ class EveFaucetScript : FaucetScript
             return BaseUrl+"?a=roll";
         }
     }
-    
-    Dictionary<string,string> Faucets =new Dictionary<string, string>
+
+    readonly Dictionary<string,string> Faucets =new Dictionary<string, string>
     {
         {"Ripple","https://evexrp.xyz/" },
         {"TRON","https://evetrx.xyz/" },
         {"DOGE", "https://evedoge.xyz/" },
         {"LTC","https://eveltc.xyz/" },
-		{"BCH","https://evebch.xyz/" },
-		{"XMR","https://evexmr.xyz/" }
-		
+        {"BCH","https://evebch.xyz/" },
+        {"XMR","https://evexmr.xyz/" }
 
     };
     public override void Start ( )
@@ -88,7 +90,7 @@ class EveFaucetScript : FaucetScript
 
         Title=GetSetting ( "Faucet" );
 
-      SuccessXPath="//div[contains(text(),'Win')]";
+        SuccessXPath="//div[contains(text(),'Win')]|//div[@style='padding:4px;padding-bottom: 10px;']";
         FailXPath="//div[contains(text(),'Error')]";
         GoToUrl ( BaseUrl );
     }
@@ -149,8 +151,13 @@ class EveFaucetScript : FaucetScript
 
     public override int DoSolveFaucet ( )
     {
-        GoToUrl ( ClaimUrl );
-        Wait (  );
+        string ClaimUrl=this.ClaimUrl;
+        if ( Driver.Url!=ClaimUrl )
+        {
+            GoToUrl ( ClaimUrl );
+            Wait ( 2 );
+        }
+
 
         var ButtonClaim=ElementByXPath("//a[contains(text(),'ROLL NOW')]");
         if ( !IsVisible(ButtonClaim ))
@@ -174,6 +181,12 @@ class EveFaucetScript : FaucetScript
 
     public override int GetFaucetWaitTime ( )
     {
+        string ClaimUrl=this.ClaimUrl;
+        if ( Driver.Url!=ClaimUrl )
+        {
+            GoToUrl ( ClaimUrl );
+            Wait ( 2 );
+        }
         var MinuteTimer=ElementByXPath("//div[@id='t']//div[1]");
         var SecondTimer=ElementByXPath("//div[@id='t']//div[2]");
         if(IsVisible(MinuteTimer) &&IsVisible ( SecondTimer ) )
