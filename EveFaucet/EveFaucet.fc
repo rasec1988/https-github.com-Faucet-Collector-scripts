@@ -53,7 +53,7 @@ class EveFaucetScript : FaucetScript
 
             Log ( "Something is wrong with the faucet that you selected" );
             var FirstKey=Faucets.Keys.FirstOrDefault();
-            Title=Title.Contains ( Key ) ? Title : Key;
+            Title=Title.Contains ( FirstKey ) ? Title : Key;
             return Faucets[FirstKey];
 
         } 
