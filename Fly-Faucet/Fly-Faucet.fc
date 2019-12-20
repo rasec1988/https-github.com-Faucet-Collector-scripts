@@ -31,7 +31,7 @@ class Free_Dash : FaucetScript
 
     private readonly Dictionary<string,string> AvailableFaucets=new Dictionary<string,string>
     {
-        {"DASH","https://fly-dash.com" },
+        {"DASH","https://fly-dash.com/" },
         {"LTC","https://fly-ltc.com/" }
     };
     public override FaucetSettings Settings
