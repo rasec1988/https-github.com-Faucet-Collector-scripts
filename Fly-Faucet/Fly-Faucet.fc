@@ -1,0 +1,238 @@
+﻿using FaucetCollector.Script;
+using System.Collections.Generic;
+using System.Linq;
+//css_inc RecaptchaUtilities
+//css_inc BaseUtility
+class Free_Dash : FaucetScript
+{
+    private string BaseUrl
+    {
+        get
+        {
+            string Selected=GetSetting("Faucet");
+            if ( AvailableFaucets.ContainsKey ( Selected ) )
+            {
+                return AvailableFaucets[Selected];
+            }
+
+            return AvailableFaucets.Values.FirstOrDefault ( );
+
+        }
+    }
+    private string FaucetUrl {
+        
+        get { 
+           
+            return BaseUrl+"free"; 
+        
+        }
+    
+    }
+
+    private readonly Dictionary<string,string> AvailableFaucets=new Dictionary<string,string>
+    {
+        {"DASH","https://fly-dash.com" },
+        {"LTC","https://fly-ltc.com/" }
+    };
+    public override FaucetSettings Settings
+    {
+        get
+
+        {
+
+            return new FaucetSettings ( "about:blank" )
+            {
+                new FaucetSetting()
+                {
+                Name="User",
+                Type=EditorType.TextBox,
+                Required=true,
+                Display="Email"
+
+
+                },
+                new FaucetSetting ( )
+                {
+                    Name="Pass",
+                    Type=EditorType.Password,
+                    Required=true,
+                    Display="Password"
+                },
+                new FaucetSetting
+                {
+                    Name="Faucet",
+                    Type=EditorType.ComboBox,
+                    Default=AvailableFaucets.Keys.FirstOrDefault(),
+                    Items=AvailableFaucets.Keys.ToList()
+                }
+                
+
+            };
+        }
+
+    }
+
+    public override void Start ( )
+    {
+        SuccessXPath="//h3[@id='info' and @style='color: green;']";
+
+        FailXPath="//h3[@id='info']";
+
+        Title="DASH";
+        
+        base.Start ( );
+
+        Url=BaseUrl;
+    }
+
+    public override int BeforeLogin ( )
+    {
+        var TryAgain=ElementByXPath("//a[contains(text(),'Try again')]");
+        if ( IsVisible ( TryAgain ) )
+        {
+            Click ( TryAgain );
+            Wait ( 1 );
+        }
+
+        var ButtonSignIn=ElementByXPath("//a[@href='#mySignin']");
+        if(!IsVisible(ElementByXPath( "//div[@id='mySignin']" ) ) && IsVisible(ButtonSignIn ))
+        {
+            Click ( ButtonSignIn );
+            Wait ( 1 );
+        }
+        return base.BeforeLogin ( );
+        
+    }
+
+    public override int DoSolveCaptcha ( )
+    {
+        int result=base.DoSolveCaptcha();
+        if ( result>0 )
+        {
+            return result;
+        }
+
+        RecaptchaUtility utility=new RecaptchaUtility(this);
+        utility.DoSolve ( );
+
+
+        return result;
+    }
+    public override int DoLogin ( )
+    {
+
+        if ( !Driver.Url.Contains ( BaseUrl ) )
+        {
+            GoToUrl ( BaseUrl );
+            Wait ( 2 );
+        }
+        var UserBox=ElementByXPath("//input[@id='inputText']");
+        if ( !IsVisible ( UserBox ) )
+        {
+            return Fail ( "User box not visible" );
+        }
+        SetText ( UserBox , GetSetting ( "User" ) );
+
+        var PasswordBox=ElementByXPath("//input[@id='inputSigninPassword']");
+        if ( !IsVisible ( PasswordBox ) )
+        {
+            return Fail ( "Password box not visible" );
+        }
+        SetText ( PasswordBox , GetPassword ( "Pass" ) );
+
+        var result=DoSolveCaptcha();
+        if ( result>0 )
+        {
+            return result;
+        }
+       
+        var ButtonLogin=ElementByXPath("//button[@class='btn btn-lg btn-primary btn-sm text-center g-recaptcha']");
+        if ( IsVisible ( ButtonLogin ) )
+        {
+            ExecuteScript ( "onSubmit('"+Context.CaptchaResult.Result+"')" );
+            Wait ( 1 );
+        }
+       
+
+        var FailLogin=ElementByXPath("//a[contains(text(),'Try again')]");
+        if ( IsVisible ( FailLogin ) )
+        {
+            Log ( "Login Failed:"+ FailLogin.Text );
+        }
+
+        return base.DoLogin ( );
+    }
+
+    public override bool IsLoggedIn ( )
+    {
+
+        return ElementByXPath ( "//a[@href='/logout']" )!=null;
+    }
+
+   
+    public override int DoSolveFaucet ( )
+    {
+        if ( Driver.Url!=FaucetUrl )
+        {
+            GoToUrl ( FaucetUrl );
+            Wait ( 2 );
+        }
+
+        var ButtonClaim=ElementByXPath("//button[@class='btn text-center g-recaptcha']");
+        if ( !IsVisible ( ButtonClaim ) )
+        {
+            return Fail ( "There is a problem with button claim" );
+        }
+        var result=DoSolveCaptcha();
+        if ( result>0 )
+        {
+            return result;
+        }
+        Wait ( 1 );
+        if ( IsVisible ( ButtonClaim ) )
+        {
+            ExecuteScript ( "onSubmit('"+Context.CaptchaResult.Result+"')" );
+            Wait ( );
+        }
+
+        var ButtonRoll=ElementByXPath("//button[@id='buttonroll']");
+        if ( IsVisible ( ButtonRoll ) )
+        {
+            result=DoSolveCaptcha ( );
+            if ( result>0 )
+            {
+                return Fail ( "Fail solving 2nd captcha" );
+            }
+
+            Click ( ButtonRoll );
+        }
+
+
+        
+        return base.DoSolveFaucet ( );
+    }
+
+    public override int GetFaucetWaitTime ( )
+    {
+        if ( Driver.Url!=FaucetUrl )
+        {
+            GoToUrl ( FaucetUrl );
+            Wait ( 2 );
+        }
+
+        var timer=ElementByXPath("//div[@id='useconds']");
+        if ( timer!=null && IsVisible(ElementByXPath( "//span[@id='utimer']" ) ) )
+        {
+            int Seconds;
+
+            if(int.TryParse(timer.Text,out Seconds ) )
+            {
+                return Seconds;
+            }
+
+        }
+
+        return base.GetFaucetWaitTime ( );
+    }
+}
+
