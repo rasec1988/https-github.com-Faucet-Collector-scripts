@@ -72,29 +72,9 @@ public class ContractMiner : FaucetScript
 
         //In here we can check for the presence of an element that is only present when you are logged in.
         //In this case we check for en element with the class "loggedIn"
-        return ElementByXPath("//a[contains(@href,'logout')]") != null;
+        return ElementByXPath("//a[contains(@href,'target=logout')]") != null;
     }
-    private void CheckForPopup()
-    {
-        var TimerCloseDaily = ElementByXPath("//div[@id='daily_login_timer']");
-        DateTime Tm = DateTime.Now.AddSeconds(15);
-        while (IsVisible(TimerCloseDaily))
-        {
-            if (DateTime.Now > Tm)
-            {
-                break;
-            }
-            Wait();
-            TimerCloseDaily = ElementByXPath("//div[@id='daily_login_timer']");
-        }
-        var CloseDailyAd = ElementByXPath("//button[@name='close_daily_ad']");
-        if (IsVisible(CloseDailyAd))
-        {
-            Click(CloseDailyAd);
-            Wait();
-        }
-     
-    }
+   
     public void CheckDailyAd()
     {
         if(IsVisible(ElementByXPath("//h5[contains(text(),'Daily Login Ad')]")))
@@ -118,13 +98,13 @@ public class ContractMiner : FaucetScript
     /// </summary>
     public override int BeforeLogin()
     {
-        var Login = ElementByXPath("//a[contains(@href,'login')]");
-        if (IsVisible(Login))
+        var Login = ElementByXPath("//a[contains(@href,'target=login')]");
+        if ( IsVisible ( Login ) )
         {
-            Click(Login);
+            Click ( Login );
         }
-     
-        Wait(2);
+
+        Wait (2);
         var LoginW = GetSetting("LoginW");
         if (LoginW == "Recaptcha")
         {
