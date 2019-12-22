@@ -1,0 +1,400 @@
+
+//==================//
+//script Written by: ••AviramDayan•• 22/12/2019 06:05AM - Version 1
+//Last Update: 22/12/2019 06:05AM - Version 1
+//==================//
+
+using System;
+using System.IO;
+using FaucetCollector.Script;
+using OpenQA.Selenium;
+//css_inc ShortLinkUtilities
+//css_inc RecaptchaUtilities
+
+
+public class btcsamsity : FaucetScript
+{
+    /// <summary>
+    /// List of Settings that will be shown in the bot when selecting this Faucet in the bot.
+    /// You can get the value the user entered with the methods: GetSetting("[Name of the FaucetSetting]"), GetBoolSetting and GetDateTimeSetting
+    /// You can also create a new setting value using SetSetting("[Name you want to use]", "value")
+    /// </summary>
+    public override FaucetSettings Settings
+    {
+        get
+        {
+            return new FaucetSettings("https://CoinPayments.Net")
+            {
+                new FaucetSetting(){Name="Email",Display="UserName OR Email",Type=EditorType.TextBox,Required=true},
+                new FaucetSetting(){Name="Pass",Display="Password",Type=EditorType.Password,Required=true},
+				
+                new FaucetSetting(){Name="FaucetClaim",Display="FaucetClaim",Type=EditorType.CheckBox,Default=true},
+                new FaucetSetting(){Name="CancelSecurity",Display="Cancel Security - Like 2FA/Email",Type=EditorType.CheckBox,Default=true},				
+                
+				
+                //insert user settings here
+                //new FaucetSetting { 
+                //    Name = "Name of your setting", 
+                //    Display = "Display shown in Faucet Collector", 
+                //    Type = EditorType.TextBox | EditorType.Password | EditorType.CheckBox | EditorType.Wallet | EditorType.Numeric | EditorType.ComboBox | EditorType.CheckComboBox, 
+                //    Required = true | false, 
+                //    Default = "Optionally a default value" | true | false | null.
+                //    Items = new List<string> { "item1", "item2" } (only valid for ComboBox or CheckComboBox)
+                //} 
+            };
+        }
+    }
+
+	
+
+    //My DomainName
+    //string DomainName_String = "https://CoinPayments.Net";
+	//example - GoToUrl(DomainName_String);
+    //==========//
+	
+	
+//============================================================//
+//the number of "successes" in the script - when are finished  
+//============================================================//
+    public override void Start()
+    {
+		ad=false;
+		
+        //Title that shows in the browser. Is used to identify and close popup windows
+        Title = "coinpayments.net";
+
+        //After we did try to claim on the faucet we search for these elements to determine if it was a success or a fail
+        SuccessXPath = "//*"; //div[@id='btc-balance']
+        FailXPath = "//*"; //*[text()='']
+
+        //Let Faucet Collector start up everything
+        base.Start();
+    }
+//============================================================//
+//the number of "successes" in the script - when are finished  
+//============================================================//
+	
+	
+	
+	bool ad;
+	
+	
+    public override int DoInit()
+    {
+
+	   
+        //Let Faucet Collector continue.
+        return base.DoInit();
+    }
+
+	
+	
+	
+//==================//
+//save Login Cookies 
+//==================//
+    public override bool IsLoggedIn()
+    {
+
+        //In this case we check for en element with the class "loggedIn"
+		return ElementByXPath("//a[@href='logout']")!= null;
+		//return true;
+    }
+//==================//
+//save Login Cookies 
+//==================//
+	
+	
+	
+    /// <summary>
+    /// This method gets called if IsLoggedIn returned false, right before the DoLogin method is called.
+    /// </summary>
+    public override int BeforeLogin()
+    {
+		
+		
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeLogin();
+    }
+	
+	
+	
+	
+	
+
+	
+//=============//
+//start DoLogin
+//=============//
+    public override int DoLogin()
+    {
+
+
+	 //var checks login or exit
+     var ExitButton = ElementByXPath("//a[@href='logout']"); //SIGN OUT
+
+		 
+	 //if i NOT Login - go to Login Page
+	 if (!IsVisible(ExitButton))
+	 {
+		
+        //else go to normal login
+		GoToUrl("https://CoinPayments.Net/login");
+        Wait();	
+	    Wait(2);		
+	
+        var box_user = ElementByXPath("//input[@name='username']");
+        SetText(box_user, GetSetting("Email"));
+		
+        Wait(2);
+		
+        var box_pass = ElementByXPath("//input[@name='pass']");
+        SetText(box_pass, GetPassword("Pass"));
+		
+        Wait(2);
+	
+        //solve Captcha X2 XPath (1 = captcha image | 2 = input text )
+        var result = DoSolveImageCaptcha(ElementByXPath("//form[@class='form login-form']/img"),ElementByXPath("//input[@id='captcha_code']")); 
+
+        if (result > 0)
+        {
+           return Fail("fail not solve"); //return to solve again - if something wrong
+        }
+
+        Wait();	
+	    Wait(2);
+		
+        var ButtonLog = ElementByXPath("//input[@value='Login']");
+        Click(ButtonLog);
+		
+        Wait();		
+
+			
+	 }	//end ExitButton
+ 
+	 
+        //This faucet has nothing to do here.    
+        return base.DoLogin();
+    }
+//=============//
+//start DoLogin
+//=============//
+	
+
+	
+	
+	
+	
+//==========//
+//AfterLogin
+//=========//
+ public override int AfterLogin()
+ {
+ 
+	 
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterLogin();
+ }
+//==========//
+//AfterLogin
+//=========//
+	
+	
+	
+
+	
+//=============//
+//GetFaucetWaitTime
+//=============//
+ public override int GetFaucetWaitTime()
+ {
+
+    if(ad)
+	{
+        ad=false; //solve the problem in start - after he return to script again
+        return GetWaitSetting();  
+
+    }	//end ad
+		
+		
+   //let Faucet Collector continue.
+   return base.GetFaucetWaitTime();
+ }
+//=============//
+//GetFaucetWaitTime
+//=============//
+	
+	
+	
+	
+
+    public override int BeforeSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeSolveCaptcha();
+    }
+
+
+    public override int DoSolveCaptcha()
+    {
+
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoSolveCaptcha();
+    }
+
+
+    public override int AfterSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterSolveCaptcha();
+    }
+	
+	
+
+    public override int BeforeSolveFaucet()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeSolveCaptcha();
+    }
+	
+	
+	
+
+
+//=============//
+//DoSolveFaucet
+//=============//
+  public override int DoSolveFaucet()
+  {
+	
+      //=============//
+      //CancelSecurity
+      //=============//
+      if (GetBoolSetting("CancelSecurity"))
+      {
+        //go to CancelSecurity page
+		GoToUrl("https://www.coinpayments.net/index.php?cmd=acct_settings");
+        Log("go to CancelSecurity page");
+		
+	    Wait();
+	    Wait(8);
+	
+        var SecurityTAB = ElementByXPath("//a[contains(@href,'tablogin')]");  
+        if (IsVisible(SecurityTAB))
+		{
+		Click(SecurityTAB);	
+        Log("SecurityTAB");
+		}
+		
+		//MenuSecurity
+        var MenuSecurity = ElementByXPath("//option[contains(text(),'Email') and @selected] | //option[contains(text(),'Disable Password') and @selected] | //option[contains(text(),'Linked 2FA') and @selected] ");  
+		
+        if (!IsVisible(MenuSecurity))
+		{
+        Log("MenuSecurity - no Security OR allredy set to 'NONE' ");
+		}	
+		
+        if (IsVisible(MenuSecurity))
+		{
+        var Security_OPEN = ElementByXPath("//select[@name='want_2fa']");  
+		Click(Security_OPEN);
+        Log("MenuSecurity - open ");
+		Wait(3);
+        var Security_NONE = ElementByXPath("//option[contains(text(),'None')] | //option[contains(text(),'none')]");  
+		Click(Security_NONE);	
+        Log("MenuSecurity - Click to set 'NONE' ");
+		Wait(3);
+        var Security_UPDATE = ElementByXPath("//button[contains(text(),'Update')]");  
+		Click(Security_UPDATE);	
+        Log("MenuSecurity - Click to UPDATE ");
+		Wait(3);
+		}
+
+	  } //end CancelSecurity
+	
+	
+	
+	
+      //=============//
+      //FaucetClaim
+      //=============//
+      if (GetBoolSetting("FaucetClaim"))
+      {
+
+        //go to CancelSecurity FaucetClaim page
+		GoToUrl("https://CoinPayments.Net/acct-balances");
+        Log("go to CancelSecurity FaucetClaim page");
+		
+	    Wait();
+	    Wait(8);
+	
+        var Claim_LTCT = ElementByXPath("//a[contains(text(),'Get LTC')]");  
+        if (IsVisible(Claim_LTCT))
+		{
+		Click(Claim_LTCT);	
+        Log("Claim_LTCT");		
+		}
+
+	    Wait();		
+	    Wait(2);
+		
+        var Success_Claim = ElementByXPath("//h3[contains(text(),'Error')]");
+        if (!IsVisible(Success_Claim))
+		{
+		Log("FaucetClaim - Success_Claim ");  
+        ad = true; //call to timer / and do success
+		}
+
+      } //end FaucetClaim
+
+        return GetWaitSetting(); 
+	 
+  //This faucet has nothing to do here. We will let Faucet Collector handle it.
+  return base.DoSolveFaucet();
+  }
+	
+	
+
+
+	
+	
+    public override int AfterSolveFaucet()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterSolveFaucet();
+    }
+	
+	
+	
+
+    /// <summary>
+    /// This method gets called in the end after the BeforeSolveFaucet/DoSolveFaucet and AfterSolveFaucet methods were done.
+    /// The base.CheckFaucetResult will try to find a visible element on the page using the XPath from SuccessXPath and FailXPath (see the Start method)
+    /// These properties should contain XPath expressions to find certain elements on the page.
+    /// For example if it finds one of the elements from the SuccessXPath, and it is visible, then it will flag the claim attempt as a success.
+    /// Or if it finds one of the elements from the FailXPath, and it is visible, then it will flag the claim attempt as a failure.
+    /// </summary>
+    public override int CheckFaucetResult()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.CheckFaucetResult();
+    }
+	
+	
+	
+        //=================//
+       //INT_Template_Function
+        //=================//
+
+        public int INT_Template_Function()
+        {
+
+
+        return 0;
+		
+        }//end INT_Template_Function
+        //=================//
+
+	
+	
+} //public class dogeto
