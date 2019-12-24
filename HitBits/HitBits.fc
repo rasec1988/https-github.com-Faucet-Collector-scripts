@@ -52,7 +52,7 @@ class HitBits : FaucetScript
         {
             return Fail ( "Password box not visible" );
         }
-        var Loginbtn=ElementByXPath("//button[@class='button is-primary' and contains(text(),'Submit')]");
+        var Loginbtn=ElementByXPath("//button[@type='submit']");
         if ( !IsVisible ( Loginbtn ) )
         {
             return Fail ( "Login button not visible or not found" );
