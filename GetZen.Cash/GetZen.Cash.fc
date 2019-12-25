@@ -1,7 +1,7 @@
 
 //==================//
 //script Written by: ••AviramDayan•• 23/12/2019 01:30PM - Version 1
-//Last Update: 23/12/2019 01:30PM - Version 1
+//Last Update: 26/12/2019 00:15PM - Version 2
 //==================//
 
 using System;
@@ -64,7 +64,7 @@ public class GetZen : FaucetScript
         Title = "HORIZEN";
 
         //After we did try to claim on the faucet we search for these elements to determine if it was a success or a fail
-        SuccessXPath = "//*"; //div[@id='btc-balance']
+        SuccessXPath = "//*";  //*[text()='']
         FailXPath = "//*"; //*[text()='']
 
         //Let Faucet Collector start up everything
@@ -295,15 +295,14 @@ public class GetZen : FaucetScript
         var RecaptchaOpen_Iframe = ElementByXPath ("//iframe[contains(@src,'recaptcha/api2/bframe' | 'recaptcha/api2/anchor')]"); // iframe
         if (IsVisible(RecaptchaOpen_Iframe))
         {
-          var result = base.DoSolveCaptcha();
-          RecaptchaUtility utility = new RecaptchaUtility(this);
-          utility.DoSolve();
+          var result = DoSolveCaptcha();
           if (result > 0)
           {
-            return Fail("fail not solve"); //return to solve again - if something wrong
+             return Fail("fail not solve"); //return to solve again - if something wrong
           }
+          Wait();
         }
-		
+
 	    Wait(2);
 		
         if (IsVisible(ElementByXPath ("//form[@id='form-claim-zen']//button[@type='submit']") )) 
@@ -311,8 +310,22 @@ public class GetZen : FaucetScript
          var ButtonLog = ElementByXPath("//form[@id='form-claim-zen']//button[@type='submit']");
          Click(ButtonLog);
 		}
-		
-        ad = true; //call to timer / and do success
+	
+		Wait(5);
+
+        var SuccessXPath = ElementByXPath("//div[@class='modal-content']//div[@id='result1' and contains(text(),'This address claimed Zen in the last')]");       
+		if (!IsVisible(SuccessXPath))
+        {
+         Log("success - claim");		
+         //ad = true; //success
+		 ClaimSuccess(); //Marks the claim as a success
+		}
+
+        if (IsVisible(SuccessXPath))
+		{
+         Log("fail - need to wait");	
+         return GetWaitSetting(); //fail  
+		}
 
       } //end FaucetClaim
 
