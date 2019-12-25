@@ -1,7 +1,8 @@
 
+
 //==================//
 //script Written by: ••AviramDayan•• 13/09/2019 22:09PM - Version 1
-//Last Update: 24/11/2019 22:09PM - Version 2
+//Last Update: 25/12/2019 05:10PM - Version 6
 //==================//
 
 using System;
@@ -357,16 +358,18 @@ public class firebitcoinfaucettech : FaucetScript
            Click(ReCaptchaButtonStart);
 		   Log("ReCaptchaButtonStart - faucet");
 		   }
-
+		   
+		   /*
 		   Wait(2);
-		
+
            var ReCaptcha2ButtonStart = ElementByXPath("//div[@class='g-recaptcha-inner']");  //different
 	       if (IsVisible(ReCaptcha2ButtonStart))
 	       { 
            Click(ReCaptcha2ButtonStart);
 		   Log("ReCaptcha2ButtonStart - faucet2");
 		   }
-
+           */
+		   
 		   Wait(5);		
 			
            SolveCaptcha_Function(); //call to SolveCaptcha_Function
@@ -517,3 +520,4 @@ public class firebitcoinfaucettech : FaucetScript
 	
 	
 } //end public class
+
