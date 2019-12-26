@@ -32,7 +32,9 @@ class FlyFaucetScript : FaucetScript
     private readonly Dictionary<string,string> AvailableFaucets=new Dictionary<string,string>
     {
         {"DASH","https://fly-dash.com/" },
-        {"LTC","https://fly-ltc.com/" }
+        {"LTC","https://fly-ltc.com/" },
+        {"DOGE", "https://fly-doge.com/"  },
+        {"BTC","https://fly-btc.com/" }
     };
     public override FaucetSettings Settings
     {
