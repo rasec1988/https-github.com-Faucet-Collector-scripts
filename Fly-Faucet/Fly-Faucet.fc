@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 //css_inc RecaptchaUtilities
 //css_inc BaseUtility
-class Free_Dash : FaucetScript
+class FlyFaucetScript : FaucetScript
 {
     private string BaseUrl
     {
@@ -74,6 +74,7 @@ class Free_Dash : FaucetScript
 
     public override void Start ( )
     {
+        TryGetCallback=true;
         SuccessXPath="//h3[@id='info' and @style='color: green;']";
 
         FailXPath="//h3[@id='info']";
@@ -83,6 +84,13 @@ class Free_Dash : FaucetScript
         base.Start ( );
 
         Url=BaseUrl;
+        
+    }
+
+    public override int DoInit ( )
+    {
+        GoToUrl ( Url );
+        return base.DoInit ( ); 
     }
 
     public override int BeforeLogin ( )
@@ -103,7 +111,7 @@ class Free_Dash : FaucetScript
         return base.BeforeLogin ( );
         
     }
-
+    private bool TryGetCallback { get; set; }
     public override int DoSolveCaptcha ( )
     {
         int result=base.DoSolveCaptcha();
@@ -111,9 +119,15 @@ class Free_Dash : FaucetScript
         {
             return result;
         }
-
-        RecaptchaUtility utility=new RecaptchaUtility(this);
-        utility.DoSolve ( );
+        if ( TryGetCallback )
+        {
+            RecaptchaUtility utility=new RecaptchaUtility(this);
+            utility.DoSolve ( );
+        }
+        else
+        {
+            TryGetCallback=true;
+        }
 
 
         return result;
@@ -172,9 +186,12 @@ class Free_Dash : FaucetScript
    
     public override int DoSolveFaucet ( )
     {
+        string FaucetUrl=this.FaucetUrl;
+
         if ( Driver.Url!=FaucetUrl )
         {
             GoToUrl ( FaucetUrl );
+
             Wait ( 2 );
         }
 
@@ -183,34 +200,42 @@ class Free_Dash : FaucetScript
         {
             return Fail ( "There is a problem with button claim" );
         }
+
         var result=DoSolveCaptcha();
         if ( result>0 )
         {
             return result;
         }
-        Wait ( 1 );
-        if ( IsVisible ( ButtonClaim ) )
+
+        Wait (  );
+     
+
+        var ButtonRoll=ElementByXPath("//button[@id='buttonroll']",10);
+
+        if ( !IsVisible ( ButtonRoll ) )
         {
-            ExecuteScript ( "onSubmit('"+Context.CaptchaResult.Result+"')" );
-            Wait ( );
+            return Fail ( "Button roll not found" );
         }
 
-        var ButtonRoll=ElementByXPath("//button[@id='buttonroll']");
-        if ( IsVisible ( ButtonRoll ) )
-        {
-            result=DoSolveCaptcha ( );
+
+        TryGetCallback=false;
+        result=DoSolveCaptcha ( );
+
             if ( result>0 )
             {
                 return Fail ( "Fail solving 2nd captcha" );
             }
 
             Click ( ButtonRoll );
-        }
+
+        Wait ( 3,4 );
 
 
         
         return base.DoSolveFaucet ( );
     }
+
+
 
     public override int GetFaucetWaitTime ( )
     {
@@ -220,14 +245,17 @@ class Free_Dash : FaucetScript
             Wait ( 2 );
         }
 
-        var timer=ElementByXPath("//div[@id='useconds']");
-        if ( timer!=null && IsVisible(ElementByXPath( "//span[@id='utimer']" ) ) )
-        {
-            int Seconds;
+        var timer=ElementByXPath("//span[@id='utimer']");
 
-            if(int.TryParse(timer.Text,out Seconds ) )
+        if ( IsVisible ( timer ) )
+        {
+            int M,S;
+
+            var Splited=timer.Text.ToLower().Replace(".","").Replace("m","").Replace("s","").Split(' ');
+
+            if(int.TryParse(Splited[0],out M) && int.TryParse(Splited[1],out S ) )
             {
-                return Seconds;
+                return M*60+S;
             }
 
         }
