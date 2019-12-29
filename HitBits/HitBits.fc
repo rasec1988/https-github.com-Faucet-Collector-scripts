@@ -18,15 +18,12 @@ class HitBits : FaucetScript
             };
 
         }
-
-
-
     }
     public const string BaseUrl="https://hitbits.io/";
     public const string LoginUrl=BaseUrl+"login";
     public const string FaucetUrl=BaseUrl+"faucet";
     public const string RaidUrl=BaseUrl+"raids";
-
+   
     public override void Start ( )
     {
         FailXPath="//div[contains(@class,'alert')]";
@@ -39,7 +36,7 @@ class HitBits : FaucetScript
     public override int DoLogin ( )
     {
         GoToUrl ( LoginUrl );
-
+        
         Wait ( 1 );
 
         var UserBox=ElementByXPath("//input[@name='username']");
@@ -98,12 +95,10 @@ class HitBits : FaucetScript
                     Wait ( 2 , 3 );
                 }
             }
-        }
-
-
+        }       
+    
         return base.DoSolveCaptcha ( );
     }
-
     public override bool IsLoggedIn ( )
     {
 
@@ -119,7 +114,12 @@ class HitBits : FaucetScript
             GoToUrl ( FaucetUrl );
             Wait ( 2 , 3 );
         }
-
+        var GotoFaucetButton=ElementByXPath("//a[@class='button is-success is-medium' and @href='/faucet']");
+        if ( IsVisible ( GotoFaucetButton ) )
+        {
+            Click ( GotoFaucetButton );
+            Wait ( 2 );
+        }
         var NextBtn=ElementByXPath("//div[contains(@class,'level-item')]//div//button[contains(@class,'button is-primary')]");
         DateTime timeout=DateTime.Now.AddSeconds(10);
         while((!IsVisible(NextBtn) ||!NextBtn.Enabled) && DateTime.Now<timeout )
@@ -175,7 +175,7 @@ class HitBits : FaucetScript
                 return M*60+S;
             }
         }
-
+      
         return base.GetFaucetWaitTime ( );
     }
 
