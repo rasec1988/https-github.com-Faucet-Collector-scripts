@@ -1,7 +1,7 @@
 
 //==================//
 //script Written by: ••AviramDayan•• 05/12/2018 06:00AM 
-//Last Update: 15/12/2019 21:30PM - Version 53
+//Last Update: 01/01/2020 08:40AM - Version 54
 //==================//
 
 using System;
@@ -1256,7 +1256,7 @@ public class discordapp_ : FaucetScript
 		Wait(6);
 		
         //TextCommand            
-        var TextCommand = ElementByXPath("//div[contains(@class,'innerEnabled')]/div[contains(@class,'textAreaEnabled')]");
+        var TextCommand = ElementByXPath("//div[contains(@class,'inner')]/div[contains(@class,'textArea')]");
 	        
         if (IsVisible(TextCommand))
         {
@@ -1279,7 +1279,7 @@ public class discordapp_ : FaucetScript
 
 	    if (!IsVisible(TextCommand)) 
         {
-		 Log("Error - Invite Invalid apper - we return after FC time"); 	
+		 Log("Error - TextCommand input not apper - we return after FC time"); 	
          return GetWaitSetting();	
         } //end TextCommand NOT visible
   
@@ -1682,7 +1682,7 @@ public class discordapp_ : FaucetScript
       //=================//	
       public int Enter_SendKeys_General_Discord_Input_Function()
       {
-         var TextCommand = ElementByXPath("//div[contains(@class,'innerEnabled')]/div[contains(@class,'textAreaEnabled')]");
+         var TextCommand = ElementByXPath("//div[contains(@class,'inner')]/div[contains(@class,'textArea')]");
 	     //Enter Keyboard
          Log("TextCommand");
          Actions Builder4Act = new Actions(Driver);
@@ -1700,7 +1700,7 @@ public class discordapp_ : FaucetScript
       //=================//	
       public int SetText_1_Laccs_SendKeys_Way_Function()
       {
-         var TextCommand = ElementByXPath("//div[contains(@class,'innerEnabled')]/div[contains(@class,'textAreaEnabled')]");
+         var TextCommand = ElementByXPath("//div[contains(@class,'inner')]/div[contains(@class,'textArea')]");
 	     //SetText Keyboard
          Log("TextCommand");
          Actions Builder4Act = new Actions(Driver);
@@ -1718,7 +1718,7 @@ public class discordapp_ : FaucetScript
       //=================//	
       public int SetText_2_Laccs_SendKeys_Way_Function()
       {
-         var TextCommand = ElementByXPath("//div[contains(@class,'innerEnabled')]/div[contains(@class,'textAreaEnabled')]");
+         var TextCommand = ElementByXPath("//div[contains(@class,'inner')]/div[contains(@class,'textArea')]");
 	     //SetText Keyboard
          Log("TextCommand");
          Actions Builder4Act = new Actions(Driver);
@@ -1756,7 +1756,7 @@ public class discordapp_ : FaucetScript
       //=================//	
       public int SetText_yes_AutoWithdraw_SendKeys_Way_Function()
       {
-         var TextCommand = ElementByXPath("//div[contains(@class,'innerEnabled')]/div[contains(@class,'textAreaEnabled')]");
+         var TextCommand = ElementByXPath("//div[contains(@class,'inner')]/div[contains(@class,'textArea')]");
 	     //SetText Keyboard
          Log("TextCommand");
          Actions Builder4Act = new Actions(Driver);
@@ -1774,7 +1774,7 @@ public class discordapp_ : FaucetScript
       //=================//	
       public int SetText_bal_doge_AutoWithdraw_SendKeys_Way_Function()
       {
-         var TextCommand = ElementByXPath("//div[contains(@class,'innerEnabled')]/div[contains(@class,'textAreaEnabled')]");
+         var TextCommand = ElementByXPath("//div[contains(@class,'inner')]/div[contains(@class,'textArea')]");
 	     //SetText Keyboard
          Log("TextCommand");
          Actions Builder4Act = new Actions(Driver);
@@ -1791,7 +1791,7 @@ public class discordapp_ : FaucetScript
       //=================//	
       public int SetText_bal_btc_AutoWithdraw_SendKeys_Way_Function()
       {
-         var TextCommand = ElementByXPath("//div[contains(@class,'innerEnabled')]/div[contains(@class,'textAreaEnabled')]");
+         var TextCommand = ElementByXPath("//div[contains(@class,'inner')]/div[contains(@class,'textArea')]");
 	     //SetText Keyboard
          Log("TextCommand");
          Actions Builder4Act = new Actions(Driver);
@@ -1808,7 +1808,7 @@ public class discordapp_ : FaucetScript
       //=================//	
       public int SetText_bal_ltc_AutoWithdraw_SendKeys_Way_Function()
       {
-         var TextCommand = ElementByXPath("//div[contains(@class,'innerEnabled')]/div[contains(@class,'textAreaEnabled')]");
+         var TextCommand = ElementByXPath("//div[contains(@class,'inner')]/div[contains(@class,'textArea')]");
 	     //SetText Keyboard
          Log("TextCommand");
          Actions Builder4Act = new Actions(Driver);
