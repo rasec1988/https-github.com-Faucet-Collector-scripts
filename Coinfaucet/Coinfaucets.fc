@@ -14,21 +14,54 @@ class Coinfaucets : FaucetScript
             {
                 new FaucetSetting(){Name="User",Display="Email",Type=EditorType.TextBox,Required=true},
                 new FaucetSetting(){Name="Pass",Display="Password",Type=EditorType.Password,Required=true},
-                new FaucetSetting(){Name="Faucet",Display="Faucet Selected",Type=EditorType.ComboBox,Items=Faucets.Keys.ToList()}
+                new FaucetSetting(){Name="Faucet",Display="Faucet Selected",Type=EditorType.ComboBox,Items=Faucets.Keys.ToList(),Default=Faucets.Keys.FirstOrDefault()},
+                new FaucetSetting(){Name="AutoWithdraw",Display="AutoWithdraw",Type=EditorType.CheckBox,Default=false }
             };
         }
     }
-
-    public Dictionary<string , string> Faucets=new Dictionary<string, string>()
+    private class Coinfaucet
     {
-        {"NEM" ,"https://freenem.com/"},
-        {"Cardano","https://freecardano.com/" },
-        {"XRP","https://coinfaucet.io/" },
-        {"Bitcoin","https://freebitcoin.io/" },
-        {"Steam","https://freesteam.io/" }
+        public double MinWithdraw { get; set; }
+        public string Url { get; set; }
+    }
+    private Dictionary<string , Coinfaucet> Faucets=new Dictionary<string, Coinfaucet>()
+    {
+        {"NEM",new Coinfaucet
+        {
+            Url="https://freenem.com/",
+            MinWithdraw=1
+        } },
+        {"Cardano",new Coinfaucet
+        {
+            Url="https://freecardano.com/",
+            MinWithdraw=1
+        } },
+        {"XRP",new Coinfaucet
+        {
+            Url="https://coinfaucet.io/",
+            MinWithdraw=1
+
+        } },
+        {
+            "Bitcoin",new Coinfaucet
+            {
+                Url="https://freebitcoin.io/",
+                MinWithdraw=0.0002
+            }
+        },
+        {"Steam",new Coinfaucet
+            {
+            Url="https://freesteam.io/",
+            MinWithdraw=1
+
+            } 
+        }
+       
     };
 
-    public string Url_
+   
+
+    private string Url_
     {
         get
         {
@@ -36,15 +69,15 @@ class Coinfaucets : FaucetScript
             if ( Faucets.ContainsKey ( Key ) )
             {
 
-                return Faucets[Key];
+                return Faucets[Key].Url;
             }
 
-            return Faucets.Values.FirstOrDefault ( );
+            return Faucets.Values.FirstOrDefault ( ).Url;
 
         }
     }
 
-    public string FaucetUrl
+    private string FaucetUrl
     {
         get
         {
@@ -52,7 +85,7 @@ class Coinfaucets : FaucetScript
         }
     }
 
-    public string KeySelected
+    private string KeySelected
     {
         get
         {
@@ -124,6 +157,52 @@ class Coinfaucets : FaucetScript
         return ElementByXPath ( "//a[@href='/logout']" )!=null;
     }
 
+    private double Balance
+    {
+        get
+        {
+            var BalanceElement=ElementByXPath("//li[@class='navbar-coins bg-1']//a");
+            if ( IsVisible(BalanceElement) )
+            {
+                double bal;
+                if ( double.TryParse (BalanceElement.Text.Split(' ')[0].Trim(), out bal ) )
+                {
+                    return bal;
+                }
+            }
+
+            return 0;
+        }
+    }
+    private double MinWithdraw
+    {
+        get
+        {
+            return Faucets[KeySelected].MinWithdraw;
+        }
+    }
+    public override int BeforeSolveFaucet ( )
+    {
+        double Balance=this.Balance;
+        Log ( "Your balance is "+Balance.ToString ( ) );
+        if(GetBoolSetting( "AutoWithdraw" ) && Balance>MinWithdraw  )
+        {
+
+            var BtnWithdraw=ElementByXPath("//a[contains(text(),'Withdraw All')]");
+            var UseProfileAdd=ElementsByXPath("//a[text()='(Use Profile Address)' and @class='profile-wallet color-1']").LastOrDefault();
+            var Btnsubmit=ElementsByXPath("//button[@class='main-button-2 main-button-blue withdraw-now bg-3']").LastOrDefault();
+            if ( IsVisible ( BtnWithdraw ) && IsVisible(UseProfileAdd) && IsVisible(Btnsubmit))
+            {
+                Click ( BtnWithdraw );
+                Wait ( 1 );
+                Click ( UseProfileAdd );
+                Wait ( 1 );
+                Click ( Btnsubmit );            
+            }
+        }
+
+        return base.BeforeSolveFaucet ( );
+    }
     public override int DoSolveFaucet ( )
     {
         GoToUrl ( FaucetUrl );
@@ -164,15 +243,20 @@ class Coinfaucets : FaucetScript
     }
     public override int DoSolveCaptcha ( )
     {
-        var result=base.DoSolveCaptcha ( );
-        if ( result>0 )
+        if ( IsVisible ( ElementByXPath ( "//div[@class='g-recaptcha']" ) ) )
         {
+            var result=base.DoSolveCaptcha ( );
+            if ( result>0 )
+            {
+                return result;
+            }
+            RecaptchaUtility utility=new RecaptchaUtility(this);
+            utility.DoSolve ( );
+
             return result;
         }
-        RecaptchaUtility utility=new RecaptchaUtility(this);
-        utility.DoSolve ( );
 
-        return result;
+        return 0;
     }
 }
 
