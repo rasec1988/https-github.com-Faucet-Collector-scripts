@@ -1,7 +1,7 @@
 
 //==================//
 //script Written by: ••AviramDayan•• 23/12/2019 01:30PM - Version 1
-//Last Update: 26/12/2019 00:15PM - Version 2
+//Last Update: 05/01/2020 00:05PM - Version 3
 //==================//
 
 using System;
@@ -27,10 +27,11 @@ public class GetZen : FaucetScript
             {
                 new FaucetSetting(){Name="Email",Display="Email",Type=EditorType.TextBox,Required=true},
                 new FaucetSetting(){Name="Pass",Display="Password",Type=EditorType.Password,Required=true},
+                new FaucetSetting(){Name="Address",Display="Address HORIZEN - ZEN ",Type=EditorType.TextBox,Required=true},
 				
                 new FaucetSetting(){Name="FaucetClaim",Display="FaucetClaim",Type=EditorType.CheckBox,Default=true},
-                new FaucetSetting(){Name="Address",Display="Address HORIZEN - ZEN ",Type=EditorType.TextBox,Required=true},
-
+                new FaucetSetting(){Name="Bonus_5_days",Display="Bonus_5_days",Type=EditorType.CheckBox,Default=true},
+                new FaucetSetting(){Name="Bonus_Aff",Display="Bonus_Aff",Type=EditorType.CheckBox,Default=false},
 				
                 //insert user settings here
                 //new FaucetSetting { 
@@ -273,6 +274,97 @@ public class GetZen : FaucetScript
   {
 
       //=============//
+      //Bonus_5_days
+      //=============//
+         if (GetBoolSetting("Bonus_5_days"))
+         {
+			 
+		   GoToUrl("https://GetZen.Cash/");
+           Log("Bonus_5_days");		
+	       Wait();
+	       Wait(2);
+		   
+           var Bonus_Not_Eligible_Button = ElementByXPath("//span[contains(@data-target,'modal-jackpot-not-eligible')]");
+	       if (!IsVisible(Bonus_Not_Eligible_Button))
+	       {
+
+            var Bonus_Available = ElementByXPath("//span[contains(@data-target,'modal-jackpot')]");
+		    Click(Bonus_Available);
+		    Log("Bonus_5_days - Bonus_Available");
+            Wait();
+            Wait(2);
+			
+            var MassageError = ElementByXPath("//div[@class='modal-body' and contains(text(),'After using the faucet for five')]");
+	        
+			if (IsVisible(MassageError))
+	        { 
+		    Log("Bonus_5_days - Bonus_Available");
+			} 
+			
+	        if (!IsVisible(MassageError))
+	        { 
+		    Log("Bonus_5_days - do function");
+            Bonus_Function();//call 	
+            Wait();
+	        }
+			
+	       } //end Bonus_Not_Eligible_Button
+
+      } //end Bonus_5_days
+      //=============//
+
+
+
+      //=============//
+      //Bonus_Aff
+      //=============//
+         if (GetBoolSetting("Bonus_Aff"))
+         {
+
+		   GoToUrl("https://getzen.cash/user/referral");
+           Log("Bonus_Aff");	
+           Wait();	
+	       Wait(2);	
+			
+           var ClaimNow_Available = ElementByXPath("//tr[*]//button[contains(text(),'Claim now')]");
+	       if (IsVisible(ClaimNow_Available))
+	       {
+		     Log("Bonus_Aff - Available");
+             var TimeToWaitForBreak = DateTime.Now.AddSeconds(65);
+             while (true)
+             {
+               var Bonus_Available = ElementByXPath("//tr[*]//button[contains(text(),'Claim now')]");
+		       Click(Bonus_Available);
+		       Log("Bonus_Aff - Bonus_Available");
+               Wait();
+               Wait(2);
+		       Log("Bonus_Aff - do function");
+               Bonus_Function();//call 	
+               Wait();
+			   
+			   Driver.Navigate().Refresh(); //refresh page
+               Wait(4);
+			   
+               if (!IsVisible(ElementByXPath ("//tr[*]//button[contains(text(),'Claim now')]") )) 
+	           {
+		         Log("Bonus_Aff - break - not Available");
+                 break; //after break the while  
+	           }
+			   
+               if (DateTime.Now > TimeToWaitForBreak) //if the time above 65 sec 
+               {
+		       Log("Bonus_Aff - break - TimeToWaitForBreak");
+               break; //break the wait loop
+               }
+			   
+             } //end while (true)
+			 
+	       } // end ClaimNow_Available
+         } //end Bonus_Aff
+      //=============//
+	  
+	  
+      //=============//
       //FaucetClaim
       //=============//
       if (GetBoolSetting("FaucetClaim"))
@@ -328,8 +420,10 @@ public class GetZen : FaucetScript
 		}
 
       } //end FaucetClaim
+      //=============//
 
-        return GetWaitSetting();  
+   ClaimSuccess(); //Marks the claim as a success
+   return GetWaitSetting(); 
 
   //This faucet has nothing to do here. We will let Faucet Collector handle it.
   return base.DoSolveFaucet();
@@ -363,6 +457,55 @@ public class GetZen : FaucetScript
     }
 	
 	
+	
+      //=================//
+      //Bonus_Function
+      //=================//
+
+      public int Bonus_Function()
+      {
+           if (IsVisible(ElementByXPath ("//div[@class='modal-body']//input[@name='zen_address']") )) 
+	       {
+            var box_address = ElementByXPath("//div[@class='modal-body']//input[@name='zen_address']");
+            SetText(box_address, GetSetting("Address"));
+			Log("Bonus_Function - set Address");
+	       }
+		   
+           Wait(2);
+		   
+           if (IsVisible(ElementByXPath ("//div[@class='modal-body']//button[contains(text(),'Play')]") )) 
+		   {	
+            var ButtonSpin = ElementByXPath("//div[@class='modal-body']//button[contains(text(),'Play')]");
+            Click(ButtonSpin);
+			Log("Bonus_Function - ButtonSpin");
+		   }
+		   
+           var TimeToWaitForBreak = DateTime.Now.AddSeconds(65);			 
+           while (true)
+           {
+			   
+		     Wait(); //wait until
+
+             var TitleVAR = ElementByXPath("//div[@class='sm-result']/div[@class='sm-result-msg']//h4");
+             var DescriptionVAR = ElementByXPath("//div[@class='sm-result']/div[@class='sm-result-msg']//p");
+			 
+             if (IsVisible(TitleVAR))
+             {
+			  Log("Bonus_Function - your results is - " + TitleVAR.Text + " " + DescriptionVAR.Text);
+              break; //after break the while  
+		     }
+			 
+             if (DateTime.Now > TimeToWaitForBreak) //if the time above 65 sec 
+             {
+		     Log("Bonus_Function - break - TimeToWaitForBreak");
+             break; //break the wait loop
+             }
+			 
+           } //end while (true)		   	   
+	 
+	    return 0;
+      }//end Bonus_Function
+      //=================//	
 	
 	
 } //public class
