@@ -1,7 +1,7 @@
 
 //==================//
 //script Written by: ••AviramDayan•• 23/12/2019 01:30PM - Version 1
-//Last Update: 05/01/2020 22:40PM - Version 3
+//Last Update: 05/01/2020 00:05PM - Version 3
 //==================//
 
 using System;
@@ -330,6 +330,7 @@ public class GetZen : FaucetScript
 	       if (IsVisible(ClaimNow_Available))
 	       {
 		     Log("Bonus_Aff - Available");
+             var TimeToWaitForBreak = DateTime.Now.AddSeconds(65);
              while (true)
              {
                var Bonus_Available = ElementByXPath("//tr[*]//button[contains(text(),'Claim now')]");
@@ -350,7 +351,6 @@ public class GetZen : FaucetScript
                  break; //after break the while  
 	           }
 			   
-               var TimeToWaitForBreak = DateTime.Now.AddSeconds(65);			 
                if (DateTime.Now > TimeToWaitForBreak) //if the time above 65 sec 
                {
 		       Log("Bonus_Aff - break - TimeToWaitForBreak");
@@ -422,8 +422,8 @@ public class GetZen : FaucetScript
       } //end FaucetClaim
       //=============//
 
-
-   return GetWaitSetting();  
+   ClaimSuccess(); //Marks the claim as a success
+   return GetWaitSetting(); 
 
   //This faucet has nothing to do here. We will let Faucet Collector handle it.
   return base.DoSolveFaucet();
@@ -480,6 +480,7 @@ public class GetZen : FaucetScript
 			Log("Bonus_Function - ButtonSpin");
 		   }
 		   
+           var TimeToWaitForBreak = DateTime.Now.AddSeconds(65);			 
            while (true)
            {
 			   
@@ -494,7 +495,6 @@ public class GetZen : FaucetScript
               break; //after break the while  
 		     }
 			 
-             var TimeToWaitForBreak = DateTime.Now.AddSeconds(65);			 
              if (DateTime.Now > TimeToWaitForBreak) //if the time above 65 sec 
              {
 		     Log("Bonus_Function - break - TimeToWaitForBreak");
