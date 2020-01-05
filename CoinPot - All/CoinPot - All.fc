@@ -2,7 +2,7 @@
 
 //==================//
 //script Written by: ••AviramDayan•• 01/01/2020 20:30PM - Version 1
-//Last Update: 03/01/2020 09:15AM - Version 1
+//Last Update: 05/01/2020 08:00AM - Version 2
 //==================//
 
 /*
@@ -109,10 +109,10 @@ public class btcsamsity : FaucetScript
                 new FaucetSetting(){Name="AddressDASH",Display="Address DASH",Type=EditorType.TextBox,Required=false},
 
                 new FaucetSetting(){Name="MultiplierGame",Display="Multiplier Game - ON/OFF",Type=EditorType.CheckBox,Default=true},		
-                new FaucetSetting(){Name="Break_After_Win",Display="Break_After_Win - ON/OFF - if ON - When you win FC will return after the time you set | if OFF - FC will continue (without doing break) to mark as success after you win > also in the bottom",Type=EditorType.CheckBox,Default=true},		
+                new FaucetSetting(){Name="Break_After_Win",Display="Break_After_Win - ON/OFF - if ON - When you win FC will return after the time you set | if OFF - FC will continue (without doing break) to mark as success after you win > also in the bottom",Type=EditorType.CheckBox,Default=false},		
 
                 new FaucetSetting(){Name="Menu_Multiplier_Method",Display="Menu Multiplier Method",Type=EditorType.ComboBox,
-				Default="Method 1 - X10 10% (Target - in High - 900-999 | Target - in Low - 000-099 - You choose the Amount_Tokens | You choose the Roll Bet | addition - AutoChange to High Roll - if number above 894 | AutoChange to Low Roll - if the number under 106) )",
+				Default="Method 2 - X10 10% (Target - in High - 900-999 | Target - in Low - 000-099 - Auto click random token between - 1 token, 10 tokens (in High - only if number above 900 | in Low - only if number under 100) addition - AutoChange to High Roll - if number above 894 | AutoChange to Low Roll - if the number under 106) )",
 				Items=new System.Collections.Generic.List<string>
                 {
                  "Method 0 - Freestyle - your way",
@@ -129,11 +129,11 @@ public class btcsamsity : FaucetScript
                 },
 
                 new FaucetSetting(){Name="NumbersOfRolls",Display="NumbersOfRolls - i set to 1001 as default - because after 1000 tokens that you bet/stake, you can get the daily bonus",Type=EditorType.TextBox,Default="1001"},
-                new FaucetSetting(){Name="Option_Rolls_NodeBetween",Display="Option Rolls Node Between - ON/OFF | if ON - it will keep to run until your exact number that you set | if OFF - it will stop to run when you won",Type=EditorType.CheckBox,Default=true},
+                new FaucetSetting(){Name="Option_Rolls_NodeBetween",Display="Option Rolls Node Between - ON/OFF | if ON - it will keep to run until your exact number that you set in 'NumbersOfRolls' and after it will stop and return to your time | if OFF - it will stop to run when you 'won' - and after return to your time",Type=EditorType.CheckBox,Default=true},
 
                 new FaucetSetting(){Name="Menu_Amount_Tokens_Multiplier",Display="Menu Amount Tokens",Type=EditorType.ComboBox,Default="1 token",Items=new System.Collections.Generic.List<string>{"1 token", "10 tokens", "100 tokens", "1K tokens", "10K tokens", "100K tokens", "1M tokens"}},
-                new FaucetSetting(){Name="Auto_Click_Random_Tokens_on_off",Display="Auto Click Random Tokens - ON/OFF",Type=EditorType.CheckBox,Default=true},
-                new FaucetSetting(){Name="Approve_900_100_on_off",Display="Approve_900_100 - ON/OFF - if ON - Auto click random token by menu method option between - 2-5-8 - 1 to 10 tokens - 3-6-9 - 1 to 10 to 100 tokens (in High - only if number above 900 | in Low - only if number under 100) ",Type=EditorType.CheckBox,Default=true},
+                new FaucetSetting(){Name="Auto_Click_Random_Tokens_on_off",Display="Auto Click Random Tokens - ON/OFF - if ON - will do the action by your selected menu method between this options: 1-2-8 is - 1 to 10 tokens | 3-6-9 - is - 1 to 10 to 100 tokens",Type=EditorType.CheckBox,Default=true},
+                new FaucetSetting(){Name="Approve_900_100_on_off",Display="Approve_900_100 - ON/OFF - if this option ON - only when 'Auto click random token' option (is on) - so he only do click/switch tokens, in High - only if number above 900 | in Low - only if number under 100",Type=EditorType.CheckBox,Default=true},
 
                 new FaucetSetting(){Name="Menu_Win_Chance",Display="Menu Win Chance",Type=EditorType.ComboBox,Default="10x - 10%",Items=new System.Collections.Generic.List<string>{"2x - 50%", "5x - 20%", "10x - 10%", "20x - 5%", "100x - 1%", "1000x - 0.1%"}},
 
@@ -142,7 +142,7 @@ public class btcsamsity : FaucetScript
                 new FaucetSetting(){Name="Roll_Alternative_Random_HighLow",Display="Roll Alternative - Random HighLow - ON/OFF",Type=EditorType.CheckBox,Default=false},
 
                 new FaucetSetting(){Name="LotteryGame",Display="Lottery Game - ON/OFF",Type=EditorType.CheckBox,Default=false},
-                new FaucetSetting(){Name="Menu_Amount_Tokens_Lottery",Display="Lottery Game - Menu Amount Tokens",Type=EditorType.ComboBox,Default="10 tickets",Items=new System.Collections.Generic.List<string>{"1 ticket","10 tickets","100 tickets","1k tickets","10k tickets","100k tickets","1m tickets"}},
+                new FaucetSetting(){Name="Menu_Amount_Tokens_Lottery",Display="Lottery Game - Menu Amount Tokens",Type=EditorType.ComboBox,Default="100 tickets",Items=new System.Collections.Generic.List<string>{"1 ticket","10 tickets","100 tickets","1k tickets","10k tickets","100k tickets","1m tickets"}},
 				
                 //insert user settings here
                 //new FaucetSetting { 
@@ -622,8 +622,7 @@ public class btcsamsity : FaucetScript
 	    {
 		  Count++; //important to put Count++ in start - Count OR store - Similar to the clock begins to count	
 
-          var Multiplier_Token1 = ElementByXPath("//div[@id='StakeButtons']//button[contains(text(),'1 token')]");
-          Click(Multiplier_Token1);	
+          Menu_Amount_Tokens_Multiplier_Function(); // call
 		  Log("Roll Number - " + Count);
           Wait(4);
 		  Log("Wait");
