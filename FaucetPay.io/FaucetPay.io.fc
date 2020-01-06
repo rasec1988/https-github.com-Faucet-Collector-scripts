@@ -1,7 +1,7 @@
 
 //==================//
-//script Written by: ••AviramDayan•• 06/01/2020 03:30PM - Version 1
-//Last Update: 06/01/2020 03:30PM - Version 1
+//script Written by: ••AviramDayan•• 06/01/2020 06:00PM - Version 1
+//Last Update: 06/01/2020 06:00PM - Version 1
 //==================//
 
 using System;
@@ -283,32 +283,48 @@ public class FaucetPay : FaucetScript
 		     Log("Rock_Paper_Scissors_Faucet - Available");
              Click(ClaimNow_Available);
              Wait(6);
-			 
-             var TimerOnText = ElementByXPath("//div[@class='alert alert-solid alert-dark' and contains(text(),'You need to wait for') ]");
-			 if (IsVisible(TimerOnText))
-             {
-             var TimerOn = ElementByXPath("//div[@class='alert alert-solid alert-dark']");
-             int sec_INT;
-		     sec_INT = Convert.ToInt32(TimerOn.Text.Trim().Split(' ')[5]);
-             return sec_INT; 
-			 }
+	       } // end ClaimNow_Available
+		   
+             Time_Function(); //call if is visible
 			 
              Wait(3);
 			 
-             if (IsVisible(ElementByXPath ("//div[@class='rc-imageselect-payload']") )) 
+             if (IsVisible(ElementByXPath ("//div[contains(@style,'visibility: visible; position: absolute;')]") )) 
 	         {
-             Log("Rock_Paper_Scissors_Faucet - do Recaptcha"); //call
-             Recaptcha_Function(); //call
-			 }
+                Log("Rock_Paper_Scissors_Faucet - do Recaptcha"); //call
+                Recaptcha_Function(); //call
+                Time_Function(); //call again if is visible	
+                Wait(2);	
+
+                var WaitingForOpponentText = ElementByXPath("//h4[@class='tx-black-6 tx-sans tx-10 tx-bold' and contains(text(),'Waiting') ]");	
+                var Time_1_ToWaitForBreak = DateTime.Now.AddSeconds(180);
+                while (IsVisible(WaitingForOpponentText))
+                {
+					Wait();
+		            Log("Rock_Paper_Scissors_Faucet - Bonus_Available - WaitingForOpponent");
+			  	    if(IsVisible(ElementByXPath ("//div[@class='row game-section hidden']") )) 
+	                {
+                    break; //after break the while  
+			  	    }
+			  	  
+                    if (DateTime.Now > Time_1_ToWaitForBreak) //if the time above 120 sec 
+                    {
+		            Log("Rock_Paper_Scissors_Faucet - break - Time_2_ToWaitForBreak");
+                    break; //break the wait loop
+                    }
+					
+			    } //end while (true)
+
+			 } //end @style,'visibility - Recaptcha
 			 
              Wait(3);
 
              var SectionOpen = ElementByXPath("//div[@class='row game-section']");			 
-             var TimeToWaitForBreak = DateTime.Now.AddSeconds(120);
+             var Time_2_ToWaitForBreak = DateTime.Now.AddSeconds(180);
              while (IsVisible(SectionOpen))
              {	
                Wait();		 
-		       Log("Rock_Paper_Scissors_Faucet - Bonus_Available - wait");
+		       Log("Rock_Paper_Scissors_Faucet - Bonus_Available - wait normal");
 
                if (IsVisible(ElementByXPath ("//div[@class='row game-section hidden']") ))  //if zero break ("//h3[@id='timer-response' and starts-with(text(),'0') ]")
 	           {
@@ -324,15 +340,14 @@ public class FaucetPay : FaucetScript
                  break; //after break the while  
 	           }
 
-               if (DateTime.Now > TimeToWaitForBreak) //if the time above 120 sec 
+               if (DateTime.Now > Time_2_ToWaitForBreak) //if the time above 120 sec 
                {
-		       Log("Rock_Paper_Scissors_Faucet - break - TimeToWaitForBreak");
+		       Log("Rock_Paper_Scissors_Faucet - break - Time_2_ToWaitForBreak");
                break; //break the wait loop
                }
 			   
              } //end while (true)
-			 
-	       } // end ClaimNow_Available
+
          } //end Rock_Paper_Scissors_Faucet
       //=============//
 	  
@@ -375,11 +390,6 @@ public class FaucetPay : FaucetScript
 
         public int Recaptcha_Function()
         {
-
-		  //for recaptcha popup after click on button - ("//button[contains(@class,'reload')] | //button[contains(@id,'reload')] ")
-          var RecaptchaOpen_Iframe = ElementByXPath ("//iframe[contains(@src,'recaptcha/api2/anchor')]"); 
-          if (IsVisible(RecaptchaOpen_Iframe))
-		  {
             //SolveCaptcha if apper
             var result = base.DoSolveCaptcha();
             RecaptchaUtility utility = new RecaptchaUtility(this);
@@ -388,11 +398,27 @@ public class FaucetPay : FaucetScript
             {
                 return Fail("Fail solving captcha");
             }
-		  }
 
 		return 0;
-        }//end VOID_Template_Function
+        }//end Recaptcha_Function
         //=================//	
 	
+
+        //=================//
+       //Time_Function
+        //=================//
+        public int Time_Function()
+        {
+         var TimerOnText = ElementByXPath("//div[@class='alert alert-solid alert-dark' and contains(text(),'You need to wait for') ]");
+		 if(IsVisible(TimerOnText))
+         {
+         var TimerOn = ElementByXPath("//div[@class='alert alert-solid alert-dark']");
+         int sec_INT;
+		 sec_INT = Convert.ToInt32(TimerOn.Text.Trim().Split(' ')[5]);
+         return sec_INT; 
+		 }	
+		return 0;
+        }//end Time_Function
+        //=================//	
 	
 } //public class
