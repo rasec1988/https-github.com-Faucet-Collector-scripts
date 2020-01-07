@@ -1,61 +1,66 @@
 
-//==================//
-//script Written by: ••AviramDayan•• 08/10/2018 17:00PM
-//==================//
-
-
-using System;
+using System.Collections.Generic;
+using System.Linq;
 using FaucetCollector.Script;
-using OpenQA.Selenium;
 
-public class litecoinfaucetScript : FaucetScript
+public class AllCoinsPWScript : FaucetScript
 {
     public override FaucetSettings Settings
     {
         get
         {
-          return new FaucetSettings("https://allcoins.pw/")
+            return new FaucetSettings ( "https://allcoins.pw/" )
           {
           new FaucetSetting(){Name="User",Display="Username",Type=EditorType.TextBox,Required=true},
           new FaucetSetting(){Name="Pass",Display="Password",Type=EditorType.Password,Required=true},
 
           new FaucetSetting() { Name = "UseSolveMedia", Display = "Use SolveMedia (Leave check by default)", Type = EditorType.CheckBox, Default = true},
-          new FaucetSetting(){Name="FreeRoll",Display="Free Roll - It's free one time every 1 hour (try your luck)",Type=EditorType.CheckBox,Default=true},
-          new FaucetSetting(){Name="AutoFaucet",Display="Claim Auto Faucet (BTC Default)",Type=EditorType.CheckBox,Default=false},
-		  
-          new FaucetSetting(){Name="Title",Display="Claim Faucet every 4 min - Choose only one coin at the same time, from all the CheckBox list",Type = EditorType.Numeric,Default = 1},
-          new FaucetSetting(){Name="ClaimBTC",Display="Claim Bitcoin BTC (Default)",Type=EditorType.CheckBox,Default=true},
-		  new FaucetSetting(){Name="ClaimDoge",Display="Claim Dogecoin Doge",Type=EditorType.CheckBox,Default= false},
-		  new FaucetSetting(){Name="ClaimLTC",Display="Claim Litecoin LTC",Type=EditorType.CheckBox,Default= false},	
-		  new FaucetSetting(){Name="ClaimPOT",Display="Claim Potcoin POT",Type=EditorType.CheckBox,Default= false},	  
-		  new FaucetSetting(){Name="ClaimBLK",Display="Claim BlackCoin BLK",Type=EditorType.CheckBox,Default= false},	
-		  new FaucetSetting(){Name="ClaimXPM",Display="Claim PrimeCoin XPM",Type=EditorType.CheckBox,Default= false},	
-		  new FaucetSetting(){Name="ClaimETH",Display="Claim Ethereum ETH",Type=EditorType.CheckBox,Default= false},	
-		  new FaucetSetting(){Name="ClaimBTX",Display="Claim BitCore BTX",Type=EditorType.CheckBox,Default= false},	
-		  new FaucetSetting(){Name="ClaimDASH",Display="Claim Dash",Type=EditorType.CheckBox,Default= false},	
-		  new FaucetSetting(){Name="ClaimXMR",Display="Claim Monero XMR",Type=EditorType.CheckBox,Default= false},	
-		  new FaucetSetting(){Name="ClaimPPC",Display="Claim PeerCoin PPC",Type=EditorType.CheckBox,Default= false},	
-		  new FaucetSetting(){Name="ClaimBCH",Display="Claim BitcoinCash BCH",Type=EditorType.CheckBox,Default= false},	
- 		  new FaucetSetting(){Name="ClaimZEC",Display="Claim Zcash ZEC",Type=EditorType.CheckBox,Default= false},	
-		  new FaucetSetting(){Name="ClaimETC",Display="Claim Ethereum Classic ETC",Type=EditorType.CheckBox,Default= false},	
-		  new FaucetSetting(){Name="ClaimGRS",Display="Claim Groestlcoin GRS",Type=EditorType.CheckBox,Default= false},	
-		  new FaucetSetting(){Name="ClaimXVG",Display="Claim Verge XVG",Type=EditorType.CheckBox,Default= false},	
-		  new FaucetSetting(){Name="ClaimUBQ",Display="Claim Ubiq UBQ",Type=EditorType.CheckBox,Default= false},	
-		  new FaucetSetting(){Name="ClaimPIVX",Display="Claim Pivx",Type=EditorType.CheckBox,Default= false},	
-		  new FaucetSetting(){Name="ClaimSTRAT",Display="Claim Stratis STRAT",Type=EditorType.CheckBox,Default= false},	
-		  new FaucetSetting(){Name="ClaimGAME",Display="Claim GameCredits GAME",Type=EditorType.CheckBox,Default= false},	
-		  new FaucetSetting(){Name="ClaimKMD",Display="Claim Komodo KMD",Type=EditorType.CheckBox,Default= false},	
-		  new FaucetSetting(){Name="ClaimDGB",Display="Claim DigiByte DGB",Type=EditorType.CheckBox,Default= false},	
-  
-		  
+          new FaucetSetting(){Name="Faucet",Display="Select Faucet to claim",Type=EditorType.ComboBox,Items=Faucets.Keys.ToList(),Default=Faucets.Keys.FirstOrDefault()}
           };
         }
     }
 
-	
-//============================================================//
-//the number of "successes" in the script - when are finished  
-//============================================================//
+    private readonly Dictionary<string,string> Faucets=new Dictionary<string, string>
+    {
+        {"Bitcoin","https://allcoins.pw/faucet.php?coin=BTC" },
+        {"DOGE","https://allcoins.pw/faucet.php?coin=DOGE" },
+        {"Litecoin","https://allcoins.pw/faucet.php?coin=LTC" },
+        {"Ethereum","https://allcoins.pw/faucet.php?coin=ETH" },
+        {"DASH","https://allcoins.pw/faucet.php?coin=DASH" },
+        {"Monero","https://allcoins.pw/faucet.php?coin=XMR" },
+        {"BitcoinCash","https://allcoins.pw/faucet.php?coin=BCH" },
+        {"ZCash","https://allcoins.pw/faucet.php?coin=ZEC" },
+        {"Ethereum Classic","https://allcoins.pw/faucet.php?coin=ETC" },
+        {"IDA","https://allcoins.pw/faucet.php?coin=IDA" },
+        {"PIVX","https://allcoins.pw/faucet.php?coin=PIVX" },
+        {"DigiByte","https://allcoins.pw/faucet.php?coin=DGB" },
+        {"Reddcoin","https://allcoins.pw/faucet.php?coin=RDD" },
+        {"Electroneum","https://allcoins.pw/faucet.php?coin=ETN" },
+        {"Bitcoin Gold","https://allcoins.pw/faucet.php?coin=BTG" },
+        {"Stellar","https://allcoins.pw/faucet.php?coin=XLM" },
+        {"Ripple","https://allcoins.pw/faucet.php?coin=XRP" },
+        {"Tron","https://allcoins.pw/faucet.php?coin=TRX" },
+        {"Bitcoin SV","https://allcoins.pw/faucet.php?coin=BSV" },
+        {"BitTorrentToken","https://allcoins.pw/faucet.php?coin=BTT" }
+    };
+
+    public string Url_{ get 
+        
+        {
+            var SelectedFaucet=GetSetting("Faucet");
+
+            if ( Faucets.ContainsKey ( SelectedFaucet ) )
+            {
+                return Faucets[SelectedFaucet];
+            }
+
+            return Faucets.Values.FirstOrDefault ( );
+        
+        }
+    }
+    //============================================================//
+    //the number of "successes" in the script - when are finished  
+    //============================================================//
     public override void Start()
     {
         Title = "Allcoins.pw";
@@ -64,24 +69,16 @@ public class litecoinfaucetScript : FaucetScript
         FailXPath = "//div[contains(@class,'alert-warning')]";
 
         base.Start();
+        Url=Url_;
     }
-//============================================================//
-//the number of "successes" in the script - when are finished  
-//============================================================//
-	
-	
-	
-	//loop
-    public bool cs;
-	
-	
 	
 	
     public override int DoInit()
     {
-        cs = false;
+
         //Let Faucet Collector continue.
         return base.DoInit();
+      
     }
 	
 	
@@ -189,62 +186,8 @@ public class litecoinfaucetScript : FaucetScript
         return base.DoLogin();
 
     }
-//==========//
-//end DoLogin 
-//==========//
-	
-	
-	
-	
-//================================//
-//start AfterLogin
-//================================//
-    public override int AfterLogin()
-    {
-		
-	
-        //This faucet has nothing to do here. We will let Faucet Collector handle it.
-        return base.AfterLogin();
-    }
-//================================//
-//end AfterLogin
-//================================//
-	
-	
-	
-	
-    /// <summary>
-    /// This method gets called after the login methods are successful, so we are logged into the faucet.
-    /// If the faucet is not yet ready to claim you should return a TimeStamp value to return how long it takes before the Faucet claim can be done.
-    /// This is used to pause the script while the faucet its timer runs out.
-    /// Return the number of seconds the bot should wait.
-    /// </summary>
-    public override int GetFaucetWaitTime()
-    {    
-		
-		//Faucet Collector - will wait 1 hour - 3600 sec - for next claim
-        if (cs)
-        {
-            cs = false; 
-            return 36 * 60;
-        }
-
-		
-        //0 mean let Faucet Collector continue.
-        //return 0;
-		
-		//let Faucet Collector continue.
-        return base.GetFaucetWaitTime();
-
-    }
 
 
-	
-	
-	
-//================================//
-//start BeforeSolveCaptcha
-//================================//
     public override int BeforeSolveCaptcha()
     {
 	    //select the right option for captcha
@@ -339,32 +282,7 @@ public class litecoinfaucetScript : FaucetScript
 		}
 	}
 	
-	
 
-	
-    /// <summary>
-    /// This method will get called after DoSolveCaptcha returned it was a success.
-    /// </summary>
-    /// <returns></returns>
-    public override int AfterSolveCaptcha()
-    {
-        //This faucet has nothing to do here. We will let Faucet Collector handle it.
-        return base.AfterSolveCaptcha();
-    }
-
-	
-	
-    /// <summary>
-    /// This method is called right before we attempt to claim on the faucet. So we are logged in and good to go.
-    /// Next methods that will be called are DoSolveFaucet, AfterSolveFaucet and CheckFaucetResult.
-    /// </summary>
-    public override int BeforeSolveFaucet()
-    {
-        //This faucet has nothing to do here. We will let Faucet Collector handle it.
-        return base.BeforeSolveCaptcha();
-    }
-
-	
 	
 	
 //================================//
@@ -372,1335 +290,89 @@ public class litecoinfaucetScript : FaucetScript
 //================================//
 public override int DoSolveFaucet()
 {
-	
-	//==========//
-	//FreeRoll
-	//==========//
-	
-	 if (GetBoolSetting("FreeRoll"))
-	 {	
-        //go to "FreeRoll" faucet page
-        GoToUrl("https://allcoins.pw/freeroll.php");
-		
-        Wait();
-		
-		//click on free roll button
-        var FreeRollButton = ElementByXPath("//button[@id='freeroll']");
-        if (IsVisible(FreeRollButton))
+        string Url_=this.Url_;
+
+        if ( Driver.Url!=Url_ )
         {
-        Click(FreeRollButton);
-        }
-		
-		//if there is a error message
-        var ErrorMessage = ElementByXPath("//div[@id='errroll']");
-        if (IsVisible(ErrorMessage))
-        {
-        return 0; //0 mean let Faucet Collector continue to next step
+            GoToUrl ( Url_ );
         }
 
-	 }
+       
+        Wait ( 2 ); 
+        CheckAntiBot ( );
 
-	 
-	//==========//
-	//AutoFaucet
-	//==========//
-	
-	//go to AutoFaucet
-	 if (GetBoolSetting("AutoFaucet"))
-	 {	
-        //go to "AutoFaucet" faucet page
-        GoToUrl("https://allcoins.pw/autofaucet.php?coin=MULTI");
-		
-        Wait();
-		
-		//if there is a error message
-        var claimBtn = ElementByXPath("//div[@class='bootstrap-growl alert alert-info border border-info alert-dismissible']");
-        if (IsVisible(claimBtn))
+
+    
+        var claimBtn = ElementByXPath("//button[@id='claimb']");
+        if ( IsVisible ( claimBtn ) )
         {
-        return 0; //0 mean let Faucet Collector continue to next step
+            Click ( claimBtn );
         }
 
-	 }
+        CheckAntiBot ( );
+
+        //get the captchaResolved button after claimBtn click
+        var captchaResolvedBtn = ElementByXPath("//button[@type='submit' and contains(@class,'btn-primary')]");
+        if ( !IsVisible ( captchaResolvedBtn ) )
+        {
+            Log ( "Captcha is Resolved button not visible." );
+            return 5*60;
+        }
+
+        //Solve the captcha
+        var result = SolveCaptcha();
+        if ( result>0 )
+        {
+
+            return result;
+        }
+
+       CheckAntiBot ( );
+
+
+        Wait ( 3 );
+
+        captchaResolvedBtn=ElementByXPath ( "//button[@type='submit' and contains(@class,'btn-primary')]" );
+        Wait ( );
+        Click ( captchaResolvedBtn );
+
+        CheckAntiBot ( );
+        //if the captcha Not resolved
+        //fix BAN user Accounts
+        //so return 1 hour after
+        var FixBanUserAccounts = ElementByXPath("//div[@class='bootstrap-growl alert alert-danger border border-danger alert-dismissible']");
+        if ( IsVisible ( FixBanUserAccounts ) )
+        {
+            return 60*60;
+        }
 
         return base.DoSolveFaucet();
 }
-//================================//
-//end DoSolveFaucet
-//================================//
-	
 
-
-
-
-	
-	
-	
-//================================//
-//start AfterSolveFaucet
-//================================//
-public override int AfterSolveFaucet()
-{
-
-	 //Claim BTC
-	 if (GetBoolSetting("ClaimBTC"))
-	 {	
-        //go to "BTC" faucet page
-        GoToUrl("https://allcoins.pw/faucet.php?coin=BTC");
-        Wait(2);CheckAntiBot();
-
-
-        ExecuteScript("var a=document.getElementsByClassName('btn btn-primary');a[0].outerHTML=a[0].outerHTML.replace('disabled=\"\"','');");
-        Wait(2);CheckAntiBot();
-        var claimBtn = ElementByXPath("//button[@id='claimb']");
-        if (IsVisible(claimBtn))
-        {
-            Click(claimBtn);
-        }
-        
-		 Wait(2);CheckAntiBot();
-
-        //get the captchaResolved button after claimBtn click
-        var captchaResolvedBtn = ElementByXPath("//button[@type='submit' and contains(@class,'btn-primary')]");
-        if (!IsVisible(captchaResolvedBtn))
-        {
-			Log("Captcha is Resolved button not visible.");
-            return 5 * 60;
-        }
-       
-        //Solve the captcha
-        var result = SolveCaptcha();
-        if (result > 0)
-        {
-        
-            return result;
-        }
-        
-        ExecuteScript("var a=document.getElementsByClassName('btn btn-primary');a[0].outerHTML=a[0].outerHTML.replace('disabled=\"\"','');");
-        Wait(2);CheckAntiBot();
-      
-
-        Wait(3);
-
-        captchaResolvedBtn = ElementByXPath("//button[@type='submit' and contains(@class,'btn-primary')]");
-        Wait();
-        Click(captchaResolvedBtn);
-
-		
-		//if the captcha Not resolved
-		//fix BAN user Accounts
-		//so return 1 hour after
-		var FixBanUserAccounts = ElementByXPath("//div[@class='bootstrap-growl alert alert-danger border border-danger alert-dismissible']");
-        if (IsVisible(FixBanUserAccounts))
-        {
-            return 60*60;
-        }
-	}
-	
-	
-	 //Claim Doge
-	 if (GetBoolSetting("ClaimDoge"))
-	 {	
-        //go to "Doge" faucet page
-        GoToUrl("https://allcoins.pw/faucet.php?coin=Doge");
-        Wait(2);CheckAntiBot();
-
-
-        ExecuteScript("var a=document.getElementsByClassName('btn btn-primary');a[0].outerHTML=a[0].outerHTML.replace('disabled=\"\"','');");
-        Wait(2);CheckAntiBot();
-        var claimBtn = ElementByXPath("//button[@id='claimb']");
-        if (IsVisible(claimBtn))
-        {
-            Click(claimBtn);
-        }
-        
-		 Wait(2);CheckAntiBot();
-
-        //get the captchaResolved button after claimBtn click
-        var captchaResolvedBtn = ElementByXPath("//button[@type='submit' and contains(@class,'btn-primary')]");
-        if (!IsVisible(captchaResolvedBtn))
-        {
-			Log("Captcha is Resolved button not visible.");
-            return 5 * 60;
-        }
-       
-        //Solve the captcha
-        var result = SolveCaptcha();
-        if (result > 0)
-        {
-        
-            return result;
-        }
-        
-        ExecuteScript("var a=document.getElementsByClassName('btn btn-primary');a[0].outerHTML=a[0].outerHTML.replace('disabled=\"\"','');");
-        Wait(2);CheckAntiBot();
-      
-
-        Wait(3);
-
-        captchaResolvedBtn = ElementByXPath("//button[@type='submit' and contains(@class,'btn-primary')]");
-        Wait();
-        Click(captchaResolvedBtn);
-
-
-		//if the captcha Not resolved
-		//fix BAN user Accounts
-		//so return 1 hour after
-		var FixBanUserAccounts = ElementByXPath("//div[@class='bootstrap-growl alert alert-danger border border-danger alert-dismissible']");
-        if (IsVisible(FixBanUserAccounts))
-        {
-            return 60*60;
-        }
-		
-	}
-	
-	
-	 //Claim LTC
-	 if (GetBoolSetting("ClaimLTC"))
-	 {	
-        //go to "LTC" faucet page
-        GoToUrl("https://allcoins.pw/faucet.php?coin=LTC");
-        Wait(2);CheckAntiBot();
-
-
-        ExecuteScript("var a=document.getElementsByClassName('btn btn-primary');a[0].outerHTML=a[0].outerHTML.replace('disabled=\"\"','');");
-        Wait(2);CheckAntiBot();
-        var claimBtn = ElementByXPath("//button[@id='claimb']");
-        if (IsVisible(claimBtn))
-        {
-            Click(claimBtn);
-        }
-        
-		 Wait(2);CheckAntiBot();
-
-        //get the captchaResolved button after claimBtn click
-        var captchaResolvedBtn = ElementByXPath("//button[@type='submit' and contains(@class,'btn-primary')]");
-        if (!IsVisible(captchaResolvedBtn))
-        {
-			Log("Captcha is Resolved button not visible.");
-            return 5 * 60;
-        }
-       
-        //Solve the captcha
-        var result = SolveCaptcha();
-        if (result > 0)
-        {
-        
-            return result;
-        }
-        
-        ExecuteScript("var a=document.getElementsByClassName('btn btn-primary');a[0].outerHTML=a[0].outerHTML.replace('disabled=\"\"','');");
-        Wait(2);CheckAntiBot();
-      
-
-        Wait(3);
-
-        captchaResolvedBtn = ElementByXPath("//button[@type='submit' and contains(@class,'btn-primary')]");
-        Wait();
-        Click(captchaResolvedBtn);
-
-		//if the captcha Not resolved
-		//fix BAN user Accounts
-		//so return 1 hour after
-		var FixBanUserAccounts = ElementByXPath("//div[@class='bootstrap-growl alert alert-danger border border-danger alert-dismissible']");
-        if (IsVisible(FixBanUserAccounts))
-        {
-            return 60*60;
-        }
-	}
-	
-	
-		 //Claim POT
-	 if (GetBoolSetting("ClaimPOT"))
-	 {	
-        //go to "POT" faucet page
-        GoToUrl("https://allcoins.pw/faucet.php?coin=POT");
-        Wait(2);CheckAntiBot();
-
-
-        ExecuteScript("var a=document.getElementsByClassName('btn btn-primary');a[0].outerHTML=a[0].outerHTML.replace('disabled=\"\"','');");
-        Wait(2);CheckAntiBot();
-        var claimBtn = ElementByXPath("//button[@id='claimb']");
-        if (IsVisible(claimBtn))
-        {
-            Click(claimBtn);
-        }
-        
-		 Wait(2);CheckAntiBot();
-
-        //get the captchaResolved button after claimBtn click
-        var captchaResolvedBtn = ElementByXPath("//button[@type='submit' and contains(@class,'btn-primary')]");
-        if (!IsVisible(captchaResolvedBtn))
-        {
-			Log("Captcha is Resolved button not visible.");
-            return 5 * 60;
-        }
-       
-        //Solve the captcha
-        var result = SolveCaptcha();
-        if (result > 0)
-        {
-        
-            return result;
-        }
-        
-        ExecuteScript("var a=document.getElementsByClassName('btn btn-primary');a[0].outerHTML=a[0].outerHTML.replace('disabled=\"\"','');");
-        Wait(2);CheckAntiBot();
-      
-
-        Wait(3);
-
-        captchaResolvedBtn = ElementByXPath("//button[@type='submit' and contains(@class,'btn-primary')]");
-        Wait();
-        Click(captchaResolvedBtn);
-
-		//if the captcha Not resolved
-		//fix BAN user Accounts
-		//so return 1 hour after
-		var FixBanUserAccounts = ElementByXPath("//div[@class='bootstrap-growl alert alert-danger border border-danger alert-dismissible']");
-        if (IsVisible(FixBanUserAccounts))
-        {
-            return 60*60;
-        }
-	}
-
-	
-		 //Claim BLK
-	 if (GetBoolSetting("ClaimBLK"))
-	 {	
-        //go to "BLK" faucet page
-        GoToUrl("https://allcoins.pw/faucet.php?coin=BLK");
-        Wait(2);CheckAntiBot();
-
-
-        ExecuteScript("var a=document.getElementsByClassName('btn btn-primary');a[0].outerHTML=a[0].outerHTML.replace('disabled=\"\"','');");
-        Wait(2);CheckAntiBot();
-        var claimBtn = ElementByXPath("//button[@id='claimb']");
-        if (IsVisible(claimBtn))
-        {
-            Click(claimBtn);
-        }
-        
-		 Wait(2);CheckAntiBot();
-
-        //get the captchaResolved button after claimBtn click
-        var captchaResolvedBtn = ElementByXPath("//button[@type='submit' and contains(@class,'btn-primary')]");
-        if (!IsVisible(captchaResolvedBtn))
-        {
-			Log("Captcha is Resolved button not visible.");
-            return 5 * 60;
-        }
-       
-        //Solve the captcha
-        var result = SolveCaptcha();
-        if (result > 0)
-        {
-        
-            return result;
-        }
-        
-        ExecuteScript("var a=document.getElementsByClassName('btn btn-primary');a[0].outerHTML=a[0].outerHTML.replace('disabled=\"\"','');");
-        Wait(2);CheckAntiBot();
-      
-
-        Wait(3);
-
-        captchaResolvedBtn = ElementByXPath("//button[@type='submit' and contains(@class,'btn-primary')]");
-        Wait();
-        Click(captchaResolvedBtn);
-		
-		
-		//if the captcha Not resolved
-		//fix BAN user Accounts
-		//so return 1 hour after
-		var FixBanUserAccounts = ElementByXPath("//div[@class='bootstrap-growl alert alert-danger border border-danger alert-dismissible']");
-        if (IsVisible(FixBanUserAccounts))
-        {
-            return 60*60;
-        }
-		
-	}
-	
-	
-	
-		 //Claim XPM
-	 if (GetBoolSetting("ClaimXPM"))
-	 {	
-        //go to "XPM" faucet page
-        GoToUrl("https://allcoins.pw/faucet.php?coin=XPM");
-        Wait(2);CheckAntiBot();
-
-
-        ExecuteScript("var a=document.getElementsByClassName('btn btn-primary');a[0].outerHTML=a[0].outerHTML.replace('disabled=\"\"','');");
-        Wait(2);CheckAntiBot();
-        var claimBtn = ElementByXPath("//button[@id='claimb']");
-        if (IsVisible(claimBtn))
-        {
-            Click(claimBtn);
-        }
-        
-		 Wait(2);CheckAntiBot();
-
-        //get the captchaResolved button after claimBtn click
-        var captchaResolvedBtn = ElementByXPath("//button[@type='submit' and contains(@class,'btn-primary')]");
-        if (!IsVisible(captchaResolvedBtn))
-        {
-			Log("Captcha is Resolved button not visible.");
-            return 5 * 60;
-        }
-       
-        //Solve the captcha
-        var result = SolveCaptcha();
-        if (result > 0)
-        {
-        
-            return result;
-        }
-        
-        ExecuteScript("var a=document.getElementsByClassName('btn btn-primary');a[0].outerHTML=a[0].outerHTML.replace('disabled=\"\"','');");
-        Wait(2);CheckAntiBot();
-      
-
-        Wait(3);
-
-        captchaResolvedBtn = ElementByXPath("//button[@type='submit' and contains(@class,'btn-primary')]");
-        Wait();
-        Click(captchaResolvedBtn);
-		
-		//if the captcha Not resolved
-		//fix BAN user Accounts
-		//so return 1 hour after
-		var FixBanUserAccounts = ElementByXPath("//div[@class='bootstrap-growl alert alert-danger border border-danger alert-dismissible']");
-        if (IsVisible(FixBanUserAccounts))
-        {
-            return 60*60;
-        }
-	}
-	
-	
-	
-	
-		 //Claim ETH
-	 if (GetBoolSetting("ClaimETH"))
-	 {	
-        //go to "ETH" faucet page
-        GoToUrl("https://allcoins.pw/faucet.php?coin=ETH");
-        Wait(2);CheckAntiBot();
-
-
-        ExecuteScript("var a=document.getElementsByClassName('btn btn-primary');a[0].outerHTML=a[0].outerHTML.replace('disabled=\"\"','');");
-        Wait(2);CheckAntiBot();
-        var claimBtn = ElementByXPath("//button[@id='claimb']");
-        if (IsVisible(claimBtn))
-        {
-            Click(claimBtn);
-        }
-        
-		 Wait(2);CheckAntiBot();
-
-        //get the captchaResolved button after claimBtn click
-        var captchaResolvedBtn = ElementByXPath("//button[@type='submit' and contains(@class,'btn-primary')]");
-        if (!IsVisible(captchaResolvedBtn))
-        {
-			Log("Captcha is Resolved button not visible.");
-            return 5 * 60;
-        }
-       
-        //Solve the captcha
-        var result = SolveCaptcha();
-        if (result > 0)
-        {
-        
-            return result;
-        }
-        
-        ExecuteScript("var a=document.getElementsByClassName('btn btn-primary');a[0].outerHTML=a[0].outerHTML.replace('disabled=\"\"','');");
-        Wait(2);CheckAntiBot();
-      
-
-        Wait(3);
-
-        captchaResolvedBtn = ElementByXPath("//button[@type='submit' and contains(@class,'btn-primary')]");
-        Wait();
-        Click(captchaResolvedBtn);
-		
-		//if the captcha Not resolved
-		//fix BAN user Accounts
-		//so return 1 hour after
-		var FixBanUserAccounts = ElementByXPath("//div[@class='bootstrap-growl alert alert-danger border border-danger alert-dismissible']");
-        if (IsVisible(FixBanUserAccounts))
-        {
-            return 60*60;
-        }
-	}
-	
-	
-		 //Claim BTX
-	 if (GetBoolSetting("ClaimBTX"))
-	 {	
-        //go to "BTX" faucet page
-        GoToUrl("https://allcoins.pw/faucet.php?coin=BTX");
-        Wait(2);CheckAntiBot();
-
-
-        ExecuteScript("var a=document.getElementsByClassName('btn btn-primary');a[0].outerHTML=a[0].outerHTML.replace('disabled=\"\"','');");
-        Wait(2);CheckAntiBot();
-        var claimBtn = ElementByXPath("//button[@id='claimb']");
-        if (IsVisible(claimBtn))
-        {
-            Click(claimBtn);
-        }
-        
-		 Wait(2);CheckAntiBot();
-
-        //get the captchaResolved button after claimBtn click
-        var captchaResolvedBtn = ElementByXPath("//button[@type='submit' and contains(@class,'btn-primary')]");
-        if (!IsVisible(captchaResolvedBtn))
-        {
-			Log("Captcha is Resolved button not visible.");
-            return 5 * 60;
-        }
-       
-        //Solve the captcha
-        var result = SolveCaptcha();
-        if (result > 0)
-        {
-        
-            return result;
-        }
-        
-        ExecuteScript("var a=document.getElementsByClassName('btn btn-primary');a[0].outerHTML=a[0].outerHTML.replace('disabled=\"\"','');");
-        Wait(2);CheckAntiBot();
-      
-
-        Wait(3);
-
-        captchaResolvedBtn = ElementByXPath("//button[@type='submit' and contains(@class,'btn-primary')]");
-        Wait();
-        Click(captchaResolvedBtn);
-		
-		//if the captcha Not resolved
-		//fix BAN user Accounts
-		//so return 1 hour after
-		var FixBanUserAccounts = ElementByXPath("//div[@class='bootstrap-growl alert alert-danger border border-danger alert-dismissible']");
-        if (IsVisible(FixBanUserAccounts))
-        {
-            return 60*60;
-        }
-	}
-	
-		 //Claim DASH
-	 if (GetBoolSetting("ClaimDASH"))
-	 {	
-        //go to "DASH" faucet page
-        GoToUrl("https://allcoins.pw/faucet.php?coin=DASH");
-        Wait(2);CheckAntiBot();
-
-
-        ExecuteScript("var a=document.getElementsByClassName('btn btn-primary');a[0].outerHTML=a[0].outerHTML.replace('disabled=\"\"','');");
-        Wait(2);CheckAntiBot();
-        var claimBtn = ElementByXPath("//button[@id='claimb']");
-        if (IsVisible(claimBtn))
-        {
-            Click(claimBtn);
-        }
-        
-		 Wait(2);CheckAntiBot();
-
-        //get the captchaResolved button after claimBtn click
-        var captchaResolvedBtn = ElementByXPath("//button[@type='submit' and contains(@class,'btn-primary')]");
-        if (!IsVisible(captchaResolvedBtn))
-        {
-			Log("Captcha is Resolved button not visible.");
-            return 5 * 60;
-        }
-       
-        //Solve the captcha
-        var result = SolveCaptcha();
-        if (result > 0)
-        {
-        
-            return result;
-        }
-        
-        ExecuteScript("var a=document.getElementsByClassName('btn btn-primary');a[0].outerHTML=a[0].outerHTML.replace('disabled=\"\"','');");
-        Wait(2);CheckAntiBot();
-      
-
-        Wait(3);
-
-        captchaResolvedBtn = ElementByXPath("//button[@type='submit' and contains(@class,'btn-primary')]");
-        Wait();
-        Click(captchaResolvedBtn);
-		
-		//if the captcha Not resolved
-		//fix BAN user Accounts
-		//so return 1 hour after
-		var FixBanUserAccounts = ElementByXPath("//div[@class='bootstrap-growl alert alert-danger border border-danger alert-dismissible']");
-        if (IsVisible(FixBanUserAccounts))
-        {
-            return 60*60;
-        }
-	}
-	
-	
-		 //Claim XMR
-	 if (GetBoolSetting("ClaimXMR"))
-	 {	
-        //go to "XMR" faucet page
-        GoToUrl("https://allcoins.pw/faucet.php?coin=XMR");
-        Wait(2);CheckAntiBot();
-
-
-        ExecuteScript("var a=document.getElementsByClassName('btn btn-primary');a[0].outerHTML=a[0].outerHTML.replace('disabled=\"\"','');");
-        Wait(2);CheckAntiBot();
-        var claimBtn = ElementByXPath("//button[@id='claimb']");
-        if (IsVisible(claimBtn))
-        {
-            Click(claimBtn);
-        }
-        
-		 Wait(2);CheckAntiBot();
-
-        //get the captchaResolved button after claimBtn click
-        var captchaResolvedBtn = ElementByXPath("//button[@type='submit' and contains(@class,'btn-primary')]");
-        if (!IsVisible(captchaResolvedBtn))
-        {
-			Log("Captcha is Resolved button not visible.");
-            return 5 * 60;
-        }
-       
-        //Solve the captcha
-        var result = SolveCaptcha();
-        if (result > 0)
-        {
-        
-            return result;
-        }
-        
-        ExecuteScript("var a=document.getElementsByClassName('btn btn-primary');a[0].outerHTML=a[0].outerHTML.replace('disabled=\"\"','');");
-        Wait(2);CheckAntiBot();
-      
-
-        Wait(3);
-
-        captchaResolvedBtn = ElementByXPath("//button[@type='submit' and contains(@class,'btn-primary')]");
-        Wait();
-        Click(captchaResolvedBtn);
-		
-		//if the captcha Not resolved
-		//fix BAN user Accounts
-		//so return 1 hour after
-		var FixBanUserAccounts = ElementByXPath("//div[@class='bootstrap-growl alert alert-danger border border-danger alert-dismissible']");
-        if (IsVisible(FixBanUserAccounts))
-        {
-            return 60*60;
-        }
-	}
-	
-	
-		 //Claim PPC
-	 if (GetBoolSetting("ClaimPPC"))
-	 {	
-        //go to "PPC" faucet page
-        GoToUrl("https://allcoins.pw/faucet.php?coin=PPC");
-        Wait(2);CheckAntiBot();
-
-
-        ExecuteScript("var a=document.getElementsByClassName('btn btn-primary');a[0].outerHTML=a[0].outerHTML.replace('disabled=\"\"','');");
-        Wait(2);CheckAntiBot();
-        var claimBtn = ElementByXPath("//button[@id='claimb']");
-        if (IsVisible(claimBtn))
-        {
-            Click(claimBtn);
-        }
-        
-		 Wait(2);CheckAntiBot();
-
-        //get the captchaResolved button after claimBtn click
-        var captchaResolvedBtn = ElementByXPath("//button[@type='submit' and contains(@class,'btn-primary')]");
-        if (!IsVisible(captchaResolvedBtn))
-        {
-			Log("Captcha is Resolved button not visible.");
-            return 5 * 60;
-        }
-       
-        //Solve the captcha
-        var result = SolveCaptcha();
-        if (result > 0)
-        {
-        
-            return result;
-        }
-        
-        ExecuteScript("var a=document.getElementsByClassName('btn btn-primary');a[0].outerHTML=a[0].outerHTML.replace('disabled=\"\"','');");
-        Wait(2);CheckAntiBot();
-      
-
-        Wait(3);
-
-        captchaResolvedBtn = ElementByXPath("//button[@type='submit' and contains(@class,'btn-primary')]");
-        Wait();
-        Click(captchaResolvedBtn);
-		
-		//if the captcha Not resolved
-		//fix BAN user Accounts
-		//so return 1 hour after
-		var FixBanUserAccounts = ElementByXPath("//div[@class='bootstrap-growl alert alert-danger border border-danger alert-dismissible']");
-        if (IsVisible(FixBanUserAccounts))
-        {
-            return 60*60;
-        }
-	}
-	
-	
-		 //Claim BCH
-	 if (GetBoolSetting("ClaimBCH"))
-	 {	
-        //go to "BCH" faucet page
-        GoToUrl("https://allcoins.pw/faucet.php?coin=BCH");
-        Wait(2);CheckAntiBot();
-
-
-        ExecuteScript("var a=document.getElementsByClassName('btn btn-primary');a[0].outerHTML=a[0].outerHTML.replace('disabled=\"\"','');");
-        Wait(2);CheckAntiBot();
-        var claimBtn = ElementByXPath("//button[@id='claimb']");
-        if (IsVisible(claimBtn))
-        {
-            Click(claimBtn);
-        }
-        
-		 Wait(2);CheckAntiBot();
-
-        //get the captchaResolved button after claimBtn click
-        var captchaResolvedBtn = ElementByXPath("//button[@type='submit' and contains(@class,'btn-primary')]");
-        if (!IsVisible(captchaResolvedBtn))
-        {
-			Log("Captcha is Resolved button not visible.");
-            return 5 * 60;
-        }
-       
-        //Solve the captcha
-        var result = SolveCaptcha();
-        if (result > 0)
-        {
-        
-            return result;
-        }
-        
-        ExecuteScript("var a=document.getElementsByClassName('btn btn-primary');a[0].outerHTML=a[0].outerHTML.replace('disabled=\"\"','');");
-        Wait(2);CheckAntiBot();
-      
-
-        Wait(3);
-
-        captchaResolvedBtn = ElementByXPath("//button[@type='submit' and contains(@class,'btn-primary')]");
-        Wait();
-        Click(captchaResolvedBtn);
-		
-		//if the captcha Not resolved
-		//fix BAN user Accounts
-		//so return 1 hour after
-		var FixBanUserAccounts = ElementByXPath("//div[@class='bootstrap-growl alert alert-danger border border-danger alert-dismissible']");
-        if (IsVisible(FixBanUserAccounts))
-        {
-            return 60*60;
-        }
-	}
-
-	
-	
-		 //Claim ZEC
-	 if (GetBoolSetting("ClaimZEC"))
-	 {	
-        //go to "ZEC" faucet page
-        GoToUrl("https://allcoins.pw/faucet.php?coin=ZEC");
-        Wait(2);CheckAntiBot();
-
-
-        ExecuteScript("var a=document.getElementsByClassName('btn btn-primary');a[0].outerHTML=a[0].outerHTML.replace('disabled=\"\"','');");
-        Wait(2);CheckAntiBot();
-        var claimBtn = ElementByXPath("//button[@id='claimb']");
-        if (IsVisible(claimBtn))
-        {
-            Click(claimBtn);
-        }
-        
-		 Wait(2);CheckAntiBot();
-
-        //get the captchaResolved button after claimBtn click
-        var captchaResolvedBtn = ElementByXPath("//button[@type='submit' and contains(@class,'btn-primary')]");
-        if (!IsVisible(captchaResolvedBtn))
-        {
-			Log("Captcha is Resolved button not visible.");
-            return 5 * 60;
-        }
-       
-        //Solve the captcha
-        var result = SolveCaptcha();
-        if (result > 0)
-        {
-        
-            return result;
-        }
-        
-        ExecuteScript("var a=document.getElementsByClassName('btn btn-primary');a[0].outerHTML=a[0].outerHTML.replace('disabled=\"\"','');");
-        Wait(2);CheckAntiBot();
-      
-
-        Wait(3);
-
-        captchaResolvedBtn = ElementByXPath("//button[@type='submit' and contains(@class,'btn-primary')]");
-        Wait();
-        Click(captchaResolvedBtn);
-		
-		//if the captcha Not resolved
-		//fix BAN user Accounts
-		//so return 1 hour after
-		var FixBanUserAccounts = ElementByXPath("//div[@class='bootstrap-growl alert alert-danger border border-danger alert-dismissible']");
-        if (IsVisible(FixBanUserAccounts))
-        {
-            return 60*60;
-        }
-	}
-	
-	
-	
-		 //Claim ETC
-	 if (GetBoolSetting("ClaimETC"))
-	 {	
-        //go to "ETC" faucet page
-        GoToUrl("https://allcoins.pw/faucet.php?coin=ETC");
-        Wait(2);CheckAntiBot();
-
-
-        ExecuteScript("var a=document.getElementsByClassName('btn btn-primary');a[0].outerHTML=a[0].outerHTML.replace('disabled=\"\"','');");
-        Wait(2);CheckAntiBot();
-        var claimBtn = ElementByXPath("//button[@id='claimb']");
-        if (IsVisible(claimBtn))
-        {
-            Click(claimBtn);
-        }
-        
-		 Wait(2);CheckAntiBot();
-
-        //get the captchaResolved button after claimBtn click
-        var captchaResolvedBtn = ElementByXPath("//button[@type='submit' and contains(@class,'btn-primary')]");
-        if (!IsVisible(captchaResolvedBtn))
-        {
-			Log("Captcha is Resolved button not visible.");
-            return 5 * 60;
-        }
-       
-        //Solve the captcha
-        var result = SolveCaptcha();
-        if (result > 0)
-        {
-        
-            return result;
-        }
-        
-        ExecuteScript("var a=document.getElementsByClassName('btn btn-primary');a[0].outerHTML=a[0].outerHTML.replace('disabled=\"\"','');");
-        Wait(2);CheckAntiBot();
-      
-
-        Wait(3);
-
-        captchaResolvedBtn = ElementByXPath("//button[@type='submit' and contains(@class,'btn-primary')]");
-        Wait();
-        Click(captchaResolvedBtn);
-		
-		//if the captcha Not resolved
-		//fix BAN user Accounts
-		//so return 1 hour after
-		var FixBanUserAccounts = ElementByXPath("//div[@class='bootstrap-growl alert alert-danger border border-danger alert-dismissible']");
-        if (IsVisible(FixBanUserAccounts))
-        {
-            return 60*60;
-        }
-	}
-		
-	
-	
-		 //Claim GRS
-	 if (GetBoolSetting("ClaimGRS"))
-	 {	
-        //go to "GRS" faucet page
-        GoToUrl("https://allcoins.pw/faucet.php?coin=GRS");
-        Wait(2);CheckAntiBot();
-
-
-        ExecuteScript("var a=document.getElementsByClassName('btn btn-primary');a[0].outerHTML=a[0].outerHTML.replace('disabled=\"\"','');");
-        Wait(2);CheckAntiBot();
-        var claimBtn = ElementByXPath("//button[@id='claimb']");
-        if (IsVisible(claimBtn))
-        {
-            Click(claimBtn);
-        }
-        
-		 Wait(2);CheckAntiBot();
-
-        //get the captchaResolved button after claimBtn click
-        var captchaResolvedBtn = ElementByXPath("//button[@type='submit' and contains(@class,'btn-primary')]");
-        if (!IsVisible(captchaResolvedBtn))
-        {
-			Log("Captcha is Resolved button not visible.");
-            return 5 * 60;
-        }
-       
-        //Solve the captcha
-        var result = SolveCaptcha();
-        if (result > 0)
-        {
-        
-            return result;
-        }
-        
-        ExecuteScript("var a=document.getElementsByClassName('btn btn-primary');a[0].outerHTML=a[0].outerHTML.replace('disabled=\"\"','');");
-        Wait(2);CheckAntiBot();
-      
-
-        Wait(3);
-
-        captchaResolvedBtn = ElementByXPath("//button[@type='submit' and contains(@class,'btn-primary')]");
-        Wait();
-        Click(captchaResolvedBtn);
-		
-		
-		//if the captcha Not resolved
-		//fix BAN user Accounts
-		//so return 1 hour after
-		var FixBanUserAccounts = ElementByXPath("//div[@class='bootstrap-growl alert alert-danger border border-danger alert-dismissible']");
-        if (IsVisible(FixBanUserAccounts))
-        {
-            return 60*60;
-        }
-	}
-		
-	
-	
-		 //Claim XVG
-	 if (GetBoolSetting("ClaimXVG"))
-	 {	
-        //go to "XVG" faucet page
-        GoToUrl("https://allcoins.pw/faucet.php?coin=XVG");
-        Wait(2);CheckAntiBot();
-
-
-        ExecuteScript("var a=document.getElementsByClassName('btn btn-primary');a[0].outerHTML=a[0].outerHTML.replace('disabled=\"\"','');");
-        Wait(2);CheckAntiBot();
-        var claimBtn = ElementByXPath("//button[@id='claimb']");
-        if (IsVisible(claimBtn))
-        {
-            Click(claimBtn);
-        }
-        
-		 Wait(2);CheckAntiBot();
-
-        //get the captchaResolved button after claimBtn click
-        var captchaResolvedBtn = ElementByXPath("//button[@type='submit' and contains(@class,'btn-primary')]");
-        if (!IsVisible(captchaResolvedBtn))
-        {
-			Log("Captcha is Resolved button not visible.");
-            return 5 * 60;
-        }
-       
-        //Solve the captcha
-        var result = SolveCaptcha();
-        if (result > 0)
-        {
-        
-            return result;
-        }
-        
-        ExecuteScript("var a=document.getElementsByClassName('btn btn-primary');a[0].outerHTML=a[0].outerHTML.replace('disabled=\"\"','');");
-        Wait(2);CheckAntiBot();
-      
-
-        Wait(3);
-
-        captchaResolvedBtn = ElementByXPath("//button[@type='submit' and contains(@class,'btn-primary')]");
-        Wait();
-        Click(captchaResolvedBtn);
-		
-		//if the captcha Not resolved
-		//fix BAN user Accounts
-		//so return 1 hour after
-		var FixBanUserAccounts = ElementByXPath("//div[@class='bootstrap-growl alert alert-danger border border-danger alert-dismissible']");
-        if (IsVisible(FixBanUserAccounts))
-        {
-            return 60*60;
-        }
-	}
-		
-	
-		 //Claim UBQ
-	 if (GetBoolSetting("ClaimUBQ"))
-	 {	
-        //go to "UBQ" faucet page
-        GoToUrl("https://allcoins.pw/faucet.php?coin=UBQ");
-        Wait(2);CheckAntiBot();
-
-
-        ExecuteScript("var a=document.getElementsByClassName('btn btn-primary');a[0].outerHTML=a[0].outerHTML.replace('disabled=\"\"','');");
-        Wait(2);CheckAntiBot();
-        var claimBtn = ElementByXPath("//button[@id='claimb']");
-        if (IsVisible(claimBtn))
-        {
-            Click(claimBtn);
-        }
-        
-		 Wait(2);CheckAntiBot();
-
-        //get the captchaResolved button after claimBtn click
-        var captchaResolvedBtn = ElementByXPath("//button[@type='submit' and contains(@class,'btn-primary')]");
-        if (!IsVisible(captchaResolvedBtn))
-        {
-			Log("Captcha is Resolved button not visible.");
-            return 5 * 60;
-        }
-       
-        //Solve the captcha
-        var result = SolveCaptcha();
-        if (result > 0)
-        {
-        
-            return result;
-        }
-        
-        ExecuteScript("var a=document.getElementsByClassName('btn btn-primary');a[0].outerHTML=a[0].outerHTML.replace('disabled=\"\"','');");
-        Wait(2);CheckAntiBot();
-      
-
-        Wait(3);
-
-        captchaResolvedBtn = ElementByXPath("//button[@type='submit' and contains(@class,'btn-primary')]");
-        Wait();
-        Click(captchaResolvedBtn);
-		
-		//if the captcha Not resolved
-		//fix BAN user Accounts
-		//so return 1 hour after
-		var FixBanUserAccounts = ElementByXPath("//div[@class='bootstrap-growl alert alert-danger border border-danger alert-dismissible']");
-        if (IsVisible(FixBanUserAccounts))
-        {
-            return 60*60;
-        }
-	}
-		
-	
-	
-		 //Claim PIVX
-	 if (GetBoolSetting("ClaimPIVX"))
-	 {	
-        //go to "PIVX" faucet page
-        GoToUrl("https://allcoins.pw/faucet.php?coin=PIVX");
-        Wait(2);CheckAntiBot();
-
-
-        ExecuteScript("var a=document.getElementsByClassName('btn btn-primary');a[0].outerHTML=a[0].outerHTML.replace('disabled=\"\"','');");
-        Wait(2);CheckAntiBot();
-        var claimBtn = ElementByXPath("//button[@id='claimb']");
-        if (IsVisible(claimBtn))
-        {
-            Click(claimBtn);
-        }
-        
-		 Wait(2);CheckAntiBot();
-
-        //get the captchaResolved button after claimBtn click
-        var captchaResolvedBtn = ElementByXPath("//button[@type='submit' and contains(@class,'btn-primary')]");
-        if (!IsVisible(captchaResolvedBtn))
-        {
-			Log("Captcha is Resolved button not visible.");
-            return 5 * 60;
-        }
-       
-        //Solve the captcha
-        var result = SolveCaptcha();
-        if (result > 0)
-        {
-        
-            return result;
-        }
-        
-        ExecuteScript("var a=document.getElementsByClassName('btn btn-primary');a[0].outerHTML=a[0].outerHTML.replace('disabled=\"\"','');");
-        Wait(2);CheckAntiBot();
-      
-
-        Wait(3);
-
-        captchaResolvedBtn = ElementByXPath("//button[@type='submit' and contains(@class,'btn-primary')]");
-        Wait();
-        Click(captchaResolvedBtn);
-
-		//if the captcha Not resolved
-		//fix BAN user Accounts
-		//so return 1 hour after
-		var FixBanUserAccounts = ElementByXPath("//div[@class='bootstrap-growl alert alert-danger border border-danger alert-dismissible']");
-        if (IsVisible(FixBanUserAccounts))
-        {
-            return 60*60;
-        }
-	
-	}
-
-	
-	
-		 //Claim STRAT
-	 if (GetBoolSetting("ClaimSTRAT"))
-	 {	
-        //go to "STRAT" faucet page
-        GoToUrl("https://allcoins.pw/faucet.php?coin=STRAT");
-        Wait(2);CheckAntiBot();
-
-
-        ExecuteScript("var a=document.getElementsByClassName('btn btn-primary');a[0].outerHTML=a[0].outerHTML.replace('disabled=\"\"','');");
-        Wait(2);CheckAntiBot();
-        var claimBtn = ElementByXPath("//button[@id='claimb']");
-        if (IsVisible(claimBtn))
-        {
-            Click(claimBtn);
-        }
-        
-		 Wait(2);CheckAntiBot();
-
-        //get the captchaResolved button after claimBtn click
-        var captchaResolvedBtn = ElementByXPath("//button[@type='submit' and contains(@class,'btn-primary')]");
-        if (!IsVisible(captchaResolvedBtn))
-        {
-			Log("Captcha is Resolved button not visible.");
-            return 5 * 60;
-        }
-       
-        //Solve the captcha
-        var result = SolveCaptcha();
-        if (result > 0)
-        {
-        
-            return result;
-        }
-        
-        ExecuteScript("var a=document.getElementsByClassName('btn btn-primary');a[0].outerHTML=a[0].outerHTML.replace('disabled=\"\"','');");
-        Wait(2);CheckAntiBot();
-      
-
-        Wait(3);
-
-        captchaResolvedBtn = ElementByXPath("//button[@type='submit' and contains(@class,'btn-primary')]");
-        Wait();
-        Click(captchaResolvedBtn);
-		
-		//if the captcha Not resolved
-		//fix BAN user Accounts
-		//so return 1 hour after
-		var FixBanUserAccounts = ElementByXPath("//div[@class='bootstrap-growl alert alert-danger border border-danger alert-dismissible']");
-        if (IsVisible(FixBanUserAccounts))
-        {
-            return 60*60;
-        }
-		
-	}
-	
-
-	
-		 //Claim GAME
-	 if (GetBoolSetting("ClaimGAME"))
-	 {	
-        //go to "GAME" faucet page
-        GoToUrl("https://allcoins.pw/faucet.php?coin=GAME");
-        Wait(2);CheckAntiBot();
-
-
-        ExecuteScript("var a=document.getElementsByClassName('btn btn-primary');a[0].outerHTML=a[0].outerHTML.replace('disabled=\"\"','');");
-        Wait(2);CheckAntiBot();
-        var claimBtn = ElementByXPath("//button[@id='claimb']");
-        if (IsVisible(claimBtn))
-        {
-            Click(claimBtn);
-        }
-        
-		 Wait(2);CheckAntiBot();
-
-        //get the captchaResolved button after claimBtn click
-        var captchaResolvedBtn = ElementByXPath("//button[@type='submit' and contains(@class,'btn-primary')]");
-        if (!IsVisible(captchaResolvedBtn))
-        {
-			Log("Captcha is Resolved button not visible.");
-            return 5 * 60;
-        }
-       
-        //Solve the captcha
-        var result = SolveCaptcha();
-        if (result > 0)
-        {
-        
-            return result;
-        }
-        
-        ExecuteScript("var a=document.getElementsByClassName('btn btn-primary');a[0].outerHTML=a[0].outerHTML.replace('disabled=\"\"','');");
-        Wait(2);CheckAntiBot();
-      
-
-        Wait(3);
-
-        captchaResolvedBtn = ElementByXPath("//button[@type='submit' and contains(@class,'btn-primary')]");
-        Wait();
-        Click(captchaResolvedBtn);
-
-		//if the captcha Not resolved
-		//fix BAN user Accounts
-		//so return 1 hour after
-		var FixBanUserAccounts = ElementByXPath("//div[@class='bootstrap-growl alert alert-danger border border-danger alert-dismissible']");
-        if (IsVisible(FixBanUserAccounts))
-        {
-            return 60*60;
-        }
-		
-	}
-	
-		 //Claim KMD
-	 if (GetBoolSetting("ClaimKMD"))
-	 {	
-        //go to "KMD" faucet page
-        GoToUrl("https://allcoins.pw/faucet.php?coin=KMD");
-        Wait(2);CheckAntiBot();
-
-
-        ExecuteScript("var a=document.getElementsByClassName('btn btn-primary');a[0].outerHTML=a[0].outerHTML.replace('disabled=\"\"','');");
-        Wait(2);CheckAntiBot();
-        var claimBtn = ElementByXPath("//button[@id='claimb']");
-        if (IsVisible(claimBtn))
-        {
-            Click(claimBtn);
-        }
-        
-		 Wait(2);CheckAntiBot();
-
-        //get the captchaResolved button after claimBtn click
-        var captchaResolvedBtn = ElementByXPath("//button[@type='submit' and contains(@class,'btn-primary')]");
-        if (!IsVisible(captchaResolvedBtn))
-        {
-			Log("Captcha is Resolved button not visible.");
-            return 5 * 60;
-        }
-       
-        //Solve the captcha
-        var result = SolveCaptcha();
-        if (result > 0)
-        {
-        
-            return result;
-        }
-        
-        ExecuteScript("var a=document.getElementsByClassName('btn btn-primary');a[0].outerHTML=a[0].outerHTML.replace('disabled=\"\"','');");
-        Wait(2);CheckAntiBot();
-      
-
-        Wait(3);
-
-        captchaResolvedBtn = ElementByXPath("//button[@type='submit' and contains(@class,'btn-primary')]");
-        Wait();
-        Click(captchaResolvedBtn);
-
-		//if the captcha Not resolved
-		//fix BAN user Accounts
-		//so return 1 hour after
-		var FixBanUserAccounts = ElementByXPath("//div[@class='bootstrap-growl alert alert-danger border border-danger alert-dismissible']");
-        if (IsVisible(FixBanUserAccounts))
-        {
-            return 60*60;
-        }
-		
-	}
-	
-	
-		 //Claim DGB
-	 if (GetBoolSetting("ClaimDGB"))
-	 {	
-        //go to "DGB" faucet page
-        GoToUrl("https://allcoins.pw/faucet.php?coin=DGB");
-        Wait(2);CheckAntiBot();
-
-
-        ExecuteScript("var a=document.getElementsByClassName('btn btn-primary');a[0].outerHTML=a[0].outerHTML.replace('disabled=\"\"','');");
-        Wait(2);CheckAntiBot();
-        var claimBtn = ElementByXPath("//button[@id='claimb']");
-        if (IsVisible(claimBtn))
-        {
-            Click(claimBtn);
-        }
-        
-		 Wait(2);CheckAntiBot();
-
-        //get the captchaResolved button after claimBtn click
-        var captchaResolvedBtn = ElementByXPath("//button[@type='submit' and contains(@class,'btn-primary')]");
-        if (!IsVisible(captchaResolvedBtn))
-        {
-			Log("Captcha is Resolved button not visible.");
-            return 5 * 60;
-        }
-       
-        //Solve the captcha
-        var result = SolveCaptcha();
-        if (result > 0)
-        {
-        
-            return result;
-        }
-        
-        ExecuteScript("var a=document.getElementsByClassName('btn btn-primary');a[0].outerHTML=a[0].outerHTML.replace('disabled=\"\"','');");
-        Wait(2);CheckAntiBot();
-      
-
-        Wait(3);
-
-        captchaResolvedBtn = ElementByXPath("//button[@type='submit' and contains(@class,'btn-primary')]");
-        Wait();
-        Click(captchaResolvedBtn);
-
-		//if the captcha Not resolved
-		//fix BAN user Accounts
-		//so return 1 hour after
-		var FixBanUserAccounts = ElementByXPath("//div[@class='bootstrap-growl alert alert-danger border border-danger alert-dismissible']");
-        if (IsVisible(FixBanUserAccounts))
-        {
-            return 60*60;
-        }
-		
-	}
-	
-
-    return base.AfterSolveFaucet();
-}
-
-//================================//
-//end AfterSolveFaucet
-//================================//
-	
-	
-
-	
-	
-	
-	
-	
-    /// <summary>
-    /// This method gets called in the end after the BeforeSolveFaucet/DoSolveFaucet and AfterSolveFaucet methods were done.
-    /// The base.CheckFaucetResult will try to find a visible element on the page using the XPath from SuccessXPath and FailXPath (see the Start method)
-    /// These properties should contain XPath expressions to find certain elements on the page.
-    /// For example if it finds one of the elements from the SuccessXPath, and it is visible, then it will flag the claim attempt as a success.
-    /// Or if it finds one of the elements from the FailXPath, and it is visible, then it will flag the claim attempt as a failure.
-    /// </summary>
-    public override int CheckFaucetResult()
+    public override int GetFaucetWaitTime ( )
     {
-        var result = base.CheckFaucetResult();
-        //if (IsSuccess)
-        //{
-        //
-        //    Reload = true;
-        //}
+        string Url_=this.Url_;
 
-        return result;
+        if ( Driver.Url!=Url_ )
+        {
+            GoToUrl ( Url_ );
+        }
+        Wait ( 2 );
+        var Timer=ElementsByXPath("//span[@id='claim']").Where(x=>IsVisible(x) && x.Text.ToLower().Contains("seconds")).FirstOrDefault();
+        if ( Timer!=null )
+        {
+            var SplitedText=Timer.Text.Split ( ' ' );
+            string textTimer= SplitedText[SplitedText.Length-2];
+
+            int s;
+            if(int.TryParse(textTimer,out s ) )
+            {
+                return s;
+            }
+        }
+        return base.GetFaucetWaitTime ( );
     }
+
+
 
 }
