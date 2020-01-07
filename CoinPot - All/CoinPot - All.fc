@@ -2,7 +2,7 @@
 
 //==================//
 //script Written by: ••AviramDayan•• 01/01/2020 20:30PM - Version 1
-//Last Update: 05/01/2020 08:00AM - Version 2
+//Last Update: 07/01/2020 22:00AM - Version 3
 //==================//
 
 /*
@@ -195,7 +195,6 @@ public class btcsamsity : FaucetScript
     {
 
 		Fix_getRandomValues_Message_Function(); // call Fix_getRandomValues_Message_Function 
-
 	   
         //Let Faucet Collector continue.
         return base.DoInit();
@@ -209,7 +208,8 @@ public class btcsamsity : FaucetScript
 //==================//
     public override bool IsLoggedIn()
     {
-
+		Fix_getRandomValues_Message_Function(); // call Fix_getRandomValues_Message_Function 
+		
         //In this case we check for en element with the class "loggedIn"
 		return ElementByXPath("//a[contains(@data-toggle,'dropdown')]") != null;
 		//return true;
