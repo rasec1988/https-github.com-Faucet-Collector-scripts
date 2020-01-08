@@ -2,7 +2,7 @@
 
 //==================//
 //script Written by: ••AviramDayan•• 01/01/2020 20:30PM - Version 1
-//Last Update: 07/01/2020 22:00AM - Version 3
+//Last Update: 08/01/2020 12:00AM - Version 4
 //==================//
 
 /*
@@ -624,11 +624,11 @@ public class btcsamsity : FaucetScript
 
           Menu_Amount_Tokens_Multiplier_Function(); // call
 		  Log("Roll Number - " + Count);
-          Wait(4);
+          Wait(1);
 		  Log("Wait");
 		  
           //Win Success
-          var YouWinSuccess = ElementByXPath("//div[3]//span[contains(text(),'won')]");
+          var YouWinSuccess = ElementByXPath("//div[@class='toast-message' and contains(text(),'Congratulations, you won') ]"); //("//div[3]//span[contains(text(),'won')]");
           if (IsVisible(YouWinSuccess))
 		  {
             var YouWinAmount = ElementByXPath("//div[3]//span[contains(text(),'tokens')]");
@@ -1007,11 +1007,11 @@ public class btcsamsity : FaucetScript
 
           Click_Tokens_Function(); //call
 		  Log("Roll Number - " + Count);
-          Wait(4);
+          Wait(1);
 		  Log("Wait");
 
           //Win Success
-          var YouWinSuccess = ElementByXPath("//div[3]//span[contains(text(),'won')]");
+          var YouWinSuccess = ElementByXPath("//div[@class='toast-message' and contains(text(),'Congratulations, you won') ]"); //("//div[3]//span[contains(text(),'won')]");
           if (IsVisible(YouWinSuccess))
 		  {
             var YouWinAmount = ElementByXPath("//div[3]//span[contains(text(),'tokens')]");
@@ -1091,11 +1091,11 @@ public class btcsamsity : FaucetScript
 
           Click_Tokens_Function(); //call
 		  Log("Roll Number - " + Count);
-          Wait(4);
+          Wait(1);
 		  Log("Wait");
 
           //Win Success
-          var YouWinSuccess = ElementByXPath("//div[3]//span[contains(text(),'won')]");
+          var YouWinSuccess = ElementByXPath("//div[@class='toast-message' and contains(text(),'Congratulations, you won') ]"); //("//div[3]//span[contains(text(),'won')]");
           if (IsVisible(YouWinSuccess))
 		  {
             var YouWinAmount = ElementByXPath("//div[3]//span[contains(text(),'tokens')]");
@@ -1175,11 +1175,11 @@ public class btcsamsity : FaucetScript
 
           Click_Tokens_Function(); //call
 		  Log("Roll Number - " + Count);
-          Wait(4);
+          Wait(1);
 		  Log("Wait");
 
           //Win Success
-          var YouWinSuccess = ElementByXPath("//div[3]//span[contains(text(),'won')]");
+          var YouWinSuccess = ElementByXPath("//div[@class='toast-message' and contains(text(),'Congratulations, you won') ]"); //("//div[3]//span[contains(text(),'won')]");
           if (IsVisible(YouWinSuccess))
 		  {
             var YouWinAmount = ElementByXPath("//div[3]//span[contains(text(),'tokens')]");
