@@ -1,7 +1,7 @@
 
 //==================//
 //script Written by: ••AviramDayan•• 13/11/2019 09:00AM - Version 1
-//Last Update: 25/11/2019 09:00AM - Version 2
+//Last Update: 12/01/2020 03:00AM - Version 3
 //==================//
 
 using System;
@@ -110,7 +110,7 @@ public class FairMillions : FaucetScript
 		
 
         //if we already login go to here
-        GoToUrl("https://www.Wolf.Bet/");
+        GoToUrl("https://wolf.bet/");
 
 		
         //This faucet has nothing to do here. We will let Faucet Collector handle it.
@@ -136,7 +136,7 @@ public class FairMillions : FaucetScript
   if (!IsVisible(ExitButton))
   {
 
-        GoToUrl("https://www.Wolf.Bet/");
+        GoToUrl("https://wolf.bet/");
         Wait();		
         Wait(2);
 
@@ -268,7 +268,7 @@ public class FairMillions : FaucetScript
  public override int DoSolveFaucet()
   {
 	
-        GoToUrl("https://www.Wolf.Bet/");
+        GoToUrl("https://wolf.bet/");
 		Log("Go to faucet");	
 		Wait();
 
