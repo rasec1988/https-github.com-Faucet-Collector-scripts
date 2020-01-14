@@ -1,4 +1,10 @@
-﻿using System;
+
+//============================================//
+//script Written first by: cgerabit 04/02/2019 15:00PM version 1
+//script update xpath elements and new way by: AviramDayan 14/01/2020 15:00PM
+//============================================//
+
+using System;
 using FaucetCollector.Script;
 //css_inc RecaptchaUtilities
 public class SatoshiHeroScript : FaucetScript
@@ -35,11 +41,11 @@ public class SatoshiHeroScript : FaucetScript
     public override void Start()
     {
         //Title that shows in the browser. Is used to identify and close popup windows
-        Title = "Hero";
+        Title = "Satoshi Hero";
 
         //After we did try to claim on the faucet we search for these elements to determine if it was a success or a fail
-        SuccessXPath = "//*[text()='']";
-        FailXPath = "//*[text()='']";
+        SuccessXPath = "//*"; //*[text()='']
+        FailXPath = "//*"; //*[text()='']
 
         //Let Faucet Collector start up everything
         base.Start();
@@ -53,28 +59,40 @@ public class SatoshiHeroScript : FaucetScript
         //Let Faucet Collector continue.
         return base.DoInit();
     }
+	
 
-    /// <summary>
-    /// This method gets called after the Start method, here you need to return if we are logged in or not.
-    /// If you return false then it will call the BeforeLogin, Login and AfterLogin methods so you can login.
-    /// After those Login methods are called it will call this IsLoggedIn method again to see if the login did succeed.
-    /// If you return true Faucet Collector will store all cookies so it will probably be already logged in on the next attempt.
-    /// </summary>
+	
+//==================//
+//save Login Cookies 
+//==================//
     public override bool IsLoggedIn()
     {
-        //In here we can check for the presence of an element that is only present when you are logged in.
-        //In this case we check for en element with the class "loggedIn"
-        return ElementByXPath("//li[@class='nav-item nav-item-logOut']") != null;
+	    //save Login Cookies - Check if the "Logout" exist
+        return ElementByXPath("//div[contains(@class,'v-list-item__title') and contains(text(),'Log Out')]") != null;
+	 
+	    //return true;
+	 
+        //return base.IsLoggedIn();
     }
+//==================//
+//save Login Cookies 
+//==================//	
 
+	
     /// <summary>
     /// This method gets called if IsLoggedIn returned false, right before the DoLogin method is called.
     /// </summary>
     public override int BeforeLogin()
     {
+		
+        GoToUrl("https://satoshihero.com/en/game");
+		
         //This faucet has nothing to do here. We will let Faucet Collector handle it.
         return base.BeforeLogin();
     }
+	
+
+
 
     /// <summary>
     /// This method gets called after BeforeLogin, but only if IsLoggedIn returned false.
@@ -83,107 +101,114 @@ public class SatoshiHeroScript : FaucetScript
     /// <returns></returns>
     public override int DoLogin()
     {
-        if (!Driver.Url.Contains("https://satoshihero.com/en/login"))
-        {
-            GoToUrl("https://satoshihero.com/en/login");
-        }
-        Wait(1);
-        var EmailBox = ElementByXPath("//input[@placeholder='Your email']");
-        if (!IsVisible(EmailBox)) { return Fail("Fail Setting email, Email box is not visible"); }
-        SetText(EmailBox, GetSetting("User"));
-        var PasswordBox = ElementByXPath("//input[@placeholder='Your password']");
-        if (!IsVisible(PasswordBox)) { return Fail("Faill setting Password, password box is not visible");
-        }
-        SetText(PasswordBox, GetPassword("Password"));
-        var ButtonLogin = ElementByXPath("//input[@value='Sign in']");
-        if (!IsVisible(ButtonLogin))
-        {
-            return Fail("Button login is not visible");
 
-        }
-        Click(ButtonLogin);
-        Wait(1);
+        var ExitButton = ElementByXPath ("//div[contains(@class,'v-list-item__title') and contains(text(),'Log Out')]"); 
+        //if i NOT Login - go to Login Page
+        if (!IsVisible(ExitButton))
+		{	
+	
+          GoToUrl("https://satoshihero.com/en/login");
+          Wait();
+          Wait(3);
+		  
+          var EmailBox = ElementByXPath("//input[@name='login']");
+          if (!IsVisible(EmailBox)) 
+		  { 
+	      return Fail("Fail Setting email, Email box is not visible"); 
+	      }
+          SetText(EmailBox, GetSetting("User"));
+		  
+          Wait(2);
+		  
+          var PasswordBox = ElementByXPath("//input[@name='password']");
+          if (!IsVisible(PasswordBox)) 
+		  { 
+	      return Fail("Faill setting Password, password box is not visible");
+          }
+          SetText(PasswordBox, GetPassword("Password"));
+		  
+          Wait(2);
+		  
+          var ButtonLogin = ElementByXPath("//button[contains(@class,'ma-auto signin')]");
+          if (!IsVisible(ButtonLogin))
+          {
+            return Fail("Button login is not visible");
+		  
+          }
+          Click(ButtonLogin);
+		  
+          Wait(1);
+		
+		}
+		      
         //This faucet has nothing to do here. We will let Faucet Collector handle it.
         return base.DoLogin();
     }
 
-    /// <summary>
-    /// This method gets called after the DoLogin method.
-    /// </summary>
-    public override int AfterLogin()
-    {
-        var LoginFail = ElementByXPath("//p[@translate='withdrawals.modal.login-1']");
-        if (IsVisible(LoginFail))
-        {
-            Log(LoginFail.Text);
 
-        }
+
+//==========//
+//AfterLogin
+//=========//
+ public override int AfterLogin()
+ {
+ 
+	 
         //This faucet has nothing to do here. We will let Faucet Collector handle it.
         return base.AfterLogin();
-    }
+ }
+//==========//
+//AfterLogin
+//=========//
 
-    /// <summary>
-    /// This method gets called after the login methods are successful, so we are logged into the faucet.
-    /// If the faucet is not yet ready to claim you should return a TimeStamp value to return how long it takes before the Faucet claim can be done.
-    /// This is used to pause the script while the faucet its timer runs out.
-    /// Return the number of seconds the bot should wait.
-    /// </summary>
-    public override int GetFaucetWaitTime()
-    {
 
-        GoToUrl("https://satoshihero.com/en/game");
-        if(IsVisible(ElementByXPath("//a[contains(text(),'Get free bitcoins now')]")))
-        {
-            return 0;
-        }
-        else
-        {
-            return GetWaitSetting();
-        }
-        //let Faucet Collector continue.
 
-    }
 
-    /// <summary>
-    /// This method is called right before a captcha will be solved. 
-    /// If you call SolveCaptcha() in other methods it will start this flow and tries to solve the captcha on the page.
-    /// </summary>
+	
+//=============//
+//GetFaucetWaitTime
+//=============//
+ public override int GetFaucetWaitTime()
+ {
+
+
+		
+   //let Faucet Collector continue.
+   return base.GetFaucetWaitTime();
+ }
+//=============//
+//GetFaucetWaitTime
+//=============//
+	
+	
+
     public override int BeforeSolveCaptcha()
     {
         //This faucet has nothing to do here. We will let Faucet Collector handle it.
         return base.BeforeSolveCaptcha();
     }
 
-    /// <summary>
-    /// This method gets called after BeforeSolveCaptcha and it does the actual captcha solving
-    /// It will automatically try to see if there is a SolveMedia captcha active or a reCAPTCHA active. 
-    /// If it finds either one it will then use the selected method on the Captcha tab of FaucetCollector to solve the Captcha.
-    /// </summary>
     public override int DoSolveCaptcha()
     {
         //This faucet has nothing to do here. We will let Faucet Collector handle it.
         return base.DoSolveCaptcha();
     }
 
-    /// <summary>
-    /// This method will get called after DoSolveCaptcha returned it was a success.
-    /// </summary>
-    /// <returns></returns>
     public override int AfterSolveCaptcha()
     {
         //This faucet has nothing to do here. We will let Faucet Collector handle it.
         return base.AfterSolveCaptcha();
     }
 
-    /// <summary>
-    /// This method is called right before we attempt to claim on the faucet. So we are logged in and good to go.
-    /// Next methods that will be called are DoSolveFaucet, AfterSolveFaucet and CheckFaucetResult.
-    /// </summary>
     public override int BeforeSolveFaucet()
     {
         //This faucet has nothing to do here. We will let Faucet Collector handle it.
         return base.BeforeSolveCaptcha();
     }
+
+
+
+
 
     /// <summary>
     /// This method gets called after the BeforeSolveFaucet. You can do the actual claiming of the faucet in here.
@@ -191,57 +216,75 @@ public class SatoshiHeroScript : FaucetScript
     /// <returns></returns>
     public override int DoSolveFaucet()
     {
-        var ButtonClaim = ElementByXPath("//a[contains(text(),'Get free bitcoins now')]");
+		
+        Check_Function(); //call
+		Log("Check_Function");
+		
+		
+        var ButtonClaim = ElementByXPath("//button/span[contains(text(),'Get free bitcoin')]");
         if (!IsVisible(ButtonClaim))
         {
-
+		Log("ButtonClaim not visible");
         }
         Click(ButtonClaim);
-        Wait(3, 4);
-        var IframeCaptcha = ElementByXPath("//iframe[@ng-if='vm.GameService.captchaLink']");
-        if (IframeCaptcha != null)
+		
+        Wait(4);
+		
+        var IframeCaptcha = ElementByXPath("//iframe[contains(@src,'bitplay.io/confirm/captcha')]");
+        if (IsVisible(IframeCaptcha))
         {
-            try
+		    Log("IframeCaptcha visible");
+
+            Driver.SwitchTo().Frame(IframeCaptcha);
+            Wait(1);
+            var result = DoSolveCaptcha();
+            if (result > 0)
             {
-                Driver.SwitchTo().Frame(IframeCaptcha);
-                Wait(1);
-                var result = DoSolveCaptcha();
-                if (result > 0)
-                {
-                    Log("Fail solving captcha");
-                    Driver.SwitchTo().DefaultContent();
-                    return Fail("Fail Claim");
-                }
-                RecaptchaUtility recaptchaUtility = new RecaptchaUtility(this);
-                recaptchaUtility.DoSolve();
-                Wait();
-            }
-            finally
-            {
+                Log("Fail solving captcha");
                 Driver.SwitchTo().DefaultContent();
+                return Fail("Fail Claim");
             }
+            RecaptchaUtility recaptchaUtility = new RecaptchaUtility(this);
+            recaptchaUtility.DoSolve();
+            Wait();
 
-            var ButtonClaim_ = ElementByXPath("//a[contains(text(),'Continue to claim')]");
-            if (IsVisible(ButtonClaim_))
-            {
-                Click(ButtonClaim_);
-            }
+				
             Wait(2);
-
-            var Congrats = ElementByXPath("//div[contains(text(),'Congrats!')]");
-            if (IsVisible(Congrats))
+			
+            var SuccessMessageFirst = ElementByXPath("//div[contains(@class,'alert alert-success')]/h5");
+            if (IsVisible(SuccessMessageFirst))
             {
-                var BoldSatoshi = ElementByXPath("//span[@class='bold']");
-                if (IsVisible(BoldSatoshi))
+                Log(SuccessMessageFirst.Text);	
+				
+                Wait(2);
+
+                Driver.SwitchTo().DefaultContent();
+
+                var ButtonContinue = ElementByXPath("//span[contains(text(),'Continue to claim')]");
+                if (IsVisible(ButtonContinue))
                 {
-                    Log(Congrats.Text + " You received " + BoldSatoshi.Text);
-                    return GetWaitSetting();
+                    Click(ButtonContinue);		    	
                 }
+				
+                Wait(4);
+				
+                var ResultsAll = ElementByXPath("//p[@data-v-801ffe70]");
+                if (IsVisible(ResultsAll))
+                {
+                Log(ResultsAll.Text);
+				}
+				
+				ClaimSuccess(); //Marks the claim as a success also
+				
             }
+			
+
         }
         //This faucet has nothing to do here. We will let Faucet Collector handle it.
         return base.DoSolveFaucet();
     }
+
+
 
     /// <summary>
     /// This method will get called after the DoSolveFaucet is completed and returned it was a success.
@@ -252,6 +295,9 @@ public class SatoshiHeroScript : FaucetScript
         //This faucet has nothing to do here. We will let Faucet Collector handle it.
         return base.AfterSolveFaucet();
     }
+
+
+
 
     /// <summary>
     /// This method gets called in the end after the BeforeSolveFaucet/DoSolveFaucet and AfterSolveFaucet methods were done.
@@ -265,4 +311,42 @@ public class SatoshiHeroScript : FaucetScript
         //This faucet has nothing to do here. We will let Faucet Collector handle it.
         return base.CheckFaucetResult();
     }
+	
+	
+	
+      //=================//
+      //Check_Function
+      //=================//
+
+      public int Check_Function()
+      {
+		
+        GoToUrl("https://satoshihero.com/en/game");
+        if(IsVisible(ElementByXPath("//button/span[contains(text(),'Get free bitcoin')]")))
+        {
+			Log("Check_Function - Continue");
+            return 0;
+        }
+		
+        var MinuteVAR = ElementByXPath("//h1[contains(@class,'error--text')]");
+        if (IsVisible(MinuteVAR))
+        {
+			Log("Check_Function - need to wait");
+			
+			int MinINT, SecINT;
+            MinINT = Convert.ToInt32(MinuteVAR.Text.Trim().Split(':')[1])*60;
+            SecINT = Convert.ToInt32(MinuteVAR.Text.Trim().Split(':')[2]);
+            return MinINT + SecINT; 
+
+        }	
+		
+        else
+		{
+           return GetWaitSetting(); 			
+		}
+		
+	    return 0;
+      }//end Check_Function
+      //=================//	
+	
 }
