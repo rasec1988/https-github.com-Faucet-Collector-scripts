@@ -1,7 +1,7 @@
 
 //============================================//
-//script Written first by: cgerabit 04/02/2019 15:00PM version 1
-//script update xpath elements and new way by: AviramDayan 14/01/2020 15:00PM
+//script Written first by: cgerabit 04/02/2019 15:00PM - Version 1
+//script update xpath elements and new way by: AviramDayan 14/01/2020 15:45PM - Version 5
 //============================================//
 
 using System;
@@ -171,6 +171,25 @@ public class SatoshiHeroScript : FaucetScript
  public override int GetFaucetWaitTime()
  {
 
+        GoToUrl("https://satoshihero.com/en/game");
+        if(IsVisible(ElementByXPath("//button/span[contains(text(),'Get free bitcoin')]")))
+        {
+			Log("Check_Function - Continue");
+            return 0;
+        }
+		
+        var MinuteVAR = ElementByXPath("//h1[contains(@class,'error--text')]");
+        if (IsVisible(MinuteVAR))
+        {
+			Log("Check_Function - need to wait");
+			
+            var Minute2VAR = ElementByXPath("//h1[contains(@class,'error--text')]");
+			int MinINT, SecINT;
+            MinINT = Convert.ToInt32(Minute2VAR.Text.Trim().Split(':')[1])*60;
+            SecINT = Convert.ToInt32(Minute2VAR.Text.Trim().Split(':')[2]);
+            //return MinINT + SecINT;
+            return GetWaitSetting(); 
+        }	
 
 		
    //let Faucet Collector continue.
@@ -220,7 +239,6 @@ public class SatoshiHeroScript : FaucetScript
         Check_Function(); //call
 		Log("Check_Function");
 		
-		
         var ButtonClaim = ElementByXPath("//button/span[contains(text(),'Get free bitcoin')]");
         if (!IsVisible(ButtonClaim))
         {
@@ -236,7 +254,7 @@ public class SatoshiHeroScript : FaucetScript
 		    Log("IframeCaptcha visible");
 
             Driver.SwitchTo().Frame(IframeCaptcha);
-            Wait(1);
+            Wait(2);
             var result = DoSolveCaptcha();
             if (result > 0)
             {
@@ -246,40 +264,41 @@ public class SatoshiHeroScript : FaucetScript
             }
             RecaptchaUtility recaptchaUtility = new RecaptchaUtility(this);
             recaptchaUtility.DoSolve();
-            Wait();
-
-				
             Wait(2);
-			
-            var SuccessMessageFirst = ElementByXPath("//div[contains(@class,'alert alert-success')]/h5");
-            if (IsVisible(SuccessMessageFirst))
+        } //end IframeCaptcha
+		
+        var SuccessMessageFirst = ElementByXPath("//div[contains(@class,'alert alert-success')]/h5");
+        if (IsVisible(SuccessMessageFirst))
+        {
+            Log(SuccessMessageFirst.Text);	
+		
+            Wait(2);
+
+            Driver.SwitchTo().DefaultContent();
+
+            var ButtonContinue = ElementByXPath("//span[contains(text(),'Continue to claim')]");
+            if (IsVisible(ButtonContinue))
             {
-                Log(SuccessMessageFirst.Text);	
-				
-                Wait(2);
-
-                Driver.SwitchTo().DefaultContent();
-
-                var ButtonContinue = ElementByXPath("//span[contains(text(),'Continue to claim')]");
-                if (IsVisible(ButtonContinue))
-                {
-                    Click(ButtonContinue);		    	
-                }
-				
-                Wait(4);
-				
-                var ResultsAll = ElementByXPath("//p[@data-v-801ffe70]");
-                if (IsVisible(ResultsAll))
-                {
-                Log(ResultsAll.Text);
-				}
-				
-				ClaimSuccess(); //Marks the claim as a success also
-				
+                Click(ButtonContinue);		    	
             }
-			
+		
+            Wait(4);
+		
+            var ResultsAll = ElementByXPath("//p[@data-v-801ffe70]");
+            if (IsVisible(ResultsAll))
+            {
+            Log(ResultsAll.Text);
+		    }
+		
+		    ClaimSuccess(); //Marks the claim as a success also
+		
+            Driver.Navigate().Refresh();
+            Wait();
+		
+        } //end SuccessMessageFirst
 
-        }
+		Check_Function(); //call
+		
         //This faucet has nothing to do here. We will let Faucet Collector handle it.
         return base.DoSolveFaucet();
     }
@@ -333,18 +352,14 @@ public class SatoshiHeroScript : FaucetScript
         {
 			Log("Check_Function - need to wait");
 			
+            var Minute2VAR = ElementByXPath("//h1[contains(@class,'error--text')]");
 			int MinINT, SecINT;
-            MinINT = Convert.ToInt32(MinuteVAR.Text.Trim().Split(':')[1])*60;
-            SecINT = Convert.ToInt32(MinuteVAR.Text.Trim().Split(':')[2]);
-            return MinINT + SecINT; 
-
+            MinINT = Convert.ToInt32(Minute2VAR.Text.Trim().Split(':')[1])*60;
+            SecINT = Convert.ToInt32(Minute2VAR.Text.Trim().Split(':')[2]);
+            //return MinINT + SecINT;
+            return GetWaitSetting(); 
         }	
-		
-        else
-		{
-           return GetWaitSetting(); 			
-		}
-		
+
 	    return 0;
       }//end Check_Function
       //=================//	
