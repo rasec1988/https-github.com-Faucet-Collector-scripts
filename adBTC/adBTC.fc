@@ -1,7 +1,4 @@
-﻿
-
-
-using DoubleMathCaptchaUtility;
+﻿using DoubleMathCaptchaUtility;
 using FaucetCollector.Script;
 using OpenQA.Selenium;
 using System;
@@ -40,7 +37,7 @@ namespace Adbtc
         public override void Start()
         {
 
-            Title = "adbtc.top|DO|YOUH|You|Please solve the";
+            Title = "adbtc.top|DO|YOUH|You|Please solve the|satoshi|Bitcoin";
 
             SuccessXPath = "//p[@class='white-text flow-text']";
             FailXPath = "//a[@class='btn-large light-blue darken-4']";
@@ -515,7 +512,7 @@ namespace Adbtc
                 Click(SwitchCaptcha);
                 Wait(1);
 
-                var SelectCaptcha=ElementByXPath("//ul[contains(@id,'select-options')//span[not(contains(text(),'"+ActualCaptchaValue+"'))]");          
+                var SelectCaptcha=ElementByXPath("//li[not(contains(@class,'selected')) and contains(@id,'select')]");          
                 if (SelectCaptcha != null)
                 {
                     Click(SelectCaptcha);
