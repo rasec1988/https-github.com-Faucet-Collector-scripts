@@ -1,7 +1,7 @@
 
 //==================//
 //script Written by: ••AviramDayan•• 06/01/2020 06:00PM - Version 1
-//Last Update: 06/01/2020 06:00PM - Version 1
+//Last Update: 16/01/2020 16:00PM - Version 2
 //==================//
 
 using System;
@@ -30,6 +30,7 @@ public class FaucetPay : FaucetScript
                 //new FaucetSetting(){Name="Address",Display="Address HORIZEN - ZEN ",Type=EditorType.TextBox,Required=true},
 				
                 new FaucetSetting(){Name="Rock_Paper_Scissors_Faucet",Display="Rock Paper Scissors - Faucet",Type=EditorType.CheckBox,Default=true},
+                new FaucetSetting(){Name="PaidToClick",Display="PaidToClick - visit ads with Recaptcha",Type=EditorType.CheckBox,Default=true},
 				
                 //insert user settings here
                 //new FaucetSetting { 
@@ -350,7 +351,66 @@ public class FaucetPay : FaucetScript
 
          } //end Rock_Paper_Scissors_Faucet
       //=============//
-	  
+
+
+
+      //=============//
+      //PaidToClick
+      //=============//
+         if (GetBoolSetting("PaidToClick"))
+         {
+           Title = "FaucetPay";
+		   GoToUrl("https://faucetpay.io/ptc");
+           Log("PaidToClick");	
+           Wait();	
+	       Wait(2);	
+		   
+		   Title = "View Ad";
+		   
+           var ClaimNow_Available = ElementByXPath ("//div[* and @class='col-sm-4']//a[contains(@href,'faucetpay.io/ptc')]");
+	       if (IsVisible(ClaimNow_Available))
+	       { 
+	        Click(ClaimNow_Available);
+            Log("PaidToClick - ClaimNow_Available");
+		   }
+		   
+             var SectionOpen = ElementByXPath("//span[@id='duration' and starts-with(text(),'0')]");			 
+             var Time_2_ToWaitForBreak = DateTime.Now.AddSeconds(180);
+             while (!IsVisible(SectionOpen))
+             {	
+		       Wait();
+		       Log("PaidToClick - Bonus_Available - wait normal");
+			   
+	           if (IsVisible(ElementByXPath ("//span[@id='duration' and starts-with(text(),'0')]") ))
+			   {
+				 Recaptcha_Function();
+				 
+		         Wait(2);
+				
+                 if (IsVisible(ElementByXPath ("//div[@class='alert alert-info' and contains(text(),'credit')] | //div[@class='alert alert-info' and contains(text(),'Good job') ]") ))
+                 {
+                 var SuccessVAR = ElementByXPath("//div[@class='alert alert-info']") ;
+		         Log("Success - " + SuccessVAR.Text);
+                 Wait(2);
+		         Log("PaidToClick - break");
+                 break; //after break the while  			 
+				 }
+
+			   }				   
+			   
+	           if (DateTime.Now > Time_2_ToWaitForBreak) //if the time above 120 sec 
+               {
+		       Log("Rock_Paper_Scissors_Faucet - break - Time_2_ToWaitForBreak");
+               break; //break the wait loop
+               }
+			 
+             } //end while (true)
+		
+         } //end Rock_Paper_Scissors_Faucet
+      //=============//
+
+
+  
    ClaimSuccess(); //Marks the claim as a success
    return GetWaitSetting();  
 
@@ -390,6 +450,7 @@ public class FaucetPay : FaucetScript
 
         public int Recaptcha_Function()
         {
+
             //SolveCaptcha if apper
             var result = base.DoSolveCaptcha();
             RecaptchaUtility utility = new RecaptchaUtility(this);
@@ -399,6 +460,7 @@ public class FaucetPay : FaucetScript
                 return Fail("Fail solving captcha");
             }
 
+		  
 		return 0;
         }//end Recaptcha_Function
         //=================//	
