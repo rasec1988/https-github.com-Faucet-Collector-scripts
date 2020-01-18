@@ -1,7 +1,7 @@
 
 //==================//
 //script Written by: ••AviramDayan•• 26/05/2019 04:00PM - Version 1
-//Last Update: 17/12/2019 03:00AM - Version 19
+//Last Update: 18/01/2020 16:00PM - Version 20
 //==================//
 
 using System;
@@ -306,204 +306,12 @@ public class luckyfishorg : FaucetScript
 		
         Wait(2);
 
-        //do all stuff	
-        MenuAFF_Faunction(); //call
-        Wait(2);
-        var btc_w_VAR = ElementByXPath("//ul[@class='el-scrollbar__view el-select-dropdown__list']/li[1]");  
-        Click(btc_w_VAR);
-        Wait(2);
-        WithdrawEndButton_Faunction(); //call
-		Log("WithdrawEndButton - btc");	
-        Wait(2);
 
-        MenuAFF_Faunction(); //call	
-        Wait(2);	
-        var doge_w_VAR = ElementByXPath("//ul[@class='el-scrollbar__view el-select-dropdown__list']/li[2]");   
-        Click(doge_w_VAR);	
-        Wait(2);
-        WithdrawEndButton_Faunction(); //call
-		Log("WithdrawEndButton - doge");	
-        Wait(2);
-
-        MenuAFF_Faunction(); //call	
-        Wait(2);	
-        var ltc_w_VAR = ElementByXPath("//ul[@class='el-scrollbar__view el-select-dropdown__list']/li[3]");   
-        Click(ltc_w_VAR);	
-        Wait(2);
-        WithdrawEndButton_Faunction(); //call
-		Log("WithdrawEndButton - ltc");	
-        Wait(2);
-
-        MenuAFF_Faunction(); //call	
-        Wait(2);	
-        var eth_w_VAR = ElementByXPath("//ul[@class='el-scrollbar__view el-select-dropdown__list']/li[4]");   
-        Click(eth_w_VAR);	
-        Wait(2);
-        WithdrawEndButton_Faunction(); //call
-		Log("WithdrawEndButton - eth");		
-        Wait(2);
-
-        MenuAFF_Faunction(); //call
-        Wait(2);
-        var bch_w_VAR = ElementByXPath("//ul[@class='el-scrollbar__view el-select-dropdown__list']/li[5]");  
-        Click(bch_w_VAR);	
-        Wait(2);
-        WithdrawEndButton_Faunction(); //call
-		Log("WithdrawEndButton - bch");		
-        Wait(2);
-
-        MenuAFF_Faunction(); //call
-        Wait(2);
-        var xlm_w_VAR = ElementByXPath("//ul[@class='el-scrollbar__view el-select-dropdown__list']/li[6]");   
-        Click(xlm_w_VAR);	
-        Wait(2);
-        WithdrawEndButton_Faunction(); //call
-		Log("WithdrawEndButton - xlm");		
-        Wait(2);
-
-        MenuAFF_Faunction(); //call
-        Wait(2);
-        var eos_w_VAR = ElementByXPath("//ul[@class='el-scrollbar__view el-select-dropdown__list']/li[7]");   
-        Click(eos_w_VAR);	
-        Wait(2);
-        WithdrawEndButton_Faunction(); //call	
-		Log("WithdrawEndButton - eos");	
-        Wait(2);
-
-        MenuAFF_Faunction(); //call
-        Wait(2);
-        var xrp_w_VAR = ElementByXPath("//ul[@class='el-scrollbar__view el-select-dropdown__list']/li[8]");   
-        Click(xrp_w_VAR);	
-        Wait(2);
-        WithdrawEndButton_Faunction(); //call	
-		Log("WithdrawEndButton - xrp");	
-        Wait(2);
-
-        MenuAFF_Faunction(); //call
-        Wait(2);
-        var dash_w_VAR = ElementByXPath("//ul[@class='el-scrollbar__view el-select-dropdown__list']/li[9]");   
-        Click(dash_w_VAR);	
-        Wait(2);
-        WithdrawEndButton_Faunction(); //call		
-		Log("WithdrawEndButton - dash");	
-        Wait(2);
-
-        MenuAFF_Faunction(); //call
-        Wait(2);
-        var zec_w_VAR = ElementByXPath("//ul[@class='el-scrollbar__view el-select-dropdown__list']/li[10]");   
-        Click(zec_w_VAR);	
-        Wait(2);
-        WithdrawEndButton_Faunction(); //call
-		Log("WithdrawEndButton - zec");			
-        Wait(2);
-
-        MenuAFF_Faunction(); //call
-        Wait(2);
-        var usdt_w_VAR = ElementByXPath("//ul[@class='el-scrollbar__view el-select-dropdown__list']/li[11]"); 
-        Click(usdt_w_VAR);	
-        Wait(2);
-        WithdrawEndButton_Faunction(); //call	
-		Log("WithdrawEndButton - usdt");			
-        Wait(2);
-
-        MenuAFF_Faunction(); //call
-        Wait(2);
-        var bsv_w_VAR = ElementByXPath("//ul[@class='el-scrollbar__view el-select-dropdown__list']/li[12]");  
-        Click(bsv_w_VAR);	
-        Wait(2);
-        WithdrawEndButton_Faunction(); //call	
-		Log("WithdrawEndButton - bsv");	
-        Wait(2);
-
-        MenuAFF_Faunction(); //call
-        Wait(2);
-        var btg_w_VAR = ElementByXPath("//ul[@class='el-scrollbar__view el-select-dropdown__list']/li[13]"); 
-        Click(btg_w_VAR);	
-        Wait(2);
-        WithdrawEndButton_Faunction(); //call	
-		Log("WithdrawEndButton - btg");	
-        Wait(2);
-
-        MenuAFF_Faunction(); //call
-        Wait(2);
-        var bat_w_VAR = ElementByXPath("//ul[@class='el-scrollbar__view el-select-dropdown__list']/li[14]"); 
-        Click(bat_w_VAR);	
-        Wait(2);
-        WithdrawEndButton_Faunction(); //call	
-		Log("WithdrawEndButton - bat");	
-        Wait(2);
-
-        MenuAFF_Faunction(); //call
-        Wait(2);
-        var hot_w_VAR = ElementByXPath("//ul[@class='el-scrollbar__view el-select-dropdown__list']/li[15]"); 
-        Click(hot_w_VAR);	
-        Wait(2);
-        WithdrawEndButton_Faunction(); //call	
-		Log("WithdrawEndButton - hot");	
-        Wait(2);
-
-        MenuAFF_Faunction(); //call
-        Wait(2);
-        var link_w_VAR = ElementByXPath("//ul[@class='el-scrollbar__view el-select-dropdown__list']/li[16]"); 
-        Click(link_w_VAR);	
-        Wait(2);
-        WithdrawEndButton_Faunction(); //call	
-		Log("WithdrawEndButton - link");	
-        Wait(2);
-
-        MenuAFF_Faunction(); //call
-        Wait(2);
-        var omg_w_VAR = ElementByXPath("//ul[@class='el-scrollbar__view el-select-dropdown__list']/li[17]"); 
-        Click(omg_w_VAR);	
-        Wait(2);
-        WithdrawEndButton_Faunction(); //call	
-		Log("WithdrawEndButton - omg");	
-        Wait(2);
-
-        MenuAFF_Faunction(); //call
-        Wait(2);
-        var ht_w_VAR = ElementByXPath("//ul[@class='el-scrollbar__view el-select-dropdown__list']/li[18]"); 
-        Click(ht_w_VAR);	
-        Wait(2);
-        WithdrawEndButton_Faunction(); //call	
-		Log("WithdrawEndButton - ht");	
-        Wait(2);
-
-        MenuAFF_Faunction(); //call
-        Wait(2);
-        var usdc_w_VAR = ElementByXPath("//ul[@class='el-scrollbar__view el-select-dropdown__list']/li[19]"); 
-        Click(usdc_w_VAR);	
-        Wait(2);
-        WithdrawEndButton_Faunction(); //call	
-		Log("WithdrawEndButton - usdc");	
-        Wait(2);
-
-        MenuAFF_Faunction(); //call
-        Wait(2);
-        var tusd_w_VAR = ElementByXPath("//ul[@class='el-scrollbar__view el-select-dropdown__list']/li[20]"); 
-        Click(tusd_w_VAR);	
-        Wait(2);
-        WithdrawEndButton_Faunction(); //call	
-		Log("WithdrawEndButton - tusd");	
-        Wait(2);
-
-        MenuAFF_Faunction(); //call
-        Wait(2);
-        var pax_w_VAR = ElementByXPath("//ul[@class='el-scrollbar__view el-select-dropdown__list']/li[21]"); 
-        Click(pax_w_VAR);	
-        Wait(2);
-        WithdrawEndButton_Faunction(); //call	
-		Log("WithdrawEndButton - pax");	
-        Wait(2);
-
-        MenuAFF_Faunction(); //call
-        Wait(2);
-        var trx_w_VAR = ElementByXPath("//ul[@class='el-scrollbar__view el-select-dropdown__list']/li[22]"); 
-        Click(trx_w_VAR);	
-        Wait(2);
-        WithdrawEndButton_Faunction(); //call	
-		Log("WithdrawEndButton - trx");	
-        Wait(2);
+      //in the script call
+      for(var i=1; i<=22; i++)
+      {
+        ClickMulti_AFF_Function(i);
+      }
 		
      }// end AffWithdraw
      //=============//
@@ -1142,6 +950,30 @@ public class luckyfishorg : FaucetScript
 		//=========//
 
 
+      //===================//
+      //ClickMulti_AFF_Function
+      //===================//
+      public void ClickMulti_AFF_Function (int number)
+      {
+		  
+        MenuAFF_Faunction(); //call
+        Wait(2);
+		
+        var My_Button_VAR = ElementByXPath("//ul[@class='el-scrollbar__view el-select-dropdown__list']/li["+number.ToString()+"]");        
+        if (IsVisible(My_Button_VAR))
+        {    
+          Click(My_Button_VAR);
+          //var My_Coin_info_VAR = ElementByXPath("//span[@class='currency']");        
+          Log("ClickMulti_AFF_Function " + number.ToString()  );  	//+ My_Coin_info_VAR.Text
+          Wait();
+          Wait(2);
+          WithdrawEndButton_Faunction(); //call	
+          Wait(2);
+        }
+		
+      }// end ClickMulti_AFF_Function
+      //=============// 
+
        //=============//
        //MenuAFF_Faunction
        //=============// 
@@ -1177,56 +1009,63 @@ public class luckyfishorg : FaucetScript
 		//=============// 
 		
 		
-     //=============//
-     //WithdrawEndButton_Faunction
-     //=============// 
-      public int WithdrawEndButton_Faunction()
+   //=============//
+   //WithdrawEndButton_Faunction
+   //=============// 
+    public int WithdrawEndButton_Faunction()
+    {
+
+      var balance = ElementByXPath("//div[@class='available_balance_content']");
+      string BalanceSTRING = balance.Text.Trim().Split('.')[1];
+      int BalanceINT = Convert.ToInt32(BalanceSTRING);
+
+      if (BalanceINT < 1) 
       {
+        Log("Affiliate - < Under - not good ");
+      }
 
-        var balance = ElementByXPath("//div[@class='available_balance_content']");
-        string BalanceSTRING = balance.Text.Trim().Split('.')[1];
-        int BalanceINT = Convert.ToInt32(BalanceSTRING);
-
-        if (BalanceINT < 1) 
-        {
-            Log("Affiliate - < Under - not good ");
-        }
-
-        if (BalanceINT > 1) 
-        {
+      if (BalanceINT > 1) 
+      {
         Log("Affiliate - > Above - good do stuff");
-		
+	    
         var WithdrawEndButton = ElementByXPath("//div[@class='withdraw_to_luckyfish_btn']/div[@class='button']"); 
         Click(WithdrawEndButton);
         Log("Affiliate - WithdrawEndButton");
-		
+	    
         Wait();
         Wait(2);
-		
+	    
         var box_user = ElementByXPath("//div[@class='el-dialog__body']/input[@type='text']");
         SetText(box_user, GetSetting("Email"));
         Log("Affiliate - set Email");
-	
-		Wait(2);
-		
+	    
+        Wait(2);
+	    
         var box_pass = ElementByXPath("//div[@class='el-dialog__body']/input[@type='password']");
         SetText(box_pass, GetPassword("Password"));
         Log("Affiliate - set Password");
-		
-		Wait(2);
-		
+	    
+        Wait(2);
+	    
         var ConfirmButton = ElementByXPath("//span[@class='dialog-footer']/button[@class='el-button el-button--primary']"); 
         Click(ConfirmButton);
         Log("Affiliate - ConfirmButton");
-		
+	    
         Wait();
-		
-        } //end > Above
+	    
+        var My_Amount_VAR = ElementByXPath("//div[@class='el-notification__content']"); 
+        if (IsVisible(My_Amount_VAR))
+        {  
+        //var My_Coin_info_VAR = ElementByXPath("//span[@class='currency']");        
+        Log("success " + My_Amount_VAR.Text);  	
+        }
 
-        return 0;
+      } //end > Above
 
-      }// end WithdrawEndButton_Faunction
-      //=============// 	
+      return 0;
+
+    }// end WithdrawEndButton_Faunction
+    //=============// 	
 
 
  
