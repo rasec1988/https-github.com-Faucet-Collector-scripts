@@ -1,7 +1,7 @@
 
 //==================//
 //script Written by: ••AviramDayan•• 23/12/2019 01:35AM - Version 1
-//Last Update: 18/01/2020 02:40AM - Version 2
+//Last Update: 18/01/2020 14:00PM - Version 2
 //==================//
 
 using System;
@@ -358,139 +358,41 @@ public class GigaBet : FaucetScript
 	
 
 
-
      //=============//
      //ClickWithdrawStart_Faunction
      //=============// 
       public int ClickWithdrawStart_Faunction()
       {
-		  
-	    var Click_1_Withdraw = ElementByXPath ("//div[@id='account-affiliates--link--commissions']/div[1]//button") ;  
-	    if (IsVisible(Click_1_Withdraw))     
-	    {
-        Click(Click_1_Withdraw);
-        Log("Click_1_Withdraw");	
-        Wait();
-        Wait(2);
-		WithdrawEndButton_Faunction();
-        Wait(2);
-		}			  
-		  
-	    var Click_2_Withdraw = ElementByXPath ("//div[@id='account-affiliates--link--commissions']/div[2]//button") ;  
-	    if (IsVisible(Click_2_Withdraw))     
-	    {
-        Click(Click_2_Withdraw);
-        Log("Click_2_Withdraw");	
-        Wait();
-        Wait(2);
-		WithdrawEndButton_Faunction();
-        Wait(2);
-		}			  
-		  
-	    var Click_3_Withdraw = ElementByXPath ("//div[@id='account-affiliates--link--commissions']/div[3]//button") ;  
-	    if (IsVisible(Click_3_Withdraw))     
-	    {
-        Click(Click_3_Withdraw);
-        Log("Click_3_Withdraw");	
-        Wait();
-        Wait(2);
-		WithdrawEndButton_Faunction();
-        Wait(2);
-		}	
-		  
-	    var Click_4_Withdraw = ElementByXPath ("//div[@id='account-affiliates--link--commissions']/div[4]//button") ;  
-	    if (IsVisible(Click_4_Withdraw))     
-	    {
-        Click(Click_4_Withdraw);
-        Log("Click_4_Withdraw");	
-        Wait();
-        Wait(2);
-		WithdrawEndButton_Faunction();
-        Wait(2);
-		}	
-		  
-	    var Click_5_Withdraw = ElementByXPath ("//div[@id='account-affiliates--link--commissions']/div[5]//button") ;  
-	    if (IsVisible(Click_5_Withdraw))     
-	    {
-        Click(Click_5_Withdraw);
-        Log("Click_5_Withdraw");	
-        Wait();
-        Wait(2);
-		WithdrawEndButton_Faunction();
-        Wait(2);
-		}	
-		  
-	    var Click_6_Withdraw = ElementByXPath ("//div[@id='account-affiliates--link--commissions']/div[6]//button") ;  
-	    if (IsVisible(Click_6_Withdraw))     
-	    {
-        Click(Click_6_Withdraw);
-        Log("Click_6_Withdraw");	
-        Wait();
-        Wait(2);
-		WithdrawEndButton_Faunction();
-        Wait(2);
-		}	
-		  
-	    var Click_7_Withdraw = ElementByXPath ("//div[@id='account-affiliates--link--commissions']/div[7]//button") ;  
-	    if (IsVisible(Click_7_Withdraw))     
-	    {
-        Click(Click_7_Withdraw);
-        Log("Click_7_Withdraw");	
-        Wait();
-        Wait(2);
-		WithdrawEndButton_Faunction();
-        Wait(2);
-		}	
-		  
-	    var Click_8_Withdraw = ElementByXPath ("//div[@id='account-affiliates--link--commissions']/div[8]//button") ;  
-	    if (IsVisible(Click_8_Withdraw))     
-	    {
-        Click(Click_8_Withdraw);
-        Log("Click_8_Withdraw");	
-        Wait();
-        Wait(2);
-		WithdrawEndButton_Faunction();
-        Wait(2);
-		}	
-		  
-	    var Click_9_Withdraw = ElementByXPath ("//div[@id='account-affiliates--link--commissions']/div[9]//button") ;  
-	    if (IsVisible(Click_9_Withdraw))     
-	    {
-        Click(Click_9_Withdraw);
-        Log("Click_9_Withdraw");	
-        Wait();
-        Wait(2);
-		WithdrawEndButton_Faunction();
-        Wait(2);
-		}	
-		  
-	    var Click_10_Withdraw = ElementByXPath ("//div[@id='account-affiliates--link--commissions']/div[10]//button") ;  
-	    if (IsVisible(Click_10_Withdraw))     
-	    {
-        Click(Click_10_Withdraw);
-        Log("Click_10_Withdraw");	
-        Wait();
-        Wait(2);
-		WithdrawEndButton_Faunction();
-        Wait(2);
-		}	
-		  
-	    var Click_11_Withdraw = ElementByXPath ("//div[@id='account-affiliates--link--commissions']/div[11]//button") ;  
-	    if (IsVisible(Click_11_Withdraw))     
-	    {
-        Click(Click_11_Withdraw);
-        Log("Click_11_Withdraw");	
-        Wait();
-        Wait(2);
-		WithdrawEndButton_Faunction();
-        Wait(2);
-		}	
-		
+
+         for(var i=1; i<=11; i++)
+         {
+           ClickMulti_Function(i);
+         }
+
         return 0;
 		
       }// end ClickWithdrawStart_Faunction
       //=============// 	
-		  
+		
+		
+		
+      //===================//
+      //ClickMulti_Function
+      //===================//
+      public void ClickMulti_Function (int number)
+      {
+        var Down_Arrow = ElementByXPath("//div[@id='account-affiliates--link--commissions']/div["+number.ToString()+"]//button");        
+        if (IsVisible(Down_Arrow))
+        {    
+          Click(Down_Arrow);
+          Log("ClickMulti_Function " + number.ToString());  	
+          Wait();
+          Wait(2);
+      	  WithdrawEndButton_Faunction();
+          Wait(2);
+        }
+      }// end ClickMulti_Function
+      //=============// 
 
 	
 		
