@@ -1,7 +1,7 @@
 
 //==================//
 //script Written by: ••AviramDayan•• 13/11/2019 09:00AM - Version 1
-//Last Update: 19/01/2020 19:00PM - Version 2
+//Last Update: 19/01/2020 01:40PM - Version 2
 //==================//
 
 using System;
@@ -206,12 +206,27 @@ public class TrustDice : FaucetScript
 
         if (ad)
         {
-		    //Log("return ad");
-			ad=false;
+		   ad=false;
+			
+		   var TimerRun = ElementByXPath("//div[2 and contains(@class,'main-bg')]/div[1]/div/div/div[1]/div/div//p[1]"); 		   
+           if (IsVisible(TimerRun)) 
+		   {
+             var HourVAR = ElementByXPath("//div[2 and contains(@class,'main-bg')]/div[1]/div/div/div[1]/div/div/p[1]");
+             var MinVAR = ElementByXPath("//div[2 and contains(@class,'main-bg')]/div[1]/div/div/div[1]/div/div/p[2]");
+             var SecVAR = ElementByXPath("//div[2 and contains(@class,'main-bg')]/div[1]/div/div/div[1]/div/div/p[3]"); 
 
-             return 360*60;
-
-            //return GetWaitSetting();
+             int hour,min,sec;
+             hour = Convert.ToInt32(HourVAR.Text)*3600;
+             min = Convert.ToInt32(MinVAR.Text)*60;
+             sec = Convert.ToInt32(SecVAR.Text);
+             return hour+min+sec;
+		   }
+		   
+           if (!IsVisible(TimerRun)) 
+		   {
+		     return 360*60; 
+		   }
+		   
         }
 
 		//let Faucet Collector continue.
@@ -351,9 +366,9 @@ public class TrustDice : FaucetScript
 		   {	
 	         Log("Faucet - CountDownTimer here - we return after the existing time");
 
-             var HourVAR = ElementByXPath("//div[contains(@class,'faucet_countdown')]/span[1]") ;
-             var MinVAR = ElementByXPath("//div[contains(@class,'faucet_countdown')]/span[3]") ;
-             var SecVAR = ElementByXPath("//div[contains(@class,'faucet_countdown')]/span[5]") ; 
+             var HourVAR = ElementByXPath("//div[2 and contains(@class,'main-bg')]/div[1]/div/div/div[1]/div/div/p[1]");
+             var MinVAR = ElementByXPath("//div[2 and contains(@class,'main-bg')]/div[1]/div/div/div[1]/div/div/p[2]");
+             var SecVAR = ElementByXPath("//div[2 and contains(@class,'main-bg')]/div[1]/div/div/div[1]/div/div/p[3]"); 
 			 
              int hour,min,sec;
              hour = Convert.ToInt32(HourVAR.Text)*3600;
