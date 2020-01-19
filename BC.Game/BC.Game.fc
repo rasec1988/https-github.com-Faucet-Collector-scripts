@@ -241,9 +241,6 @@ public class bcgame : FaucetScript
         {
 		    //Log("return ad");
 			ad=false;
-			Driver.Close();  // Close specific chrome window
-            Driver.Quit();  // also Close the console app, that was used to kick off the chrome window
-            Driver.Dispose();  // Close the chromedriver.exe
             return GetWaitSetting();
         }
 
