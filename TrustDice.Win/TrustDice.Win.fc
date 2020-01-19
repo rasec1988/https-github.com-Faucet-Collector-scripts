@@ -1,7 +1,7 @@
 
 //==================//
 //script Written by: ••AviramDayan•• 13/11/2019 09:00AM - Version 1
-//Last Update: 18/11/2019 09:00AM - Version 1
+//Last Update: 19/01/2020 19:00PM - Version 2
 //==================//
 
 using System;
@@ -32,10 +32,10 @@ public class TrustDice : FaucetScript
 			
             return new FaucetSettings("https://TrustDice.win/")
             {
-                new FaucetSetting(){Name="Email",Display="Email",Type=EditorType.TextBox,Required=false},
+                new FaucetSetting(){Name="Email",Display="UserName",Type=EditorType.TextBox,Required=false},
                 new FaucetSetting(){Name="Password",Display="Password",Type=EditorType.Password,Required=false},
 
-                new FaucetSetting() { Name = "btc", Display = "btc - claim", Type = EditorType.CheckBox, Default =true},
+                new FaucetSetting() { Name = "FaucetBtc", Display = "FaucetBtc", Type = EditorType.CheckBox, Default =true},
                 //new FaucetSetting() { Name = "LimitFaucet", Display = "LimitFaucet - write the full number of satoshi without point/decimals - 0.0 | 1.1 and etc (for example write: 100 200)", Type = EditorType.Numeric, Default = 1 },
 
 				new FaucetSetting() { Name = "Rain_AirDrop_Chat", Display = "Rain_AirDrop_Chat - ON/OFF", Type = EditorType.CheckBox, Default = false},		
@@ -86,7 +86,7 @@ public class TrustDice : FaucetScript
     public override bool IsLoggedIn()
     {
 	    //save Login Cookies - Check if the "Logout" exist
-        return ElementByXPath ("//span[@class='register-btn' and contains(text(),'Deposit')]") != null; 
+        return ElementByXPath ("//button[contains(@class,'MuiButton-contained MuiButton-containedSecondary')]/span[contains(text(),'Deposit')]") != null; 
 	 
         //return base.IsLoggedIn();
     }
@@ -125,7 +125,7 @@ public class TrustDice : FaucetScript
  public override int DoLogin()
  {
 	
-  var ExitButton = ElementByXPath ("//span[@class='register-btn' and contains(text(),'Deposit')]");
+  var ExitButton = ElementByXPath ("//button[contains(@class,'MuiButton-contained MuiButton-containedSecondary')]/span[contains(text(),'Deposit')]");
 
   //if i NOT Login - go to Login Page
   if (!IsVisible(ExitButton))
@@ -143,7 +143,7 @@ public class TrustDice : FaucetScript
 		
         Wait(4);
 */
-        var StartOpen_2_Login = ElementByXPath("//nav[contains(@class,'tab_tab-title-items')]/span[2]");
+        var StartOpen_2_Login = ElementByXPath("//button[contains(@class,'MuiButton-outlined')]/span[contains(text(),'Login')]");
 	    if (IsVisible(StartOpen_2_Login))
 	    { 
         Click(StartOpen_2_Login);
@@ -161,23 +161,12 @@ public class TrustDice : FaucetScript
 
 		Wait(4);
 		
-        var ButtonLog = ElementByXPath("//button[@type='submit' and contains(text(),'Login')]");
+        var ButtonLog = ElementByXPath("//button[contains(@class,'MuiButton-containedSecondary MuiButton-fullWidth') and @type='submit']");
         Click(ButtonLog);
 		
 		Wait(4);
 		
-        SolveCaptcha_RightSquare_Function(); // call to SolveCaptcha
-		
-/*		
-        var RecaptchaOpen_Iframe = ElementByXPath ("//iframe[contains(@src,'recaptcha/api2/bframe' | 'recaptcha/api2/anchor')]");  // ("//iframe[contains(@src,'recaptcha/api2/anchor')]")
-        if (IsVisible(RecaptchaOpen_Iframe))
-		{
-        //SolveCaptcha if apper
-        var result = base.DoSolveCaptcha();
-        RecaptchaUtility utility = new RecaptchaUtility(this);
-        utility.DoSolve();
-		}
-*/
+        SolveCaptcha_Function(); // call to SolveCaptcha
 
 		Wait();	
 
@@ -219,17 +208,8 @@ public class TrustDice : FaucetScript
         {
 		    //Log("return ad");
 			ad=false;
-			 
-             var HourVAR = ElementByXPath("//div[contains(@class,'faucet_countdown')]/span[1]") ;
-             var MinVAR = ElementByXPath("//div[contains(@class,'faucet_countdown')]/span[3]") ;
-             var SecVAR = ElementByXPath("//div[contains(@class,'faucet_countdown')]/span[5]") ; 
-			 
-             int hour,min,sec;
-             hour = Convert.ToInt32(HourVAR.Text)*3600;
-             min = Convert.ToInt32(MinVAR.Text)*60;
-             sec = Convert.ToInt32(SecVAR.Text);
-             return hour+min+sec;
 
+             return 360*60;
 
             //return GetWaitSetting();
         }
@@ -300,11 +280,11 @@ public class TrustDice : FaucetScript
 		Wait(2);
 
 		//======//
-		//btc//
+		//FaucetBtc//
 		//======//
-        if (GetBoolSetting("btc"))
+        if (GetBoolSetting("FaucetBtc"))
         {	
-		  Log("btc - try to claim");	
+		  Log("FaucetBtc - try to claim");	
           Faucet_Function(); //call
 		  
 	      Wait();
@@ -391,25 +371,14 @@ public class TrustDice : FaucetScript
 
              Wait(2);
 			 
-		     var ButtonFaucet = ElementByXPath("//div[contains(@class,'faucet_claim-panel__GGcxk faucet_BTC')]/button"); //("//button[contains(text(),'Claim')] | //button[contains(text(),'claim')]")
+		     var ButtonFaucet = ElementByXPath("//div[2]/div[2]/div/button[contains(@class,'MuiButton-outlined MuiButton-outlinedSecondary')]");
 	         Click(ButtonFaucet);
 			 
              Wait(2);
 			 
-             SolveCaptcha_RightSquare_Function(); // call to SolveCaptcha
+             SolveCaptcha_Function(); // call to SolveCaptcha
 			 
              Wait(4);
-			 
-             /*
-             var RecaptchaOpen_Iframe = ElementByXPath ("//iframe[contains(@src,'recaptcha/api2/bframe' | 'recaptcha/api2/anchor')]");  // ("//iframe[contains(@src,'recaptcha/api2/anchor')]")
-             if (IsVisible(RecaptchaOpen_Iframe))
-		     {
-             //SolveCaptcha if apper
-             var result = base.DoSolveCaptcha();
-             RecaptchaUtility utility = new RecaptchaUtility(this);
-             utility.DoSolve();
-		     }
-			 */
 			 
 		   } //end TimerRun - NOT visible
 		  
@@ -476,59 +445,28 @@ public class TrustDice : FaucetScript
 
 
  //=========================//
- //SolveCaptcha_RightSquare_Function
+ //SolveCaptcha_Function
  //=========================//
- public int SolveCaptcha_RightSquare_Function()
+ public int SolveCaptcha_Function()
  {	
 		
-        Log("SolveCaptcha_RightSquare_Function");
-		
-        /*
-        GetestCaptchaUtilities.GetestCaptcha getestCaptcha = new GetestCaptchaUtilities.GetestCaptcha(this);
-        bool res2=  getestCaptcha.DoInitSolve();
-        */
-		
-		
-/*
-        //SolveCaptcha_RightSquare
-        var Arrow = FindCorrectArrow();
-        if(IsVisible(Arrow))
-		{
-            Log("SolveCaptcha_RightSquare_Function - Arrow");	
+     Log("SolveCaptcha_Function");
 
-            var ToMove = ElementByXPath("//div[@class='verify-sub-block']");
-            if (IsVisible(ToMove))
-            {
-                Log("SolveCaptcha_RightSquare_Function - ToMove");	
-                Actions actions = new Actions(Driver);
-                actions.DragAndDrop(ToMove, Arrow).Build().Perform();
-                Wait();
-
-			}
-        }
-*/
-
-        //Geetest Captcha
-	    if (IsVisible(ElementByXPath("//div[@class='geetest_panel geetest_wind' and contains(@style,'display: block;')]")))
-        {
-            int result = 0;
-            GetestCaptchaUtilities.GetestCaptcha getestCaptcha = new GetestCaptchaUtilities.GetestCaptcha(this);
-            bool res2=  getestCaptcha.DoInitSolve();
-            Wait(2);
-  
-                if (!res2)
-                {
-                    result = 1;
-                }
-			
-            return result;
-        }
-        //=============//
-	
-	
+     var IframeCap = ElementByXPath("//iframe[contains(@src,'google.com/recaptcha/api2/bframe')]"); 
+     if (IsVisible(IframeCap))
+     {
+      var result = base.DoSolveCaptcha();
+      RecaptchaUtility utility = new RecaptchaUtility(this);
+      utility.DoSolve();
+      if (result > 0)
+      {
+          return Fail("Fail solving captcha");
+      }
+     }//end IframeCap
+	 
   return 0;
   
-  }// end SolveCaptcha_RightSquare_Function
+  }// end SolveCaptcha_Function
   //=========//
 
 
