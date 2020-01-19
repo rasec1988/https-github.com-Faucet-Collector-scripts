@@ -1,7 +1,7 @@
 
 //==================//
 //script Written by: ••AviramDayan•• 23/12/2019 01:35AM - Version 1
-//Last Update: 23/12/2019 01:35AM - Version 1
+//Last Update: 18/01/2020 14:00PM - Version 2
 //==================//
 
 using System;
@@ -29,8 +29,8 @@ public class GigaBet : FaucetScript
                 new FaucetSetting(){Name="Pass",Display="Password",Type=EditorType.Password,Required=true},
 				
                 new FaucetSetting(){Name="FaucetClaim",Display="FaucetClaim",Type=EditorType.CheckBox,Default=true},
-                
-				
+                new FaucetSetting() { Name = "AffWithdraw", Display = "AffWithdraw", Type = EditorType.CheckBox, Default = false},	
+
                 //insert user settings here
                 //new FaucetSetting { 
                 //    Name = "Name of your setting", 
@@ -96,7 +96,7 @@ public class GigaBet : FaucetScript
     {
 
         //In this case we check for en element with the class "loggedIn"
-		return ElementByXPath("//li[contains(@class,'account link dropdown element--connected') |]")!= null;
+		return ElementByXPath("//li[contains(@class,'account link dropdown')]//img[contains(@src,'static')]")!= null;
 		//return true;
     }
 //==================//
@@ -130,7 +130,7 @@ public class GigaBet : FaucetScript
 
 
 	 //var checks login or exit
-     var ExitButton = ElementByXPath("//li[contains(@class,'account link dropdown element--connected')]"); //SIGN OUT
+     var ExitButton = ElementByXPath("//li[contains(@class,'account link dropdown')]//img[contains(@src,'static')]"); //SIGN OUT
 
 		 
 	 //if i NOT Login - go to Login Page
@@ -285,6 +285,28 @@ public class GigaBet : FaucetScript
   public override int DoSolveFaucet()
   {
 
+		
+     //=============//
+     //AffWithdraw
+     //=============// 
+     if (GetBoolSetting("AffWithdraw"))
+     {
+        Title = "gigabet Affiliate";
+        GoToUrl("https://gigabet.com/account/affiliates");
+		Wait();
+		Wait(2);
+		Log("AffWithdraw");		
+		
+        Wait(2);
+
+        ClickWithdrawStart_Faunction(); //call
+        Wait(2);
+
+     }// end AffWithdraw
+     //=============//
+	 
+
+
       //=============//
       //FaucetClaim
       //=============//
@@ -334,6 +356,83 @@ public class GigaBet : FaucetScript
         return base.CheckFaucetResult();
     }
 	
+
+
+     //=============//
+     //ClickWithdrawStart_Faunction
+     //=============// 
+      public int ClickWithdrawStart_Faunction()
+      {
+
+         for(var i=1; i<=11; i++)
+         {
+           ClickMulti_Function(i);
+         }
+
+        return 0;
+		
+      }// end ClickWithdrawStart_Faunction
+      //=============// 	
+		
+		
+		
+      //===================//
+      //ClickMulti_Function
+      //===================//
+      public void ClickMulti_Function (int number)
+      {
+        var Down_Arrow = ElementByXPath("//div[@id='account-affiliates--link--commissions']/div["+number.ToString()+"]//button");        
+        if (IsVisible(Down_Arrow))
+        {    
+          Click(Down_Arrow);
+          Log("ClickMulti_Function " + number.ToString());  	
+          Wait();
+          Wait(2);
+      	  WithdrawEndButton_Faunction();
+          Wait(2);
+        }
+      }// end ClickMulti_Function
+      //=============// 
+
+	
+		
+     //=============//
+     //WithdrawEndButton_Faunction
+     //=============// 
+      public int WithdrawEndButton_Faunction()
+      {
+
+        var balance = ElementByXPath("//a[@id='input--commission--max']");
+        string BalanceSTRING = balance.Text.Trim().Split('.')[1];
+        int BalanceINT = Convert.ToInt32(BalanceSTRING);
+
+        if (BalanceINT < 1) 
+        {
+            Log("Affiliate - < Under - not good ");
+        }
+
+        if (BalanceINT > 1) 
+        {
+        Log("Affiliate - > Above - good do stuff");
+
+        Click(balance);
+        Wait(2);	
+		
+        var WithdrawCommission = ElementByXPath("//button[@class='btn--commission--withdrawal primary second']"); 
+        Click(WithdrawCommission);
+        Log("Affiliate - WithdrawCommission");
+        Wait(2);		
+        } //end > Above
+
+        Driver.Navigate().Refresh();
+        Wait();
+
+        return 0;
+
+      }// end WithdrawEndButton_Faunction
+      //=============// 	
+
+
 
 	
 } //public class
