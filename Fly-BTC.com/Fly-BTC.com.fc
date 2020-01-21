@@ -2,7 +2,7 @@
 
 //==================//
 //script Written by: ••AviramDayan•• 16/01/2020 01:30AM - Version 1
-//Last Update: 16/01/2020 02:30AM - Version 1
+//Last Update: 21/01/2020 20:30PM - Version 2
 //==================//
 
 using System;
@@ -307,43 +307,51 @@ public class FlyBTC : FaucetScript
 		
         if (!IsVisible(WaitTimerText))
         {
-           GoToUrl("https://fly-btc.com/news");
+           var FreeBtcStart = ElementByXPath("//button[contains(@data-callback,'onSubmit')]");
+           if (IsVisible(FreeBtcStart))
+           {
+		   	
+              //GoToUrl("https://fly-btc.com/news");
 
-	       Wait();
-	       Wait(4);
-		   
-           var ContinueReading = ElementByXPath("//article[*]//a[contains(text(),'Continue reading')]");
-           if (IsVisible(ContinueReading))
-           {
-		   Log("ContinueReading");
-		   Click(ContinueReading);
-           }
+		      Click(FreeBtcStart);
+		      Log("FreeBtcStart");
+	          Wait();
 
-           Wait();
-           Wait(2);
+		      Recaptcha_Function (); //call
+
+	          Wait();
+	          Wait(4);
+			  
+		      /*
+              var ContinueReading = ElementByXPath("//article[*]//a[contains(text(),'Continue reading')]");
+              if (IsVisible(ContinueReading))
+              {
+		      Log("ContinueReading");
+		      Click(ContinueReading);
+              }
+		      */
+
+              var Roll_2_Button = ElementByXPath("//button[contains(@onclick,'roll') ]");
+              if (IsVisible(Roll_2_Button))
+              {  
+		      Recaptcha_Function (); //call
+		      Log("Roll_2_Button");
+		      Click(Roll_2_Button);
+              }
+		      
+              Wait(2);
+		      
+              var SuccessMassage = ElementByXPath("//h3[@id='info']");
+              if (IsVisible(SuccessMassage))
+              {
+		      Log(SuccessMassage.Text);
+              ad=true;
+              }
+		      
+              Wait(2);
+           } //end FreeBtcStart
 		   
-		   Recaptcha_Function (); //call
-		   
-		   Wait();	
-		   
-           var Roll_2_Button = ElementByXPath("//button[contains(@onclick,'roll') ]");
-           if (IsVisible(Roll_2_Button))
-           {
-		   Log("Roll_2_Button");
-		   Click(Roll_2_Button);
-           }
-		   
-           Wait(2);
-		   
-           var SuccessMassage = ElementByXPath("//h3[@id='info']");
-           if (IsVisible(SuccessMassage))
-           {
-		   Log(SuccessMassage.Text);
-           ad=true;
-           }
-		   
-           Wait(2);
-        }// end WaitTimerText
+        } //end WaitTimerText
 		
       } //end FaucetClaim
 
@@ -390,7 +398,7 @@ public class FlyBTC : FaucetScript
         public int Recaptcha_Function()
         {
 
-          var RecaptchaOpen_normal = ElementByXPath ("//form[@id='rollform']"); //("//iframe[contains(@src,'recaptcha/api2/anchor')]")
+          var RecaptchaOpen_normal = ElementByXPath ("//form[@id='rollform']"); 
           if (IsVisible(RecaptchaOpen_normal))
 		  {
             var result = DoSolveCaptcha();
@@ -401,7 +409,7 @@ public class FlyBTC : FaucetScript
             Wait();
 		  }
 		  
-          var RecaptchaOpen_invisible = ElementByXPath ("//div[@id='rc-imageselect']"); 
+          var RecaptchaOpen_invisible = ElementByXPath ("//iframe[contains(@src,'google.com/recaptcha/api2/bframe?hl')]"); 
           if (IsVisible(RecaptchaOpen_invisible))
 		  {
             //SolveCaptcha if apper
@@ -417,9 +425,6 @@ public class FlyBTC : FaucetScript
 		return 0;
         }//end VOID_Template_Function
         //=================//	
-	
 
-	
-	
-	
-} //public class dogeto
+
+} //end public class
