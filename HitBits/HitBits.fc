@@ -134,7 +134,7 @@ class HitBits : FaucetScript
         Click ( NextBtn );
         Wait ( 2 , 3 );
 
-        var ClaimBtn=ElementByXPath("//button[contains(@class,'button is-success')] ");
+        var ClaimBtn=ElementByXPath("//button[contains(@class,'button is-success') and contains(text(),'Claim')]");
         if ( !IsVisible ( ClaimBtn ) )
         {
             return Fail ( "Claimbtn is not visible" );
@@ -161,7 +161,13 @@ class HitBits : FaucetScript
         if ( Driver.Url!=FaucetUrl )
         {
             GoToUrl ( FaucetUrl );
-            Wait ( 2 , 3 );
+            Wait ( 2 , 3 );      
+        }
+        var GotoFaucetButton=ElementByXPath("//a[@class='button is-success is-medium' and @href='/faucet']");
+        if ( IsVisible ( GotoFaucetButton ) )
+        {
+            Click ( GotoFaucetButton );
+            Wait ( 2 );
         }
 
         var Timer=ElementByXPath("//span[contains(@class,'tag is-dark is-medium')]//span[contains(text(),':')]");
