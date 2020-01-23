@@ -91,13 +91,13 @@ public class ClaimbitsShortlink: FaucetScript
     /// <returns></returns>
     public override int DoLogin()
     {
-        var UserLogin = ElementByXPath("//input[@id='userLogin']");
+        var UserLogin = ElementByXPath("//input[@placeholder='Username / Email']");
         if (!IsVisible(UserLogin))
         {
             return Fail("User login is not visible");
         }
         SetText(UserLogin, GetSetting("User"));
-        var PasswordBox = ElementByXPath("//input[@id='userPass']");
+        var PasswordBox = ElementByXPath("//form[contains(@onsubmit,'loginAjax')]//input[@placeholder='Password']");
         if (!IsVisible(PasswordBox)){
             return Fail("Password box is not visible");
         }
