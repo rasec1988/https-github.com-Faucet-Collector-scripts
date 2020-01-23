@@ -202,7 +202,7 @@ class ScriptBitPayU : FaucetScript
             Wait(1);
             int n = 0;
 			int PastAd=0;
-            var Ads = ElementsByXPath("//div[@class='clearfix container-fluid bgwhite']//div[@class='col-12 text-overflow ads-description pull-left']");
+            var Ads = ElementsByXPath("//div[@class='clearfix container-fluid bgwhite']//div[@class='col-12 text-overflow ags-description pull-left']");
             while (Ads.Count > n)
             {
                 if (!IsVisible(Ads[n]))
