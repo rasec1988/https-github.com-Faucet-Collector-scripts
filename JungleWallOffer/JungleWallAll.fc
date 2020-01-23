@@ -196,7 +196,10 @@ public class JungleWallScript : FaucetScript
                 SomethingVisible = true;
             }
             Wait(1);
-            var Next = ElementByXPath("//button[@type='submit']");
+            var Next = ElementByXPath("//button[@id='nextButton']");
+            Next=IsVisible ( Next ) ?
+                Next : 
+                ElementByXPath ( "//button[@class='sc-survey-navigation btn disabled btn-success']" );
             if (IsVisible(Next))
             {
                 Click(Next);
@@ -218,6 +221,15 @@ public class JungleWallScript : FaucetScript
                 }
                 Wait();
                 Nview++;
+            }
+            var ContinueTomorrow=ElementByXPath("//p[@id='countdown_container']");
+            if ( IsVisible ( ContinueTomorrow ) )
+            {
+                if(ContinueTomorrow.Text.Contains( "you stop and try again tomorrow" ) )
+                {
+                    break;
+                }
+
             }
             if (!SomethingVisible)
             {
