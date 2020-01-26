@@ -568,6 +568,13 @@ namespace Adbtc
 
                 }
                 Click(capt[result]);
+				foreach ( Bitmap icon in icons )
+                {
+                    if ( icon!=null )
+                    {
+                        icon.Dispose ( );
+                    }
+                }
                 return true;
             }
             catch (Exception ex)
