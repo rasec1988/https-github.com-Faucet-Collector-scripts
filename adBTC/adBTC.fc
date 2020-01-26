@@ -33,7 +33,7 @@ namespace Adbtc
             }
         }
 
-
+        private DoubleMathCaptchaCuter cuter;
         public override void Start()
         {
 
@@ -42,10 +42,15 @@ namespace Adbtc
             SuccessXPath = "//p[@class='white-text flow-text']";
             FailXPath = "//a[@class='btn-large light-blue darken-4']";
             ErrorCount=0;
+          
             base.Start();
         }
 
-
+        public override int DoInit ( )
+        {
+            cuter=new DoubleMathCaptchaCuter ( true );
+            return base.DoInit ( );
+        }
         public override bool IsLoggedIn()
         {
 
@@ -121,10 +126,10 @@ namespace Adbtc
             SetText(PasswordBox, GetPassword("Pass"));
             Wait(1);
 
-            var ButtonLogin = ElementByXPath("//input[@class='btn-large light-blue darken-4']");
+            var ButtonLogin = ElementByXPath("//input[@id='submit_btn']");
             if (!IsVisible(ButtonLogin))
             {
-                return Fail("Fail, button login is not visible");
+                return Fail("Fail, button login is not vibisible");
             }
             Click(ButtonLogin);
 
@@ -161,52 +166,57 @@ namespace Adbtc
             try
             {
                 List<IWebElement> Captchas = ElementsByXPath("//img[contains(@src,'adbtc.top/1captcha')]").Where(x => IsVisible(x)).ToList();
-                if (Captchas.Count == 2)
+                if ( Captchas.Count==2 )
                 {
-                    Bitmap[] Captchas__ = new Bitmap[2];
-                    Captchas__[0] = TakeScreenshot(Base.Captcha.CaptchaService.Manual, Captchas[0]);
-                    Captchas__[1] = TakeScreenshot(Base.Captcha.CaptchaService.Manual, Captchas[1]);
 
-                    DoubleMathCaptchaCuter cuter = new DoubleMathCaptchaCuter(Captchas__[0], Captchas__[1], true);
-
-                    string Base64 = ConvertImageToBase64String(cuter.DoInitCut());
-                    string Fullbase = "data:image/png;base64,";
-                    ExecuteScript("arguments[0].setAttribute('src','" + Fullbase + Base64 + "');", Captchas[0]);
-                    Wait();
-                    var TextBoxCaptcha = ElementsByXPath("//input[@type='text' and not(contains(@id,'captcha')) and not(contains(@id,'number'))]").Where(x => IsVisible(x)).LastOrDefault();
-                    if (IsVisible(TextBoxCaptcha))
+                    using ( Bitmap Part1 = TakeScreenshot ( Base.Captcha.CaptchaService.Manual , Captchas[0] ) )
                     {
-                        int result = DoSolveImageCaptcha(Captchas[0], TextBoxCaptcha);
-                        if (result > 0)
+                        using ( Bitmap Part2 = TakeScreenshot ( Base.Captcha.CaptchaService.Manual , Captchas[1] ) )
                         {
-                            Log("Captcha Incorrectly resolved");
-                            Driver.Navigate().Refresh();
-                            Wait(2);
-                            return Solve_MathCaptcha_();
-                        }
-                        else if (!IsANumber(Context.CaptchaResult.Result))
-                        {
-                            Log("Captcha is not a digit trying again");
-                            FlagCaptchaAsInvalid();
-                            Driver.Navigate().Refresh();
-                            Wait(2);
-                            return Solve_MathCaptcha_();
 
+
+
+                            string Base64 = ConvertImageToBase64String(cuter.DoInitCut(Part1,Part2));
+                            string Fullbase = "data:image/png;base64,";
+                            ExecuteScript ( "arguments[0].setAttribute('src','"+Fullbase+Base64+"');" , Captchas[0] );
+                            Wait ( );
+                            var TextBoxCaptcha = ElementsByXPath("//input[@type='text' and not(contains(@id,'captcha')) and not(contains(@id,'number'))]").Where(x => IsVisible(x)).LastOrDefault();
+                            if ( IsVisible ( TextBoxCaptcha ) )
+                            {
+                                int result = DoSolveImageCaptcha(Captchas[0], TextBoxCaptcha);
+                                if ( result>0 )
+                                {
+                                    Log ( "Captcha Incorrectly resolved" );
+                                    Driver.Navigate ( ).Refresh ( );
+                                    Wait ( 2 );
+                                    return Solve_MathCaptcha_ ( );
+                                }
+                                else if ( !IsANumber ( Context.CaptchaResult.Result ) )
+                                {
+                                    Log ( "Captcha is not a digit trying again" );
+                                    FlagCaptchaAsInvalid ( );
+                                    Driver.Navigate ( ).Refresh ( );
+                                    Wait ( 2 );
+                                    return Solve_MathCaptcha_ ( );
+
+                                }
+                            }
+                            else
+                            {
+                                Log ( "TextBox captcha is not visible" );
+                                return false;
+                            }
                         }
                     }
-                    else
+
+                    }
+                else
                     {
-                        Log("TextBox captcha is not visible");
+                        Log ( "Double captcha is not visible" );
+                        Driver.Navigate ( ).Refresh ( );
                         return false;
                     }
-                }
-                else
-                {
-                    Log("Double captcha is not visible");
-                    Driver.Navigate().Refresh();
-                    return false;
-                }
-
+                
             }
             catch (Exception ex)
             {
@@ -222,7 +232,7 @@ namespace Adbtc
             var finish = ElementByXPath("//*[contains(text(),'You watched all websites for now.')]");
             if (IsVisible(finish))
             {
-
+                cuter.Dispose ( );
                 return GetWaitSetting();
             }
             return 0;
@@ -482,7 +492,7 @@ namespace Adbtc
                 }
 
             }
-
+            cuter.Dispose ( );
 
             if (GetBoolSetting("D"))
             {
@@ -492,6 +502,8 @@ namespace Adbtc
             return GetWaitSetting();
 
         }
+
+        
 
         private bool UseMath
         {
