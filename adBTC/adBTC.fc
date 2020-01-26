@@ -126,10 +126,10 @@ namespace Adbtc
             SetText(PasswordBox, GetPassword("Pass"));
             Wait(1);
 
-            var ButtonLogin = ElementByXPath("//input[@id='submit_btn']");
+            var ButtonLogin = ElementByXPath("//input[@class='btn-large light-blue darken-4']");
             if (!IsVisible(ButtonLogin))
             {
-                return Fail("Fail, button login is not vibisible");
+                return Fail("Fail, button login is not visible");
             }
             Click(ButtonLogin);
 
