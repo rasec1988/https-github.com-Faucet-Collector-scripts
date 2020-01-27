@@ -173,7 +173,10 @@ namespace Adbtc
                     {
                         using ( Bitmap Part2 = TakeScreenshot ( Base.Captcha.CaptchaService.Manual , Captchas[1] ) )
                         {
-
+                            if ( cuter==null )
+                            {
+                                cuter=new DoubleMathCaptchaCuter ( true);
+                            }
 
 
                             string Base64 = ConvertImageToBase64String(cuter.DoInitCut(Part1,Part2));
@@ -232,7 +235,10 @@ namespace Adbtc
             var finish = ElementByXPath("//*[contains(text(),'You watched all websites for now.')]");
             if (IsVisible(finish))
             {
-                cuter.Dispose ( );
+                if ( cuter!=null )
+                {
+                    cuter.Dispose ( );
+                }
                 return GetWaitSetting();
             }
             return 0;
@@ -492,8 +498,10 @@ namespace Adbtc
                 }
 
             }
-            cuter.Dispose ( );
-
+            if ( cuter!=null )
+            {
+                cuter.Dispose ( );
+            }
             if (GetBoolSetting("D"))
             {
                 Log("Ads finished");
@@ -568,7 +576,7 @@ namespace Adbtc
 
                 }
                 Click(capt[result]);
-				foreach ( Bitmap icon in icons )
+                foreach ( Bitmap icon in icons )
                 {
                     if ( icon!=null )
                     {
@@ -583,7 +591,8 @@ namespace Adbtc
             }
             return false;
         }
-        private bool CompareImage(Bitmap image1, Bitmap image2)
+
+            private bool CompareImage(Bitmap image1, Bitmap image2)
         {
             for (int i = 0; i < image1.Height; i++)
             {
