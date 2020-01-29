@@ -402,7 +402,7 @@ namespace Adbtc
                         Wait();
                         DateTime t1 = DateTime.Now.AddSeconds(60);
                         var Icons=ElementsByXPath("//img[contains(@src,'/icons/')]");
-                        while (Icons.All(x=>IsVisible(x)) && Icons.Count==0)
+                        while (!Icons.All(x=>IsVisible(x)) || Icons.Count==0)
                         {
                             Wait(4);
                             if (t1 < DateTime.Now)
@@ -542,7 +542,6 @@ namespace Adbtc
       
         public int SolveCapt ( )
         {
-            //input[@class='select-dropdown dropdown-trigger']
             var SwitchCaptcha = NeedChange?ElementByXPath("//input[contains(@class,'select-dropdown')]"):null;
             if ( IsVisible ( SwitchCaptcha ) )
             {
