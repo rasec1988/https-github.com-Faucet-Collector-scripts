@@ -37,7 +37,7 @@ namespace Adbtc
         public override void Start()
         {
 
-            Title = "adbtc.top|DO|YOUH|You|Please solve the|satoshi|Bitcoin";
+            Title ="adbtc.top|DO|YOUH|You|Please solve the|satoshi|Bitcoin|Just a moment";
 
             SuccessXPath = "//p[@class='white-text flow-text']";
             FailXPath = "//a[@class='btn-large light-blue darken-4']";
@@ -182,10 +182,13 @@ namespace Adbtc
                             string Base64 = ConvertImageToBase64String(cuter.DoInitCut(Part1,Part2));
                             string Fullbase = "data:image/png;base64,";
                             ExecuteScript ( "arguments[0].setAttribute('src','"+Fullbase+Base64+"');" , Captchas[0] );
+                            
                             Wait ( );
-                            var TextBoxCaptcha = ElementsByXPath("//input[@type='text' and not(contains(@id,'captcha')) and not(contains(@id,'number'))]").Where(x => IsVisible(x)).LastOrDefault();
+                            var TextBoxCaptcha = ElementsByXPath("//input[@type='number']").Where(x => IsVisible(x)).LastOrDefault();
                             if ( IsVisible ( TextBoxCaptcha ) )
                             {
+
+                                // Returning base.dosolve
                                 int result = DoSolveImageCaptcha(Captchas[0], TextBoxCaptcha);
                                 if ( result>0 )
                                 {
@@ -279,7 +282,7 @@ namespace Adbtc
                 var ButtonSubmitCaptcha = ElementByXPath("//input[@type='submit']");
                 if (IsVisible(ButtonSubmitCaptcha))
                 {
-                    var result = DoSolveCaptcha();
+                    var result = SolveCapt();
                     if (result > 0)
                     {
                         ErrorCount++;
@@ -398,7 +401,8 @@ namespace Adbtc
                         Driver.SwitchTo().Window(Driver.WindowHandles[1]);
                         Wait();
                         DateTime t1 = DateTime.Now.AddSeconds(60);
-                        while (!IsVisible(ElementByXPath("//div[contains(text(),'Please choose')]")))
+                        var Icons=ElementsByXPath("//img[contains(@src,'/icons/')]");
+                        while (!Icons.All(x=>IsVisible(x)) || Icons.Count==0)
                         {
                             Wait(4);
                             if (t1 < DateTime.Now)
@@ -406,7 +410,7 @@ namespace Adbtc
                                 break;
                             }
                             var Tmr = ElementByXPath("//span[@id='tmr']");
-                            if (IsVisible(Tmr))
+                            if (IsVisible(Tmr) && !string.IsNullOrWhiteSpace(Tmr.Text))
                             {
                                 Log(Tmr.Text);
                             }
@@ -459,6 +463,7 @@ namespace Adbtc
                     if (IsVisible(GotoAutoSurf))
                     {
                         Click(GotoAutoSurf);
+                        Wait ( 3 );
                     }
                     else
                     {
@@ -520,31 +525,43 @@ namespace Adbtc
                 return GetBoolSetting ( "UseMath" );
             }
         }
-        public override int DoSolveCaptcha()
+        private bool NeedChange
         {
-            bool UseMath=this.UseMath;
-            bool NeedChange= !(IsVisible ( ElementByXPath ( "//img[contains(@src,'adbtc.top/1captcha')]" ) )==UseMath);
-
-            var SwitchCaptcha = NeedChange?ElementByXPath("//input[contains(@class,'select-dropdown')]"):null;
-            if (IsVisible(SwitchCaptcha) )
+            get
             {
-                string ActualCaptchaValue=SwitchCaptcha.GetAttribute("value");
-                Click(SwitchCaptcha);
-                Wait(1);
+                return !( VisibleMath==UseMath );
+            }
+        }
+        private bool VisibleMath
+        {
+            get
+            {
+                return ( IsVisible ( ElementByXPath ( "//img[contains(@src,'adbtc.top/1captcha')]" ) )  ||  IsVisible ( ElementByXPath ( "//img[contains(@src,'data:image/png;base64,')]" ) ) );
+            }
+        }
+      
+        public int SolveCapt ( )
+        {
+            var SwitchCaptcha = NeedChange?ElementByXPath("//input[contains(@class,'select-dropdown')]"):null;
+            if ( IsVisible ( SwitchCaptcha ) )
+            {
+                Click ( SwitchCaptcha );
+                Wait ( 1 );
 
-                var SelectCaptcha=ElementByXPath("//li[not(contains(@class,'selected')) and contains(@id,'select')]");          
-                if (SelectCaptcha != null)
+                var SelectCaptcha=ElementByXPath("//li[not(contains(@class,'selected')) and contains(@id,'select')]");
+                if ( SelectCaptcha!=null )
                 {
-                    Click(SelectCaptcha);
+                    Click ( SelectCaptcha );
                 }
             }
 
-            if (IsVisible(ElementByXPath("//img[contains(@src,'adbtc.top/1captcha')]")))
+            if ( VisibleMath )
             {
-                return Solve_MathCaptcha_() ? 0 : 1;
+                return Solve_MathCaptcha_ ( ) ? 0 : 1;
             }
 
-            return base.DoSolveCaptcha();
+            return base.DoSolveCaptcha ( );
+
         }
         public bool SolveIcons()
         {
