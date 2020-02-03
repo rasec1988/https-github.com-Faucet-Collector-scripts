@@ -1,7 +1,7 @@
 
 //==================//
 //script Written by: ••AviramDayan•• 13/11/2019 09:00AM - Version 1
-//Last Update: 12/01/2020 03:00AM - Version 3
+//Last Update: 03/02/2020 06:00AM - Version 4
 //==================//
 
 using System;
@@ -35,7 +35,7 @@ public class FairMillions : FaucetScript
                 new FaucetSetting(){Name="Email",Display="UserName",Type=EditorType.TextBox,Required=false},
                 new FaucetSetting(){Name="Password",Display="Password",Type=EditorType.Password,Required=false},
 
-                new FaucetSetting() { Name = "btc", Display = "btc - claim", Type = EditorType.CheckBox, Default =true},
+                //new FaucetSetting() { Name = "btc", Display = "btc - claim", Type = EditorType.CheckBox, Default =true},
                 new FaucetSetting() { Name = "LimitFaucet", Display = "LimitFaucet - write the full number of satoshi without point/decimals - 0.0 | 1.1 and etc (for example write: 100 200)", Type = EditorType.Numeric, Default = 1 },
 
 				new FaucetSetting() { Name = "Rain_AirDrop_Chat", Display = "Rain_AirDrop_Chat - ON/OFF", Type = EditorType.CheckBox, Default = false},		
@@ -91,7 +91,7 @@ public class FairMillions : FaucetScript
     public override bool IsLoggedIn()
     {
 	    //save Login Cookies - Check if the "Logout" exist
-        return ElementByXPath ("//button[@name='header-toggle-menu']") != null; //Profile Menu in Top
+        return ElementByXPath ("//button[contains(@name,'logout')]") != null; //Profile Menu in Top
 	 
         //return base.IsLoggedIn();
     }
@@ -130,7 +130,7 @@ public class FairMillions : FaucetScript
  public override int DoLogin()
  {
 	
-  var ExitButton = ElementByXPath ("//button[@name='header-toggle-menu']");
+  var ExitButton = ElementByXPath ("//button[contains(@name,'logout')]");
 
   //if i NOT Login - go to Login Page
   if (!IsVisible(ExitButton))
@@ -158,28 +158,13 @@ public class FairMillions : FaucetScript
 
 		Wait(4);
 		
+		Recaptcha_Function();
+		
+		Wait(2);
+		
         var ButtonLog = ElementByXPath("//button[@name='login-submit']");
         Click(ButtonLog);
-		
-		Wait(4);
-		
-        var RecaptchaOpen_Iframe = ElementByXPath ("//iframe[contains(@src,'recaptcha/api2/bframe' | 'recaptcha/api2/anchor')]");  // ("//iframe[contains(@src,'recaptcha/api2/anchor')]")
-        if (IsVisible(RecaptchaOpen_Iframe))
-		{
-        //SolveCaptcha if apper
-        var result = base.DoSolveCaptcha();
-        RecaptchaUtility utility = new RecaptchaUtility(this);
-        utility.DoSolve();
-		}
 
-/*		
-        var Error_Message = ElementByXPath ("//div[@id='add_err']/div/div[@class='message' and contains(text(),'fille' | 'captcha' ) ]");
-        if (IsVisible(Error_Message))
-        {
-            Log("Error_Message - Appear - we return after 1 min ");
-            return 1*60; //we return after 1 min
-        }
-*/		
 		Wait();	
 
   } // end ExitButton
@@ -322,6 +307,9 @@ public class FairMillions : FaucetScript
         var StreakActive = ElementByXPath("//div[contains(@class,'daily-streak--box')]/div[contains(@class,'element__active')]");
 	    if (IsVisible(StreakActive))
 	    { 
+		Recaptcha_Function();
+		Wait(3);	
+	
         Click(StreakActive);
         Log("Click StreakActive");
 		}
@@ -414,7 +402,7 @@ public class FairMillions : FaucetScript
         {	
 		
            //click on MainMenu
-           var MainMenu = ElementByXPath("//button[@name='header-toggle-menu']");
+           var MainMenu = ElementByXPath("//button[contains(@name,'menu')]");
            if (IsVisible(MainMenu)) 
            {
             Click(MainMenu);
@@ -463,7 +451,7 @@ public class FairMillions : FaucetScript
         public void OpenFaucetTab_Faunction()
         {	
 	       Log("click on FaucetTab");
-           var FaucetTab = ElementByXPath("//button[@name='header-faucet']");
+           var FaucetTab = ElementByXPath("//button[contains(@name,'faucet')]");
            Click(FaucetTab);
 		   
 		}//end OpenFaucetTab_Faunction
@@ -511,6 +499,30 @@ public class FairMillions : FaucetScript
     }
     //=========//
 	
+	
+    //===========//
+    //Recaptcha_Function//
+    //===========//
+    public int Recaptcha_Function()
+    {	
+
+       var RecaptchaOpen_Iframe = ElementByXPath ("//iframe[contains(@src,'recaptcha/api2/anchor')]"); // iframe
+       if (IsVisible(RecaptchaOpen_Iframe))
+       {
+
+         var result = base.DoSolveCaptcha();
+         RecaptchaUtility utility = new RecaptchaUtility(this);
+         utility.DoSolve();
+         if (result > 0)
+         {
+           return Fail("fail not solve"); //return to solve again - if something wrong
+         }
+
+       }
+	
+	 return 0;   
+    }
+    //=========//
 
 	
 } //end public class
