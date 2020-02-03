@@ -55,7 +55,13 @@ class Coinfaucets : FaucetScript
             MinWithdraw=1
 
             } 
-        }
+        },
+		{"Tether",new Coinfaucet
+		{
+			Url="https://freetether.com/",
+            MinWithdraw=1
+		}
+		}
        
     };
 
