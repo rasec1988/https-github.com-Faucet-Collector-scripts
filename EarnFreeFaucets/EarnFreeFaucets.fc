@@ -89,7 +89,7 @@ using FaucetCollector.Script;
             return Fail("Password box not found");
         }
         SetText(UserBox, GetSetting("User"));
-        SetText(PasswordBox, GetSetting("Pass"));
+        SetText(PasswordBox, GetPassword("Pass"));
         Wait(1);
         //We click the button remember me to save the login for further claims
         var RememberButton = ElementByXPath("//input[@name='Freme']");
