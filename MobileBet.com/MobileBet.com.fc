@@ -1,8 +1,8 @@
-﻿
+
 
 //==================//
 //script Written by: ••AviramDayan•• 23/25/2019 21:09PM
-//Last Update: 01/08/2019 22:00PM - Version 3
+//Last Update: 06/08/2020 22:00PM - Version 4
 //==================//
 
 using System;
@@ -44,7 +44,7 @@ public class mobilebet : FaucetScript
         ad = false;
        
         //Title that shows in the browser. Is used to identify and close popup windows
-        Title = "Online Casino - Play The Best Casino Games | Mobilebet";
+        Title = "Mobilebet";
 
 		SuccessXPath = "//*";  //*[@id='']
         FailXPath = "//*"; //*[@id='']
@@ -77,9 +77,9 @@ public class mobilebet : FaucetScript
     public override bool IsLoggedIn()
     {
 	    //save Login Cookies - Check if the "Logout" exist
-        //return ElementByXPath("//a[@data-at='points-shop-header']") != null;
+        return ElementByXPath("//span[contains(@class,'balance')]/a[contains(@data-at,'account')]") != null;
 		
-	    return true;
+	    //return true;
 	 
         //return base.IsLoggedIn();
     }
@@ -114,7 +114,50 @@ public class mobilebet : FaucetScript
 //========//
     public override int DoLogin()
     {
+
+      var ExitButton = ElementByXPath("//span[contains(@class,'balance')]/a[contains(@data-at,'account')]");
+
 	
+	 //if i NOT Login - go to Login Page
+	 if (!IsVisible(ExitButton))
+	 {
+
+        GoToUrl("https://www.mobilebet.com/casino/explore?sidebar=login");
+
+		Wait();		
+		Wait(2);
+
+        var box_user = ElementByXPath("//input[@id='usernameLoginBox'] | //input[@id='email']");
+        SetText(box_user, GetSetting("Email"));
+
+		Wait(2);
+		
+        var box_pass = ElementByXPath("//input[@id='passwordLoginBox'] | //input[@id='password']");
+        SetText(box_pass, GetPassword("Password"));
+		
+		Wait(2);
+		
+        var LogButton = ElementByXPath("//button[@type='submit']");
+        Click(LogButton);
+		
+        Recaptcha_Function(); //call
+		
+		Wait(4);
+			
+	    var AccountClosed = ElementByXPath("//p[contains(text(),'closed') or contains(text(),'Your account is') ]");
+	    if (IsVisible(AccountClosed))
+	    { 
+		Log("AccountClosed - we return after 450 min");
+        Driver.Close();  // Close specific chrome window
+        Driver.Quit();  // also Close the console app, that was used to kick off the chrome window
+        Driver.Dispose();  // Close the chromedriver.exe
+        return GetWaitSetting();
+		}
+		
+		Wait();
+
+	 } // end ExitButton
+
 	
        return base.DoLogin();
     }
@@ -202,82 +245,7 @@ public class mobilebet : FaucetScript
 //==============//
  public override int DoSolveFaucet()
   {
-
-      var ExitButton = ElementByXPath("//a[@data-at='points-shop-header']");
-
-	
-	 //if i NOT Login - go to Login Page
-	 if (!IsVisible(ExitButton))
-	 {
-
-        GoToUrl("https://www.mobilebet.com/casino/explore?sidebar=login");
-
-		Wait();		
-		Wait(2);
-		
-        /*
-        var StartOpenLogin = ElementByXPath("//a[@class='login ui-button size-40 color-secondary']");
-	    if (IsVisible(StartOpenLogin))
-	    { 
-        Click(StartOpenLogin);
-		}
-		*/
-		
-		Wait(2);
-
-
-        //double backup email login x2		
-        var box_user = ElementByXPath("//input[@id='usernameLoginBox'] | //input[@id='email']");
-        SetText(box_user, GetSetting("Email"));
-
-		Wait(2);
-		
-        //double backup password login x2	
-        var box_pass = ElementByXPath("//input[@id='passwordLoginBox'] | //input[@id='password']");
-        SetText(box_pass, GetPassword("Password"));
-		
-		Wait(2);
-/*		
-       //SolveCaptcha if apper
-        var result = DoSolveCaptcha();
-        if (result > 0)
-        {
-            return Fail("Fail solving captcha");
-        }
-*/		
-		Wait(4);
-		
-        //double backup LoginButton x2	
-        var ButtonLog = ElementByXPath("//button[@id='loginBoxButton'] | //button[@data-at='login-button-usernametab'] "); 
-        Click(ButtonLog);
-		
-		Wait(2);
-			
-	    var AccountClosed = ElementByXPath("//p[contains(text(),'closed') or contains(text(),'Your account is') ]");
-	    if (IsVisible(AccountClosed))
-	    { 
-		Log("AccountClosed - we return after 450 min");
-        Driver.Close();  // Close specific chrome window
-        Driver.Quit();  // also Close the console app, that was used to kick off the chrome window
-        Driver.Dispose();  // Close the chromedriver.exe
-        return GetWaitSetting();
-		}
-		
-		Wait(3);
-				
-/*		
-        var Error_Message = ElementByXPath ("//div[@id='add_err']/div/div[@class='message' and contains(text(),'fille' | 'captcha' ) ]");
-        if (IsVisible(Error_Message))
-        {
-            Log("Error_Message - Appear - we return after 1 min ");
-            return 1*60; //we return after 1 min
-        }
-*/		
-		Wait();	
-
-	 } // end ExitButton
-
-
+	  
         GoToUrl("https://www.mobilebet.com/casino");
 		Log("Go to promotions , we just waiting 30 seconds, to act normal and get 25 point bounos daily");	
 		
@@ -287,9 +255,9 @@ public class mobilebet : FaucetScript
 		ad = true;    // if i do true - it report as succeed // only one time no multi and also required -> return GetWaitSetting();	
         //return GetWaitSetting();	
 	
-	
         //We are good to continue
         return base.DoSolveFaucet();
+		
  }
 //==============//
 //DoSolveFaucet
@@ -332,7 +300,30 @@ public class mobilebet : FaucetScript
     }
 	
 	
+    //===========//
+    //Recaptcha_Function//
+    //===========//
+    public int Recaptcha_Function()
+    {	
 
+       var RecaptchaOpen_Iframe = ElementByXPath ("//iframe[contains(@src,'recaptcha/api2/bframe')]"); // iframe
+       if (IsVisible(RecaptchaOpen_Iframe))
+       {
+
+         var result = base.DoSolveCaptcha();
+         RecaptchaUtility utility = new RecaptchaUtility(this);
+         utility.DoSolve();
+         if (result > 0)
+         {
+           //return Fail("fail not solve"); //return to solve again - if something wrong
+         }
+
+       }
+	
+	 return 0;   
+    }
+    //=========//
+	
 	
 } //end public class
 
