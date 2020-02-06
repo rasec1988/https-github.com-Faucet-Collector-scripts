@@ -47,12 +47,13 @@ class EveFaucetScript : FaucetScript
             string Key=GetSetting("Faucet");
 
             if ( Faucets.ContainsKey ( Key ) ) {
-
+                Title=Title.Contains ( Key ) ? Title : Key;
                 return Faucets[Key];
              }
 
             Log ( "Something is wrong with the faucet that you selected" );
             var FirstKey=Faucets.Keys.FirstOrDefault();
+            Title=Title.Contains ( Key ) ? Title : Key;
             return Faucets[FirstKey];
 
         } 
@@ -89,7 +90,7 @@ class EveFaucetScript : FaucetScript
 
         Title=GetSetting ( "Faucet" );
 
-        SuccessXPath="//div[contains(text(),'Win')]|//div[@style='padding:4px;padding-bottom: 10px;']";
+        SuccessXPath="//div[contains(text(),'Win number:')]";
         FailXPath="//div[contains(text(),'Error')]";
         GoToUrl ( BaseUrl );
     }
@@ -144,7 +145,7 @@ class EveFaucetScript : FaucetScript
     public override bool IsLoggedIn ( )
     {
 
-        return ElementByXPath ( "//a[@href='/?a=logout']" )!=null;
+        return ElementByXPath ( "//a[@href='/?a=logout']",5 )!=null;
 
     }
 
@@ -173,7 +174,7 @@ class EveFaucetScript : FaucetScript
 
         Click ( ButtonClaim );
 
-
+		Wait(2);
 
         return base.DoSolveFaucet ( );
     }
