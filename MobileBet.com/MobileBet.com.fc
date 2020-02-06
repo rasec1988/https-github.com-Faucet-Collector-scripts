@@ -147,11 +147,8 @@ public class mobilebet : FaucetScript
 	    var AccountClosed = ElementByXPath("//p[contains(text(),'closed') or contains(text(),'Your account is') ]");
 	    if (IsVisible(AccountClosed))
 	    { 
-		Log("AccountClosed - we return after 450 min");
-        Driver.Close();  // Close specific chrome window
-        Driver.Quit();  // also Close the console app, that was used to kick off the chrome window
-        Driver.Dispose();  // Close the chromedriver.exe
-        return GetWaitSetting();
+		Log("AccountClosed - we return after your time");
+                return GetWaitSetting();
 		}
 		
 		Wait();
@@ -195,9 +192,6 @@ public class mobilebet : FaucetScript
         {
 		    //Log("return ad");
 			ad=false;
-			Driver.Close();  // Close specific chrome window
-            Driver.Quit();  // also Close the console app, that was used to kick off the chrome window
-            Driver.Dispose();  // Close the chromedriver.exe
             return GetWaitSetting();
         }
 
