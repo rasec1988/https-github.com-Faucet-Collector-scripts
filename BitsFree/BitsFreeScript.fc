@@ -2,7 +2,7 @@
 //css_inc ShortLinkUtilities
 using FaucetCollector.Script;
 
-public class BitsFreeScript_2: FaucetScript
+public class BitsFreeScript_: FaucetScript
 {
     /// <summary>
     /// List of Settings that will be shown in the bot when selecting this Faucet in the bot.
@@ -97,13 +97,13 @@ public class BitsFreeScript_2: FaucetScript
     /// <returns></returns>
     public override int DoLogin()
     {
-        var UserLogin = ElementByXPath("//input[@id='userLogin']");
+        var UserLogin = ElementByXPath("//div[@id='loginModal']//input[@type='text']");
         if (!IsVisible(UserLogin))
         {
             return Fail("User login is not visible");
         }
         SetText(UserLogin, GetSetting("User"));
-        var PasswordBox = ElementByXPath("//input[@id='userPass']");
+        var PasswordBox = ElementByXPath("//div[@id='loginModal']//input[@type='password']");
         if (!IsVisible(PasswordBox)){
             return Fail("Password box is not visible");
         }
