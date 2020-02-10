@@ -2,7 +2,7 @@
 using System.Linq;
 using FaucetCollector.Script;
 //css_inc ShortLinkUtilities
-class AutoBitcoin :FaucetScript
+class AutoBitcoin_ :FaucetScript
     {
 
     public override FaucetSettings Settings { get {
@@ -23,6 +23,7 @@ class AutoBitcoin :FaucetScript
     }
     public const string BaseUrl="https://autobitco.in/";
     public const string LoginUrl=BaseUrl+"auth/signin";
+    public  const string ShortUrl=BaseUrl+"/dashboard/shortlinks/visit/";
 
     public override void Start ( )
     {
@@ -144,16 +145,29 @@ class AutoBitcoin :FaucetScript
         var ShortlinksLeft=ElementsByXPath("//button[contains(@class,'visit-button')]");
         if ( ShortlinksLeft.Count>0 )
         {
-            Click ( ShortlinksLeft [ Random ( 0 , ShortlinksLeft.Count ) ] );
-            Wait ( );
-            ShortLinkBypasser bypasser=new ShortLinkBypasser(this);
+            int NShort=Random ( 0 , ShortlinksLeft.Count );
 
-            bool Succ=bypasser.DoShortLink();
-            if ( Succ )
-            {
-                CheckFaucetResult ( );
+            string Prop=ShortlinksLeft[NShort].GetAttribute("form");
+
+            if ( !string.IsNullOrWhiteSpace ( Prop ) ) {
+                Prop=Prop.Replace ( "visit" , "" );
+                Wait ( );
+                ShortLinkBypasser bypasser=new ShortLinkBypasser(this);
+
+                GoToUrl ( ShortUrl+Prop );
+                Wait ( );
+                
+
+                bool Succ=bypasser.DoShortLink();
+                if ( Succ )
+                {
+                    CheckFaucetResult ( );
+
+                }
 
             }
+
+         
         }
 
         if ( GetBoolSetting ( "ConvertCoins" ) )
