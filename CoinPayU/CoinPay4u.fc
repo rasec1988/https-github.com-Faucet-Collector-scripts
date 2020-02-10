@@ -146,7 +146,7 @@ class ScriptBitPayU : FaucetScript
         if (IsVisible(SpanRecaptcha))
         {
             Click(SpanRecaptcha);
-            Wait(1);
+            Wait(3);
 
             int result=base.DoSolveCaptcha();
             if (result > 0)
@@ -202,7 +202,7 @@ class ScriptBitPayU : FaucetScript
             Wait(1);
             int n = 0;
 			int PastAd=0;
-            var Ads = ElementsByXPath("//div[@class='clearfix container-fluid bgwhite']//div[@class='col-12 text-overflow ads-description pull-left']");
+            var Ads = ElementsByXPath("//div[@class='clearfix container-fluid bgwhite']//div[@class='col-12 text-overflow ags-description pull-left']");
             while (Ads.Count > n)
             {
                 if (!IsVisible(Ads[n]))
@@ -266,9 +266,16 @@ class ScriptBitPayU : FaucetScript
 						
 						PastAd=n;
 						}
-                        Ads = ElementsByXPath("//div[@class='clearfix container-fluid bgwhite']//div[@class='col-12 text-overflow ads-description pull-left']");
+                       
+                        
                     }
-
+                    Ads=ElementsByXPath ( "//div[@class='clearfix container-fluid bgwhite']//div[@class='col-12 text-overflow ads-description pull-left']" );
+                    DateTime Timeout=DateTime.Now.AddSeconds(10);
+                    while ( Ads.Count==0  && Timeout>DateTime.Now)
+                    {
+                        Ads=ElementsByXPath ( "//div[@class='clearfix container-fluid bgwhite']//div[@class='col-12 text-overflow ads-description pull-left']" );
+                        Wait ( );
+                    }
                 }
 
             }

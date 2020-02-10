@@ -52,49 +52,15 @@ public class ContractMiner : FaucetScript
         base.Start();
     }
 
-    /// <summary>
-    /// This is the first method to run after the browser is opened and the first page is loaded.
-    /// </summary>
-    public override int DoInit()
-    {
-        //Let Faucet Collector continue.
-        return base.DoInit();
-    }
-
-    /// <summary>
-    /// This method gets called after the Start method, here you need to return if we are logged in or not.
-    /// If you return false then it will call the BeforeLogin, Login and AfterLogin methods so you can login.
-    /// After those Login methods are called it will call this IsLoggedIn method again to see if the login did succeed.
-    /// If you return true Faucet Collector will store all cookies so it will probably be already logged in on the next attempt.
-    /// </summary>
+ 
     public override bool IsLoggedIn()
     {
 
         //In here we can check for the presence of an element that is only present when you are logged in.
         //In this case we check for en element with the class "loggedIn"
-        return ElementByXPath("//a[contains(@href,'logout')]") != null;
+        return ElementByXPath("//a[contains(@href,'target=logout')]") != null;
     }
-    private void CheckForPopup()
-    {
-        var TimerCloseDaily = ElementByXPath("//div[@id='daily_login_timer']");
-        DateTime Tm = DateTime.Now.AddSeconds(15);
-        while (IsVisible(TimerCloseDaily))
-        {
-            if (DateTime.Now > Tm)
-            {
-                break;
-            }
-            Wait();
-            TimerCloseDaily = ElementByXPath("//div[@id='daily_login_timer']");
-        }
-        var CloseDailyAd = ElementByXPath("//button[@name='close_daily_ad']");
-        if (IsVisible(CloseDailyAd))
-        {
-            Click(CloseDailyAd);
-            Wait();
-        }
-     
-    }
+   
     public void CheckDailyAd()
     {
         if(IsVisible(ElementByXPath("//h5[contains(text(),'Daily Login Ad')]")))
@@ -113,55 +79,57 @@ public class ContractMiner : FaucetScript
             Click(CloseDailyAd);
         }
     }
-    /// <summary>
-    /// This method gets called if IsLoggedIn returned false, right before the DoLogin method is called.
-    /// </summary>
-    public override int BeforeLogin()
+     public void SelectCorrectCaptcha ( )
     {
-        var Login = ElementByXPath("//a[contains(@href,'login')]");
-        if (IsVisible(Login))
-        {
-            Click(Login);
-        }
-     
-        Wait(2);
         var LoginW = GetSetting("LoginW");
-        if (LoginW == "Recaptcha")
+        if ( LoginW=="Recaptcha" )
         {
-            if(!IsVisible(ElementByXPath("//iframe[contains(@src,'google.com/recaptcha')]")))
+            if ( !IsVisible ( ElementByXPath ( "//iframe[contains(@src,'google.com/recaptcha')]" ) ) )
             {
                 var SelectCaptchaButton = ElementByXPath("//a[@data-target='#change-captcha-solution']");
-                if (IsVisible(SelectCaptchaButton))
+                if ( IsVisible ( SelectCaptchaButton ) )
                 {
-                    Click(SelectCaptchaButton);
-                    Wait(1);
+                    Click ( SelectCaptchaButton );
+                    Wait ( 1 );
                     var SelectRecaptcha = ElementByXPath("//a[contains(text(),'ReCaptcha')]");
-                    if (IsVisible(SelectRecaptcha))
+                    if ( IsVisible ( SelectRecaptcha ) )
                     {
-                        Click(SelectRecaptcha);
-                        Wait(1);
+                        Click ( SelectRecaptcha );
+                        Wait ( 1 );
                     }
                 }
             }
         }
-           else
+        else
         {
-            if (!IsVisible(ElementByXPath("//img[@id='adcopy-puzzle-image-image']")))
+            if ( !IsVisible ( ElementByXPath ( "//img[@id='adcopy-puzzle-image-image']" ) ) )
             {
                 var SelectCaptchaButton = ElementByXPath("//a[@data-target='#change-captcha-solution']");
-                if (IsVisible(SelectCaptchaButton))
+                if ( IsVisible ( SelectCaptchaButton ) )
                 {
-                    Click(SelectCaptchaButton);
-                    Wait(1);
+                    Click ( SelectCaptchaButton );
+                    Wait ( 1 );
                     var SelectSolvemedia = ElementByXPath("//a[contains(text(),'SolveMedia')]");
-                    if (IsVisible(SelectSolvemedia))
+                    if ( IsVisible ( SelectSolvemedia ) )
                     {
-                        Click(SelectSolvemedia);
-                        Wait(1);
+                        Click ( SelectSolvemedia );
+                        Wait ( 1 );
                     }
                 }
-           }
+            }
         }
+        }
+    public override int BeforeLogin()
+    {
+        var Login = ElementByXPath("//a[contains(@href,'target=login')]");
+        if ( IsVisible ( Login ) )
+        {
+            Click ( Login );
+        }
+
+        Wait (2);
+        SelectCorrectCaptcha ( );
+        
 
         //This faucet has nothing to do here. We will let Faucet Collector handle it.
         return base.BeforeLogin();
@@ -258,43 +226,6 @@ public class ContractMiner : FaucetScript
       
        
     }
-
-    /// <summary>
-    /// This method is called right before a captcha will be solved. 
-    /// If you call SolveCaptcha() in other methods it will start this flow and tries to solve the captcha on the page.
-    /// </summary>
-    public override int BeforeSolveCaptcha()
-    {
-        //This faucet has nothing to do here. We will let Faucet Collector handle it.
-        return base.BeforeSolveCaptcha();
-    }
-
-    /// <summary>
-    /// This method gets called after BeforeSolveCaptcha and it does the actual captcha solving
-    /// It will automatically try to see if there is a SolveMedia captcha active or a reCAPTCHA active. 
-    /// If it finds either one it will then use the selected method on the Captcha tab of FaucetCollector to solve the Captcha.
-    /// </summary>
-    public override int DoSolveCaptcha()
-    {
-      
-        //This faucet has nothing to do here. We will let Faucet Collector handle it.
-        return base.DoSolveCaptcha();
-    }
-
-    /// <summary>
-    /// This method will get called after DoSolveCaptcha returned it was a success.
-    /// </summary>
-    /// <returns></returns>
-    public override int AfterSolveCaptcha()
-    {
-        //This faucet has nothing to do here. We will let Faucet Collector handle it.
-        return base.AfterSolveCaptcha();
-    }
-
-    /// <summary>
-    /// This method is called right before we attempt to claim on the faucet. So we are logged in and good to go.
-    /// Next methods that will be called are DoSolveFaucet, AfterSolveFaucet and CheckFaucetResult.
-    /// </summary>
     public override int BeforeSolveFaucet()
     {
         int Number = GetIntSetting("AutoMiner");
@@ -545,8 +476,11 @@ public class ContractMiner : FaucetScript
     }
     public bool DoTheInternalShort()
     {
-        bool IsSolved = false;
-       
+        bool IsSolved;
+
+        SelectCorrectCaptcha ( );
+
+
             var Bypasser = new ShortLinkBypasser(this);
             IsSolved=Bypasser.DoShortLink();
         
@@ -554,27 +488,5 @@ public class ContractMiner : FaucetScript
 
         return IsSolved;
 
-    }
-    /// <summary>
-    /// This method will get called after the DoSolveFaucet is completed and returned it was a success.
-    /// For example you can wait for a processing popup to go away until actual faucet claim result is on the page.
-    /// </summary>
-    public override int AfterSolveFaucet()
-    {
-        //This faucet has nothing to do here. We will let Faucet Collector handle it.
-        return base.AfterSolveFaucet();
-    }
-
-    /// <summary>
-    /// This method gets called in the end after the BeforeSolveFaucet/DoSolveFaucet and AfterSolveFaucet methods were done.
-    /// The base.CheckFaucetResult will try to find a visible element on the page using the XPath from SuccessXPath and FailXPath (see the Start method)
-    /// These properties should contain XPath expressions to find certain elements on the page.
-    /// For example if it finds one of the elements from the SuccessXPath, and it is visible, then it will flag the claim attempt as a success.
-    /// Or if it finds one of the elements from the FailXPath, and it is visible, then it will flag the claim attempt as a failure.
-    /// </summary>
-    public override int CheckFaucetResult()
-    {
-        //This faucet has nothing to do here. We will let Faucet Collector handle it.
-        return base.CheckFaucetResult();
     }
 }

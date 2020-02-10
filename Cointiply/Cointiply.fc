@@ -198,6 +198,18 @@ public class CointiplyScript : FaucetScript
             Click(GotoFaucet);
             Wait(3);
         }
+        //Show balance
+        var BalanceElements=ElementsByXPath("//span[@class='link-accent']");
+        string Text=string.Empty;
+        foreach(var Balanceelement in BalanceElements )
+        {
+            Text+=Balanceelement.Text.Trim ( );
+        }
+        if ( !string.IsNullOrEmpty ( Text ) )
+        {
+            Log ( "You have "+Text );
+        }
+
         //Click the Roll & Win Button
         OpenQA.Selenium.IWebElement claimButton = ElementByXPath("//button[contains(text(),'Roll & Win')]");
         if (!IsVisible(claimButton))

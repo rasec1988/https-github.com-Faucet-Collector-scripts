@@ -1,7 +1,8 @@
 
+
 //==================//
 //script Written by: ••AviramDayan•• 13/09/2019 22:09PM - Version 1
-//Last Update: 24/11/2019 22:09PM - Version 2
+//Last Update: 11/01/2020 15:40PM - Version 7
 //==================//
 
 using System;
@@ -70,41 +71,7 @@ public class firebitcoinfaucettech : FaucetScript
     public override int DoInit()
     {
 
-/*
-      //=======//
-	  //Protection
-	  //=======//
-      var ProtectionVAR = ElementByXPath("//div[1]/p[1 and contains (text(), 'Balance: N') ]  | //div[1]/p[1 and text()='Balance: 0 BITCOIN'] "); // 
-				
-      if(IsVisible(ProtectionVAR))
-      {	  
-	        Log("ProtectionVAR - the faucet are empty");  
-			Driver.Close();  // Close specific chrome window
-            Driver.Quit();  // also Close the console app, that was used to kick off the chrome window
-            Driver.Dispose();  // Close the chromedriver.exe
-            return GetWaitSetting();  
-	  }
-	  //=======//
- 
- 
- 
-         //=======//
-	     //Timer
-	     //=======//
-		 
-         var MinuteVAR = ElementByXPath("//div[1]/p[3 and contains(text(),'wait' )]");		
-         if(IsVisible(MinuteVAR)) //not Visible
-         {
-           var TimeVAR = Time_Function();
-           if (TimeVAR > 0) 
-           {
-               return TimeVAR;
-           }
-		 }// END MinuteVAR
-		   
-	     //=======//
-*/		
-			
+	
         //Let Faucet Collector continue.
         return base.DoInit();
     }
@@ -184,20 +151,6 @@ public class firebitcoinfaucettech : FaucetScript
         SetText(box_pass, GetPassword("Password"));
 		
 		Wait(5);	
-		
-/*
-        if (GetBoolSetting("SolveMedia_ReCaptcha"))
-        {
-		Log("Go to SolveMedia");		
-		GoToUrl("http://BestChange.com/?cc=SolveMedia");		
-        }
-
-        if (!GetBoolSetting("SolveMedia_ReCaptcha"))
-        {
-		Log("Go to ReCaptcha");
-		GoToUrl("http://BestChange.com/?cc=reCaptcha");		
-        }
-*/		
 
         var ReCaptchaButtonStart = ElementByXPath(" //div[@class='rc-anchor-logo-portrait'] | //div[@class='rc-anchor-content'] "); 
 	    if (IsVisible(ReCaptchaButtonStart))
@@ -351,35 +304,33 @@ public class firebitcoinfaucettech : FaucetScript
 		
 		   Wait(5);
 
-           var ReCaptchaButtonStart = ElementByXPath("//div[@class='rc-anchor-logo-portrait']");  //different
+           var iframeMainTag = ElementByXPath("//iframe[contains(@src,'google.com/recaptcha/api2/anchor')]"); //first need to dive - into the main tag <iframe>
+		   Driver.SwitchTo().Frame(iframeMainTag); //after active & switch to "iframe"
+           
+		   Wait(2);
+           
+		   var ReCaptchaButtonStart = ElementByXPath("//div[@class='rc-anchor-logo-portrait']");  //different
 	       if (IsVisible(ReCaptchaButtonStart))
 	       { 
            Click(ReCaptchaButtonStart);
 		   Log("ReCaptchaButtonStart - faucet");
+		   	   
+             var SuccessMessageExist = ElementByXPath("//div[@id='bonus_captcha_title' and contains(text(),'successfully')]");
+	         if (IsVisible(SuccessMessageExist))
+	         {
+	            Driver.SwitchTo().DefaultContent(); //go back to default content in <html>
+                GetBonus_Function(); //call	
+             }
+	         if (!IsVisible(SuccessMessageExist))
+	         {
+	            Driver.SwitchTo().DefaultContent(); //go back to default content in <html>
+                SolveCaptcha_Function(); //call to SolveCaptcha_Function
+		        Wait(3);
+                GetBonus_Function(); //call	
+             } 
 		   }
-
-		   Wait(2);
-		
-           var ReCaptcha2ButtonStart = ElementByXPath("//div[@class='g-recaptcha-inner']");  //different
-	       if (IsVisible(ReCaptcha2ButtonStart))
-	       { 
-           Click(ReCaptcha2ButtonStart);
-		   Log("ReCaptcha2ButtonStart - faucet2");
-		   }
-
-		   Wait(5);		
-			
-           SolveCaptcha_Function(); //call to SolveCaptcha_Function
- 
-		   Wait(2);
-
-           var ButtonLog = ElementByXPath("//input[@onclick='return get_bonus()']");
-	       if (IsVisible(ButtonLog))
-	       { 
-           Click(ButtonLog);
-		   }
-		
-		   Wait(2);
+  
+		    Wait(5);
 		
            //================//
 		   //AutoDisableScript
@@ -509,11 +460,27 @@ public class firebitcoinfaucettech : FaucetScript
 
       return 0;
 		
-    }
-    //======================//
-    //SolveCaptcha_Function//
-    //======================//
+    } //end SolveCaptcha_Function
 
+
+
+	//======================//
+    //GetBonus_Function//
+    //======================//
+    public int GetBonus_Function()
+    {
+		
+       var ButtonLog = ElementByXPath("//input[@onclick='return get_bonus()']");
+	   if (IsVisible(ButtonLog))
+	   { 
+       Click(ButtonLog);
+	   }	
+	
+      return 0;
+		
+    } //end GetBonus_Function
+	
 	
 	
 } //end public class
+

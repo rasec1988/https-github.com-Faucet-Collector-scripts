@@ -1,0 +1,511 @@
+
+//==================//
+//script Written by: ••AviramDayan•• 23/12/2019 01:30PM - Version 1
+//Last Update: 05/01/2020 00:05PM - Version 3
+//==================//
+
+using System;
+using System.IO;
+using FaucetCollector.Script;
+using OpenQA.Selenium;
+//css_inc ShortLinkUtilities
+//css_inc RecaptchaUtilities
+
+
+public class GetZen : FaucetScript
+{
+    /// <summary>
+    /// List of Settings that will be shown in the bot when selecting this Faucet in the bot.
+    /// You can get the value the user entered with the methods: GetSetting("[Name of the FaucetSetting]"), GetBoolSetting and GetDateTimeSetting
+    /// You can also create a new setting value using SetSetting("[Name you want to use]", "value")
+    /// </summary>
+    public override FaucetSettings Settings
+    {
+        get
+        {
+            return new FaucetSettings("https://GetZen.Cash")
+            {
+                new FaucetSetting(){Name="Email",Display="Email",Type=EditorType.TextBox,Required=true},
+                new FaucetSetting(){Name="Pass",Display="Password",Type=EditorType.Password,Required=true},
+                new FaucetSetting(){Name="Address",Display="Address HORIZEN - ZEN ",Type=EditorType.TextBox,Required=true},
+				
+                new FaucetSetting(){Name="FaucetClaim",Display="FaucetClaim",Type=EditorType.CheckBox,Default=true},
+                new FaucetSetting(){Name="Bonus_5_days",Display="Bonus_5_days",Type=EditorType.CheckBox,Default=true},
+                new FaucetSetting(){Name="Bonus_Aff",Display="Bonus_Aff",Type=EditorType.CheckBox,Default=false},
+				
+                //insert user settings here
+                //new FaucetSetting { 
+                //    Name = "Name of your setting", 
+                //    Display = "Display shown in Faucet Collector", 
+                //    Type = EditorType.TextBox | EditorType.Password | EditorType.CheckBox | EditorType.Wallet | EditorType.Numeric | EditorType.ComboBox | EditorType.CheckComboBox, 
+                //    Required = true | false, 
+                //    Default = "Optionally a default value" | true | false | null.
+                //    Items = new List<string> { "item1", "item2" } (only valid for ComboBox or CheckComboBox)
+                //} 
+            };
+        }
+    }
+
+	
+
+    //My DomainName
+    //string DomainName_String = "https://GetZen.Cash";
+	//example - GoToUrl(DomainName_String);
+    //==========//
+	
+	
+//============================================================//
+//the number of "successes" in the script - when are finished  
+//============================================================//
+    public override void Start()
+    {
+		ad=false;
+		
+        //Title that shows in the browser. Is used to identify and close popup windows
+        Title = "HORIZEN";
+
+        //After we did try to claim on the faucet we search for these elements to determine if it was a success or a fail
+        SuccessXPath = "//*";  //*[text()='']
+        FailXPath = "//*"; //*[text()='']
+
+        //Let Faucet Collector start up everything
+        base.Start();
+    }
+//============================================================//
+//the number of "successes" in the script - when are finished  
+//============================================================//
+	
+	
+	
+	bool ad;
+	
+	
+    public override int DoInit()
+    {
+
+	   
+        //Let Faucet Collector continue.
+        return base.DoInit();
+    }
+
+	
+	
+	
+//==================//
+//save Login Cookies 
+//==================//
+    public override bool IsLoggedIn()
+    {
+
+        //In this case we check for en element with the class "loggedIn"
+		return ElementByXPath("//div[@class='user-nav']//a[contains(@href,'auth/logout') and contains(text(),'Logout')]")!= null;
+		//return true;
+    }
+//==================//
+//save Login Cookies 
+//==================//
+	
+	
+	
+    /// <summary>
+    /// This method gets called if IsLoggedIn returned false, right before the DoLogin method is called.
+    /// </summary>
+    public override int BeforeLogin()
+    {
+		
+		
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeLogin();
+    }
+	
+	
+	
+	
+	
+
+	
+//=============//
+//start DoLogin
+//=============//
+    public override int DoLogin()
+    {
+
+
+	 //var checks login or exit
+     var ExitButton = ElementByXPath("//div[@class='user-nav']//a[contains(@href,'auth/logout') and contains(text(),'Logout')]"); //SIGN OUT
+
+		 
+	 //if i NOT Login - go to Login Page
+	 if (!IsVisible(ExitButton))
+	 {
+		
+        //else go to normal login
+		GoToUrl("https://GetZen.Cash/");
+        Wait();	
+	    Wait(2);		
+	
+        var StartLoginButton = ElementByXPath("//div[@class='user-nav']//a[@class='link-login']");
+	    if (IsVisible(StartLoginButton))
+	    {
+		 Click(StartLoginButton);
+	    }
+        Wait();
+	    Wait(2);	
+		
+        if (IsVisible(ElementByXPath ("//form[@class='login-form']//input[@name='email']") )) 
+	    {
+         var box_user = ElementByXPath("//form[@class='login-form']//input[@name='email']");
+         SetText(box_user, GetSetting("Email"));
+	    }
+		
+        Wait(2);
+
+        if (IsVisible(ElementByXPath ("//form[@class='login-form']//input[@name='password']") )) 
+	    {
+         var box_pass = ElementByXPath("//form[@class='login-form']//input[@name='password']");
+         SetText(box_pass, GetPassword("Pass"));
+	    }
+		
+        Wait(2);
+		
+        if (IsVisible(ElementByXPath ("//form[@class='login-form']//button[@type='submit']") )) 
+	    {
+        var ButtonLog = ElementByXPath("//form[@class='login-form']//button[@type='submit']");
+        Click(ButtonLog);
+	    }
+		
+        Wait();		
+	
+	 }	//end ExitButton
+ 
+	 
+        //This faucet has nothing to do here.    
+        return base.DoLogin();
+    }
+//=============//
+//start DoLogin
+//=============//
+	
+
+	
+	
+	
+	
+//==========//
+//AfterLogin
+//=========//
+ public override int AfterLogin()
+ {
+ 
+	 
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterLogin();
+ }
+//==========//
+//AfterLogin
+//=========//
+	
+	
+	
+
+	
+//=============//
+//GetFaucetWaitTime
+//=============//
+ public override int GetFaucetWaitTime()
+ {
+
+    if(ad)
+	{
+        ad=false; //solve the problem in start - after he return to script again
+        return GetWaitSetting();  
+
+    }	//end ad
+		
+		
+   //let Faucet Collector continue.
+   return base.GetFaucetWaitTime();
+ }
+//=============//
+//GetFaucetWaitTime
+//=============//
+	
+	
+	
+	
+
+    public override int BeforeSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeSolveCaptcha();
+    }
+
+
+    public override int DoSolveCaptcha()
+    {
+
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoSolveCaptcha();
+    }
+
+
+    public override int AfterSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterSolveCaptcha();
+    }
+	
+	
+
+    public override int BeforeSolveFaucet()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeSolveCaptcha();
+    }
+	
+	
+	
+
+
+//=============//
+//DoSolveFaucet
+//=============//
+  public override int DoSolveFaucet()
+  {
+
+      //=============//
+      //Bonus_5_days
+      //=============//
+         if (GetBoolSetting("Bonus_5_days"))
+         {
+			 
+		   GoToUrl("https://GetZen.Cash/");
+           Log("Bonus_5_days");		
+	       Wait();
+	       Wait(2);
+		   
+           var Bonus_Not_Eligible_Button = ElementByXPath("//span[contains(@data-target,'modal-jackpot-not-eligible')]");
+	       if (!IsVisible(Bonus_Not_Eligible_Button))
+	       {
+
+            var Bonus_Available = ElementByXPath("//span[contains(@data-target,'modal-jackpot')]");
+		    Click(Bonus_Available);
+		    Log("Bonus_5_days - Bonus_Available");
+            Wait();
+            Wait(2);
+			
+            var MassageError = ElementByXPath("//div[@class='modal-body' and contains(text(),'After using the faucet for five')]");
+	        
+			if (IsVisible(MassageError))
+	        { 
+		    Log("Bonus_5_days - Bonus_Available");
+			} 
+			
+	        if (!IsVisible(MassageError))
+	        { 
+		    Log("Bonus_5_days - do function");
+            Bonus_Function();//call 	
+            Wait();
+	        }
+			
+	       } //end Bonus_Not_Eligible_Button
+
+      } //end Bonus_5_days
+      //=============//
+
+
+
+      //=============//
+      //Bonus_Aff
+      //=============//
+         if (GetBoolSetting("Bonus_Aff"))
+         {
+
+		   GoToUrl("https://getzen.cash/user/referral");
+           Log("Bonus_Aff");	
+           Wait();	
+	       Wait(2);	
+			
+           var ClaimNow_Available = ElementByXPath("//tr[*]//button[contains(text(),'Claim now')]");
+	       if (IsVisible(ClaimNow_Available))
+	       {
+		     Log("Bonus_Aff - Available");
+             var TimeToWaitForBreak = DateTime.Now.AddSeconds(65);
+             while (true)
+             {
+               var Bonus_Available = ElementByXPath("//tr[*]//button[contains(text(),'Claim now')]");
+		       Click(Bonus_Available);
+		       Log("Bonus_Aff - Bonus_Available");
+               Wait();
+               Wait(2);
+		       Log("Bonus_Aff - do function");
+               Bonus_Function();//call 	
+               Wait();
+			   
+			   Driver.Navigate().Refresh(); //refresh page
+               Wait(4);
+			   
+               if (!IsVisible(ElementByXPath ("//tr[*]//button[contains(text(),'Claim now')]") )) 
+	           {
+		         Log("Bonus_Aff - break - not Available");
+                 break; //after break the while  
+	           }
+			   
+               if (DateTime.Now > TimeToWaitForBreak) //if the time above 65 sec 
+               {
+		       Log("Bonus_Aff - break - TimeToWaitForBreak");
+               break; //break the wait loop
+               }
+			   
+             } //end while (true)
+			 
+	       } // end ClaimNow_Available
+         } //end Bonus_Aff
+      //=============//
+	  
+	  
+      //=============//
+      //FaucetClaim
+      //=============//
+      if (GetBoolSetting("FaucetClaim"))
+      {
+
+        //go to CancelSecurity FaucetClaim page
+		GoToUrl("https://GetZen.Cash/");
+        Log("FaucetClaim");		
+	    Wait();
+	    Wait(2);
+
+        if (IsVisible(ElementByXPath ("//form[@id='form-claim-zen']//input[@name='zen_address']") )) 
+	    {
+         var box_address = ElementByXPath("//form[@id='form-claim-zen']//input[@name='zen_address']");
+         SetText(box_address, GetSetting("Address"));
+        }
+		
+	    Wait(2);
+
+        var RecaptchaOpen_Iframe = ElementByXPath ("//iframe[contains(@src,'recaptcha/api2/bframe' | 'recaptcha/api2/anchor')]"); // iframe
+        if (IsVisible(RecaptchaOpen_Iframe))
+        {
+          var result = DoSolveCaptcha();
+          if (result > 0)
+          {
+             return Fail("fail not solve"); //return to solve again - if something wrong
+          }
+          Wait();
+        }
+
+	    Wait(2);
+		
+        if (IsVisible(ElementByXPath ("//form[@id='form-claim-zen']//button[@type='submit']") )) 
+		{	
+         var ButtonLog = ElementByXPath("//form[@id='form-claim-zen']//button[@type='submit']");
+         Click(ButtonLog);
+		}
+	
+		Wait(5);
+
+        var SuccessXPath = ElementByXPath("//div[@class='modal-content']//div[@id='result1' and contains(text(),'This address claimed Zen in the last')]");       
+		if (!IsVisible(SuccessXPath))
+        {
+         Log("success - claim");		
+         //ad = true; //success
+		 ClaimSuccess(); //Marks the claim as a success
+		}
+
+        if (IsVisible(SuccessXPath))
+		{
+         Log("fail - need to wait");	
+         return GetWaitSetting(); //fail  
+		}
+
+      } //end FaucetClaim
+      //=============//
+
+   ClaimSuccess(); //Marks the claim as a success
+   return GetWaitSetting(); 
+
+  //This faucet has nothing to do here. We will let Faucet Collector handle it.
+  return base.DoSolveFaucet();
+  }
+	
+	
+
+
+	
+	
+    public override int AfterSolveFaucet()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterSolveFaucet();
+    }
+	
+	
+	
+
+    /// <summary>
+    /// This method gets called in the end after the BeforeSolveFaucet/DoSolveFaucet and AfterSolveFaucet methods were done.
+    /// The base.CheckFaucetResult will try to find a visible element on the page using the XPath from SuccessXPath and FailXPath (see the Start method)
+    /// These properties should contain XPath expressions to find certain elements on the page.
+    /// For example if it finds one of the elements from the SuccessXPath, and it is visible, then it will flag the claim attempt as a success.
+    /// Or if it finds one of the elements from the FailXPath, and it is visible, then it will flag the claim attempt as a failure.
+    /// </summary>
+    public override int CheckFaucetResult()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.CheckFaucetResult();
+    }
+	
+	
+	
+      //=================//
+      //Bonus_Function
+      //=================//
+
+      public int Bonus_Function()
+      {
+           if (IsVisible(ElementByXPath ("//div[@class='modal-body']//input[@name='zen_address']") )) 
+	       {
+            var box_address = ElementByXPath("//div[@class='modal-body']//input[@name='zen_address']");
+            SetText(box_address, GetSetting("Address"));
+			Log("Bonus_Function - set Address");
+	       }
+		   
+           Wait(2);
+		   
+           if (IsVisible(ElementByXPath ("//div[@class='modal-body']//button[contains(text(),'Play')]") )) 
+		   {	
+            var ButtonSpin = ElementByXPath("//div[@class='modal-body']//button[contains(text(),'Play')]");
+            Click(ButtonSpin);
+			Log("Bonus_Function - ButtonSpin");
+		   }
+		   
+           var TimeToWaitForBreak = DateTime.Now.AddSeconds(65);			 
+           while (true)
+           {
+			   
+		     Wait(); //wait until
+
+             var TitleVAR = ElementByXPath("//div[@class='sm-result']/div[@class='sm-result-msg']//h4");
+             var DescriptionVAR = ElementByXPath("//div[@class='sm-result']/div[@class='sm-result-msg']//p");
+			 
+             if (IsVisible(TitleVAR))
+             {
+			  Log("Bonus_Function - your results is - " + TitleVAR.Text + " " + DescriptionVAR.Text);
+              break; //after break the while  
+		     }
+			 
+             if (DateTime.Now > TimeToWaitForBreak) //if the time above 65 sec 
+             {
+		     Log("Bonus_Function - break - TimeToWaitForBreak");
+             break; //break the wait loop
+             }
+			 
+           } //end while (true)		   	   
+	 
+	    return 0;
+      }//end Bonus_Function
+      //=================//	
+	
+	
+} //public class

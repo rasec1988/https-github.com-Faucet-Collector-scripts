@@ -1,0 +1,268 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using FaucetCollector.Script;
+//css_inc RecaptchaUtilities
+class Coinfaucets : FaucetScript
+{
+
+    public override FaucetSettings Settings { get {
+
+            return new FaucetSettings ( "about:blank" )
+            {
+                new FaucetSetting(){Name="User",Display="Email",Type=EditorType.TextBox,Required=true},
+                new FaucetSetting(){Name="Pass",Display="Password",Type=EditorType.Password,Required=true},
+                new FaucetSetting(){Name="Faucet",Display="Faucet Selected",Type=EditorType.ComboBox,Items=Faucets.Keys.ToList(),Default=Faucets.Keys.FirstOrDefault()},
+                new FaucetSetting(){Name="AutoWithdraw",Display="AutoWithdraw",Type=EditorType.CheckBox,Default=false }
+            };
+        }
+    }
+    private class Coinfaucet
+    {
+        public double MinWithdraw { get; set; }
+        public string Url { get; set; }
+    }
+    private Dictionary<string , Coinfaucet> Faucets=new Dictionary<string, Coinfaucet>()
+    {
+        {"NEM",new Coinfaucet
+        {
+            Url="https://freenem.com/",
+            MinWithdraw=1
+        } },
+        {"Cardano",new Coinfaucet
+        {
+            Url="https://freecardano.com/",
+            MinWithdraw=1
+        } },
+        {"XRP",new Coinfaucet
+        {
+            Url="https://coinfaucet.io/",
+            MinWithdraw=1
+
+        } },
+        {
+            "Bitcoin",new Coinfaucet
+            {
+                Url="https://freebitcoin.io/",
+                MinWithdraw=0.0002
+            }
+        },
+        {"Steam",new Coinfaucet
+            {
+            Url="https://freesteam.io/",
+            MinWithdraw=1
+
+            } 
+        },
+		{"Tether",new Coinfaucet
+		{
+			Url="https://freetether.com/",
+            MinWithdraw=1
+		}
+		}
+       
+    };
+
+   
+
+    private string Url_
+    {
+        get
+        {
+            var Key=KeySelected;
+            if ( Faucets.ContainsKey ( Key ) )
+            {
+
+                return Faucets[Key].Url;
+            }
+
+            return Faucets.Values.FirstOrDefault ( ).Url;
+
+        }
+    }
+
+    private string FaucetUrl
+    {
+        get
+        {
+            return Url_+"free";
+        }
+    }
+
+    private string KeySelected
+    {
+        get
+        {
+            var Key=GetSetting("Faucet");
+            if ( Faucets.ContainsKey ( Key ) )
+            {
+
+                return Key;
+            }
+
+            return Faucets.Keys.FirstOrDefault ( );
+        }
+    }
+    public override void Start ( )
+    {
+        Title=KeySelected;
+        SuccessXPath="//div[@class='result']";
+        FailXPath="//div[@class='error']";
+        base.Start ( );
+        Url=Url_;
+
+
+
+    }
+    public override int BeforeLogin ( )
+    {
+        GoToUrl ( Url_ );
+        Wait ( 2 );
+
+        return base.BeforeLogin ( );
+
+    }
+    public override int DoLogin ( )
+    {
+       
+        var UserBox=ElementByXPath("//div[@class='login-wrapper wrapper bg-1']//input[@placeholder='Email Address']");
+        if ( !IsVisible(UserBox) )
+        {
+            return Fail ( "Userbox not visible" );
+        }
+
+
+        var PasswordBox=ElementByXPath("//div[@class='login-wrapper wrapper bg-1']//input[@placeholder='Password']");
+        if ( !IsVisible(PasswordBox) )
+        {
+            return Fail ( "Password box not visible" );
+        }
+
+        var Loginbtn=ElementByXPath("//button[@class='main-button main-button-yellow login bg-3']");
+        if ( !IsVisible(Loginbtn) )
+        {
+            return Fail ( "Login button not visible" );
+        }
+
+        SetText ( UserBox , GetSetting ( "User" ) );
+        SetText ( PasswordBox , GetPassword ( "Pass" ) );
+
+
+        Click ( Loginbtn );
+
+
+
+
+        return base.DoLogin ( );    
+    }
+
+    public override bool IsLoggedIn ( )
+    {
+        return ElementByXPath ( "//a[@href='/logout']" )!=null;
+    }
+
+    private double Balance
+    {
+        get
+        {
+            var BalanceElement=ElementByXPath("//li[@class='navbar-coins bg-1']//a");
+            if ( IsVisible(BalanceElement) )
+            {
+                double bal;
+                if ( double.TryParse (BalanceElement.Text.Split(' ')[0].Trim(), out bal ) )
+                {
+                    return bal;
+                }
+            }
+
+            return 0;
+        }
+    }
+    private double MinWithdraw
+    {
+        get
+        {
+            return Faucets[KeySelected].MinWithdraw;
+        }
+    }
+    public override int BeforeSolveFaucet ( )
+    {
+        double Balance=this.Balance;
+        Log ( "Your balance is "+Balance.ToString ( ) );
+        if(GetBoolSetting( "AutoWithdraw" ) && Balance>MinWithdraw  )
+        {
+
+            var BtnWithdraw=ElementByXPath("//a[contains(text(),'Withdraw All')]");
+            var UseProfileAdd=ElementsByXPath("//a[text()='(Use Profile Address)' and @class='profile-wallet color-1']").LastOrDefault();
+            var Btnsubmit=ElementsByXPath("//button[@class='main-button-2 main-button-blue withdraw-now bg-3']").LastOrDefault();
+            if ( IsVisible ( BtnWithdraw ) && IsVisible(UseProfileAdd) && IsVisible(Btnsubmit))
+            {
+                Click ( BtnWithdraw );
+                Wait ( 1 );
+                Click ( UseProfileAdd );
+                Wait ( 1 );
+                Click ( Btnsubmit );            
+            }
+        }
+
+        return base.BeforeSolveFaucet ( );
+    }
+    public override int DoSolveFaucet ( )
+    {
+        GoToUrl ( FaucetUrl );
+        Wait ( 2 );
+
+        var ClaimBtn=ElementByXPath("//button[@class='main-button-2 roll-button bg-2']");
+
+        if ( !IsVisible ( ClaimBtn ) )
+        {
+            return Fail ( "Claim btn is not visible" );
+        }
+
+        DoSolveCaptcha();
+
+
+        if ( IsVisible ( ClaimBtn ) )
+        {
+            Click ( ClaimBtn );
+        }
+
+        return base.DoSolveFaucet ( );
+    }
+    public override int GetFaucetWaitTime ( )
+    {
+        var Timers=ElementsByXPath("//div[@class='digits']").Where(x=>IsVisible(x)).ToList();
+        //visible
+        if ( Timers.Count==2 )
+        {
+            int M,S;
+
+            if ( int.TryParse ( Timers[0].Text , out M )&&int.TryParse ( Timers[1].Text , out S ) )
+            {
+                return M*60+S;
+            }
+        }
+
+        return base.GetFaucetWaitTime ( );
+    }
+    public override int DoSolveCaptcha ( )
+    {
+        if ( IsVisible ( ElementByXPath ( "//div[@class='g-recaptcha']" ) ) )
+        {
+            var result=base.DoSolveCaptcha ( );
+            if ( result>0 )
+            {
+                return result;
+            }
+            RecaptchaUtility utility=new RecaptchaUtility(this);
+            utility.DoSolve ( );
+
+            return result;
+        }
+
+        return 0;
+    }
+}
+

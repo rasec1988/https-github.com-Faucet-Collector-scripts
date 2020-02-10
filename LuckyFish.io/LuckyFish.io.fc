@@ -1,7 +1,7 @@
 
 //==================//
 //script Written by: ••AviramDayan•• 26/05/2019 04:00PM - Version 1
-//Last Update: 26/11/2019 11:00AM - Version 16
+//Last Update: 18/01/2020 16:00PM - Version 20
 //==================//
 
 using System;
@@ -67,7 +67,8 @@ public class luckyfishorg : FaucetScript
 				new FaucetSetting(){Name="MenuDefaultCoin",Display="MenuDefaultCoin - Select Favorite Coin to play OR for general stuff",Type=EditorType.ComboBox,Default="btc",Items=new System.Collections.Generic.List<string>{"btc","doge","ltc","eth","bch","xlm","xrp","dash","zec","usdt","bsv","btg","eos","link","bat","omg","hot","ht","usdc","tusd","pax"}},
 
                 new FaucetSetting(){Name="Slot_Amount",Display="Slot_Amount",Default = "0.00000001",Type=EditorType.TextBox,Required=false},
-                new FaucetSetting(){Name="Slot_Lines",Display="Slot_Lines",Default = "1",Type=EditorType.TextBox,Required=false},
+				new FaucetSetting() { Name = "Slot_Lines", Display = "Slot_Lines", Type = EditorType.Numeric, Default = 2},
+				new FaucetSetting() { Name = "NumbersOfSpins", Display = "Numbers of Spins", Type = EditorType.Numeric, Default = 3},
 
             };
         }
@@ -305,204 +306,12 @@ public class luckyfishorg : FaucetScript
 		
         Wait(2);
 
-        //do all stuff	
-        MenuCoins_Faunction(); //call
-        Wait(2);
-        var btc_w_VAR = ElementByXPath("//ul[@class='el-scrollbar__view el-select-dropdown__list']/li[1]");  
-        Click(btc_w_VAR);
-        Wait(2);
-        WithdrawEndButton_Faunction(); //call
-		Log("WithdrawEndButton - btc");	
-        Wait(2);
 
-        MenuCoins_Faunction(); //call	
-        Wait(2);	
-        var doge_w_VAR = ElementByXPath("//ul[@class='el-scrollbar__view el-select-dropdown__list']/li[2]");   
-        Click(doge_w_VAR);	
-        Wait(2);
-        WithdrawEndButton_Faunction(); //call
-		Log("WithdrawEndButton - doge");	
-        Wait(2);
-
-        MenuCoins_Faunction(); //call	
-        Wait(2);	
-        var ltc_w_VAR = ElementByXPath("//ul[@class='el-scrollbar__view el-select-dropdown__list']/li[3]");   
-        Click(ltc_w_VAR);	
-        Wait(2);
-        WithdrawEndButton_Faunction(); //call
-		Log("WithdrawEndButton - ltc");	
-        Wait(2);
-
-        MenuCoins_Faunction(); //call	
-        Wait(2);	
-        var eth_w_VAR = ElementByXPath("//ul[@class='el-scrollbar__view el-select-dropdown__list']/li[4]");   
-        Click(eth_w_VAR);	
-        Wait(2);
-        WithdrawEndButton_Faunction(); //call
-		Log("WithdrawEndButton - eth");		
-        Wait(2);
-
-        MenuCoins_Faunction(); //call
-        Wait(2);
-        var bch_w_VAR = ElementByXPath("//ul[@class='el-scrollbar__view el-select-dropdown__list']/li[5]");  
-        Click(bch_w_VAR);	
-        Wait(2);
-        WithdrawEndButton_Faunction(); //call
-		Log("WithdrawEndButton - bch");		
-        Wait(2);
-
-        MenuCoins_Faunction(); //call
-        Wait(2);
-        var xlm_w_VAR = ElementByXPath("//ul[@class='el-scrollbar__view el-select-dropdown__list']/li[6]");   
-        Click(xlm_w_VAR);	
-        Wait(2);
-        WithdrawEndButton_Faunction(); //call
-		Log("WithdrawEndButton - xlm");		
-        Wait(2);
-
-        MenuCoins_Faunction(); //call
-        Wait(2);
-        var eos_w_VAR = ElementByXPath("//ul[@class='el-scrollbar__view el-select-dropdown__list']/li[7]");   
-        Click(eos_w_VAR);	
-        Wait(2);
-        WithdrawEndButton_Faunction(); //call	
-		Log("WithdrawEndButton - eos");	
-        Wait(2);
-
-        MenuCoins_Faunction(); //call
-        Wait(2);
-        var xrp_w_VAR = ElementByXPath("//ul[@class='el-scrollbar__view el-select-dropdown__list']/li[8]");   
-        Click(xrp_w_VAR);	
-        Wait(2);
-        WithdrawEndButton_Faunction(); //call	
-		Log("WithdrawEndButton - xrp");	
-        Wait(2);
-
-        MenuCoins_Faunction(); //call
-        Wait(2);
-        var dash_w_VAR = ElementByXPath("//ul[@class='el-scrollbar__view el-select-dropdown__list']/li[9]");   
-        Click(dash_w_VAR);	
-        Wait(2);
-        WithdrawEndButton_Faunction(); //call		
-		Log("WithdrawEndButton - dash");	
-        Wait(2);
-
-        MenuCoins_Faunction(); //call
-        Wait(2);
-        var zec_w_VAR = ElementByXPath("//ul[@class='el-scrollbar__view el-select-dropdown__list']/li[10]");   
-        Click(zec_w_VAR);	
-        Wait(2);
-        WithdrawEndButton_Faunction(); //call
-		Log("WithdrawEndButton - zec");			
-        Wait(2);
-
-        MenuCoins_Faunction(); //call
-        Wait(2);
-        var usdt_w_VAR = ElementByXPath("//ul[@class='el-scrollbar__view el-select-dropdown__list']/li[11]"); 
-        Click(usdt_w_VAR);	
-        Wait(2);
-        WithdrawEndButton_Faunction(); //call	
-		Log("WithdrawEndButton - usdt");			
-        Wait(2);
-
-        MenuCoins_Faunction(); //call
-        Wait(2);
-        var bsv_w_VAR = ElementByXPath("//ul[@class='el-scrollbar__view el-select-dropdown__list']/li[12]");  
-        Click(bsv_w_VAR);	
-        Wait(2);
-        WithdrawEndButton_Faunction(); //call	
-		Log("WithdrawEndButton - bsv");	
-        Wait(2);
-
-        MenuCoins_Faunction(); //call
-        Wait(2);
-        var btg_w_VAR = ElementByXPath("//ul[@class='el-scrollbar__view el-select-dropdown__list']/li[13]"); 
-        Click(btg_w_VAR);	
-        Wait(2);
-        WithdrawEndButton_Faunction(); //call	
-		Log("WithdrawEndButton - btg");	
-        Wait(2);
-
-        MenuCoins_Faunction(); //call
-        Wait(2);
-        var bat_w_VAR = ElementByXPath("//ul[@class='el-scrollbar__view el-select-dropdown__list']/li[14]"); 
-        Click(bat_w_VAR);	
-        Wait(2);
-        WithdrawEndButton_Faunction(); //call	
-		Log("WithdrawEndButton - bat");	
-        Wait(2);
-
-        MenuCoins_Faunction(); //call
-        Wait(2);
-        var hot_w_VAR = ElementByXPath("//ul[@class='el-scrollbar__view el-select-dropdown__list']/li[15]"); 
-        Click(hot_w_VAR);	
-        Wait(2);
-        WithdrawEndButton_Faunction(); //call	
-		Log("WithdrawEndButton - hot");	
-        Wait(2);
-
-        MenuCoins_Faunction(); //call
-        Wait(2);
-        var link_w_VAR = ElementByXPath("//ul[@class='el-scrollbar__view el-select-dropdown__list']/li[16]"); 
-        Click(link_w_VAR);	
-        Wait(2);
-        WithdrawEndButton_Faunction(); //call	
-		Log("WithdrawEndButton - link");	
-        Wait(2);
-
-        MenuCoins_Faunction(); //call
-        Wait(2);
-        var omg_w_VAR = ElementByXPath("//ul[@class='el-scrollbar__view el-select-dropdown__list']/li[17]"); 
-        Click(omg_w_VAR);	
-        Wait(2);
-        WithdrawEndButton_Faunction(); //call	
-		Log("WithdrawEndButton - omg");	
-        Wait(2);
-
-        MenuCoins_Faunction(); //call
-        Wait(2);
-        var ht_w_VAR = ElementByXPath("//ul[@class='el-scrollbar__view el-select-dropdown__list']/li[18]"); 
-        Click(ht_w_VAR);	
-        Wait(2);
-        WithdrawEndButton_Faunction(); //call	
-		Log("WithdrawEndButton - ht");	
-        Wait(2);
-
-        MenuCoins_Faunction(); //call
-        Wait(2);
-        var usdc_w_VAR = ElementByXPath("//ul[@class='el-scrollbar__view el-select-dropdown__list']/li[19]"); 
-        Click(usdc_w_VAR);	
-        Wait(2);
-        WithdrawEndButton_Faunction(); //call	
-		Log("WithdrawEndButton - usdc");	
-        Wait(2);
-
-        MenuCoins_Faunction(); //call
-        Wait(2);
-        var tusd_w_VAR = ElementByXPath("//ul[@class='el-scrollbar__view el-select-dropdown__list']/li[20]"); 
-        Click(tusd_w_VAR);	
-        Wait(2);
-        WithdrawEndButton_Faunction(); //call	
-		Log("WithdrawEndButton - tusd");	
-        Wait(2);
-
-        MenuCoins_Faunction(); //call
-        Wait(2);
-        var pax_w_VAR = ElementByXPath("//ul[@class='el-scrollbar__view el-select-dropdown__list']/li[21]"); 
-        Click(pax_w_VAR);	
-        Wait(2);
-        WithdrawEndButton_Faunction(); //call	
-		Log("WithdrawEndButton - pax");	
-        Wait(2);
-
-        MenuCoins_Faunction(); //call
-        Wait(2);
-        var trx_w_VAR = ElementByXPath("//ul[@class='el-scrollbar__view el-select-dropdown__list']/li[22]"); 
-        Click(trx_w_VAR);	
-        Wait(2);
-        WithdrawEndButton_Faunction(); //call	
-		Log("WithdrawEndButton - trx");	
-        Wait(2);
+      //in the script call
+      for(var i=1; i<=22; i++)
+      {
+        ClickMulti_AFF_Function(i);
+      }
 		
      }// end AffWithdraw
      //=============//
@@ -1042,18 +851,6 @@ public class luckyfishorg : FaucetScript
 		
 		
         //=========//
-        //Menu_Function
-		//=========//
-        public void Menu_Function()
-        {	
-        Log("Menu_Function");		
-        var MenuVAR = ElementByXPath("//body/section/div/div[1]/div[2]/div/div/div[@class='el-input el-input--suffix']");       			
-        Click(MenuVAR);
-		}//end Menu_Function
-		//=========//
-		
-		
-        //=========//
         //Claim_Function
 		//=========//
         public void Claim_Function()
@@ -1153,79 +950,122 @@ public class luckyfishorg : FaucetScript
 		//=========//
 
 
+      //===================//
+      //ClickMulti_AFF_Function
+      //===================//
+      public void ClickMulti_AFF_Function (int number)
+      {
+		  
+        MenuAFF_Faunction(); //call
+        Wait(2);
+		
+        var My_Button_VAR = ElementByXPath("//ul[@class='el-scrollbar__view el-select-dropdown__list']/li["+number.ToString()+"]");        
+        if (IsVisible(My_Button_VAR))
+        {    
+          Click(My_Button_VAR);
+          //var My_Coin_info_VAR = ElementByXPath("//span[@class='currency']");        
+          Log("ClickMulti_AFF_Function " + number.ToString()  );  	//+ My_Coin_info_VAR.Text
+          Wait();
+          Wait(2);
+          WithdrawEndButton_Faunction(); //call	
+          Wait(2);
+        }
+		
+      }// end ClickMulti_AFF_Function
+      //=============// 
+
        //=============//
-       //MenuCoins_Faunction
+       //MenuAFF_Faunction
        //=============// 
-        public void MenuCoins_Faunction()
+        public void MenuAFF_Faunction()
         {
         var MenuCoins = ElementByXPath("//div[@class='currency_content']/div[@class='el-select']");   
         Click(MenuCoins);	
         Log("MenuCoins - Affiliate");
-		}// end MenuCoins_Faunction
+		}// end MenuAFF_Faunction
 		//=============// 
+		
+        //=========//
+        //Menu_Function
+		//=========//
+        public void Menu_Function()
+        {	
+        Log("Menu_Function");		
+        var MenuVAR = ElementByXPath("//div[1]/div[2]/div/div[1]/div/div[contains(@class,'el-input el-input--suffix')]");       			
+        Click(MenuVAR);
+        Log("MenuCoins - General Home");
+		}//end Menu_Function
+		//=========//
 
        //=============//
        //MenuCoins_2_Faunction
        //=============// 
         public void MenuCoins_2_Faunction()
         {
-        var MenuCoins = ElementByXPath("//div[2]/div/div[@class='el-input el-input--suffix']");   	
+        var MenuCoins = ElementByXPath("//div[2]/div[1]/div/div[contains(@class,'el-input el-input--suffix')]");  //different
         Click(MenuCoins);
         Log("MenuCoins - Faucet");
 		}// end MenuCoins_2_Faunction
 		//=============// 
 		
 		
-     //=============//
-     //WithdrawEndButton_Faunction
-     //=============// 
-      public int WithdrawEndButton_Faunction()
+   //=============//
+   //WithdrawEndButton_Faunction
+   //=============// 
+    public int WithdrawEndButton_Faunction()
+    {
+
+      var balance = ElementByXPath("//div[@class='available_balance_content']");
+      string BalanceSTRING = balance.Text.Trim().Split('.')[1];
+      int BalanceINT = Convert.ToInt32(BalanceSTRING);
+
+      if (BalanceINT < 1) 
       {
+        Log("Affiliate - < Under - not good ");
+      }
 
-        var balance = ElementByXPath("//div[@class='available_balance_content']");
-        string BalanceSTRING = balance.Text.Trim().Split('.')[1];
-        int BalanceINT = Convert.ToInt32(BalanceSTRING);
-
-        if (BalanceINT < 1) 
-        {
-            Log("Affiliate - < Under - not good ");
-        }
-
-        if (BalanceINT > 1) 
-        {
+      if (BalanceINT > 1) 
+      {
         Log("Affiliate - > Above - good do stuff");
-		
+	    
         var WithdrawEndButton = ElementByXPath("//div[@class='withdraw_to_luckyfish_btn']/div[@class='button']"); 
         Click(WithdrawEndButton);
         Log("Affiliate - WithdrawEndButton");
-		
+	    
         Wait();
         Wait(2);
-		
+	    
         var box_user = ElementByXPath("//div[@class='el-dialog__body']/input[@type='text']");
         SetText(box_user, GetSetting("Email"));
         Log("Affiliate - set Email");
-	
-		Wait(2);
-		
+	    
+        Wait(2);
+	    
         var box_pass = ElementByXPath("//div[@class='el-dialog__body']/input[@type='password']");
         SetText(box_pass, GetPassword("Password"));
         Log("Affiliate - set Password");
-		
-		Wait(2);
-		
+	    
+        Wait(2);
+	    
         var ConfirmButton = ElementByXPath("//span[@class='dialog-footer']/button[@class='el-button el-button--primary']"); 
         Click(ConfirmButton);
         Log("Affiliate - ConfirmButton");
-		
+	    
         Wait();
-		
-        } //end > Above
+	    
+        var My_Amount_VAR = ElementByXPath("//div[@class='el-notification__content']"); 
+        if (IsVisible(My_Amount_VAR))
+        {  
+        //var My_Coin_info_VAR = ElementByXPath("//span[@class='currency']");        
+        Log("success " + My_Amount_VAR.Text);  	
+        }
 
-        return 0;
+      } //end > Above
 
-      }// end WithdrawEndButton_Faunction
-      //=============// 	
+      return 0;
+
+    }// end WithdrawEndButton_Faunction
+    //=============// 	
 
 
  
@@ -1263,7 +1103,7 @@ public class luckyfishorg : FaucetScript
        {			
         MenuCoins_2_Faunction(); //call
         Wait(2);
-        var btc_w_VAR = ElementByXPath("//div[6]/div[1]/div[1]/ul/li[1]/span");  
+        var btc_w_VAR = ElementByXPath("//div[contains(@class,'mySelectCurrency')]//li[1]");  
         Click(btc_w_VAR);
         Wait(2);
        }
@@ -1272,7 +1112,7 @@ public class luckyfishorg : FaucetScript
        {		   
         MenuCoins_2_Faunction(); //call	
         Wait(2);	
-        var doge_w_VAR = ElementByXPath("//div[6]/div[1]/div[1]/ul/li[2]/span");   
+        var doge_w_VAR = ElementByXPath("//div[contains(@class,'mySelectCurrency')]//li[2]");   
         Click(doge_w_VAR);	
         Wait(2);
        }
@@ -1281,7 +1121,7 @@ public class luckyfishorg : FaucetScript
        {	   
         MenuCoins_2_Faunction(); //call	
         Wait(2);	
-        var ltc_w_VAR = ElementByXPath("//div[6]/div[1]/div[1]/ul/li[3]/span");   
+        var ltc_w_VAR = ElementByXPath("//div[contains(@class,'mySelectCurrency')]//li[3]");   
         Click(ltc_w_VAR);	
         Wait(2);
        }
@@ -1290,7 +1130,7 @@ public class luckyfishorg : FaucetScript
        {	   
         MenuCoins_2_Faunction(); //call	
         Wait(2);	
-        var eth_w_VAR = ElementByXPath("//div[6]/div[1]/div[1]/ul/li[4]/span");   
+        var eth_w_VAR = ElementByXPath("//div[contains(@class,'mySelectCurrency')]//li[4]");   
         Click(eth_w_VAR);	
         Wait(2);
        }
@@ -1299,7 +1139,7 @@ public class luckyfishorg : FaucetScript
        {  
         MenuCoins_2_Faunction(); //call
         Wait(2);
-        var bch_w_VAR = ElementByXPath("//div[6]/div[1]/div[1]/ul/li[5]/span");  
+        var bch_w_VAR = ElementByXPath("//div[contains(@class,'mySelectCurrency')]//li[5]");  
         Click(bch_w_VAR);	
         Wait(2);
        }
@@ -1308,7 +1148,7 @@ public class luckyfishorg : FaucetScript
        { 	   
         MenuCoins_2_Faunction(); //call
         Wait(2);
-        var xlm_w_VAR = ElementByXPath("//div[6]/div[1]/div[1]/ul/li[6]/span");   
+        var xlm_w_VAR = ElementByXPath("//div[contains(@class,'mySelectCurrency')]//li[6]");   
         Click(xlm_w_VAR);	
         Wait(2);
        }
@@ -1317,7 +1157,7 @@ public class luckyfishorg : FaucetScript
        { 	   
         MenuCoins_2_Faunction(); //call
         Wait(2);
-        var eos_w_VAR = ElementByXPath("//div[6]/div[1]/div[1]/ul/li[7]/span");   
+        var eos_w_VAR = ElementByXPath("//div[contains(@class,'mySelectCurrency')]//li[7]");   
         Click(eos_w_VAR);	
         Wait(2);
        }
@@ -1326,7 +1166,7 @@ public class luckyfishorg : FaucetScript
        { 	   
         MenuCoins_2_Faunction(); //call
         Wait(2);
-        var xrp_w_VAR = ElementByXPath("//div[6]/div[1]/div[1]/ul/li[8]/span");   
+        var xrp_w_VAR = ElementByXPath("//div[contains(@class,'mySelectCurrency')]//li[8]");   
         Click(xrp_w_VAR);	
         Wait(2);
        }
@@ -1335,7 +1175,7 @@ public class luckyfishorg : FaucetScript
        { 	   
         MenuCoins_2_Faunction(); //call
         Wait(2);
-        var dash_w_VAR = ElementByXPath("//div[6]/div[1]/div[1]/ul/li[9]/span");   
+        var dash_w_VAR = ElementByXPath("//div[contains(@class,'mySelectCurrency')]//li[9]");   
         Click(dash_w_VAR);	
         Wait(2);
        }
@@ -1344,7 +1184,7 @@ public class luckyfishorg : FaucetScript
        { 	   
         MenuCoins_2_Faunction(); //call
         Wait(2);
-        var zec_w_VAR = ElementByXPath("//div[6]/div[1]/div[1]/ul/li[10]/span");   
+        var zec_w_VAR = ElementByXPath("//div[contains(@class,'mySelectCurrency')]//li[10]");   
         Click(zec_w_VAR);	
         Wait(2);
        }
@@ -1353,7 +1193,7 @@ public class luckyfishorg : FaucetScript
        { 	   
         MenuCoins_2_Faunction(); //call
         Wait(2);
-        var usdt_w_VAR = ElementByXPath("//div[6]/div[1]/div[1]/ul/li[11]/span"); 
+        var usdt_w_VAR = ElementByXPath("//div[contains(@class,'mySelectCurrency')]//li[11]"); 
         Click(usdt_w_VAR);	
         Wait(2);
        }
@@ -1362,7 +1202,7 @@ public class luckyfishorg : FaucetScript
        { 	   
         MenuCoins_2_Faunction(); //call
         Wait(2);
-        var bsv_w_VAR = ElementByXPath("//div[6]/div[1]/div[1]/ul/li[12]/span");  
+        var bsv_w_VAR = ElementByXPath("//div[contains(@class,'mySelectCurrency')]//li[12]");  
         Click(bsv_w_VAR);	
         Wait(2);
        }
@@ -1371,7 +1211,7 @@ public class luckyfishorg : FaucetScript
        { 	   
         MenuCoins_2_Faunction(); //call
         Wait(2);
-        var btg_w_VAR = ElementByXPath("//div[6]/div[1]/div[1]/ul/li[13]/span"); 
+        var btg_w_VAR = ElementByXPath("//div[contains(@class,'mySelectCurrency')]//li[13]"); 
         Click(btg_w_VAR);	
         Wait(2);
        }
@@ -1380,7 +1220,7 @@ public class luckyfishorg : FaucetScript
        { 	   
         MenuCoins_2_Faunction(); //call
         Wait(2);
-        var bat_w_VAR = ElementByXPath("//div[6]/div[1]/div[1]/ul/li[14]/span"); 
+        var bat_w_VAR = ElementByXPath("//div[contains(@class,'mySelectCurrency')]//li[14]"); 
         Click(bat_w_VAR);	
         Wait(2);
        }
@@ -1389,7 +1229,7 @@ public class luckyfishorg : FaucetScript
        { 	   
         MenuCoins_2_Faunction(); //call
         Wait(2);
-        var hot_w_VAR = ElementByXPath("//div[6]/div[1]/div[1]/ul/li[15]/span"); 
+        var hot_w_VAR = ElementByXPath("//div[contains(@class,'mySelectCurrency')]//li[15]"); 
         Click(hot_w_VAR);	
         Wait(2);
        }
@@ -1398,7 +1238,7 @@ public class luckyfishorg : FaucetScript
        { 	   
         MenuCoins_2_Faunction(); //call
         Wait(2);
-        var link_w_VAR = ElementByXPath("//div[6]/div[1]/div[1]/ul/li[16]/span"); 
+        var link_w_VAR = ElementByXPath("//div[contains(@class,'mySelectCurrency')]//li[16]"); 
         Click(link_w_VAR);	
         Wait(2);
        }
@@ -1407,7 +1247,7 @@ public class luckyfishorg : FaucetScript
        { 	   
         MenuCoins_2_Faunction(); //call
         Wait(2);
-        var omg_w_VAR = ElementByXPath("//div[6]/div[1]/div[1]/ul/li[17]/span"); 
+        var omg_w_VAR = ElementByXPath("//div[contains(@class,'mySelectCurrency')]//li[17]"); 
         Click(omg_w_VAR);	
         Wait(2);
        }
@@ -1416,7 +1256,7 @@ public class luckyfishorg : FaucetScript
        { 	   
         MenuCoins_2_Faunction(); //call
         Wait(2);
-        var ht_w_VAR = ElementByXPath("//div[6]/div[1]/div[1]/ul/li[18]/span"); 
+        var ht_w_VAR = ElementByXPath("//div[contains(@class,'mySelectCurrency')]//li[18]"); 
         Click(ht_w_VAR);	
         Wait(2);
        }
@@ -1425,7 +1265,7 @@ public class luckyfishorg : FaucetScript
        { 	   
         MenuCoins_2_Faunction(); //call
         Wait(2);
-        var usdc_w_VAR = ElementByXPath("//div[6]/div[1]/div[1]/ul/li[19]/span"); 
+        var usdc_w_VAR = ElementByXPath("//div[contains(@class,'mySelectCurrency')]//li[19]"); 
         Click(usdc_w_VAR);	
         Wait(2);
        }
@@ -1434,7 +1274,7 @@ public class luckyfishorg : FaucetScript
        { 	   
         MenuCoins_2_Faunction(); //call
         Wait(2);
-        var tusd_w_VAR = ElementByXPath("//div[6]/div[1]/div[1]/ul/li[20]/span"); 
+        var tusd_w_VAR = ElementByXPath("//div[contains(@class,'mySelectCurrency')]//li[20]"); 
         Click(tusd_w_VAR);	
         Wait(2);
        }
@@ -1443,7 +1283,7 @@ public class luckyfishorg : FaucetScript
        { 	   
         MenuCoins_2_Faunction(); //call
         Wait(2);
-        var pax_w_VAR = ElementByXPath("//div[6]/div[1]/div[1]/ul/li[21]/span"); 
+        var pax_w_VAR = ElementByXPath("//div[contains(@class,'mySelectCurrency')]//li[21]"); 
         Click(pax_w_VAR);	
         Wait(2);
        }
@@ -1503,25 +1343,54 @@ public class luckyfishorg : FaucetScript
         SetText(Slot_Amount_VAR, GetSetting("Slot_Amount"));
         Log("Slot_Amount_VAR");		
 		
-		Wait(2);
+		Wait(1);
 
-        var Slot_Lines_VAR = ElementByXPath("//input[@id='numHands']") ; //Slot_Lines - default set to 1
+        var AlretMessage_Minimum = ElementByXPath("//p[contains(text(),'Sorry,The min bet is')]");
+	    if (IsVisible(AlretMessage_Minimum)) //if already active 
+	    {
+		Driver.Navigate().Refresh();
+		Wait();
+		Wait(7);
+		Actions Builder2Act = new Actions(Driver);
+        Builder2Act.SendKeys("s").Build().Perform();  // "d" - Min Bet | "s" - Double Bet | "a" - Half Bet
+        Log("SendKeys - s - min bet");
+		}	
+
+		Wait(5);
+		
+        var Slot_Lines_VAR = ElementByXPath("//input[@id='numHands']") ; //Slot_Lines - default set to 2
         SetText(Slot_Lines_VAR, GetSetting("Slot_Lines"));					
         Log("Slot_Lines_VAR");
+
+		Wait(3);	
+
+		//=============//
+        //NumbersOfSpins
+		//=============//
+        int Claims;      
+        Claims = Convert.ToInt32(GetSetting("NumbersOfSpins"));
+        int Count = 0;
+
+        while (true)
+	    {
+		  Count++; //important to put Count++ in start - Count OR store - Similar to the clock begins to count	
+		  Wait(2);	
+          Log("spin"+Count);	
+
+		  Actions BuilderAct = new Actions(Driver);
+          BuilderAct.SendKeys(Keys.Space).Build().Perform(); //click space to spin
+          Log("SendKeys - Space - click to spin");	
 		
-		
-        //========//
-        //Click - Enter Keyboard
-        //========//
-        var ElementToEnter = ElementByClass("input-2VB9rf");
-        Actions BuilderAct = new Actions(Driver);
-        BuilderAct.MoveToElement(ElementToEnter).Build().Perform(); 
-        Wait(3);
-        BuilderAct.SendKeys(Keys.Space).Build().Perform();  // space
-        Log("ElementToEnter");
-		
-		Wait();		
-		Wait(2);	
+          if (Count >= Claims) 
+	      {	
+	       Log("break");	
+	       break; //after break the while
+	      }
+
+        } //end  while (true)		
+		//=============//
+
+		Wait(5);	
 		
 		}// end AllSlotsGames_Function
 		//=============// 	

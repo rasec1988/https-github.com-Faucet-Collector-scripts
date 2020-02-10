@@ -44,11 +44,12 @@ public class HitLink : FaucetScript
     {
         //Title that shows in the browser. Is used to identify and close popup windows
         Title="HitLink";
-
+        StoreCookies=false;
         //After we did try to claim on the faucet we search for these elements to determine if it was a success or a fail
         SuccessXPath="//b[contains(text(),'Credited')]";
         FailXPath="//font[contains(text(),'You must add a site below before surfing')]";
 
+        
         //Let Faucet Collector start up everything
         base.Start ( );
     }
@@ -222,8 +223,9 @@ public class HitLink : FaucetScript
                     cont++;
                 }
             }
-            catch ( Exception )
+            catch ( Exception ex )
             {
+                Log ( ex.ToString ( ) );
                 cont++;
             }
             finally
@@ -267,56 +269,60 @@ private bool LoadImages ( )
         try
         {
             FileStream reader = new FileStream(assets_d + "world.png", FileMode.Open);
-            Bitmap world = new Bitmap(Image.FromStream(reader));
+            world=new Bitmap ( Image.FromStream ( reader ) );
 
             reader.Close ( );
             reader=new FileStream ( assets_d+"person.png" , FileMode.Open );
-            Bitmap person = new Bitmap(Image.FromStream(reader));
+            person=new Bitmap ( Image.FromStream ( reader ) );
             reader.Close ( );
             reader=new FileStream ( assets_d+"food.png" , FileMode.Open );
-            Bitmap food = new Bitmap(Image.FromStream(reader));
+            food=new Bitmap ( Image.FromStream ( reader ) );
             reader.Close ( );
             reader=new FileStream ( assets_d+"animal.png" , FileMode.Open );
-            Bitmap animal = new Bitmap(Image.FromStream(reader));
+            animal=new Bitmap ( Image.FromStream ( reader ) );
             reader.Close ( );
+
         }
-        catch
+        catch ( Exception ex )
         {
+            Log ( ex.ToString ( ) );
             return false;
         }
         return true;
     }
-    private bool Solve_Image ( )
-    { 
 
+
+    private bool Solve_Image ( )
+    {
+  
 
         bool IsSolved = false;
         Bitmap[] icons = new Bitmap[5];
         icons[0]=TakeScreenshot ( Base.Captcha.CaptchaService.Manual , ElementByXPath ( "//img[contains(@src,'surficon.php?ts=')]" ) );
-        
+
         Wait ( );
         var other_icons = ElementByXPath("//div[@id='myform']//td");
         Bitmap Principal_ = TakeScreenshot(Base.Captcha.CaptchaService.Manual, other_icons);
 
-        for ( int i = 0 ; i<Principal_.Width ; i+=75)
+        for ( int i = 0 ; i*75<Principal_.Width ; i++)
         {
-            icons[i+1]=Principal_.Clone ( new Rectangle ( i , 0 , 75 , 75 ) , Principal_.PixelFormat );
+            icons[i+1]=Principal_.Clone ( new Rectangle ( i*75 , 0 , 75 , 75 ) , Principal_.PixelFormat );
+
         }
-    
-       
-        List<MyImage> Types = new List<MyImage>();
 
-        MyImage ImageToad = new MyImage(icons[0], Color.Blue);
 
-        Types.Add ( new MyImage ( icons[0] , Color.Blue ) );// Main image
+        List<MyImage> Types = new List<MyImage>
+        {
+            new MyImage ( icons[0] , Color.Blue ) ,// Main image
 
-        Types.Add ( new MyImage ( world , Color.Blue ) );//World
+            new MyImage ( world , Color.Blue ) ,//World
 
-        Types.Add ( new MyImage ( person , Color.Blue ) );//Person
+            new MyImage ( person , Color.Blue ) ,//Person
 
-        Types.Add ( new MyImage ( food , Color.Blue ) );//FOOD
+            new MyImage ( food , Color.Blue ) ,//FOOD
 
-        Types.Add ( new MyImage ( animal , Color.Blue ) ); // IS ANIMAL
+            new MyImage ( animal , Color.Blue ) // IS ANIMAL
+        };
 
 
         ImageProcessing.UsingColors.CorrectImageSelector CompareFirst = new  ImageProcessing.UsingColors.CorrectImageSelector (Types[0]);
@@ -330,7 +336,7 @@ private bool LoadImages ( )
 
 
         int type = CompareFirst.GetPosition()[0];
-        Log ( type.ToString ( ) );
+
         int solution = -1;
         string Type_S=type==0?"world":type==1?"person":type==2?"food":"animal";
         List<CorrectImageSelector> SecondCompare = new List<CorrectImageSelector>();
@@ -351,8 +357,8 @@ private bool LoadImages ( )
 
             }
         }
-        
-        int High = 0;
+
+        int High = int.MinValue;
         for ( int i = 0 ; i<SecondCompare.Count ; i++ )
         {
             if ( SecondCompare[i].GetSpecificScore ( SecondCompare[i].GetPosition ( )[0] )>High )
@@ -361,7 +367,7 @@ private bool LoadImages ( )
                 High=SecondCompare[i].GetSpecificScore ( SecondCompare[i].GetPosition ( )[0] );
             }
         }
-
+        Log ( "Solution: "+solution.ToString ( ) );
         if ( solution!=-1 )
         {
             var elements = ElementsByXPath("//img[contains(@onclick,'return surfbar_click(')]");

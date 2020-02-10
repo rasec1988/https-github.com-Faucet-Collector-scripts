@@ -16,6 +16,7 @@ public class LarvelFaucetScript : FaucetScript
             {
                 new FaucetSetting(){Name="User",Display="Username/Email",Type=EditorType.TextBox,Required=true},
                 new FaucetSetting(){Name="Pass",Display="Password",Type=EditorType.Password,Required=true},
+                new FaucetSetting(){Name="UseSolvemedia",Type=EditorType.CheckBox,Default=true,Display="UseSolvemedia"}
 
                 //insert user settings here
                 //new FaucetSetting { 
@@ -105,7 +106,7 @@ public class LarvelFaucetScript : FaucetScript
             return Fail("Fail solving captcha");
         }
 
-        var ButtonLogin = ElementByXPath("//button[@type='submit']");
+        var ButtonLogin = ElementByXPath("//button[@class='btn btn-primary']");
         if (!IsVisible(ButtonLogin))
         {
             return Fail("Fail login button is not found");
@@ -160,6 +161,18 @@ public class LarvelFaucetScript : FaucetScript
     /// </summary>
     public override int DoSolveCaptcha()
     {
+        var SelectCaptcha=ElementByXPath("//select[@id='selectCaptcha']");
+        if ( IsVisible ( SelectCaptcha ) )
+        {
+            if ( GetBoolSetting ( "UseSolvemedia" ) )
+            {
+                SelectOptionByValue ( SelectCaptcha , "solvemedia"  );
+            }
+            else
+            {
+                SelectOptionByValue ( SelectCaptcha , "recaptcha" );
+            }
+        }
         //This faucet has nothing to do here. We will let Faucet Collector handle it.
         return base.DoSolveCaptcha();
     }
@@ -190,9 +203,9 @@ public class LarvelFaucetScript : FaucetScript
     /// <returns></returns>
     public override int DoSolveFaucet()
     {
-        GoToUrl("https://larvelfaucet.com/faucet");
-        Wait(1);
-        var ShortLinks = ElementsByXPath("//button[@class='btn btn-lg btn-block bg-success text-center short-url']");
+        GoToUrl( "https://larvelfaucet.com/short-urls");
+        Wait (1);
+        var ShortLinks = ElementsByXPath("//button[@class='btn btn-lg btn-block bg-success text-center short-url rounded-0']");
         int n = 0;
         bool cs = false;
         while (!cs)
@@ -205,9 +218,9 @@ public class LarvelFaucetScript : FaucetScript
 
                 if (!cs)
                 {
-                    if(Driver.Url!= "https://larvelfaucet.com/faucet")
+                    if(Driver.Url!="https://larvelfaucet.com/short-urls")
                     {
-                        GoToUrl("https://larvelfaucet.com/faucet");
+                        GoToUrl( "https://larvelfaucet.com/short-urls" );
                         Wait();
                     }
                     else
@@ -216,7 +229,7 @@ public class LarvelFaucetScript : FaucetScript
                         Wait();
                     }
                     n++;
-                    ShortLinks = ElementsByXPath("//button[@class='btn btn-lg btn-block bg-success text-center short-url']");
+                    ShortLinks = ElementsByXPath( "//button[@class='btn btn-lg btn-block bg-success text-center short-url rounded-0']" );
                 }
             }
         }

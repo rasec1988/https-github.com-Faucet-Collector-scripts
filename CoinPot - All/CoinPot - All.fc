@@ -1,0 +1,1661 @@
+
+
+//==================//
+//script Written by: ••AviramDayan•• 01/01/2020 20:30PM - Version 1
+//Last Update: 08/01/2020 12:00AM - Version 4
+//==================//
+
+/*
+=========
+Roll High
+=========
+ X100 - 1% (Target - in High - 990-999 | Target - in Low - 000-009
+start with "Roll high" - tutorial/explanation
+
+in this example i explain the method
+when we first time start with "Roll high"
+
+we Roll some tokens 
+(about amount of tokens - it's freestyle - it's up to you - i bet 1 OR 10 tokens)
+
+as the numbers continue to range from 100 to 899
+Continue with the same "Roll high", in our case we started with "high"
+if appears number that starts from 900 - > continue 
+(Because we started with "high" first)
+
+When you continue to Roll some tokens after again 
+and if in some point alongside, 
+"low numbers" continue to appear - at a distance little close to the "target" (between 016 to 099)
+(Don't be tempted) 
+
+continue with "Roll high" (again Roll some tokens)
+
+but
+
+if "low numbers" appear - at a distance more closer to the "target" (between 000 to 015) (6 numbers closer to the "target")
+Switch/Change the Roll to "low" click "Roll low" 
+
+now - continue to "Roll low"
+
+Roll some tokens again
+
+in the some point you get the "win"
+
+=========
+Roll low
+=========
+X100 - 1% (Target - in High - 990-999 | Target - in Low - 000-009
+start with "Roll low" - tutorial/explanation
+
+in this example i explain the method
+when we first time start with "Roll low"
+
+we Roll some tokens 
+(about amount of tokens - it's freestyle - it's up to you - i bet 1 OR 10 tokens)
+
+as the numbers continue to range from 100 to 899
+Continue with the same "Roll low", in our case we started with "low"
+if appears number that starts under 099 - > continue 
+(Because we started with "low" first)
+
+When you continue to Roll some tokens after again 
+and if in some point alongside, 
+"high numbers" continue to appear - at a distance little close to the "target" (between 900 to 983)
+(Don't be tempted) 
+
+continue with "Roll low" (again Roll some tokens)
+
+but
+
+if "high numbers" appear - at a distance more closer to the "target" (between 984 to 999) (6 numbers closer to the "target")
+Switch/Change the Roll to "high" click "Roll high" 
+
+now - continue to "Roll high"
+
+Roll some tokens again
+
+in the some point you get the "win"
+*/
+
+
+using System;
+using System.IO;
+using FaucetCollector.Script;
+using OpenQA.Selenium;
+//css_inc ShortLinkUtilities
+//css_inc RecaptchaUtilities
+
+
+public class btcsamsity : FaucetScript
+{
+    /// <summary>
+    /// List of Settings that will be shown in the bot when selecting this Faucet in the bot.
+    /// You can get the value the user entered with the methods: GetSetting("[Name of the FaucetSetting]"), GetBoolSetting and GetDateTimeSetting
+    /// You can also create a new setting value using SetSetting("[Name you want to use]", "value")
+    /// </summary>
+    public override FaucetSettings Settings
+    {
+        get
+        {
+            return new FaucetSettings("https://CoinPot.co/dashboard")
+            {
+                new FaucetSetting(){Name="Email",Display="Email",Type=EditorType.TextBox,Required=true},
+                new FaucetSetting(){Name="Password",Display="Password",Type=EditorType.Password,Required=true},
+				
+                new FaucetSetting(){Name="AddressBTC",Display="Address BTC",Type=EditorType.TextBox,Required=false},
+                new FaucetSetting(){Name="AddressBCH",Display="Address BCH",Type=EditorType.TextBox,Required=false},
+                new FaucetSetting(){Name="AddressDOGE",Display="Address DOGE",Type=EditorType.TextBox,Required=false},
+                new FaucetSetting(){Name="AddressLTC",Display="Address LTC",Type=EditorType.TextBox,Required=false},
+                new FaucetSetting(){Name="AddressDASH",Display="Address DASH",Type=EditorType.TextBox,Required=false},
+
+                new FaucetSetting(){Name="MultiplierGame",Display="Multiplier Game - ON/OFF",Type=EditorType.CheckBox,Default=true},		
+                new FaucetSetting(){Name="Break_After_Win",Display="Break_After_Win - ON/OFF - if ON - When you win FC will return after the time you set | if OFF - FC will continue (without doing break) to mark as success after you win > also in the bottom",Type=EditorType.CheckBox,Default=false},		
+
+                new FaucetSetting(){Name="Menu_Multiplier_Method",Display="Menu Multiplier Method",Type=EditorType.ComboBox,
+				Default="Method 2 - X10 10% (Target - in High - 900-999 | Target - in Low - 000-099 - Auto click random token between - 1 token, 10 tokens (in High - only if number above 900 | in Low - only if number under 100) addition - AutoChange to High Roll - if number above 894 | AutoChange to Low Roll - if the number under 106) )",
+				Items=new System.Collections.Generic.List<string>
+                {
+                 "Method 0 - Freestyle - your way",
+                 "Method 1 - X10 10% (Target - in High - 900-999 | Target - in Low - 000-099 - You choose the Amount_Tokens | You choose the Roll Bet | addition - AutoChange to High Roll - if number above 894 | AutoChange to Low Roll - if the number under 106) )",
+                 "Method 2 - X10 10% (Target - in High - 900-999 | Target - in Low - 000-099 - Auto click random token between - 1 token, 10 tokens (in High - only if number above 900 | in Low - only if number under 100) addition - AutoChange to High Roll - if number above 894 | AutoChange to Low Roll - if the number under 106) )",
+                 "Method 3 - X10 10% (Target - in High - 900-999 | Target - in Low - 000-099 - Auto click random token between - 1 token, 10 tokens, 100 tokens (in High - only if number above 900 | in Low - only if number under 100) addition - AutoChange to High Roll - if number above 894 | AutoChange to Low Roll - if the number under 106) )",
+                 "Method 4 - X20 5% (Target - in High - 950-999 | Target - in Low - 000-049 - You choose the Amount_Tokens | You choose the Roll Bet | addition - AutoChange to High Roll - if number above 944 | AutoChange to Low Roll - if the number under 55) )",
+                 "Method 5 - X20 5% (Target - in High - 950-999 | Target - in Low - 000-049 - Auto click random token between - 1 token, 10 tokens (in High - only if number above 900 | in Low - only if number under 100) addition - AutoChange to High Roll - if number above 944 | AutoChange to Low Roll - if the number under 55) )",
+                 "Method 6 - X20 5% (Target - in High - 950-999 | Target - in Low - 000-049 - Auto click random token between - 1 token, 10 tokens, 100 tokens (in High - only if number above 900 | in Low - only if number under 100) addition - AutoChange to High Roll - if number above 944 | AutoChange to Low Roll - if the number under 55) )",
+                 "Method 7 - X100 1% (Target - in High - 990-999 | Target - in Low - 000-009 - You choose the Amount_Tokens | You choose the Roll Bet | addition - AutoChange to High Roll - if number above 984 | AutoChange to Low Roll - if the number under 15) )",
+                 "Method 8 - X100 1% (Target - in High - 990-999 | Target - in Low - 000-009 - Auto click random token between - 1 token, 10 tokens (in High - only if number above 900 | in Low - only if number under 100) addition - AutoChange to High Roll - if number above 984 | AutoChange to Low Roll - if the number under 15) )",
+                 "Method 9 - X100 1% (Target - in High - 990-999 | Target - in Low - 000-009 - Auto click random token between - 1 token, 10 tokens, 100 tokens (in High - only if number above 900 | in Low - only if number under 100)  addition - AutoChange to High Roll - if number above 984 | AutoChange to Low Roll - if the number under 15) )"
+                }
+                },
+
+                new FaucetSetting(){Name="NumbersOfRolls",Display="NumbersOfRolls - i set to 1001 as default - because after 1000 tokens that you bet/stake, you can get the daily bonus",Type=EditorType.TextBox,Default="1001"},
+                new FaucetSetting(){Name="Option_Rolls_NodeBetween",Display="Option Rolls Node Between - ON/OFF | if ON - it will keep to run until your exact number that you set in 'NumbersOfRolls' and after it will stop and return to your time | if OFF - it will stop to run when you 'won' - and after return to your time",Type=EditorType.CheckBox,Default=true},
+
+                new FaucetSetting(){Name="Menu_Amount_Tokens_Multiplier",Display="Menu Amount Tokens",Type=EditorType.ComboBox,Default="1 token",Items=new System.Collections.Generic.List<string>{"1 token", "10 tokens", "100 tokens", "1K tokens", "10K tokens", "100K tokens", "1M tokens"}},
+                new FaucetSetting(){Name="Auto_Click_Random_Tokens_on_off",Display="Auto Click Random Tokens - ON/OFF - if ON - will do the action by your selected menu method between this options: 1-2-8 is - 1 to 10 tokens | 3-6-9 - is - 1 to 10 to 100 tokens",Type=EditorType.CheckBox,Default=true},
+                new FaucetSetting(){Name="Approve_900_100_on_off",Display="Approve_900_100 - ON/OFF - if this option ON - only when 'Auto click random token' option (is on) - so he only do click/switch tokens, in High - only if number above 900 | in Low - only if number under 100",Type=EditorType.CheckBox,Default=true},
+
+                new FaucetSetting(){Name="Menu_Win_Chance",Display="Menu Win Chance",Type=EditorType.ComboBox,Default="10x - 10%",Items=new System.Collections.Generic.List<string>{"2x - 50%", "5x - 20%", "10x - 10%", "20x - 5%", "100x - 1%", "1000x - 0.1%"}},
+
+                new FaucetSetting(){Name="Menu_Roll_Bet_HighLow",Display="Menu Roll Bet - Choose High OR Low",Type=EditorType.ComboBox,Default="Roll High",Items=new System.Collections.Generic.List<string>{"Roll High", "Roll low"}},
+                new FaucetSetting(){Name="When_To_Change_to_HighLow_CalculatedNumbers_from_Menu_Methods_on_off",Display="When To Change to High OR Low - ON/OFF - if on - when you select a method from the menu, (not freestyle) then i set calculated numbers, from which number and when to change to > < High OR Low | if OFF - it will skip this function",Type=EditorType.CheckBox,Default=true},
+                new FaucetSetting(){Name="Roll_Alternative_Random_HighLow",Display="Roll Alternative - Random HighLow - ON/OFF",Type=EditorType.CheckBox,Default=false},
+
+                new FaucetSetting(){Name="LotteryGame",Display="Lottery Game - ON/OFF",Type=EditorType.CheckBox,Default=false},
+                new FaucetSetting(){Name="Menu_Amount_Tokens_Lottery",Display="Lottery Game - Menu Amount Tokens",Type=EditorType.ComboBox,Default="100 tickets",Items=new System.Collections.Generic.List<string>{"1 ticket","10 tickets","100 tickets","1k tickets","10k tickets","100k tickets","1m tickets"}},
+				
+                //insert user settings here
+                //new FaucetSetting { 
+                //    Name = "Name of your setting", 
+                //    Display = "Display shown in Faucet Collector", 
+                //    Type = EditorType.TextBox | EditorType.Password | EditorType.CheckBox | EditorType.Wallet | EditorType.Numeric | EditorType.ComboBox | EditorType.CheckComboBox, 
+                //    Required = true | false, 
+                //    Default = "Optionally a default value" | true | false | null.
+                //    Items = new List<string> { "item1", "item2" } (only valid for ComboBox or CheckComboBox)
+                //} 
+            };
+        }
+    }
+
+	
+
+    //My DomainName
+    //string DomainName_String = "https://CoinPot.co/dashboard";
+	//example - GoToUrl(DomainName_String);
+    //==========//
+	
+	
+//============================================================//
+//the number of "successes" in the script - when are finished  
+//============================================================//
+    public override void Start()
+    {
+		ad=false;
+		
+        //Title that shows in the browser. Is used to identify and close popup windows
+        Title = "CoinPot";
+
+        //After we did try to claim on the faucet we search for these elements to determine if it was a success or a fail
+        SuccessXPath = "//*"; //div[@id='btc-balance']
+        FailXPath = "//*"; //*[text()='']
+
+        //Let Faucet Collector start up everything
+        base.Start();
+    }
+//============================================================//
+//the number of "successes" in the script - when are finished  
+//============================================================//
+	
+	
+	
+	bool ad;
+	
+	
+    public override int DoInit()
+    {
+
+		Fix_getRandomValues_Message_Function(); // call Fix_getRandomValues_Message_Function 
+	   
+        //Let Faucet Collector continue.
+        return base.DoInit();
+    }
+
+	
+	
+	
+//==================//
+//save Login Cookies 
+//==================//
+    public override bool IsLoggedIn()
+    {
+		Fix_getRandomValues_Message_Function(); // call Fix_getRandomValues_Message_Function 
+		
+        //In this case we check for en element with the class "loggedIn"
+		return ElementByXPath("//a[contains(@data-toggle,'dropdown')]") != null;
+		//return true;
+    }
+//==================//
+//save Login Cookies 
+//==================//
+	
+	
+	
+	
+	
+    /// <summary>
+    /// This method gets called if IsLoggedIn returned false, right before the DoLogin method is called.
+    /// </summary>
+    public override int BeforeLogin()
+    {
+		
+        GoToUrl("https://CoinPot.co/dashboard");
+		Fix_getRandomValues_Message_Function(); // call Fix_getRandomValues_Message_Function 
+		
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeLogin();
+    }
+	
+	
+	
+	
+//========//
+//DoLogin
+//========//
+ public override int DoLogin()
+ {
+	
+  var ExitButton = ElementByXPath ("//a[contains(@data-toggle,'dropdown')]"); 
+
+  //if i NOT Login - go to Login Page
+  if (!IsVisible(ExitButton))
+  {
+
+        GoToUrl("https://coinpot.co/signin");
+		Fix_getRandomValues_Message_Function(); // call Fix_getRandomValues_Message_Function 
+        Wait();		
+        Wait(2);
+        Log("go to login page");
+        
+		/*
+        var StartOpenLogin = ElementByXPath("//a[@data-test='login-link']");
+	    if (IsVisible(StartOpenLogin))
+	    { 
+        Click(StartOpenLogin);
+		}
+        */
+	
+		Wait(2);
+		
+        if (IsVisible(ElementByXPath ("//input[@id='SignInEmailInput']") )) 
+	    {
+        var box_user = ElementByXPath("//input[@id='SignInEmailInput']");
+
+        SetText(box_user, GetSetting("Email"));
+        Log("SetText - Email");
+        }
+		
+		Wait(2);
+		
+        if (IsVisible(ElementByXPath ("//input[@id='SignInPasswordInput']") )) 
+	    {
+         var box_pass = ElementByXPath("//input[@id='SignInPasswordInput']");
+         SetText(box_pass, GetPassword("Password"));
+         Log("SetText - Password");
+        }
+		
+		Wait(4);
+
+		Recaptcha_Function (); //call
+
+		Wait(4);
+
+        if (IsVisible(ElementByXPath ("//button[contains(@data-bind,'click') and contains(text(),'Sign')]") )) 
+	    {
+         var ButtonLog = ElementByXPath("//button[contains(@data-bind,'click') and contains(text(),'Sign')]");
+         Click(ButtonLog);
+        }
+		
+		Wait(2);
+
+/*		
+        var Error_Message = ElementByXPath ("//div[@id='add_err']/div/div[@class='message' and contains(text(),'fille' | 'captcha' ) ]");
+        if (IsVisible(Error_Message))
+        {
+            Log("Error_Message - Appear - we return after 1 min ");
+            return 1*60; //we return after 1 min
+        }
+*/		
+		Wait();	
+		
+	
+  } // end ExitButton
+
+        
+       return base.DoLogin();
+    }
+//========//
+//DoLogin
+//========//
+	
+
+	
+	
+	
+	
+//==========//
+//AfterLogin
+//=========//
+ public override int AfterLogin()
+ {
+ 
+	 
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterLogin();
+ }
+//==========//
+//AfterLogin
+//=========//
+	
+	
+	
+
+	
+//=============//
+//GetFaucetWaitTime
+//=============//
+ public override int GetFaucetWaitTime()
+ {
+
+    if(ad)
+	{
+        ad=false; //solve the problem in start - after he return to script again
+        return GetWaitSetting();  	
+    }	//end ad
+		
+		
+   //let Faucet Collector continue.
+   return base.GetFaucetWaitTime();
+ }
+//=============//
+//GetFaucetWaitTime
+//=============//
+	
+	
+	
+	
+
+    public override int BeforeSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeSolveCaptcha();
+    }
+
+
+    public override int DoSolveCaptcha()
+    {
+
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoSolveCaptcha();
+    }
+
+
+    public override int AfterSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterSolveCaptcha();
+    }
+	
+	
+
+    public override int BeforeSolveFaucet()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeSolveCaptcha();
+    }
+	
+	
+	
+
+
+//=============//
+//DoSolveFaucet
+//=============//
+ public override int DoSolveFaucet()
+ {
+	
+      //=============//
+      //LotteryGame
+      //=============//
+      if (GetBoolSetting("LotteryGame"))
+      {
+        GoToUrl("https://coinpot.co/lottery");
+		Fix_getRandomValues_Message_Function(); // call Fix_getRandomValues_Message_Function 
+        Wait();		
+        Wait(2);
+        Log("go to LotteryGame");
+		  
+        var Menu_Amount_Tokens_Lottery_Var = GetSetting("Menu_Amount_Tokens_Lottery");
+
+        if(Menu_Amount_Tokens_Lottery_Var=="1 ticket")  
+        {
+         var Lottery_Token1 = ElementByXPath("//div[@id='BuyTicketsButtons']/a[contains(text(),'1 ticket')]");
+		 Click(Lottery_Token1);
+         Log("click - 1 ticket");
+		}
+
+        if(Menu_Amount_Tokens_Lottery_Var=="10 tickets")  
+        {
+         var Lottery_Token10 = ElementByXPath("//div[@id='BuyTicketsButtons']/a[contains(text(),'10 tickets')]");
+		 Click(Lottery_Token10);
+         Log("click - 10 tickets");
+		}	
+		
+        if(Menu_Amount_Tokens_Lottery_Var=="100 tickets")  
+        {
+         var Lottery_Token100 = ElementByXPath("//div[@id='BuyTicketsButtons']/a[contains(text(),'100 tickets')]");
+		 Click(Lottery_Token100);
+         Log("click - 100 tickets");
+		}	
+		
+        if(Menu_Amount_Tokens_Lottery_Var=="1k tickets")  
+        {
+         var Lottery_Token1000 = ElementByXPath("//div[@id='BuyTicketsButtons']/a[contains(text(),'1,000 tickets')]");
+		 Click(Lottery_Token1000);
+         Log("click - 1k tickets");
+		}
+
+        if(Menu_Amount_Tokens_Lottery_Var=="10k tickets")  
+        {
+         var Lottery_Token10000 = ElementByXPath("//div[@id='BuyTicketsButtons']/a[contains(text(),'10,000 tickets')]");
+		 Click(Lottery_Token10000);
+         Log("click - 10k tickets");
+		}
+
+        if(Menu_Amount_Tokens_Lottery_Var=="100k tickets")  
+        {
+         var Lottery_Token100000 = ElementByXPath("//div[@id='BuyTicketsButtons']/a[contains(text(),'100,000 tickets')]");
+		 Click(Lottery_Token100000);
+         Log("click - 100k tickets");
+		}
+
+        if(Menu_Amount_Tokens_Lottery_Var=="1m tickets")  
+        {
+         var Lottery_Token1000000 = ElementByXPath("//div[@id='BuyTicketsButtons']/a[contains(text(),'1,000,000 tickets')]");
+		 Click(Lottery_Token1000000);
+         Log("click - 1m tickets");
+		}
+		
+      } // LotteryGame
+
+
+	
+      //=============//
+      //MultiplierGame
+      //=============//
+      if (GetBoolSetting("MultiplierGame"))
+      {
+	
+        //else go to normal login
+		GoToUrl("https://coinpot.co/multiplier");
+		Fix_getRandomValues_Message_Function(); // call Fix_getRandomValues_Message_Function 
+        Wait();		
+        Wait(2);
+        Log("go to MultiplierGame");
+
+        var Menu_Multiplier_Method_Var = GetSetting("Menu_Multiplier_Method");
+
+        if(Menu_Multiplier_Method_Var=="Method 0 - Freestyle - your way")  
+        {
+         Menu_Multiplier_Method_0_Function(); // call
+         Log("Menu_Multiplier_Method_0_Function");
+		}
+
+        if(Menu_Multiplier_Method_Var=="Method 1 - X10 10% (Target - in High - 900-999 | Target - in Low - 000-099 - You choose the Amount_Tokens | You choose the Roll Bet | addition - AutoChange to High Roll - if number above 894 | AutoChange to Low Roll - if the number under 106) )")  
+        {
+         Menu_Multiplier_Method_1_Function(); // call
+         Log("Menu_Multiplier_Method_1_Function");
+		}
+
+        if(Menu_Multiplier_Method_Var=="Method 2 - X10 10% (Target - in High - 900-999 | Target - in Low - 000-099 - Auto click random token between - 1 token, 10 tokens (in High - only if number above 900 | in Low - only if number under 100) addition - AutoChange to High Roll - if number above 894 | AutoChange to Low Roll - if the number under 106) )")  
+        {
+         Menu_Multiplier_Method_2_Function(); // call
+         Log("Menu_Multiplier_Method_2_Function");
+		}
+
+        if(Menu_Multiplier_Method_Var=="Method 3 - X10 10% (Target - in High - 900-999 | Target - in Low - 000-099 - Auto click random token between - 1 token, 10 tokens, 100 tokens (in High - only if number above 900 | in Low - only if number under 100) addition - AutoChange to High Roll - if number above 894 | AutoChange to Low Roll - if the number under 106) )")  
+        {
+         Menu_Multiplier_Method_3_Function(); // call
+         Log("Menu_Multiplier_Method_3_Function");
+		}
+
+        if(Menu_Multiplier_Method_Var=="Method 4 - X20 5% (Target - in High - 950-999 | Target - in Low - 000-049 - You choose the Amount_Tokens | You choose the Roll Bet | addition - AutoChange to High Roll - if number above 944 | AutoChange to Low Roll - if the number under 55) )")  
+        {
+         Menu_Multiplier_Method_4_Function(); // call
+         Log("Menu_Multiplier_Method_4_Function");
+		}
+
+        if(Menu_Multiplier_Method_Var=="Method 5 - X20 5% (Target - in High - 950-999 | Target - in Low - 000-049 - Auto click random token between - 1 token, 10 tokens (in High - only if number above 900 | in Low - only if number under 100) addition - AutoChange to High Roll - if number above 944 | AutoChange to Low Roll - if the number under 55) )")  
+        {
+         Menu_Multiplier_Method_5_Function(); // call
+         Log("Menu_Multiplier_Method_5_Function");
+		}
+
+        if(Menu_Multiplier_Method_Var=="Method 6 - X20 5% (Target - in High - 950-999 | Target - in Low - 000-049 - Auto click random token between - 1 token, 10 tokens, 100 tokens (in High - only if number above 900 | in Low - only if number under 100) addition - AutoChange to High Roll - if number above 944 | AutoChange to Low Roll - if the number under 55) )")  
+        {
+         Menu_Multiplier_Method_6_Function(); // call
+         Log("Menu_Multiplier_Method_6_Function");
+		}
+
+        if(Menu_Multiplier_Method_Var=="Method 7 - X100 1% (Target - in High - 990-999 | Target - in Low - 000-009 - You choose the Amount_Tokens | You choose the Roll Bet | addition - AutoChange to High Roll - if number above 984 | AutoChange to Low Roll - if the number under 15) )")  
+        {
+         Menu_Multiplier_Method_7_Function(); // call
+         Log("Menu_Multiplier_Method_7_Function");
+		}
+
+        if(Menu_Multiplier_Method_Var=="Method 8 - X100 1% (Target - in High - 990-999 | Target - in Low - 000-009 - Auto click random token between - 1 token, 10 tokens (in High - only if number above 900 | in Low - only if number under 100) addition - AutoChange to High Roll - if number above 984 | AutoChange to Low Roll - if the number under 15) )")  
+        {
+         Menu_Multiplier_Method_8_Function(); // call
+         Log("Menu_Multiplier_Method_8_Function");
+		}
+
+        if(Menu_Multiplier_Method_Var=="Method 9 - X100 1% (Target - in High - 990-999 | Target - in Low - 000-009 - Auto click random token between - 1 token, 10 tokens, 100 tokens (in High - only if number above 900 | in Low - only if number under 100)  addition - AutoChange to High Roll - if number above 984 | AutoChange to Low Roll - if the number under 15) )")  
+        {
+         Menu_Multiplier_Method_9_Function(); // call
+         Log("Menu_Multiplier_Method_9_Function");
+		}		
+		
+      } //end MultiplierGame
+
+  
+	  ad = true; //call to timer / and do success	 
+		
+ //This faucet has nothing to do here. We will let Faucet Collector handle it.
+ return base.DoSolveFaucet();
+ }
+	
+	
+
+	
+	
+    public override int AfterSolveFaucet()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterSolveFaucet();
+    }
+	
+	
+	
+
+    /// <summary>
+    /// This method gets called in the end after the BeforeSolveFaucet/DoSolveFaucet and AfterSolveFaucet methods were done.
+    /// The base.CheckFaucetResult will try to find a visible element on the page using the XPath from SuccessXPath and FailXPath (see the Start method)
+    /// These properties should contain XPath expressions to find certain elements on the page.
+    /// For example if it finds one of the elements from the SuccessXPath, and it is visible, then it will flag the claim attempt as a success.
+    /// Or if it finds one of the elements from the FailXPath, and it is visible, then it will flag the claim attempt as a failure.
+    /// </summary>
+    public override int CheckFaucetResult()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.CheckFaucetResult();
+    }
+	
+
+
+      //===============================================================//
+      //================Menu_Multiplier_All_Method_0_9================//
+      //===============================================================//
+
+
+      //=================//
+      //Menu_Multiplier_Method_0_Function
+      //=================//
+
+      public int Menu_Multiplier_Method_0_Function()
+      {
+		Fix_getRandomValues_Message_Function(); // call Fix_getRandomValues_Message_Function 
+		Log("Function - Menu_Multiplier_Method_0_Function");
+		
+		//NodeBetween
+        if (GetBoolSetting("Option_Rolls_NodeBetween"))
+        {
+	    Log("Option_Rolls_NodeBetween - will stop after your exact number that you set");
+		}	
+        if (!GetBoolSetting("Option_Rolls_NodeBetween"))
+        {
+	       Log("Option_Rolls_NodeBetween - continue until you win");	
+        }	
+        //===//
+
+        Menu_Win_Chance_Function(); //call
+		
+        Wait(2);
+
+        Menu_Roll_Bet_HighLow_Function(); //call
+
+        Wait(2);
+		
+        int Claims;      
+        Claims = Convert.ToInt32(GetSetting("NumbersOfRolls"));
+        int Count = 0;
+
+        while (true)
+	    {
+		  Count++; //important to put Count++ in start - Count OR store - Similar to the clock begins to count	
+
+          Menu_Amount_Tokens_Multiplier_Function(); // call
+		  Log("Roll Number - " + Count);
+          Wait(1);
+		  Log("Wait");
+		  
+          //Win Success
+          var YouWinSuccess = ElementByXPath("//div[@class='toast-message' and contains(text(),'Congratulations, you won') ]"); //("//div[3]//span[contains(text(),'won')]");
+          if (IsVisible(YouWinSuccess))
+		  {
+            var YouWinAmount = ElementByXPath("//div[3]//span[contains(text(),'tokens')]");
+            Log("Success - Your Win is - " + YouWinAmount.Text);
+			ClaimSuccess(); //Marks the claim as a success also
+            if (GetBoolSetting("Break_After_Win"))
+            {
+		     break; // break the while loop
+            } //end Break_After_Win
+		  }
+		  
+          Roll_Alternative_Random_HighLow_Function(); //call - option - if the user want to click random on High OR Low
+
+          Wait(1);
+
+          if (GetBoolSetting("Option_Rolls_NodeBetween"))
+          {
+            if (Count >= Claims) 
+	        {	
+	         Log("Option_Rolls_NodeBetween - break");	
+	         break; 
+	        }
+          } //end Option_Rolls_NodeBetween - ON
+		  
+        }	//end  while (true)		
+
+        return 0;
+      }//end Menu_Multiplier_Method_0_Function
+      //=================//	
+	
+	
+      //=================//
+      //Menu_Multiplier_Method_1_Function
+      //=================//
+
+      public int Menu_Multiplier_Method_1_Function()
+      {
+		Fix_getRandomValues_Message_Function(); // call Fix_getRandomValues_Message_Function 
+		Log("Function - Menu_Multiplier_Method_1_Function");
+		
+		//NodeBetween
+        if (GetBoolSetting("Option_Rolls_NodeBetween"))
+        {
+	    Log("Option_Rolls_NodeBetween - will stop after your exact number that you set");
+		}	
+        if (!GetBoolSetting("Option_Rolls_NodeBetween"))
+        {
+	       Log("Option_Rolls_NodeBetween - continue until you win");	
+        }	
+        //===//
+
+        var Button_Win_10x_Chance = ElementByXPath("//label/span[contains(text(),'10x')]");
+		Click(Button_Win_10x_Chance);
+        Log("click - Button_Win_10x_Chance"); 
+		
+        Wait(2);
+
+        Menu_Roll_Bet_HighLow_Function(); //call
+
+        Wait(2);
+		
+        Multiplier_Action_All_10_Function(); //call
+		
+        return 0;
+      }//end Menu_Multiplier_Method_1_Function
+      //=================//	
+
+
+      //=================//
+      //Menu_Multiplier_Method_2_Function
+      //=================//
+
+      public int Menu_Multiplier_Method_2_Function()
+      {
+		Fix_getRandomValues_Message_Function(); // call Fix_getRandomValues_Message_Function 
+		Log("Function - Menu_Multiplier_Method_2_Function");
+		
+		//NodeBetween
+        if (GetBoolSetting("Option_Rolls_NodeBetween"))
+        {
+	    Log("Option_Rolls_NodeBetween - will stop after your exact number that you set");
+		}	
+        if (!GetBoolSetting("Option_Rolls_NodeBetween"))
+        {
+	       Log("Option_Rolls_NodeBetween - continue until you win");	
+        }	
+        //===//
+
+        Menu_Roll_Bet_HighLow_Function(); //call
+
+        Wait(2);
+
+        Multiplier_Action_All_10_Function(); //call
+		
+        return 0;
+      }//end Menu_Multiplier_Method_2_Function
+      //=================//	
+
+
+      //=================//
+      //Menu_Multiplier_Method_3_Function
+      //=================//
+
+      public int Menu_Multiplier_Method_3_Function()
+      {
+		Fix_getRandomValues_Message_Function(); // call Fix_getRandomValues_Message_Function 
+		Log("Function - Menu_Multiplier_Method_3_Function");
+		
+		//NodeBetween
+        if (GetBoolSetting("Option_Rolls_NodeBetween"))
+        {
+	    Log("Option_Rolls_NodeBetween - will stop after your exact number that you set");
+		}	
+        if (!GetBoolSetting("Option_Rolls_NodeBetween"))
+        {
+	       Log("Option_Rolls_NodeBetween - continue until you win");	
+        }	
+        //===//
+
+        var Button_Win_10x_Chance = ElementByXPath("//label/span[contains(text(),'10x')]");
+		Click(Button_Win_10x_Chance);
+        Log("click - Button_Win_10x_Chance"); 
+		
+        Wait(2);
+
+        Menu_Roll_Bet_HighLow_Function(); //call
+
+        Wait(2);
+		
+        Multiplier_Action_All_10_Function(); //call
+		
+        return 0;
+      }//end Menu_Multiplier_Method_3_Function
+      //=================//	
+
+
+      //=================//
+      //Menu_Multiplier_Method_4_Function
+      //=================//
+
+      public int Menu_Multiplier_Method_4_Function()
+      {
+		Fix_getRandomValues_Message_Function(); // call Fix_getRandomValues_Message_Function 
+		Log("Function - Menu_Multiplier_Method_4_Function");
+		
+		//NodeBetween
+        if (GetBoolSetting("Option_Rolls_NodeBetween"))
+        {
+	    Log("Option_Rolls_NodeBetween - will stop after your exact number that you set");
+		}	
+        if (!GetBoolSetting("Option_Rolls_NodeBetween"))
+        {
+	       Log("Option_Rolls_NodeBetween - continue until you win");	
+        }	
+        //===//
+
+        var Button_Win_20x_Chance = ElementByXPath("//label/span[contains(text(),'20x')]");
+		Click(Button_Win_20x_Chance);
+        Log("click - Button_Win_20x_Chance"); 
+		
+        Wait(2);
+
+        Menu_Roll_Bet_HighLow_Function(); //call
+
+        Wait(2);
+		
+        Multiplier_Action_All_20_Function(); //call
+		
+        return 0;
+      }//end Menu_Multiplier_Method_4_Function
+      //=================//	
+
+
+      //=================//
+      //Menu_Multiplier_Method_5_Function
+      //=================//
+
+      public int Menu_Multiplier_Method_5_Function()
+      {
+		Fix_getRandomValues_Message_Function(); // call Fix_getRandomValues_Message_Function 
+		Log("Function - Menu_Multiplier_Method_5_Function");
+		
+		//NodeBetween
+        if (GetBoolSetting("Option_Rolls_NodeBetween"))
+        {
+	    Log("Option_Rolls_NodeBetween - will stop after your exact number that you set");
+		}	
+        if (!GetBoolSetting("Option_Rolls_NodeBetween"))
+        {
+	       Log("Option_Rolls_NodeBetween - continue until you win");	
+        }	
+        //===//
+
+        var Button_Win_20x_Chance = ElementByXPath("//label/span[contains(text(),'20x')]");
+		Click(Button_Win_20x_Chance);
+        Log("click - Button_Win_20x_Chance"); 
+		
+        Wait(2);
+
+        Menu_Roll_Bet_HighLow_Function(); //call
+
+        Wait(2);
+
+        Multiplier_Action_All_20_Function(); //call
+		
+        return 0;
+      }//end Menu_Multiplier_Method_5_Function
+      //=================//	
+
+
+      //=================//
+      //Menu_Multiplier_Method_6_Function
+      //=================//
+
+      public int Menu_Multiplier_Method_6_Function()
+      {
+		Fix_getRandomValues_Message_Function(); // call Fix_getRandomValues_Message_Function 
+		Log("Function - Menu_Multiplier_Method_6_Function");
+		
+		//NodeBetween
+        if (GetBoolSetting("Option_Rolls_NodeBetween"))
+        {
+	    Log("Option_Rolls_NodeBetween - will stop after your exact number that you set");
+		}	
+        if (!GetBoolSetting("Option_Rolls_NodeBetween"))
+        {
+	       Log("Option_Rolls_NodeBetween - continue until you win");	
+        }	
+        //===//
+
+        var Button_Win_20x_Chance = ElementByXPath("//label/span[contains(text(),'20x')]");
+		Click(Button_Win_20x_Chance);
+        Log("click - Button_Win_20x_Chance"); 
+		
+        Wait(2);
+
+        Menu_Roll_Bet_HighLow_Function(); //call
+
+        Wait(2);
+		
+        Multiplier_Action_All_20_Function(); //call
+		
+        return 0;
+      }//end Menu_Multiplier_Method_6_Function
+      //=================//	
+
+
+      //=================//
+      //Menu_Multiplier_Method_7_Function
+      //=================//
+
+      public int Menu_Multiplier_Method_7_Function()
+      {
+		Fix_getRandomValues_Message_Function(); // call Fix_getRandomValues_Message_Function 
+		Log("Function - Menu_Multiplier_Method_7_Function");
+		
+		//NodeBetween
+        if (GetBoolSetting("Option_Rolls_NodeBetween"))
+        {
+	    Log("Option_Rolls_NodeBetween - will stop after your exact number that you set");
+		}	
+        if (!GetBoolSetting("Option_Rolls_NodeBetween"))
+        {
+	       Log("Option_Rolls_NodeBetween - continue until you win");	
+        }	
+        //===//
+
+        var Button_Win_100x_Chance = ElementByXPath("//label/span[contains(text(),'100x')]");
+		Click(Button_Win_100x_Chance);
+        Log("click - Button_Win_100x_Chance"); 
+		
+        Wait(2);
+
+        Menu_Roll_Bet_HighLow_Function(); //call
+
+        Wait(2);
+		
+        Multiplier_Action_All_100_Function(); //call
+		
+        return 0;
+      }//end Menu_Multiplier_Method_7_Function
+      //=================//	
+
+
+      //=================//
+      //Menu_Multiplier_Method_8_Function
+      //=================//
+
+      public int Menu_Multiplier_Method_8_Function()
+      {
+		Fix_getRandomValues_Message_Function(); // call Fix_getRandomValues_Message_Function 
+		Log("Function - Menu_Multiplier_Method_8_Function");
+		
+		//NodeBetween
+        if (GetBoolSetting("Option_Rolls_NodeBetween"))
+        {
+	    Log("Option_Rolls_NodeBetween - will stop after your exact number that you set");
+		}	
+        if (!GetBoolSetting("Option_Rolls_NodeBetween"))
+        {
+	       Log("Option_Rolls_NodeBetween - continue until you win");	
+        }	
+        //===//
+
+        var Button_Win_100x_Chance = ElementByXPath("//label/span[contains(text(),'100x')]");
+		Click(Button_Win_100x_Chance);
+        Log("click - Button_Win_100x_Chance"); 
+		
+        Wait(2);
+
+        Menu_Roll_Bet_HighLow_Function(); //call
+
+        Wait(2);
+
+        Multiplier_Action_All_100_Function(); //call
+		
+        return 0;
+      }//end Menu_Multiplier_Method_8_Function
+      //=================//	
+
+
+      //=================//
+      //Menu_Multiplier_Method_9_Function
+      //=================//
+
+      public int Menu_Multiplier_Method_9_Function()
+      {
+		Fix_getRandomValues_Message_Function(); // call Fix_getRandomValues_Message_Function 
+		Log("Function - Menu_Multiplier_Method_9_Function");
+		
+		//NodeBetween
+        if (GetBoolSetting("Option_Rolls_NodeBetween"))
+        {
+	    Log("Option_Rolls_NodeBetween - will stop after your exact number that you set");
+		}	
+        if (!GetBoolSetting("Option_Rolls_NodeBetween"))
+        {
+	       Log("Option_Rolls_NodeBetween - continue until you win");	
+        }	
+        //===//
+
+        var Button_Win_100x_Chance = ElementByXPath("//label/span[contains(text(),'100x')]");
+		Click(Button_Win_100x_Chance);
+        Log("click - Button_Win_100x_Chance"); 
+		
+        Wait(2);
+
+        Menu_Roll_Bet_HighLow_Function(); //call
+
+        Wait(2);
+		
+        Multiplier_Action_All_100_Function(); //call
+		
+        return 0;
+      }//end Menu_Multiplier_Method_9_Function
+      //=================//	
+
+
+
+
+
+      //=================//
+      //Multiplier_Action_All_10_Function
+      //=================//
+
+      public int Multiplier_Action_All_10_Function()
+      {
+
+        int Claims;      
+        Claims = Convert.ToInt32(GetSetting("NumbersOfRolls"));
+        int Count = 0;
+
+        while (true)
+	    {
+		  Count++; //important to put Count++ in start - Count OR store - Similar to the clock begins to count	
+
+          Click_Tokens_Function(); //call
+		  Log("Roll Number - " + Count);
+          Wait(1);
+		  Log("Wait");
+
+          //Win Success
+          var YouWinSuccess = ElementByXPath("//div[@class='toast-message' and contains(text(),'Congratulations, you won') ]"); //("//div[3]//span[contains(text(),'won')]");
+          if (IsVisible(YouWinSuccess))
+		  {
+            var YouWinAmount = ElementByXPath("//div[3]//span[contains(text(),'tokens')]");
+            Log("Success - Your Win is - " + YouWinAmount.Text);
+			ClaimSuccess(); //Marks the claim as a success also
+            if (GetBoolSetting("Break_After_Win"))
+            {
+		     break; // break the while loop
+            } //end Break_After_Win
+		  }
+		  
+          Roll_Alternative_Random_HighLow_Function(); //call - option - if the user want to click random on High OR Low
+
+          Wait(1);
+		  
+		  //=====//
+		  var Number_1_Digit = ElementByXPath("//div[contains(@class,'display')]/div[contains(@data-bind,'digit1')] ");		
+		  var Number_2_Digit = ElementByXPath("//div[contains(@class,'display')]/div[contains(@data-bind,'digit2')] ");		
+		  var Number_3_Digit = ElementByXPath("//div[contains(@class,'display')]/div[contains(@data-bind,'digit3')] ");		
+
+          int BalanceINT = Convert.ToInt32(Number_1_Digit.Text + Number_2_Digit.Text + Number_3_Digit.Text); 
+		  Log("The Number Now is - " + BalanceINT);  
+		  
+          if (BalanceINT > 894) 
+          {
+            if (GetBoolSetting("When_To_Change_to_HighLow_CalculatedNumbers_from_Menu_Methods_on_off"))
+            {
+             Log("Multiplier - Above > 894");
+             var Button_RollHigh = ElementByXPath("//label/span[contains(text(),'Roll high')]");
+		     Click(Button_RollHigh);
+             Log("click - Button_RollHigh");
+            }
+		  }
+
+          if (BalanceINT < 106) 
+          {
+            if (GetBoolSetting("When_To_Change_to_HighLow_CalculatedNumbers_from_Menu_Methods_on_off"))
+            {
+             Log("Multiplier - Under < 106");
+             var Button_RollLow = ElementByXPath("//label/span[contains(text(),'Roll low')]");
+		     Click(Button_RollLow);
+             Log("click - Button_RollLow"); 
+            }
+          }
+          //====//
+
+          if (GetBoolSetting("Option_Rolls_NodeBetween"))
+          {
+            if (Count >= Claims) 
+	        {	
+	         Log("Option_Rolls_NodeBetween - break");	
+	         break; 
+	        }
+          } //end Option_Rolls_NodeBetween - ON
+		  
+        }	//end  while (true)		
+		 
+	    return 0;
+      }//end Multiplier_Action_All_10_Function
+      //=================//	
+
+
+      //=================//
+      //Multiplier_Action_All_20_Function
+      //=================//
+
+      public int Multiplier_Action_All_20_Function()
+      {
+
+        int Claims;      
+        Claims = Convert.ToInt32(GetSetting("NumbersOfRolls"));
+        int Count = 0;
+
+        while (true)
+	    {
+		  Count++; //important to put Count++ in start - Count OR store - Similar to the clock begins to count	
+
+          Click_Tokens_Function(); //call
+		  Log("Roll Number - " + Count);
+          Wait(1);
+		  Log("Wait");
+
+          //Win Success
+          var YouWinSuccess = ElementByXPath("//div[@class='toast-message' and contains(text(),'Congratulations, you won') ]"); //("//div[3]//span[contains(text(),'won')]");
+          if (IsVisible(YouWinSuccess))
+		  {
+            var YouWinAmount = ElementByXPath("//div[3]//span[contains(text(),'tokens')]");
+            Log("Success - Your Win is - " + YouWinAmount.Text);
+			ClaimSuccess(); //Marks the claim as a success also
+            if (GetBoolSetting("Break_After_Win"))
+            {
+		     break; // break the while loop
+            } //end Break_After_Win
+		  }
+		  
+          Roll_Alternative_Random_HighLow_Function(); //call - option - if the user want to click random on High OR Low
+
+          Wait(1);
+		  
+		  //=====//
+		  var Number_1_Digit = ElementByXPath("//div[contains(@class,'display')]/div[contains(@data-bind,'digit1')] ");		
+		  var Number_2_Digit = ElementByXPath("//div[contains(@class,'display')]/div[contains(@data-bind,'digit2')] ");		
+		  var Number_3_Digit = ElementByXPath("//div[contains(@class,'display')]/div[contains(@data-bind,'digit3')] ");		
+
+          int BalanceINT = Convert.ToInt32(Number_1_Digit.Text + Number_2_Digit.Text + Number_3_Digit.Text); 
+		  Log("The Number Now is - " + BalanceINT);  
+		  
+          if (BalanceINT > 944) 
+          {
+            if (GetBoolSetting("When_To_Change_to_HighLow_CalculatedNumbers_from_Menu_Methods_on_off"))
+            {
+             Log("Multiplier - Above > 944");
+             var Button_RollHigh = ElementByXPath("//label/span[contains(text(),'Roll high')]");
+		     Click(Button_RollHigh);
+             Log("click - Button_RollHigh");
+            }
+		  }
+
+          if (BalanceINT < 55) 
+          {
+            if (GetBoolSetting("When_To_Change_to_HighLow_CalculatedNumbers_from_Menu_Methods_on_off"))
+            {
+             Log("Multiplier - Under < 55");
+             var Button_RollLow = ElementByXPath("//label/span[contains(text(),'Roll low')]");
+		     Click(Button_RollLow);
+             Log("click - Button_RollLow"); 
+            }
+          }
+          //====//
+
+          if (GetBoolSetting("Option_Rolls_NodeBetween"))
+          {
+            if (Count >= Claims) 
+	        {	
+	         Log("Option_Rolls_NodeBetween - break");	
+	         break; 
+	        }
+          } //end Option_Rolls_NodeBetween - ON
+		  
+        }	//end  while (true)		
+		 
+	    return 0;
+      }//end Multiplier_Action_All_20_Function
+      //=================//	
+
+
+      //=================//
+      //Multiplier_Action_All_100_Function
+      //=================//
+
+      public int Multiplier_Action_All_100_Function()
+      {
+
+        int Claims;      
+        Claims = Convert.ToInt32(GetSetting("NumbersOfRolls"));
+        int Count = 0;
+
+        while (true)
+	    {
+		  Count++; //important to put Count++ in start - Count OR store - Similar to the clock begins to count	
+
+          Click_Tokens_Function(); //call
+		  Log("Roll Number - " + Count);
+          Wait(1);
+		  Log("Wait");
+
+          //Win Success
+          var YouWinSuccess = ElementByXPath("//div[@class='toast-message' and contains(text(),'Congratulations, you won') ]"); //("//div[3]//span[contains(text(),'won')]");
+          if (IsVisible(YouWinSuccess))
+		  {
+            var YouWinAmount = ElementByXPath("//div[3]//span[contains(text(),'tokens')]");
+            Log("Success - Your Win is - " + YouWinAmount.Text);
+			ClaimSuccess(); //Marks the claim as a success also
+            if (GetBoolSetting("Break_After_Win"))
+            {
+		     break; // break the while loop
+            } //end Break_After_Win
+		  }
+		  
+          Roll_Alternative_Random_HighLow_Function(); //call - option - if the user want to click random on High OR Low
+
+          Wait(1);
+		  
+		  //=====//
+		  var Number_1_Digit = ElementByXPath("//div[contains(@class,'display')]/div[contains(@data-bind,'digit1')] ");		
+		  var Number_2_Digit = ElementByXPath("//div[contains(@class,'display')]/div[contains(@data-bind,'digit2')] ");		
+		  var Number_3_Digit = ElementByXPath("//div[contains(@class,'display')]/div[contains(@data-bind,'digit3')] ");		
+
+          int BalanceINT = Convert.ToInt32(Number_1_Digit.Text + Number_2_Digit.Text + Number_3_Digit.Text); 
+		  Log("The Number Now is - " + BalanceINT);  
+		  
+          if (BalanceINT > 984) 
+          {
+            if (GetBoolSetting("When_To_Change_to_HighLow_CalculatedNumbers_from_Menu_Methods_on_off"))
+            {
+             Log("Multiplier - Above > 984");
+             var Button_RollHigh = ElementByXPath("//label/span[contains(text(),'Roll high')]");
+		     Click(Button_RollHigh);
+             Log("click - Button_RollHigh");
+            }
+		  }
+
+          if (BalanceINT < 15) 
+          {
+            if (GetBoolSetting("When_To_Change_to_HighLow_CalculatedNumbers_from_Menu_Methods_on_off"))
+            {
+             Log("Multiplier - Under < 15");
+             var Button_RollLow = ElementByXPath("//label/span[contains(text(),'Roll low')]");
+		     Click(Button_RollLow);
+             Log("click - Button_RollLow"); 
+            }
+          }
+          //====//
+
+          if (GetBoolSetting("Option_Rolls_NodeBetween"))
+          {
+            if (Count >= Claims) 
+	        {	
+	         Log("Option_Rolls_NodeBetween - break");	
+	         break; 
+	        }
+          } //end Option_Rolls_NodeBetween - ON
+		  
+        }	//end  while (true)		
+		 
+	    return 0;
+      }//end Multiplier_Action_All_100_Function
+      //=================//	
+
+
+
+
+      //=================//
+      //Fix_getRandomValues_Message_Function
+      //=================//
+
+      public int Fix_getRandomValues_Message_Function()
+      {
+        ExecuteScript(@"function getRandomInt(min, max) {
+            min = Math.ceil(min);
+            max = Math.floor(max);
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+        function fillRandomArray(b) {
+          for (var i = 0; i < b.length; i++)
+            b[i] = getRandomInt(100000000, 990000000);
+           
+          return b;
+        }
+        window['crypto'] = { getRandomValues: function(b) { return fillRandomArray(b); } }");
+		
+      return 0;
+      }//end Fix_getRandomValues_Message_Function
+      //=================//	
+
+	
+        //=================//
+       //Recaptcha_Function
+        //=================//
+
+        public int Recaptcha_Function()
+        {
+
+		  //for recaptcha popup after click on button - ("//button[contains(@class,'reload')] | //button[contains(@id,'reload')] ")
+          var RecaptchaOpen_Iframe = ElementByXPath ("//iframe[contains(@src,'recaptcha/api2/anchor')]"); 
+          if (IsVisible(RecaptchaOpen_Iframe))
+		  {
+            //SolveCaptcha if apper
+            var result = base.DoSolveCaptcha();
+            RecaptchaUtility utility = new RecaptchaUtility(this);
+            utility.DoSolve();
+            if (result > 0)
+            {
+                return Fail("Fail solving captcha");
+            }
+		  }
+
+		return 0;
+        }//end VOID_Template_Function
+        //=================//	
+
+
+      //=================//
+      //Menu_Amount_Tokens_Multiplier_Function
+      //=================//
+
+      public int Menu_Amount_Tokens_Multiplier_Function()
+      {
+			
+        var Menu_Amount_Tokens_Multiplier_Var = GetSetting("Menu_Amount_Tokens_Multiplier");
+
+        if(Menu_Amount_Tokens_Multiplier_Var=="1 token")  
+        {
+         var Multiplier_1_Token = ElementByXPath("//div[@id='StakeButtons']//button[contains(text(),'1 token')]");
+		 Click(Multiplier_1_Token);
+         Log("click - 1 token");
+		}
+
+        if(Menu_Amount_Tokens_Multiplier_Var=="10 tokens")  
+        {
+         var Multiplier_10_Token = ElementByXPath("//div[@id='StakeButtons']//button[contains(text(),'10 tokens')]");
+		 Click(Multiplier_10_Token);
+         Log("click - 10 tokens");
+		}	
+		
+        if(Menu_Amount_Tokens_Multiplier_Var=="100 tokens")  
+        {
+         var Multiplier_100_Token = ElementByXPath("//div[@id='StakeButtons']//button[contains(text(),'100 tokens')]");
+		 Click(Multiplier_100_Token);
+         Log("click - 100 tokens");
+		}	
+		
+        if(Menu_Amount_Tokens_Multiplier_Var=="1k tokens")  
+        {
+         var Multiplier_1000_Token = ElementByXPath("//div[@id='StakeButtons']//button[contains(text(),'1k tokens')]");
+		 Click(Multiplier_1000_Token);
+         Log("click - 1k tokens");
+		}
+
+        if(Menu_Amount_Tokens_Multiplier_Var=="10k tokens")  
+        {
+         var Multiplier_10000_Token = ElementByXPath("//div[@id='StakeButtons']//button[contains(text(),'10k tokens')]");
+		 Click(Multiplier_10000_Token);
+         Log("click - 10k tokens");
+		}
+
+        if(Menu_Amount_Tokens_Multiplier_Var=="100k tokens")  
+        {
+         var Multiplier_100000_Token = ElementByXPath("//div[@id='StakeButtons']//button[contains(text(),'100k tokens')]");
+		 Click(Multiplier_100000_Token);
+         Log("click - 100k tokens");
+		}
+
+        if(Menu_Amount_Tokens_Multiplier_Var=="1m tokens")  
+        {
+         var Multiplier_1000000_Token = ElementByXPath("//div[@id='StakeButtons']//button[contains(text(),'1m tokens')]");
+		 Click(Multiplier_1000000_Token);
+         Log("click - 1m tokens");
+		}
+		
+	    return 0;
+      }//end Menu_Amount_Tokens_Multiplier_Function
+      //=================//	
+	
+	
+      //=================//
+      //Menu_Roll_Bet_HighLow_Function
+      //=================//
+
+      public int Menu_Roll_Bet_HighLow_Function()
+      {
+ 
+        var Menu_Multiplier_Method_Var = GetSetting("Menu_Multiplier_Method");
+        if(Menu_Multiplier_Method_Var=="Method 0 - Freestyle - your way")   //if the freestyle in the menu method - selected active 
+        {
+          Log("Method 0 - Freestyle - Click on Roll High OR Roll Low");
+
+          var Menu_Roll_Bet_HighLow_Var = GetSetting("Menu_Roll_Bet_HighLow");
+          if(Menu_Roll_Bet_HighLow_Var=="Roll High")  
+          {
+           var Button_RollHigh = ElementByXPath("//label/span[contains(text(),'Roll high')]");
+		   Click(Button_RollHigh);
+           Log("click - Button_RollHigh");
+		  }
+          if(Menu_Roll_Bet_HighLow_Var=="Roll low")  
+          {
+           var Button_RollLow = ElementByXPath("//label/span[contains(text(),'Roll low')]");
+		   Click(Button_RollLow);
+           Log("click - Button_RollLow"); 
+		  }
+		  
+        } //end Menu_Multiplier_Method_Var
+		
+	    return 0;
+      }//end Menu_Roll_Bet_HighLow_Function
+      //=================//	
+
+
+      //=================//
+      //Menu_Win_Chance_Function
+      //=================//
+
+      public int Menu_Win_Chance_Function()
+      {
+          var Menu_Win_Chance_Var = GetSetting("Menu_Win_Chance");
+          if(Menu_Win_Chance_Var=="2x - 50%")  
+          {
+           var Button_Win_2x_Chance = ElementByXPath("//label/span[contains(text(),'2x')]");
+		   Click(Button_Win_2x_Chance);
+           Log("click - Button_Win_2x_Chance");
+		  }
+          if(Menu_Win_Chance_Var=="5x - 20%")  
+          {
+           var Button_Win_5x_Chance = ElementByXPath("//label/span[contains(text(),'5x')]");
+		   Click(Button_Win_5x_Chance);
+           Log("click - Button_Win_5x_Chance"); 
+		  }
+          if(Menu_Win_Chance_Var=="10x - 10%")  
+          {
+           var Button_Win_10x_Chance = ElementByXPath("//label/span[contains(text(),'10x')]");
+		   Click(Button_Win_10x_Chance);
+           Log("click - Button_Win_10x_Chance"); 
+		  }
+          if(Menu_Win_Chance_Var=="20x - 5%")  
+          {
+           var Button_Win_20x_Chance = ElementByXPath("//label/span[contains(text(),'20x')]");
+		   Click(Button_Win_20x_Chance);
+           Log("click - Button_Win_20x_Chance"); 
+		  }
+          if(Menu_Win_Chance_Var=="100x - 1%")  
+          {
+           var Button_Win_100x_Chance = ElementByXPath("//label/span[contains(text(),'100x')]");
+		   Click(Button_Win_100x_Chance);
+           Log("click - Button_Win_100x_Chance"); 
+		  }
+          if(Menu_Win_Chance_Var=="1000x - 0.1%")  
+          {
+           var Button_Win_1000x_Chance = ElementByXPath("//label/span[contains(text(),'1000x')]");
+		   Click(Button_Win_1000x_Chance);
+           Log("click - Button_Win_1000x_Chance"); 
+		  }		  
+
+      return 0;
+      }//end Menu_Win_Chance_Function
+      //=================//	
+
+
+      //=================//
+      //Roll_Alternative_Random_HighLow_Function
+      //=================//
+
+      public int Roll_Alternative_Random_HighLow_Function()
+      {
+         if (GetBoolSetting("Roll_Alternative_Random_HighLow"))
+         {
+           var Button_RollLow = ElementByXPath("//label/span[contains(text(),'Roll low')]");
+           var Button_RollHigh = ElementByXPath("//label/span[contains(text(),'Roll high')]");		   
+           int RandomButton = Random(0, 2);
+ 
+           var ButtonToClick = ( RandomButton == 0 && IsVisible(Button_RollLow)) ? Button_RollLow : IsVisible(Button_RollHigh) ? Button_RollHigh : null;
+      
+           if (IsVisible(ButtonToClick)) 
+           {
+             Click(ButtonToClick);
+             Log("Roll Alternative - Click Random now on - " + ButtonToClick.Text);  
+             Wait(1);
+           }
+		   
+         }// end Roll_Alternative_Random_HighLow
+		 
+	    return 0;
+      }//end Roll_Alternative_Random_HighLow_Function
+      //=================//	
+
+
+
+      //=================//
+      //Click_Tokens_Function
+      //=================//
+
+      public int Click_Tokens_Function()
+      {
+          var Menu_Multiplier_Method_Var = GetSetting("Menu_Multiplier_Method");
+          if(Menu_Multiplier_Method_Var==
+		     "Method 2 - X10 10% (Target - in High - 900-999 | Target - in Low - 000-099 - Auto click random token between - 1 token, 10 tokens (in High - only if number above 900 | in Low - only if number under 100) addition - AutoChange to High Roll - if number above 894 | AutoChange to Low Roll - if the number under 106) )"
+		     ||
+		     Menu_Multiplier_Method_Var==
+		     "Method 5 - X20 5% (Target - in High - 950-999 | Target - in Low - 000-049 - Auto click random token between - 1 token, 10 tokens (in High - only if number above 900 | in Low - only if number under 100) addition - AutoChange to High Roll - if number above 944 | AutoChange to Low Roll - if the number under 55) )"
+		     ||
+		     Menu_Multiplier_Method_Var==
+		     "Method 8 - X100 1% (Target - in High - 990-999 | Target - in Low - 000-009 - Auto click random token between - 1 token, 10 tokens (in High - only if number above 900 | in Low - only if number under 100) addition - AutoChange to High Roll - if number above 984 | AutoChange to Low Roll - if the number under 15) )"
+		  ) 
+		     
+		  {
+		  	Click_Normal_OR_AutoClick_Random_Tokens_1_to_10_Function(); //call
+		  }
+		  
+          if(Menu_Multiplier_Method_Var==
+		     "Method 3 - X10 10% (Target - in High - 900-999 | Target - in Low - 000-099 - Auto click random token between - 1 token, 10 tokens, 100 tokens (in High - only if number above 900 | in Low - only if number under 100) addition - AutoChange to High Roll - if number above 894 | AutoChange to Low Roll - if the number under 106) )"
+		     ||
+		     Menu_Multiplier_Method_Var==
+		     "Method 6 - X20 5% (Target - in High - 950-999 | Target - in Low - 000-049 - Auto click random token between - 1 token, 10 tokens, 100 tokens (in High - only if number above 900 | in Low - only if number under 100) addition - AutoChange to High Roll - if number above 944 | AutoChange to Low Roll - if the number under 55) )"
+		     ||
+		     Menu_Multiplier_Method_Var==
+		     "Method 9 - X100 1% (Target - in High - 990-999 | Target - in Low - 000-009 - Auto click random token between - 1 token, 10 tokens, 100 tokens (in High - only if number above 900 | in Low - only if number under 100)  addition - AutoChange to High Roll - if number above 984 | AutoChange to Low Roll - if the number under 15) )"
+		  ) 
+		     
+		  {
+		  	Click_Normal_OR_AutoClick_Random_Tokens_1_to_10_to_100_Function(); //call
+		  }
+		  
+	    return 0;
+      }//end Click_Tokens_Function
+      //=================//	
+
+
+      //=================//
+      //Click_Normal_OR_AutoClick_Random_Tokens_1_to_10_Function
+      //=================//
+
+      public int Click_Normal_OR_AutoClick_Random_Tokens_1_to_10_Function()
+      {
+		
+		if (!GetBoolSetting("Auto_Click_Random_Tokens_on_off"))
+        {
+		    Log("Auto_Click_Random_Tokens - OFF - do your token choice in the menu ");
+			Menu_Amount_Tokens_Multiplier_Function(); //call
+		}
+		
+        if (GetBoolSetting("Auto_Click_Random_Tokens_on_off"))
+        {
+          var Number_NONE_No_Number = ElementByXPath("//div[contains(@class,'display')]/div[contains(@data-bind,'digit1') and contains(text(),'-')] ");	
+          if (IsVisible(Number_NONE_No_Number)) 
+          {
+           var Multiplier_Token = ElementByXPath("//div[@id='StakeButtons']//button[contains(text(),'1 token')]");
+		   Click(Multiplier_Token);
+		   Log("Srart - Click 1 token");
+		  }
+
+          //click normal one
+		  Menu_Amount_Tokens_Multiplier_Function(); //call
+
+		  Log("Auto_Click_Random_Tokens - ON - do random token 1 OR 10");   
+		  var Number_1_Digit = ElementByXPath("//div[contains(@class,'display')]/div[contains(@data-bind,'digit1')] ");		
+		  var Number_2_Digit = ElementByXPath("//div[contains(@class,'display')]/div[contains(@data-bind,'digit2')] ");		
+		  var Number_3_Digit = ElementByXPath("//div[contains(@class,'display')]/div[contains(@data-bind,'digit3')] ");		
+
+          int BalanceINT = Convert.ToInt32(Number_1_Digit.Text + Number_2_Digit.Text + Number_3_Digit.Text); 
+		  
+          if (GetBoolSetting("Approve_900_100_on_off") && BalanceINT > 900 || BalanceINT < 100 )
+		  {
+		   Log("Approve_900_100_on_off - ON - do random token when 900 100 - active");   
+           var Multiplier_1_Token = ElementByXPath("//div[@id='StakeButtons']//button[contains(text(),'1 token')]");
+           var Multiplier_10_Token = ElementByXPath("//div[@id='StakeButtons']//button[contains(text(),'10 tokens')]");	   
+           int RandomButton = Random(0, 2);
+ 
+           var ButtonToClick = ( RandomButton == 0 && IsVisible(Multiplier_1_Token)) ? Multiplier_1_Token : IsVisible(Multiplier_10_Token) ? Multiplier_10_Token : null;
+      
+           if (IsVisible(ButtonToClick)) 
+           {
+             Click(ButtonToClick);
+             Log("Choosing Random Token Amount - now is " + ButtonToClick.Text);  
+             Wait(1);
+           }
+          } //end Approve_900_100_on_off - ON
+
+          if (!GetBoolSetting("Approve_900_100_on_off") )
+		  {
+		   Log("Approve_900_100_on_off - OFF - do random token only"); 
+           var Multiplier_1_Token = ElementByXPath("//div[@id='StakeButtons']//button[contains(text(),'1 token')]");
+           var Multiplier_10_Token = ElementByXPath("//div[@id='StakeButtons']//button[contains(text(),'10 tokens')]");	   
+           int RandomButton = Random(0, 2);
+ 
+           var ButtonToClick = ( RandomButton == 0 && IsVisible(Multiplier_1_Token)) ? Multiplier_1_Token : IsVisible(Multiplier_10_Token) ? Multiplier_10_Token : null;
+      
+           if (IsVisible(ButtonToClick)) 
+           {
+             Click(ButtonToClick);
+             Log("Choosing Random Token Amount - now is " + ButtonToClick.Text);  
+             Wait(1);
+           }
+          } //end Approve_900_100_on_off - OFF
+
+        }// end Auto_Click_Random_Tokens_on_off
+		 
+	    return 0;
+      }//end Click_Normal_OR_AutoClick_Random_Tokens_1_to_10_Function
+      //=================//	
+
+
+      //=================//
+      //Click_Normal_OR_AutoClick_Random_Tokens_1_to_10_to_100_Function
+      //=================//
+
+      public int Click_Normal_OR_AutoClick_Random_Tokens_1_to_10_to_100_Function()
+      {
+
+        if (!GetBoolSetting("Auto_Click_Random_Tokens_on_off"))
+        {
+		    Log("Auto_Click_Random_Tokens - OFF - do your token choice in the menu ");
+			Menu_Amount_Tokens_Multiplier_Function(); //call
+		}
+		
+        if (GetBoolSetting("Auto_Click_Random_Tokens_on_off"))
+        {
+          var Number_NONE_No_Number = ElementByXPath("//div[contains(@class,'display')]/div[contains(@data-bind,'digit1') and contains(text(),'-')] ");	
+          if (IsVisible(Number_NONE_No_Number)) 
+          {
+           var Multiplier_Token = ElementByXPath("//div[@id='StakeButtons']//button[contains(text(),'1 token')]");
+		   Click(Multiplier_Token);
+		   Log("Srart - Click 1 token");
+		  }
+
+          //click normal one
+		  Menu_Amount_Tokens_Multiplier_Function(); //call
+
+		  Log("Auto_Click_Random_Tokens - ON - do random token 1 OR 10 OR 100");    
+		  var Number_1_Digit = ElementByXPath("//div[contains(@class,'display')]/div[contains(@data-bind,'digit1')] ");		
+		  var Number_2_Digit = ElementByXPath("//div[contains(@class,'display')]/div[contains(@data-bind,'digit2')] ");		
+		  var Number_3_Digit = ElementByXPath("//div[contains(@class,'display')]/div[contains(@data-bind,'digit3')] ");		
+
+          int BalanceINT = Convert.ToInt32(Number_1_Digit.Text + Number_2_Digit.Text + Number_3_Digit.Text); 
+		  
+          if (GetBoolSetting("Approve_900_100_on_off") && BalanceINT > 900 || BalanceINT < 100 )
+          { 	
+		   Log("Approve_900_100_on_off - ON - do random token when 900 100 - active");
+           var Multiplier_1_Token = ElementByXPath("//div[@id='StakeButtons']//button[contains(text(),'1 token')]");
+           var Multiplier_10_Token = ElementByXPath("//div[@id='StakeButtons']//button[contains(text(),'10 tokens')]");	   
+           var Multiplier_100_Token = ElementByXPath("//div[@id='StakeButtons']//button[contains(text(),'100 tokens')]");
+           int RandomButton = Random(0, 2);
+ 
+           var ButtonToClick = ( RandomButton == 0 && IsVisible(Multiplier_1_Token)) ? Multiplier_1_Token : RandomButton == 1 && IsVisible(Multiplier_10_Token) ? Multiplier_10_Token : IsVisible(Multiplier_100_Token) ? Multiplier_100_Token : null;
+           if (IsVisible(ButtonToClick)) 
+           {
+             Click(ButtonToClick);
+             Log("Choosing Random Token Amount - now is " + ButtonToClick.Text);  
+             Wait(1);
+           }
+		   
+          }//end Approve_900_100_on_off - ON
+
+          if (!GetBoolSetting("Approve_900_100_on_off") )
+          {
+		   Log("Approve_900_100_on_off - OFF - do random token only");
+           var Multiplier_1_Token = ElementByXPath("//div[@id='StakeButtons']//button[contains(text(),'1 token')]");
+           var Multiplier_10_Token = ElementByXPath("//div[@id='StakeButtons']//button[contains(text(),'10 tokens')]");	   
+           var Multiplier_100_Token = ElementByXPath("//div[@id='StakeButtons']//button[contains(text(),'100 tokens')]");
+           int RandomButton = Random(0, 2);
+ 
+           var ButtonToClick = ( RandomButton == 0 && IsVisible(Multiplier_1_Token)) ? Multiplier_1_Token : RandomButton == 1 && IsVisible(Multiplier_10_Token) ? Multiplier_10_Token : IsVisible(Multiplier_100_Token) ? Multiplier_100_Token : null;
+           if (IsVisible(ButtonToClick)) 
+           {
+             Click(ButtonToClick);
+             Log("Choosing Random Token Amount - now is " + ButtonToClick.Text);  
+             Wait(1);
+           } 
+		  }//end Approve_900_100_on_off - OFF
+
+        }//end Auto_Click_Random_Tokens_on_off
+		 
+	    return 0;
+      }//end Auto_Click_Random_Tokens_1_to_10_to_100_Function
+      //=================//	
+
+
+
+} //public class dogeto

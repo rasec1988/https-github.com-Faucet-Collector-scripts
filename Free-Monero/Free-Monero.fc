@@ -106,7 +106,7 @@ public class FreeMonero : FaucetScript
             {
                 return Fail("Fail login, Password box is not visible");
             }
-            humanActions. SetText (PasswordBox, GetSetting("Pass"));
+            humanActions. SetText (PasswordBox, GetPassword("Pass"));
 
             var result = DoSolveCaptcha();
             if (result > 0)

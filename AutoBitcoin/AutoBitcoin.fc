@@ -1,428 +1,192 @@
-﻿using System;
+﻿using System.Collections.Generic;
+using System.Linq;
 using FaucetCollector.Script;
-using OpenQA.Selenium;
-//css_inc ShortlinkUtilities
-public class AutoBitcoinScript : FaucetScript
-{
-    /// <summary>
-    /// List of Settings that will be shown in the bot when selecting this Faucet in the bot.
-    /// You can get the value the user entered with the methods: GetSetting("[Name of the FaucetSetting]"), GetBoolSetting and GetDateTimeSetting
-    /// You can also create a new setting value using SetSetting("[Name you want to use]", "value")
-    /// </summary>
-    public override FaucetSettings Settings
+//css_inc ShortLinkUtilities
+class AutoBitcoin :FaucetScript
     {
-        get
-        {
-            return new FaucetSettings("https://autobitco.in/")
+
+    public override FaucetSettings Settings { get {
+
+            return new FaucetSettings ( BaseUrl)
             {
-                new FaucetSetting(){Name="User",Display="Wallet",Type=EditorType.TextBox,Required=true},
-                new FaucetSetting(){Name="Payment",Display="Payment to FaucetHub",Type=EditorType.CheckBox,Default=false},
-                new FaucetSetting(){Name="Every",Display="Every:",Type=EditorType.ComboBox,Items=new System.Collections.Generic.List<string>(){"1 Minutes","2 Minutes","5 Minutes"},Default="5 Minutes"},
-                new FaucetSetting(){Name="Coin",Display="Coin To Claim",Type=EditorType.ComboBox,Items=new System.Collections.Generic.List<string>{"Bitcoin","Ethereum","Monero","Litecoin","Dogecoin","Bitcoin Cash","ZCash","Bitcore","Blackcoin","Digibyte","Dash","PeerCoin","Primecoin","Potcoin"},Default="Ethereum"},
-                new FaucetSetting(){Name="NClaims",Display="Nº Claims",Type=EditorType.TextBox,Default="10"},
-                                new FaucetSetting(){Name="Close",Display="Close Window until wait next payment",Type=EditorType.CheckBox,Default=true},
-
-
-                //insert user settings here
-                //new FaucetSetting { 
-                //    Name = "Name of your setting", 
-                //    Display = "Display shown in Faucet Collector", 
-                //    Type = EditorType.TextBox | EditorType.Password | EditorType.CheckBox | EditorType.Wallet | EditorType.Numeric | EditorType.ComboBox | EditorType.CheckComboBox, 
-                //    Required = true | false, 
-                //    Default = "Optionally a default value" | true | false | null.
-                //    Items = new List<string> { "item1", "item2" } (only valid for ComboBox or CheckComboBox)
-                //} 
+                new FaucetSetting(){Name="User",Type=EditorType.TextBox,Display="Username",Required=true},
+                new FaucetSetting(){Name="Pass",Type=EditorType.Password,Display="Password",Required=true},
+                new FaucetSetting(){Name="UseSolvemedia",Type=EditorType.CheckBox,Display="UseSolvemedia",Default=true},
+                new FaucetSetting(){Name="Coin",Type=EditorType.ComboBox,Display="Coin",Default=Coins.FirstOrDefault(),Items=Coins},
+                new FaucetSetting(){Name="ConvertC",Type=EditorType.CheckBox,Display="Convert Coins",Default=true }
             };
-        }
+
+
+        
+        } 
+
     }
+    public const string BaseUrl="https://autobitco.in/";
+    public const string LoginUrl=BaseUrl+"auth/signin";
 
-    /// <summary>
-    /// This method gets called when the faucet is enabled and the GO button is clicked
-    /// </summary>
-    public override void Start()
+    public override void Start ( )
     {
-        //Title that shows in the browser. Is used to identify and close popup windows
-        Title = "AUTO";
+        SuccessXPath="//div[@class='alert alert-success']";
+        FailXPath="//div[@class='alert alert-danger']";
 
-        //After we did try to claim on the faucet we search for these elements to determine if it was a success or a fail
-        SuccessXPath = "//div[@class='container slide-container']//p//strong|//h1[@class='text-main']";
-        FailXPath = "//div[@class='alert alert-warning']";
-
-        //Let Faucet Collector start up everything
-        base.Start();
+        Title="AutoBitcoin";
+        base.Start ( ); 
     }
-
-    /// <summary>
-    /// This is the first method to run after the browser is opened and the first page is loaded.
-    /// </summary>
-    public override int DoInit()
+    public List<string> Coins=new List<string>
     {
-        //Let Faucet Collector continue.
-        return base.DoInit();
-    }
-
-    /// <summary>
-    /// This method gets called after the Start method, here you need to return if we are logged in or not.
-    /// If you return false then it will call the BeforeLogin, Login and AfterLogin methods so you can login.
-    /// After those Login methods are called it will call this IsLoggedIn method again to see if the login did succeed.
-    /// If you return true Faucet Collector will store all cookies so it will probably be already logged in on the next attempt.
-    /// </summary>
-    public override bool IsLoggedIn()
+        "BTC",
+        "ETH",
+        "XMR",
+        "LTC",
+        "DOGE",
+        "BCH",
+        "ZEC",
+        "DGB",
+        "DASH",
+        "PPC",
+        "POT",
+        "TRX",
+        "XRP",
+        "NEO",
+        "BCN",
+        "STRAT"
+    };
+    public const string ConvertCoinsUrl=BaseUrl+"dashboard/claim/manual";
+    public const string FaucetUrl=BaseUrl+"dashboard/shortlinks";
+    public override int DoLogin ( )
     {
-        string PastLink = GetSetting("SessionUrl");
-        bool Tried = false;
-        if (PastLink != String.Empty && PastLink.Split('/').Length > 2)
+        GoToUrl ( LoginUrl );
+        Wait ( 2 );
+
+        var Userbox=ElementByXPath("//input[@placeholder='Username']");
+        if ( !IsVisible(Userbox) )
         {
-            try
+            return Fail ( "User box is not visible" );
+        }
+        SetText ( Userbox , GetSetting ( "User" ) );
+
+        var PasswordBox=ElementByXPath("//input[@placeholder='Password']");
+        if ( !IsVisible(PasswordBox ))
+        {
+            return Fail ( "Password box is not visible" );
+        }
+
+        SetText ( PasswordBox , GetPassword ( "Pass" ) );
+
+        var result=DoSolveCaptcha();
+        if ( result>0 )
+        {
+            return result;
+        }
+
+        var ButtonLogin=ElementByXPath("//button[@id='submit']");
+        if ( !IsVisible(ButtonLogin) ) {
+
+            return Fail ( "Button login is not visible" );
+        
+        }
+
+        Click ( ButtonLogin );
+        var Error=ElementByXPath("//div[@class='toast-message']");
+        if ( IsVisible(Error) )
+        {
+            Log ( Error.Text );
+        }
+        
+        return base.DoLogin ( );
+    }
+    private int Balance { get
+        {
+            var Balancevar=ElementByXPath("//span[@id='acpro']");
+            if ( IsVisible ( Balancevar ) )
             {
-                Log("Trying to get past session");
-                Driver.Navigate().GoToUrl(PastLink);
-                Tried = true;
-                Wait(6, 7);
-            }
-            catch (Exception)
-            {
-                SetSetting("SessionUrl", String.Empty);
-            }
-        }
-        else
-        {
-            Log("There is not session available... getting new session");
-        }
-        var ButtonClose = ElementByXPath("//div[@id='newsmodal']//button[@type='button'][contains(text(),'Close')]");
-        if (IsVisible(ButtonClose))
-        {
-            Click(ButtonClose);
-        }
-        Wait();
+                int bal;
+                if ( int.TryParse (Balancevar.Text.Trim(),out bal) )
+                {
+                    return bal;
+                }
 
-        bool IsLogged = ElementByXPath("//span[@id='nextclaimsec']") != null;
-        //In here we can check for the presence of an element that is only present when you are logged in.
-        //In this case we check for en element with the class "loggedIn"
-        if (!IsLogged)
-        {
-            if (Tried)
-            {
-                Log("Fail to restore past session.");
             }
-            SetSetting("SessionUrl", String.Empty);
-            return false;
-        }
-        return true;
-
+            return 0;
+        } 
     }
-
-    /// <summary>
-    /// This method gets called if IsLoggedIn returned false, right before the DoLogin method is called.
-    /// </summary>
-    public override int BeforeLogin()
+    public override int DoSolveCaptcha ( )
     {
-        //This faucet has nothing to do here. We will let Faucet Collector handle it.
-        return base.BeforeLogin();
-    }
-
-    /// <summary>
-    /// This method gets called after BeforeLogin, but only if IsLoggedIn returned false.
-    /// It can be used to actually login the user/enter wallet details in the faucet
-    /// </summary>
-    /// <returns></returns>
-    public override int DoLogin()
-    {
-        if (GetBoolSetting("Payment"))
+        var Selectcaptcha=ElementByXPath("//select[@id='captcha-select']");
+        if ( IsVisible ( Selectcaptcha ) )
         {
-            var ButtonFh = ElementByXPath("//div[@class='btn-group categories cts2']//button[@id='btnGroupDrop1']");
-            if (!IsVisible(ButtonFh))
+            if ( GetBoolSetting ( "UseSolvemedia" ) )
             {
-                return Fail("Fail Button Fh not found");
-            }
-            Click(ButtonFh);
-        }
-        else
-        {
-            var ButtonNormal = ElementByXPath("//div[@class='btn-group categories cts1']//button[@id='btnGroupDrop1']");
-            if (!IsVisible(ButtonNormal)){
-                return Fail("Button normal not found");
-            }
-            Click(ButtonNormal);
-        }
-        Wait(1);
-        var ItemTimer = SelectTimer();
-        if (ItemTimer == null)
-        {
-            return Fail("Item timer not found");
-        }
-        Click(ItemTimer);
-        Wait(2);
-        var CurrencyXpath = GetXPATHCurrency();
-        if (CurrencyXpath == null)
-        {
-            return Fail("Currency not found");
-        }
-        Click(CurrencyXpath);
-        Wait();
-        var WalletAdress = ElementByXPath("//input[@id='basic-url']");
-        if (!IsVisible(WalletAdress))
-        {
-            return Fail("fail wallet adress box not found");
-        }
-        SetText(WalletAdress, GetSetting("User"));
-        var SelectRecaptcha = ElementByXPath("//select[@class='custom-select custom-select-lg mb-3 captcha-select']");
-        if (IsVisible(SelectRecaptcha))
-        {
-            SelectOptionByValue(SelectRecaptcha, "1");
-        }
-        Wait();
-        var result = DoSolveCaptcha();
-        if (result > 0)
-        {
-            return Fail("Fail solving captcha");
-        }
-
-        var ButtonGo = ElementByXPath("//button[contains(text(),'Start claiming')]");
-        if (!IsVisible(ButtonGo))
-        {
-            return Fail("Button go is not visible");
-        }
-        Click(ButtonGo);
-        Wait(2, 3);
-        ShortLinkBypasser bypasser = new ShortLinkBypasser(this);
-        bypasser.DoShortLink();
-
-        return base.DoLogin();
-    }
-
-    public IWebElement GetXPATHCurrency()
-    {
-        IWebElement ElementCurrency = null;
-        string settingCoin = GetSetting("Coin");
-        var Currencys = ElementsByXPath("//div[contains(@class,'col-sm currency')]");
-        var Names = ElementsByXPath("//p[@class='text-name']");
-        bool enc = false;
-        int count = 0;
-        while (!enc && count < Currencys.Count && count < Names.Count)
-        {
-            string Text = Names[count].Text;
-            if (Text.ToLower().Contains(settingCoin.ToLower()))
-            {
-                enc = true;
+                SelectOptionByValue ( Selectcaptcha , "solvemedia" );
             }
             else
             {
-                count++;
+                SelectOptionByValue (Selectcaptcha , "recaptcha" );
             }
-
-        }
-        if (enc)
-        {
-            ElementCurrency = Currencys[count];
+            Wait ( );
         }
 
-
-        return ElementCurrency;
+        return base.DoSolveCaptcha ( ); 
     }
-    public IWebElement SelectTimer()
+    public override bool IsLoggedIn ( )
     {
-        var Dropdown = ElementsByXPath("//button[@class='dropdown-item choose']");
-        if (Dropdown.Count > 0)
+
+
+        return ElementByXPath ( "//a[@href='/auth/logout']" )!=null;
+    }
+
+    public override int DoSolveFaucet ( )
+    {
+        GoToUrl ( FaucetUrl );
+
+        Wait ( );
+
+        var ShortlinksLeft=ElementsByXPath("//button[contains(@class,'visit-button')]");
+        if ( ShortlinksLeft.Count>0 )
         {
-            int count = GetBoolSetting("Payment") ? 3 : GetSetting("Every").Contains("1") ? 0 : GetSetting("Every").Contains("2") ? 1 : 2;
+            Click ( ShortlinksLeft [ Random ( 0 , ShortlinksLeft.Count ) ] );
+            Wait ( );
+            ShortLinkBypasser bypasser=new ShortLinkBypasser(this);
 
-            return Dropdown.Count > count ? Dropdown[count] : Dropdown[Dropdown.Count - 1];
-        }
-        else
-        {
-            return null;
-        }
-    }
-    /// <summary>
-    /// This method gets called after the DoLogin method.
-    /// </summary>
-    public override int AfterLogin()
-    {
-        //This faucet has nothing to do here. We will let Faucet Collector handle it.
-        return base.AfterLogin();
-    }
-
-    /// <summary>
-    /// This method gets called after the login methods are successful, so we are logged into the faucet.
-    /// If the faucet is not yet ready to claim you should return a TimeStamp value to return how long it takes before the Faucet claim can be done.
-    /// This is used to pause the script while the faucet its timer runs out.
-    /// Return the number of seconds the bot should wait.
-    /// </summary>
-    public override int GetFaucetWaitTime()
-    {
-        //let Faucet Collector continue.
-        return base.GetFaucetWaitTime();
-    }
-
-    /// <summary>
-    /// This method is called right before a captcha will be solved. 
-    /// If you call SolveCaptcha() in other methods it will start this flow and tries to solve the captcha on the page.
-    /// </summary>
-    public override int BeforeSolveCaptcha()
-    {
-        //This faucet has nothing to do here. We will let Faucet Collector handle it.
-        return base.BeforeSolveCaptcha();
-    }
-
-    /// <summary>
-    /// This method gets called after BeforeSolveCaptcha and it does the actual captcha solving
-    /// It will automatically try to see if there is a SolveMedia captcha active or a reCAPTCHA active. 
-    /// If it finds either one it will then use the selected method on the Captcha tab of FaucetCollector to solve the Captcha.
-    /// </summary>
-    public override int DoSolveCaptcha()
-    {
-        //This faucet has nothing to do here. We will let Faucet Collector handle it.
-        return base.DoSolveCaptcha();
-    }
-
-    /// <summary>
-    /// This method will get called after DoSolveCaptcha returned it was a success.
-    /// </summary>
-    /// <returns></returns>
-    public override int AfterSolveCaptcha()
-    {
-        //This faucet has nothing to do here. We will let Faucet Collector handle it.
-        return base.AfterSolveCaptcha();
-    }
-
-    /// <summary>
-    /// This method is called right before we attempt to claim on the faucet. So we are logged in and good to go.
-    /// Next methods that will be called are DoSolveFaucet, AfterSolveFaucet and CheckFaucetResult.
-    /// </summary>
-    public override int BeforeSolveFaucet()
-    {
-        //This faucet has nothing to do here. We will let Faucet Collector handle it.
-        return base.BeforeSolveCaptcha();
-    }
-
-    /// <summary>
-    /// This method gets called after the BeforeSolveFaucet. You can do the actual claiming of the faucet in here.
-    /// </summary>
-    /// <returns></returns>
-    public override int DoSolveFaucet()
-    {
-        SetSetting("SessionUrl", Driver.Url);
-        int NClaim = 0;
-        try
-        {
-            NClaim = Convert.ToInt32(GetSetting("NClaims"));
-        }
-        catch (Exception)
-        {
-
-            NClaim = 30;
-        }
-
-        int Count = 0;
-
-        while (Count < NClaim)
-        {
-            try
+            bool Succ=bypasser.DoShortLink();
+            if ( Succ )
             {
-                var Timer = ElementByXPath("//span[@id='nextclaimsec']");
+                CheckFaucetResult ( );
 
-                int Timer_ = Convert.ToInt32(Timer.Text.Trim());
-
-                var TimeSes = ElementByXPath("//span[@class='session-time']");
-                string[] TimeSesSplit = new string[2];
-                TimeSesSplit[0] = ElementByXPath("//span[@class='minute']").Text.Trim();
-                TimeSesSplit[1] = ElementByXPath("//span[@class='second']").Text.Trim();
-
-                int TimeSession = Convert.ToInt32(TimeSesSplit[0]) * 60 + Convert.ToInt32(TimeSesSplit[1]);
-                Timer = Timer = ElementByXPath("//span[@id='nextclaimsec']");
-              
-                Timer_ = Convert.ToInt32(Timer.Text.Trim());
-                if (Timer_ > TimeSession - 60)
-                {
-                    try
-                    {
-                        CheckForPopupsEnabled = false;
-                        Log("Trying to extend session");
-                        var buttonProlong = ElementByXPath("//button[@class='btn btn-info prolong-button']");
-                        Click(buttonProlong,false);
-
-                        DateTime t1 = DateTime.Now.AddSeconds(15);
-                        while (Driver.WindowHandles.Count == 1)
-                        {
-                            Wait();
-                            if (DateTime.Now > t1)
-                            {
-                                break;
-                            }
-                        }
-                        Wait(1);
-                        if (Driver.WindowHandles.Count > 1)
-                        {
-                            Driver.SwitchTo().Window(Driver.WindowHandles[1]);
-                        }
-                        CheckForPopupsEnabled = false;
-                        ShortLinkBypasser bypasser = new ShortLinkBypasser(this);
-                        bool cs = bypasser.DoShortLink();
-                        if (!cs)
-                        {
-                            break;
-                        }
-                        Wait();
-
-                    }
-                    finally
-                    {
-                        Driver.SwitchTo().Window(Driver.WindowHandles[0]);
-                        CheckForPopupsEnabled = true;
-                        CheckForPopups();
-                        Driver.Navigate().Refresh();
-                        Wait(2);
-                    }
-                }
-                if (!GetBoolSetting("Close"))
-                {
-                    Wait(Timer_ + 6);
-                    CheckFaucetResult();
-                }
-                else
-                {
-                    CheckFaucetResult();
-                    Log("Waiting to next payment.... Clossing window");
-                    return Timer_ + 1;
-                }
             }
-            catch (Exception)
-            {
+        }
 
-                Count++;
+        if ( GetBoolSetting ( "ConvertCoins" ) )
+        {
+
+            GoToUrl ( ConvertCoinsUrl );
+
+            if ( Balance>60 )
+            {
+                var CurrencySelect=ElementByXPath("//select[@id='currency-select']");
+                if ( IsVisible ( CurrencySelect ) )
+                {
+                    SelectOptionByValue ( CurrencySelect , GetSetting ( "Coin" ) );
+
+                }
+
+                DoSolveCaptcha ( );
+
+                Wait ( );
+                var ButtonClaim=ElementByXPath("//button[@class='btn btn-primary']");
+                if ( IsVisible ( ButtonClaim ) )
+                {
+                    Click ( ButtonClaim );
+                }
+                var SuccOrError=ElementByXPath("//div[@class='toast-message']");
+                if ( IsVisible ( SuccOrError ) )
+                {
+                    Log ( SuccOrError.Text );
+                }
             }
 
         }
-        Driver.SwitchTo().Window(Driver.WindowHandles[0]);
-        CheckForPopupsEnabled = true;
-        CheckForPopups();
-
-        return GetWaitSetting();
-        //This faucet has nothing to do here. We will let Faucet Collector handle it.
-        return base.DoSolveCaptcha();
-    }
-
-    /// <summary>
-    /// This method will get called after the DoSolveFaucet is completed and returned it was a success.
-    /// For example you can wait for a processing popup to go away until actual faucet claim result is on the page.
-    /// </summary>
-    public override int AfterSolveFaucet()
-    {
-        //This faucet has nothing to do here. We will let Faucet Collector handle it.
-        return base.AfterSolveFaucet();
-    }
-
-    /// <summary>
-    /// This method gets called in the end after the BeforeSolveFaucet/DoSolveFaucet and AfterSolveFaucet methods were done.
-    /// The base.CheckFaucetResult will try to find a visible element on the page using the XPath from SuccessXPath and FailXPath (see the Start method)
-    /// These properties should contain XPath expressions to find certain elements on the page.
-    /// For example if it finds one of the elements from the SuccessXPath, and it is visible, then it will flag the claim attempt as a success.
-    /// Or if it finds one of the elements from the FailXPath, and it is visible, then it will flag the claim attempt as a failure.
-    /// </summary>
-    public override int CheckFaucetResult()
-    {
-        //This faucet has nothing to do here. We will let Faucet Collector handle it.
-        return base.CheckFaucetResult();
+        return GetWaitSetting ( );
     }
 }
+

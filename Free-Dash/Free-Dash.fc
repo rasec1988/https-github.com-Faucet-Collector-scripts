@@ -1,0 +1,158 @@
+﻿using FaucetCollector.Script;
+using HumanActions;
+//css_ref HumanActions.dll;
+//css_inc RecaptchaUtilities
+//css_inc BaseUtility
+class Free_Dash : FaucetScript
+{
+    public override FaucetSettings Settings
+    {
+        get
+
+        {
+
+            return new FaucetSettings ( "https://free-dash.com/" )
+            {
+                new FaucetSetting()
+                {
+                Name="User",
+                Type=EditorType.TextBox,
+                Required=true,
+                Display="Email"
+
+
+                },
+                new FaucetSetting ( )
+                {
+                    Name="Pass",
+                    Type=EditorType.Password,
+                    Required=true,
+                    Display="Password"
+                }
+
+            };
+        }
+
+    }
+
+    public override void Start ( )
+    {
+        SuccessXPath="//h2[@id='info' and @style='color: green;']";
+
+        FailXPath="//h2[@id='info']";
+
+        Title="DASH";
+        
+        base.Start ( ); 
+    }
+
+    public override int BeforeLogin ( )
+    {
+        var GotoLogin=ElementByXPath("//a[contains(text(),'Try again')]");
+        if ( IsVisible ( GotoLogin ) )
+        {
+            Click ( GotoLogin );
+            Wait ( );
+        }
+
+        var ButtonSignIn=ElementByXPath("//a[@class='nav-link login']");
+        if(!IsVisible(ElementByXPath( " //div[@id='loginform']" ) ) && IsVisible(ButtonSignIn ))
+        {
+            Click ( ButtonSignIn );
+            Wait ( 1 );
+        }
+        return base.BeforeLogin ( );
+        
+    }
+
+    
+    public override int DoLogin ( )
+    {
+        DriverHumanActions humanActions=new DriverHumanActions(Driver);
+        var UserBox=ElementByXPath("//input[@name='email']");
+        if ( !IsVisible ( UserBox ) )
+        {
+            return Fail ( "User box not visible" );
+        }
+        humanActions.SetText ( UserBox , GetSetting ( "User" ) );
+
+        var PasswordBox=ElementByXPath("//input[@name='password']");
+        if ( !IsVisible ( PasswordBox ) )
+        {
+            return Fail ( "Password box not visible" );
+        }
+        humanActions.SetText ( PasswordBox , GetPassword ( "Pass" ) );
+
+        var result=DoSolveCaptcha();
+        if ( result>0 )
+        {
+            return Fail ( "Fail solving captcha" );
+        }
+       
+        
+        RecaptchaUtility recaptchaUtility=new RecaptchaUtility(this);
+        recaptchaUtility.DoSolve ( );
+        var ButtonLogin=ElementByXPath("//button[@class='btn btn-lg btn-primary btn-sm text-center g-recaptcha']");
+        if ( IsVisible ( ButtonLogin ) )
+        {
+
+            ExecuteScript ( "onSubmit('"+Context.CaptchaResult.Result+"');" );
+            Wait ( 1 );
+        }
+
+        var FailLogin=ElementByXPath("//a[contains(text(),'Try again')]");
+        if ( IsVisible ( FailLogin ) )
+        {
+            Log ( "Login Failed:"+ FailLogin.Text );
+        }
+
+        return base.DoLogin ( );
+    }
+
+    public override bool IsLoggedIn ( )
+    {
+
+        return ElementByXPath ( "//a[@href='/homepage/out']" )!=null;
+    }
+
+
+    public override int DoSolveFaucet ( )
+    {
+
+        var ButtonClaim=ElementByXPath("//button[@id='buttonroll']");
+        if ( !IsVisible ( ButtonClaim ) )
+        {
+            return Fail ( "There is a problem with button claim" );
+        }
+        var result=DoSolveCaptcha();
+        if ( result>0 )
+        {
+            return result;
+        }
+
+        Click ( ButtonClaim );
+
+        
+        return base.DoSolveFaucet ( );
+    }
+
+    public override int GetFaucetWaitTime ( )
+    {
+
+        var TimerMin=ElementByXPath("//span[@id='cislo1']");
+        var TimerSeg=ElementByXPath("//span[@id='cislo2']");
+
+        if(IsVisible(TimerMin) &&IsVisible ( TimerSeg ) )
+        {
+            int M,S;
+            if(int.TryParse(TimerMin.Text,out M) && int.TryParse(TimerSeg.Text,out S ) )
+            {
+                return M*60+S;
+            }
+
+        }
+
+        return base.GetFaucetWaitTime ( );
+    }
+}
+

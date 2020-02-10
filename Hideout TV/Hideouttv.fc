@@ -125,13 +125,7 @@ public class HideoutvScript : FaucetScript
             return Fail("Password box is not visible");
         }
         SetText(PasswordBox, GetPassword("Password"));
-
-        int result = DoSolveCaptcha();
-        if (result > 0)
-        {
-            return result;
-        }
-
+     
         IWebElement ButtonLogin = ElementByXPath("//button[contains(text(),'LOG IN')]");
         if (!IsVisible(ButtonLogin))
         {
