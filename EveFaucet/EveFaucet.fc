@@ -88,11 +88,18 @@ class EveFaucetScript : FaucetScript
     {
         base.Start ( );
 
-        Title=GetSetting ( "Faucet" );
+       
 
         SuccessXPath="//div[contains(text(),'Win number:')]";
         FailXPath="//div[contains(text(),'Error')]";
+       
+    }
+    public override int DoInit ( )
+    {
+        Title=GetSetting ( "Faucet" );
         GoToUrl ( BaseUrl );
+
+        return base.DoInit ( ); 
     }
     public override int DoLogin ( )
     {
@@ -174,7 +181,7 @@ class EveFaucetScript : FaucetScript
 
         Click ( ButtonClaim );
 
-		Wait(2);
+        Wait(3,4);
 
         return base.DoSolveFaucet ( );
     }
