@@ -30,7 +30,7 @@ class AutoClaim :FaucetScript
         SuccessXPath="//div[@class='alert alert-success']";
         FailXPath="//div[@class='alert alert-danger']";
 
-        Title="AutoFaucet";
+        Title="AutoClaim";
         base.Start ( ); 
     }
     public List<string> Coins=new List<string>
