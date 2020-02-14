@@ -142,21 +142,30 @@ class AutoFaucet :FaucetScript
 
         Wait ( );
 
-        var ShortlinksLeft=ElementsByXPath("//button[contains(@class,'visit-button')]");
+        var ShortlinksLeft=ElementsByXPath("//button[contains(@class,'visit-button')]").Where(x=>IsVisible(x)).ToList();
         if ( ShortlinksLeft.Count>0 )
         {
             int NShort=Random ( 0 , ShortlinksLeft.Count );
 
-            string Prop=ShortlinksLeft[NShort].GetAttribute("form");
+           
 
-            if ( !string.IsNullOrWhiteSpace ( Prop ) ) {
-                Prop=Prop.Replace ( "visit" , "" );
+       
                 Wait ( );
                 ShortLinkBypasser bypasser=new ShortLinkBypasser(this);
+                try
+                {
+                    CheckForPopupsEnabled=false;
+                Click ( ShortlinksLeft[NShort] , false );
+                Wait ( 1 );
+                Driver.SwitchTo ( ).Window ( Driver.WindowHandles[0] );
+                Driver.Close ( );
 
-                GoToUrl ( ShortUrl+Prop );
-                Wait ( );
-                
+                }
+                finally
+                {
+                Driver.SwitchTo ( ).Window ( Driver.WindowHandles[0] );
+                CheckForPopupsEnabled=true;
+                }
 
                 bool Succ=bypasser.DoShortLink();
                 if ( Succ )
@@ -165,7 +174,7 @@ class AutoFaucet :FaucetScript
 
                 }
 
-            }
+            
 
          
         }
