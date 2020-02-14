@@ -1,4 +1,5 @@
 ﻿
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using FaucetCollector.Script;
@@ -181,19 +182,28 @@ class EveFaucetScript : FaucetScript
 
         Click ( ButtonClaim );
 
-        Wait(3,4);
+        WaitForSucc ( );
 
+        
         return base.DoSolveFaucet ( );
     }
-
+    public void WaitForSucc ( )
+    {
+        DateTime timeout=DateTime.Now.AddSeconds(20);
+        while ( !IsVisible ( ElementByXPath ( SuccessXPath ) ) && DateTime.Now<timeout )
+        {
+            Wait ( );
+        }
+    }
     public override int GetFaucetWaitTime ( )
     {
         string ClaimUrl=this.ClaimUrl;
         if ( Driver.Url!=ClaimUrl )
         {
             GoToUrl ( ClaimUrl );
-            Wait ( 2 );
+           
         }
+        Wait ( 4 );
         var MinuteTimer=ElementByXPath("//div[@id='t']//div[1]");
         var SecondTimer=ElementByXPath("//div[@id='t']//div[2]");
         if(IsVisible(MinuteTimer) &&IsVisible ( SecondTimer ) )
