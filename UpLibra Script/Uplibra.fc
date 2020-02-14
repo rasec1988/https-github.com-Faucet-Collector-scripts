@@ -34,7 +34,7 @@ class Uplibrascript : FaucetScript
         Title="UPLibra";
 
 
-        SuccessXPath="//*[@class='alert alert-success']";
+        SuccessXPath="//*[@class='alert alert-success']|//h3[contains(@class,'bounceInRight delay-1s')]";
         FailXPath="//*[@class='alert alert-warning']";
 
         base.Start ( );
@@ -130,12 +130,11 @@ class Uplibrascript : FaucetScript
     public override int DoSolveCaptcha ( )
     {
         var result=base.DoSolveCaptcha();
-        RecaptchaUtility util=new RecaptchaUtility(this);
+       RecaptchaUtility util=new RecaptchaUtility(this);
 
-        if ( result<=0 )
-        {
-            util.DoSolve ( );
-        }
+      if(result<0){
+         util.DoSolve ( );
+	}
 
         return result;
     }
@@ -164,7 +163,8 @@ class Uplibrascript : FaucetScript
         {
             return Fail ( "Problem solving captcha" );
         }
-
+       
+        
         return base.DoSolveFaucet ( );
     }
 
