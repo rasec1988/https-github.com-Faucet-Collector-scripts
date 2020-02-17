@@ -362,12 +362,12 @@ public class btcsamsity : FaucetScript
 		  {
             //SolveCaptcha if apper
             var result = base.DoSolveCaptcha();
-            RecaptchaUtility utility = new RecaptchaUtility(this);
-            utility.DoSolve();
             if (result > 0)
             {
                 return Fail("Fail solving captcha");
             }
+            RecaptchaUtility utility = new RecaptchaUtility(this);
+            utility.DoSolve();
 		  }
 
 		return 0;
