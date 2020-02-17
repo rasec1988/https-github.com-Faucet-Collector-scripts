@@ -132,7 +132,7 @@ class Uplibrascript : FaucetScript
         var result=base.DoSolveCaptcha();
        RecaptchaUtility util=new RecaptchaUtility(this);
 
-      if(result<0){
+      if(result<=0){
          util.DoSolve ( );
 	}
 
