@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using FaucetCollector.Script;
 //css_inc ShortLinkUtilities
@@ -13,7 +14,9 @@ class AutoBitcoin_ :FaucetScript
                 new FaucetSetting(){Name="Pass",Type=EditorType.Password,Display="Password",Required=true},
                 new FaucetSetting(){Name="UseSolvemedia",Type=EditorType.CheckBox,Display="UseSolvemedia",Default=true},
                 new FaucetSetting(){Name="Coin",Type=EditorType.ComboBox,Display="Coin",Default=Coins.FirstOrDefault(),Items=Coins},
-                new FaucetSetting(){Name="ConvertC",Type=EditorType.CheckBox,Display="Convert Coins",Default=true }
+                new FaucetSetting(){Name="ConvertC",Type=EditorType.CheckBox,Display="Convert Coins",Default=true },
+                new FaucetSetting(){Name="ConvertCA",Type=EditorType.CheckBox,Display="Convert Coins/ Auto faucet",Default=false}
+
             };
 
 
@@ -24,7 +27,7 @@ class AutoBitcoin_ :FaucetScript
     public const string BaseUrl="https://autobitco.in/";
     public const string LoginUrl=BaseUrl+"auth/signin";
     public  const string ShortUrl=BaseUrl+"/dashboard/shortlinks/visit/";
-
+    public const string AutoClaimUrl=BaseUrl+"dashboard/claim/auto";
     public override void Start ( )
     {
         SuccessXPath="//div[@class='alert alert-success']";
@@ -101,8 +104,9 @@ class AutoBitcoin_ :FaucetScript
             var Balancevar=ElementByXPath("//span[@id='acpro']");
             if ( IsVisible ( Balancevar ) )
             {
+                var BalanceText=ExecuteScript("return document.getElementById('acpro').textContent;").ToString();
                 int bal;
-                if ( int.TryParse (Balancevar.Text.Trim(),out bal) )
+                if ( int.TryParse (BalanceText,out bal) )
                 {
                     return bal;
                 }
@@ -179,7 +183,7 @@ class AutoBitcoin_ :FaucetScript
 
         }
 
-        if ( GetBoolSetting ( "ConvertCoins" ) )
+        if ( GetBoolSetting ( "ConvertC" ) )
         {
 
             GoToUrl ( ConvertCoinsUrl );
@@ -191,6 +195,12 @@ class AutoBitcoin_ :FaucetScript
                 {
                     SelectOptionByValue ( CurrencySelect , GetSetting ( "Coin" ) );
 
+                }
+
+                var TokenAmount=ElementByXPath("//input[@id='token-amount']");
+                if ( IsVisible ( TokenAmount ) )
+                {
+                    SetText ( TokenAmount , Balance.ToString ( ) );
                 }
 
                 DoSolveCaptcha ( );
@@ -209,6 +219,56 @@ class AutoBitcoin_ :FaucetScript
             }
 
         }
+
+        if ( GetBoolSetting ( "ConvertCA" ) )
+        {
+            GoToUrl ( AutoClaimUrl );
+            Wait ( 2 );
+
+            var InputCoin=ElementByXPath("//input[@value='"+GetSetting("Coin")+"']");
+            if ( IsVisible ( InputCoin ) )
+            {
+                Click ( InputCoin );
+            }
+
+            var Credit=ElementByXPath("//label[contains(text(),'Credit')]");
+            if ( IsVisible ( Credit ) )
+            {
+                Click ( Credit );
+                Wait ( );
+            }
+
+            var minutes=ElementByXPath("//label[contains(text(),'2 minutes')");
+            if ( IsVisible ( minutes ) )
+            {
+                Click ( minutes );
+            }
+
+            var BostSelect=ElementByXPath("//label[contains(text(),'4x')]");
+            if ( IsVisible ( BostSelect ) )
+            {
+                Click ( BostSelect );
+            }
+            var ClaimBtn=ElementByXPath("//button[@class='btn btn-primary']");
+            if ( IsVisible ( ClaimBtn ) )
+            {
+                Click ( ClaimBtn );
+                Wait ( );
+            }
+            var Timeout=DateTime.Now.AddMinutes(4);
+            while(IsVisible(ElementByXPath( "//span[@class='time-left']" ) ) && DateTime.Now<Timeout )
+            {
+                Wait ( );
+            }
+
+            var msg=ElementByXPath("//p[@class='message']");
+            if ( IsVisible ( msg ) )
+            {
+                Log ( msg.Text );
+            }
+        }
+
+
         return GetWaitSetting ( );
     }
 }
