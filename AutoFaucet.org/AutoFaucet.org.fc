@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using FaucetCollector.Script;
 //css_inc ShortLinkUtilities
@@ -24,6 +25,7 @@ class AutoFaucet :FaucetScript
     public const string BaseUrl="https://autofaucet.org/";
     public const string LoginUrl=BaseUrl+"auth/signin";
     public  const string ShortUrl=BaseUrl+"/dashboard/shortlinks/visit/";
+    public const string AutoClaimUrl=BaseUrl+"dashboard/claim/auto";
 
     public override void Start ( )
     {
@@ -96,20 +98,23 @@ class AutoFaucet :FaucetScript
         
         return base.DoLogin ( );
     }
-    private int Balance { get
+    private int Balance
+    {
+        get
         {
             var Balancevar=ElementByXPath("//span[@id='acpro']");
             if ( IsVisible ( Balancevar ) )
             {
+                var BalanceText=ExecuteScript("return document.getElementById('acpro').textContent;").ToString();
                 int bal;
-                if ( int.TryParse (Balancevar.Text.Trim(),out bal) )
+                if ( int.TryParse ( BalanceText , out bal ) )
                 {
                     return bal;
                 }
 
             }
             return 0;
-        } 
+        }
     }
     public override int DoSolveCaptcha ( )
     {
@@ -179,7 +184,7 @@ class AutoFaucet :FaucetScript
          
         }
 
-        if ( GetBoolSetting ( "ConvertCoins" ) )
+        if ( GetBoolSetting ( "ConvertC" ) )
         {
 
             GoToUrl ( ConvertCoinsUrl );
@@ -191,6 +196,12 @@ class AutoFaucet :FaucetScript
                 {
                     SelectOptionByValue ( CurrencySelect , GetSetting ( "Coin" ) );
 
+                }
+
+                var TokenAmount=ElementByXPath("//input[@id='token-amount']");
+                if ( IsVisible ( TokenAmount ) )
+                {
+                    SetText ( TokenAmount , Balance.ToString ( ) );
                 }
 
                 DoSolveCaptcha ( );
@@ -208,6 +219,54 @@ class AutoFaucet :FaucetScript
                 }
             }
 
+        }
+
+        if ( GetBoolSetting ( "ConvertCA" ) )
+        {
+            GoToUrl ( AutoClaimUrl );
+            Wait ( 2 );
+
+            var InputCoin=ElementByXPath("//input[@value='"+GetSetting("Coin")+"']");
+            if ( IsVisible ( InputCoin ) )
+            {
+                Click ( InputCoin );
+            }
+
+            var Credit=ElementByXPath("//label[contains(text(),'Credit')]");
+            if ( IsVisible ( Credit ) )
+            {
+                Click ( Credit );
+                Wait ( );
+            }
+
+            var minutes=ElementByXPath("//label[contains(text(),'2 minutes')");
+            if ( IsVisible ( minutes ) )
+            {
+                Click ( minutes );
+            }
+
+            var BostSelect=ElementByXPath("//label[contains(text(),'4x')]");
+            if ( IsVisible ( BostSelect ) )
+            {
+                Click ( BostSelect );
+            }
+            var ClaimBtn=ElementByXPath("//button[@class='btn btn-primary']");
+            if ( IsVisible ( ClaimBtn ) )
+            {
+                Click ( ClaimBtn );
+                Wait ( );
+            }
+            var Timeout=DateTime.Now.AddMinutes(4);
+            while ( IsVisible ( ElementByXPath ( "//span[@class='time-left']" ) )&&DateTime.Now<Timeout )
+            {
+                Wait ( );
+            }
+
+            var msg=ElementByXPath("//p[@class='message']");
+            if ( IsVisible ( msg ) )
+            {
+                Log ( msg.Text );
+            }
         }
         return GetWaitSetting ( );
     }
