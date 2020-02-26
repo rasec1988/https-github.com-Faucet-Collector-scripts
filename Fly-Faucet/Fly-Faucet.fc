@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 //css_inc RecaptchaUtilities
-//css_inc BaseUtility
 class FlyFaucetScript : FaucetScript
 {
     private string BaseUrl
@@ -97,6 +96,12 @@ class FlyFaucetScript : FaucetScript
 
     public override int BeforeLogin ( )
     {
+        if ( !Driver.Url.Contains ( BaseUrl ) )
+        {
+            GoToUrl ( BaseUrl );
+            Wait ( 2 );
+        }
+
         var TryAgain=ElementByXPath("//a[contains(text(),'Try again')]");
         if ( IsVisible ( TryAgain ) )
         {
@@ -137,11 +142,7 @@ class FlyFaucetScript : FaucetScript
     public override int DoLogin ( )
     {
 
-        if ( !Driver.Url.Contains ( BaseUrl ) )
-        {
-            GoToUrl ( BaseUrl );
-            Wait ( 2 );
-        }
+      
         var UserBox=ElementByXPath("//input[@id='inputText']");
         if ( !IsVisible ( UserBox ) )
         {
@@ -181,6 +182,11 @@ class FlyFaucetScript : FaucetScript
 
     public override bool IsLoggedIn ( )
     {
+        if ( !Driver.Url.Contains ( BaseUrl ) )
+        {
+            GoToUrl ( BaseUrl );
+            Wait ( 2 );
+        }
 
         return ElementByXPath ( "//a[@href='/logout']" )!=null;
     }
