@@ -1,7 +1,7 @@
 
 //==================//
 //script Written by: ••AviramDayan•• 13/11/2019 09:00AM - Version 1
-//Last Update: 03/02/2020 06:00AM - Version 4
+//Last Update: 29/02/2020 20:00PM - Version 5
 //==================//
 
 using System;
@@ -148,12 +148,12 @@ public class FairMillions : FaucetScript
 	
 		Wait(2);
 		
-        var box_user = ElementByXPath("//input[@name='Username']");
+        var box_user = ElementByXPath("//input[@placeholder='Username']");
         SetText(box_user, GetSetting("Email"));
 		
 		Wait(2);
 		
-        var box_pass = ElementByXPath("//input[@name='Password']");
+        var box_pass = ElementByXPath("//input[@placeholder='Password']");
         SetText(box_pass, GetPassword("Password"));
 
 		Wait(4);
