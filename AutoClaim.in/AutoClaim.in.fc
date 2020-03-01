@@ -157,7 +157,7 @@ class AutoClaim :FaucetScript
 
 
             Wait ( );
-            ShortLinkBypasser bypasser=new ShortLinkBypasser(this);
+            
             try
             {
                 CheckForPopupsEnabled=false;
@@ -172,7 +172,7 @@ class AutoClaim :FaucetScript
                 Driver.SwitchTo ( ).Window ( Driver.WindowHandles[0] );
                 CheckForPopupsEnabled=true;
             }
-
+            ShortLinkBypasser bypasser=new ShortLinkBypasser(this);
             bool Succ=bypasser.DoShortLink();
             if ( Succ )
             {
