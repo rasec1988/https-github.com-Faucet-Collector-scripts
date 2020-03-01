@@ -87,12 +87,17 @@ class EveFaucetScript : FaucetScript
     };
     public override void Start ( )
     {
+
+
+        SuccessXPath="//div[contains(text(),'Win number:')]";
+        FailXPath="//div[contains(text(),'Error')]";
+
+
         base.Start ( );
 
        
 
-        SuccessXPath="//div[contains(text(),'Win number:')]";
-        FailXPath="//div[contains(text(),'Error')]";
+       
        
     }
     public override int DoInit ( )
