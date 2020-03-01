@@ -195,7 +195,7 @@ class EveFaucetScript : FaucetScript
     public void WaitForSucc ( )
     {
         DateTime timeout=DateTime.Now.AddSeconds(20);
-        while ( !IsVisible ( ElementByXPath ( SuccessXPath ) ) && DateTime.Now<timeout )
+        while ( !IsVisible ( ElementByXPath ( "//div[contains(text(),'Win number:')]" ) ) && DateTime.Now<timeout )
         {
             Wait ( );
         }
