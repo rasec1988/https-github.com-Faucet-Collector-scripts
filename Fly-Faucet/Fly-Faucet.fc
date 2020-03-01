@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 //css_inc RecaptchaUtilities
+
 class FlyFaucetScript : FaucetScript
 {
     private string BaseUrl
@@ -80,10 +81,8 @@ class FlyFaucetScript : FaucetScript
 
         FailXPath="//h3[@id='info']";
 
-        Title="DASH";
-        
-        base.Start ( );
-
+         base.Start ( );
+        Title=GetSetting("Faucet");
         Url=BaseUrl;
         
     }
@@ -96,9 +95,9 @@ class FlyFaucetScript : FaucetScript
 
     public override int BeforeLogin ( )
     {
-        if ( !Driver.Url.Contains ( BaseUrl ) )
+        if ( !Driver.Url.Contains ( Url ) )
         {
-            GoToUrl ( BaseUrl );
+            GoToUrl ( Url );
             Wait ( 2 );
         }
 
