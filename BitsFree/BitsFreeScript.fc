@@ -1,9 +1,9 @@
 ﻿using System;
 //css_inc ShortLinkUtilities
+//css_inc IconCaptcha
 using FaucetCollector.Script;
 
-public class BitsFreeScript: FaucetScript
-
+public class BitsFreeScript_: FaucetScript
 {
     /// <summary>
     /// List of Settings that will be shown in the bot when selecting this Faucet in the bot.
@@ -142,6 +142,7 @@ public class BitsFreeScript: FaucetScript
     /// </summary>
     public override int AfterLogin()
     {
+       
         //This faucet has nothing to do here. We will let Faucet Collector handle it.
         return base.AfterLogin();
     }
@@ -240,23 +241,27 @@ public class BitsFreeScript: FaucetScript
 
                 try
                 {
-                    string uri = Shortlinks[NShort].GetAttribute("href");
-                    if (!string.IsNullOrEmpty(uri))
+                                                        
+                       Click ( Shortlinks[NShort] );
+                       Wait ();
+                      IconCaptchaSolver solver=new IconCaptchaSolver(this);
+                    if ( solver.IsVisibleIconCaptcha ( ) )
                     {
+                        solver.DoSolve ( );
+                        Wait (4,5 );
                         ShortLinkBypasser bypasser = new ShortLinkBypasser(this);
-                        GoToUrl(uri);
-                        Wait();
                         bool cs = bypasser.DoShortLink();
 
-                        if (cs)
+                        if ( cs )
                         {
-                            Log("ShortlinkSuccess");
+                            Log ( "ShortlinkSuccess" );
                         }
                         else
                         {
-                            Log("Something is wrong with the shortlink");
+                            Log ( "Something is wrong with the shortlink" );
                         }
                     }
+                    
 
                 }
                 finally
