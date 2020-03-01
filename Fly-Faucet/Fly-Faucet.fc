@@ -80,9 +80,13 @@ class FlyFaucetScript : FaucetScript
         SuccessXPath="//h3[@id='info' and @style='color: green;']";
 
         FailXPath="//h3[@id='info']";
+       
+        var AvailableTitle=AvailableFaucets.Keys.ToList();
 
-         base.Start ( );
-        Title=GetSetting("Faucet");
+        AvailableTitle.ForEach ( x => Title+=x+"|" );
+
+        base.Start ( );
+
         Url=BaseUrl;
         
     }
