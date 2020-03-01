@@ -155,7 +155,7 @@ class AutoBitcoin_ :FaucetScript
 
 
             Wait ( );
-            ShortLinkBypasser bypasser=new ShortLinkBypasser(this);
+            
             try
             {
                 CheckForPopupsEnabled=false;
@@ -170,7 +170,7 @@ class AutoBitcoin_ :FaucetScript
                 Driver.SwitchTo ( ).Window ( Driver.WindowHandles[0] );
                 CheckForPopupsEnabled=true;
             }
-
+            ShortLinkBypasser bypasser=new ShortLinkBypasser(this);
             bool Succ=bypasser.DoShortLink();
             if ( Succ )
             {
