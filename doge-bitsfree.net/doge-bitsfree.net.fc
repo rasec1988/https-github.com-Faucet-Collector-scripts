@@ -1,8 +1,9 @@
 ﻿using System;
-
+//css_inc ShortLinkUtilities
+//css_inc IconCaptcha
 using FaucetCollector.Script;
 
-public class BitsFreeScript: FaucetScript
+public class Dogebitsfree: FaucetScript
 {
     /// <summary>
     /// List of Settings that will be shown in the bot when selecting this Faucet in the bot.
@@ -13,10 +14,16 @@ public class BitsFreeScript: FaucetScript
     {
         get
         {
-            return new FaucetSettings("https://doge-bitsfree.net")
+            return new FaucetSettings("https://doge-bitsfree.net/")
             {
                 new FaucetSetting(){Name="User",Display="Username",Type=EditorType.TextBox,Required=true},
-                new FaucetSetting(){Name="Pass",Display="Password",Type=EditorType.Password,Required=true}
+                new FaucetSetting(){Name="Pass",Display="Password",Type=EditorType.Password,Required=true},
+                new FaucetSetting(){Name="UseSolvemedia",Display="UseSolvemedia",Type=EditorType.CheckBox,Default=true },
+
+                new FaucetSetting()
+                {
+                    Name="DoShortLink",Display="DoShortLink",Type=EditorType.CheckBox,Default=true
+                }
                 //insert user settings here
                 //new FaucetSetting { 
                 //    Name = "Name of your setting", 
@@ -36,7 +43,7 @@ public class BitsFreeScript: FaucetScript
     public override void Start()
     {
         //Title that shows in the browser. Is used to identify and close popup windows
-        Title = "Earn FREE Dogecoin";
+        Title ="Earn FREE Dogecoin";
 
         //After we did try to claim on the faucet we search for these elements to determine if it was a success or a fail
         SuccessXPath = "//div[@class='alert alert-success']";
@@ -91,13 +98,13 @@ public class BitsFreeScript: FaucetScript
     /// <returns></returns>
     public override int DoLogin()
     {
-        var UserLogin = ElementByXPath("//input[@id='userLogin']");
+        var UserLogin = ElementByXPath("//div[@id='loginModal']//input[@type='text']");
         if (!IsVisible(UserLogin))
         {
             return Fail("User login is not visible");
         }
         SetText(UserLogin, GetSetting("User"));
-        var PasswordBox = ElementByXPath("//input[@id='userPass']");
+        var PasswordBox = ElementByXPath("//div[@id='loginModal']//input[@type='password']");
         if (!IsVisible(PasswordBox)){
             return Fail("Password box is not visible");
         }
@@ -135,6 +142,7 @@ public class BitsFreeScript: FaucetScript
     /// </summary>
     public override int AfterLogin()
     {
+       
         //This faucet has nothing to do here. We will let Faucet Collector handle it.
         return base.AfterLogin();
     }
@@ -189,6 +197,19 @@ public class BitsFreeScript: FaucetScript
     /// </summary>
     public override int DoSolveCaptcha()
     {
+        var ToggleCaptcha = ElementByXPath("//select[@id='toggleCaptcha']");
+        if (IsVisible(ToggleCaptcha))
+        {
+            if (GetBoolSetting("UseSolvemedia"))
+            {
+                SelectOptionByValue(ToggleCaptcha, "0");
+            }
+            else
+            {
+                SelectOptionByValue(ToggleCaptcha, "1");
+            }
+            Wait(1);
+        }
         //This faucet has nothing to do here. We will let Faucet Collector handle it.
         return base.DoSolveCaptcha();
     }
@@ -209,6 +230,57 @@ public class BitsFreeScript: FaucetScript
     /// </summary>
     public override int BeforeSolveFaucet()
     {
+        if (GetBoolSetting("DoShortLink"))
+        {
+            GoToUrl("https://doge-bitsfree.net/shortlinks.html");
+            Wait();
+            var Shortlinks = ElementsByXPath("//*[@class='btn btn-success btn-sm']");
+            if (Shortlinks.Count > 0)
+            {
+                int NShort = Random(0, Shortlinks.Count - 1);
+
+                try
+                {
+                                                        
+                       Click ( Shortlinks[NShort] );
+                       Wait ();
+                      IconCaptchaSolver solver=new IconCaptchaSolver(this);
+                    if ( solver.IsVisibleIconCaptcha ( ) )
+                    {
+                        solver.DoSolve ( );
+                        Wait (4,5 );
+                        ShortLinkBypasser bypasser = new ShortLinkBypasser(this);
+                        bool cs = bypasser.DoShortLink();
+
+                        if ( cs )
+                        {
+                            Log ( "ShortlinkSuccess" );
+                        }
+                        else
+                        {
+                            Log ( "Something is wrong with the shortlink" );
+                        }
+                    }
+                    
+
+                }
+                finally
+                {
+                    if (!Driver.Url.Contains("https://bitsfree.net"))
+                    {
+
+                        GoToUrl("https://bitsfree.net");
+                    }
+
+                }
+
+            }
+            else
+            {
+                Log("No more shortlinks available");
+            }
+
+        }
         //This faucet has nothing to do here. We will let Faucet Collector handle it.
         return base.BeforeSolveCaptcha();
     }
@@ -222,7 +294,26 @@ public class BitsFreeScript: FaucetScript
         if(Driver.Url!= "https://doge-bitsfree.net/")
         {
             GoToUrl("https://doge-bitsfree.net/");
+            Wait();
         }
+
+        var FaucetLocked = ElementByXPath("//b[contains(text(),'Faucet Locked!')]");
+        if (IsVisible(FaucetLocked))
+        {
+            if (GetBoolSetting("DoShortLink"))
+            {
+                Log("We need to do another shortlink..., Faucet is still locked");
+                return GetWaitSetting();
+            }
+            else
+            {
+                
+                Disable();
+
+                return Fail("You need other shortlink to unlock the faucet, please do it manually or enable the option to do shortlink in the script");
+            }
+        }
+
         var ButtonRoll = ElementByXPath("//button[contains(text(),'Roll & Win')]");
         if (!IsVisible(ButtonRoll))
         {
@@ -239,6 +330,8 @@ public class BitsFreeScript: FaucetScript
             return Fail("Button roll is not visible");
         }
         Click(ButtonRoll);
+
+     
         //This faucet has nothing to do here. We will let Faucet Collector handle it.
         return base.DoSolveFaucet();
     }
