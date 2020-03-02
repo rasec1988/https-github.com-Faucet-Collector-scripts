@@ -32,8 +32,8 @@ using FaucetCollector.Script;
 
     private Dictionary<string, string> AvailableFaucets = new Dictionary<string, string>
     {
-        {"ADA","earnfree-ada.xyz" },
-        {"ZEC","earnfree.xyz" },        
+
+        {"ZEC","earnfree.xyz" },      
         {"BCH","earnfree-bch.xyz" },
         {"DASH","earnfree-dash.xyz" },
         {"DGB","earnfree-dgb.xyz" },
@@ -68,7 +68,12 @@ using FaucetCollector.Script;
         FailXPath = "//span[@class='error']";
         
         base.Start();
-        Url = Url_;
+      
+    }
+    public override int DoInit ( )
+    {
+        Url=Url_;
+        return base.DoInit ( );
     }
     public override int DoLogin()
     {
@@ -78,12 +83,12 @@ using FaucetCollector.Script;
             GoToUrl(LoginUrl);
             Wait();
         }
-        var UserBox = ElementByXPath("//input[@name='Funame']");
+        var UserBox = ElementByXPath("//input[@placeholder='Enter Username']");
         if (!IsVisible(UserBox))
         {
             return Fail("User box not found");
         }
-        var PasswordBox = ElementByXPath("//input[@name='Fpass']");
+        var PasswordBox = ElementByXPath("//input[@placeholder='Enter Password']");
         if (!IsVisible(PasswordBox))
         {
             return Fail("Password box not found");
