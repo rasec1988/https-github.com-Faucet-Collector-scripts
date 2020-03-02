@@ -152,7 +152,7 @@ using FaucetCollector.Script;
     public override int DoSolveCaptcha()
     {
 
-        int result = DoSolveCaptcha();
+        int result = base.DoSolveCaptcha();
         if (result > 0)
         {
             return result;
