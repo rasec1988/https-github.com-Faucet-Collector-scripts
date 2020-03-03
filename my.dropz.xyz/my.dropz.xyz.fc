@@ -1,8 +1,8 @@
 
 
 //==================//
-//script Written by: ••AviramDayan•• 03/03/2020 22:00AM - Version 1
-//Last Update: 03/03/2020 22:00AM - Version 1
+//script Written by: ••AviramDayan•• 03/03/2020 23:50PM - Version 1
+//Last Update: 03/03/2020 23:50PM - Version 1
 //==================//
 
 using System;
@@ -13,7 +13,7 @@ using OpenQA.Selenium;
 //css_inc RecaptchaUtilities
 
 
-public class xrpfaucet : FaucetScript
+public class mydropzxyz : FaucetScript
 {
     /// <summary>
     /// List of Settings that will be shown in the bot when selecting this Faucet in the bot.
@@ -135,25 +135,25 @@ public class xrpfaucet : FaucetScript
         Wait();		
         Wait(2);
       
-        if (IsVisible(ElementByXPath ("//input[@id='email']") )) 
+        var Email_VAR = ElementByXPath("//input[@id='email']");      
+        if (IsVisible(Email_VAR))
         {
-         var box_user = ElementByXPath("//input[@id='email']");
-         SetText(box_user, GetSetting("Email"));
+         SetText(Email_VAR, GetSetting("Email"));
         }
         
         Wait(2);
-        
-        if (IsVisible(ElementByXPath ("//input[@id='password']") )) 
+
+        var Password_VAR = ElementByXPath("//input[@id='password']");      
+        if (IsVisible(Password_VAR))
         {
-         var box_pass = ElementByXPath("//input[@id='password']");
-         SetText(box_pass, GetPassword("Password"));
+         SetText(Password_VAR, GetPassword("Password"));
         }
 
-        Wait(2);	
-        
-        if (IsVisible(ElementByXPath ("//button[@type='submit' and @id='signin_bt']") )) 
+        Wait(2);
+		
+        var ButtonLog = ElementByXPath("//button[@type='submit' and @id='signin_bt']");  
+        if (IsVisible(ButtonLog))
         {
-         var ButtonLog = ElementByXPath("//button[@type='submit' and @id='signin_bt']");
          Click(ButtonLog);
         }
         
@@ -276,14 +276,14 @@ public class xrpfaucet : FaucetScript
 		GoToUrl("https://my.dropz.xyz/captcha/");
         Wait();
 	    Wait(2);
-
-        var FaucetCheck = ElementByXPath("//input[@type='submit' and @value='Submit'] | //div[@id='adcopy-puzzle-image'] | //iframe[contains(@src,'recaptcha/api2')]");
-        if (IsVisible(FaucetCheck))
-	    {
-
-          while (true)
+		
+        while (true)
+        {
+			 
+          var FaucetCheck = ElementByXPath("//input[@type='submit' and @value='Submit'] | //div[@id='adcopy-puzzle-image'] | //iframe[contains(@src,'recaptcha/api2')]");
+          if (IsVisible(FaucetCheck))
           {
-			  
+ 
             Wait(7);
 			
             Recaptcha_Function (); //call
@@ -302,17 +302,16 @@ public class xrpfaucet : FaucetScript
             Log(SuccessMessage.Text);
 			ClaimSuccess();
 		    }
-		    
-            if (!IsVisible(ElementByXPath ("//input[@type='submit' and @value='Submit'] | //div[@id='adcopy-puzzle-image'] | //iframe[contains(@src,'recaptcha/api2')]") )) 
-	        {
-				break;
-			}				
-	
-          } // end while true
+
+          }// end FaucetCheck
 		  
-        }// end FaucetCheck
-		
-      } //end FaucetClaim
+          if (!IsVisible(FaucetCheck))
+	      {
+		  break;
+		  }
+		  
+        } //end while true		
+      } // end FaucetClaim
 
 	 return GetWaitSetting();
 	
