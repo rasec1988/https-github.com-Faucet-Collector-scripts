@@ -242,16 +242,17 @@ public class BitsFreeScript_: FaucetScript
                 try
                 {
                                                         
-
-                                     
+                      
+                   
                       IconCaptchaSolver solver=new IconCaptchaSolver(this);
                     Click ( Shortlinks[NShort] );
                     Wait ( );
-                    while ( IsVisible ( Shortlinks[NShort] )&& !solver.IsVisibleIconCaptcha() )
+                    int count=0;
+                    while ( IsVisible ( Shortlinks[NShort] )&& !solver.IsVisibleIconCaptcha()  && count<5)
                     {
                         Click ( Shortlinks[NShort] );
                         Wait ( );
-
+                        count++;
                     }
 
                         if ( solver.IsVisibleIconCaptcha ( ) )
