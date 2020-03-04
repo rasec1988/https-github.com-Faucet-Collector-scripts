@@ -2,7 +2,7 @@
 
 //==================//
 //script Written by: ••AviramDayan•• 03/03/2020 23:50PM - Version 1
-//Last Update: 03/03/2020 23:50PM - Version 1
+//Last Update: 04/03/2020 02:30PM - Version 2
 //==================//
 
 using System;
@@ -33,7 +33,11 @@ public class mydropzxyz : FaucetScript
 				new FaucetSetting(){Name="DestinationTag",Display="Destination Tag xrp",Type=EditorType.TextBox,Required=true},
  			
                 new FaucetSetting(){Name="FaucetClaim",Display="FaucetClaim",Type=EditorType.CheckBox,Default=true},		
-                
+                new FaucetSetting(){Name="AutoSurfAds",Display="AutoSurfAds",Type=EditorType.CheckBox,Default=true},
+
+                new FaucetSetting(){Name="AutoWithdraw",Display="AutoWithdraw",Type=EditorType.CheckBox,Default=true},
+                new FaucetSetting() { Name = "LimitWithdraw", Display = "LimitWithdraw", Type = EditorType.Numeric, Default = 3000 },
+
 			
                 //insert user settings here
                 //new FaucetSetting { 
@@ -264,19 +268,129 @@ public class mydropzxyz : FaucetScript
 //=============//
   public override int DoSolveFaucet()
   {
+
+        SetWallet_Function(); //call	
+
+      //=============//
+      //AutoWithdraw
+      //=============//
+         if (GetBoolSetting("AutoWithdraw"))
+         {
+			 
+           GoToUrl("https://my.dropz.xyz/account/");
+		   Wait(2);
+		   
+           var balance = ElementByXPath("//b[@id='display_pending_drops']");
+           string BalanceSTRING = balance.Text.Trim().Replace(",", "").Split('.')[0];
+           int BalanceINT = Convert.ToInt32(BalanceSTRING);
+   
+           int MyAmount;
+           Int32.TryParse(GetSetting("LimitWithdraw"), out MyAmount);
+   
+           if (BalanceINT < MyAmount) // - 3000
+           {
+               Log("AutoWithdraw - Under <");
+              //do all stuff
+           }
+   
+           if (BalanceINT > MyAmount) // + 3000
+           {
+               Log("AutoWithdraw - Above >");
+               var WithdrawButton = ElementByXPath("//button[@id='payout_bt']");
+			   Click(WithdrawButton);
+               Wait(7);			   
+			   Log("Withdraw success");
+           }
+         } //end AutoWithdraw
+      //=============//
+
+      //=============//
+      //AutoSurfAds
+      //=============//
+         if (GetBoolSetting("AutoSurfAds"))
+         {
+
+		   GoToUrl("https://my.dropz.xyz/site-friends/");
+           Log("AutoSurfAds");	
+           Wait();	
+	       Wait(2);	
+			
+           var AutoSurf_Check = ElementByXPath("//i[@class='fa fa-play'] | //div[@id='adcopy-puzzle-image'] | //iframe[contains(@src,'recaptcha/api2')]");
+	       if (IsVisible(AutoSurf_Check))
+	       {
+			   
+		     Log("Bonus_Aff - Available");
+             var TimeToWaitForBreak = DateTime.Now.AddSeconds(65);
+             while (true)
+             {
+			   
+               CheckForPopupsEnabled = false;
+			   
+               var ClaimNow_Available = ElementByXPath("//i[@class='fa fa-play']");
+	           if (IsVisible(ClaimNow_Available))
+	           {
+			   Click(ClaimNow_Available);
+			   }
+
+               var Captcha_Available = ElementByXPath("//div[@id='adcopy-puzzle-image'] | //iframe[contains(@src,'recaptcha/api2')]");
+	           if (IsVisible(Captcha_Available))
+	           {
+			   Recaptcha_Function(); //call
+			   Wait();
+               var FaucetButton = ElementByXPath("//input[@type='submit' and @value='Submit']");
+               Click(FaucetButton);
+			   Wait(2);
+			   Driver.Navigate().Refresh(); //refresh page
+			   }
+			   
+               Driver.SwitchTo().Window(Driver.WindowHandles[0]);	
+			   
+               var ButtonToWait = ElementByXPath("//a[@class='btn btn-app' and contains(text(),'Please wait')]");
+               while (IsVisible(ButtonToWait))
+               {
+				  Wait();
+                  if (!IsVisible(ElementByXPath ("//a[@class='btn btn-app' and contains(text(),'Please wait')]") )) 
+	              {
+				  Log("AutoSurf - Success");
+				  ClaimSuccess(); //Success
+			      Driver.Navigate().Refresh(); //refresh page
+                  CheckForPopupsEnabled = true;
+                  CheckForPopups();				  
+			      }
+			   }	  		
+			   
+               if (!IsVisible(ElementByXPath ("//i[@class='fa fa-play']") )) 
+	           {
+		         Log("AutoSurfAds - break - not Available");
+                 break; //after break the while  
+	           }
+			   
+               if (DateTime.Now > TimeToWaitForBreak) //if the time above 65 sec 
+               {
+		       Log("AutoSurfAds - break - TimeToWaitForBreak");
+               break; //break the wait loop
+               }
+			   
+             } //end while (true)
+			 
+	       } // end ClaimNow_Available
+         } //end AutoSurfAds
+      //=============//
+		
+	  
       //=============//
       //FaucetClaim
       //=============//
       if (GetBoolSetting("FaucetClaim"))
       {
-        SetWallet_Function(); //call	
 		
 	    Wait(2);
 		
 		GoToUrl("https://my.dropz.xyz/captcha/");
         Wait();
 	    Wait(2);
-		
+
+        var TimeToWaitForBreak = DateTime.Now.AddSeconds(150);
         while (true)
         {
 			 
@@ -307,9 +421,16 @@ public class mydropzxyz : FaucetScript
 		  
           if (!IsVisible(FaucetCheck))
 	      {
+		  Log("FaucetClaim - break - not Available");
 		  break;
 		  }
-		  
+
+          if (DateTime.Now > TimeToWaitForBreak) //if the time above 65 sec 
+          {
+		  Log("FaucetClaim - break - TimeToWaitForBreak");
+          break; //break the wait loop
+          }
+
         } //end while true		
       } // end FaucetClaim
 
@@ -340,8 +461,6 @@ public class mydropzxyz : FaucetScript
         //This faucet has nothing to do here. We will let Faucet Collector handle it.
         return base.CheckFaucetResult();
     }
-	
-
 
 	
         //=================//
