@@ -242,10 +242,19 @@ public class BitsFreeScript_: FaucetScript
                 try
                 {
                                                         
-                       Click ( Shortlinks[NShort] );
-                       Wait ();
+
+                                     
                       IconCaptchaSolver solver=new IconCaptchaSolver(this);
-                    if ( solver.IsVisibleIconCaptcha ( ) )
+                    Click ( Shortlinks[NShort] );
+                    Wait ( );
+                    while ( IsVisible ( Shortlinks[NShort] )&& !solver.IsVisibleIconCaptcha() )
+                    {
+                        Click ( Shortlinks[NShort] );
+                        Wait ( );
+
+                    }
+
+                        if ( solver.IsVisibleIconCaptcha ( ) )
                     {
                         solver.DoSolve ( );
                         Wait (4,5 );
