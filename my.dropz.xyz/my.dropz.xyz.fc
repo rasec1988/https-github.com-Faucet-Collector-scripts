@@ -35,7 +35,7 @@ public class mydropzxyz : FaucetScript
                 new FaucetSetting(){Name="FaucetClaim",Display="FaucetClaim",Type=EditorType.CheckBox,Default=true},		
                 new FaucetSetting(){Name="AutoSurfAds",Display="AutoSurfAds",Type=EditorType.CheckBox,Default=true},
 
-                new FaucetSetting(){Name="AutoWithdraw",Display="AutoWithdraw",Type=EditorType.CheckBox,Default=true},
+                new FaucetSetting(){Name="AutoWithdraw",Display="AutoWithdraw",Type=EditorType.CheckBox,Default=false},
                 new FaucetSetting() { Name = "LimitWithdraw", Display = "LimitWithdraw", Type = EditorType.Numeric, Default = 3000 },
 
 			
@@ -271,38 +271,6 @@ public class mydropzxyz : FaucetScript
 
         SetWallet_Function(); //call	
 
-      //=============//
-      //AutoWithdraw
-      //=============//
-         if (GetBoolSetting("AutoWithdraw"))
-         {
-			 
-           GoToUrl("https://my.dropz.xyz/account/");
-		   Wait(2);
-		   
-           var balance = ElementByXPath("//b[@id='display_pending_drops']");
-           string BalanceSTRING = balance.Text.Trim().Replace(",", "").Split('.')[0];
-           int BalanceINT = Convert.ToInt32(BalanceSTRING);
-   
-           int MyAmount;
-           Int32.TryParse(GetSetting("LimitWithdraw"), out MyAmount);
-   
-           if (BalanceINT < MyAmount) // - 3000
-           {
-               Log("AutoWithdraw - Under <");
-              //do all stuff
-           }
-   
-           if (BalanceINT > MyAmount) // + 3000
-           {
-               Log("AutoWithdraw - Above >");
-               var WithdrawButton = ElementByXPath("//button[@id='payout_bt']");
-			   Click(WithdrawButton);
-               Wait(7);			   
-			   Log("Withdraw success");
-           }
-         } //end AutoWithdraw
-      //=============//
 
       //=============//
       //AutoSurfAds
@@ -433,6 +401,41 @@ public class mydropzxyz : FaucetScript
 
         } //end while true		
       } // end FaucetClaim
+
+
+      //=============//
+      //AutoWithdraw
+      //=============//
+         if (GetBoolSetting("AutoWithdraw"))
+         {
+			 
+           GoToUrl("https://my.dropz.xyz/account/");
+		   Wait(2);
+		   
+           var balance = ElementByXPath("//b[@id='display_pending_drops']");
+           string BalanceSTRING = balance.Text.Trim().Replace(",", "").Split('.')[0];
+           int BalanceINT = Convert.ToInt32(BalanceSTRING);
+   
+           int MyAmount;
+           Int32.TryParse(GetSetting("LimitWithdraw"), out MyAmount);
+   
+           if (BalanceINT < MyAmount) // - 3000
+           {
+               Log("AutoWithdraw - Under <");
+              //do all stuff
+           }
+   
+           if (BalanceINT > MyAmount) // + 3000
+           {
+               Log("AutoWithdraw - Above >");
+               var WithdrawButton = ElementByXPath("//button[@id='payout_bt']");
+			   Click(WithdrawButton);
+               Wait(7);			   
+			   Log("Withdraw success");
+           }
+         } //end AutoWithdraw
+      //=============//
+
 
 	 return GetWaitSetting();
 	
