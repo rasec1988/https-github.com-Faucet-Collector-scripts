@@ -235,20 +235,31 @@ public class Dogebitsfree: FaucetScript
             GoToUrl("https://doge-bitsfree.net/shortlinks.html");
             Wait();
             var Shortlinks = ElementsByXPath("//*[@class='btn btn-success btn-sm']");
-            if (Shortlinks.Count > 0)
+            if ( Shortlinks.Count>0 )
             {
                 int NShort = Random(0, Shortlinks.Count - 1);
 
                 try
                 {
-                                                        
-                       Click ( Shortlinks[NShort] );
-                       Wait ();
-                      IconCaptchaSolver solver=new IconCaptchaSolver(this);
+
+
+
+                    IconCaptchaSolver solver=new IconCaptchaSolver(this);
+                    Click ( Shortlinks[NShort] );
+                    Wait ( );
+                    int count=0;
+                    while ( IsVisible ( Shortlinks[NShort] )&&!solver.IsVisibleIconCaptcha ( )  && count<5)
+                    {
+                        Click ( Shortlinks[NShort] );
+                        Wait ( );
+                        count++;
+
+                    }
+
                     if ( solver.IsVisibleIconCaptcha ( ) )
                     {
                         solver.DoSolve ( );
-                        Wait (4,5 );
+                        Wait ( 4 , 5 );
                         ShortLinkBypasser bypasser = new ShortLinkBypasser(this);
                         bool cs = bypasser.DoShortLink();
 
@@ -261,15 +272,15 @@ public class Dogebitsfree: FaucetScript
                             Log ( "Something is wrong with the shortlink" );
                         }
                     }
-                    
+
 
                 }
                 finally
                 {
-                    if (!Driver.Url.Contains("https://bitsfree.net"))
+                    if ( !Driver.Url.Contains ( "https://doge-bitsfree.net" ) )
                     {
 
-                        GoToUrl("https://bitsfree.net");
+                        GoToUrl ( "https://doge-bitsfree.net" );
                     }
 
                 }
@@ -277,7 +288,7 @@ public class Dogebitsfree: FaucetScript
             }
             else
             {
-                Log("No more shortlinks available");
+                Log ( "No more shortlinks available" );
             }
 
         }
