@@ -53,7 +53,7 @@ class RollerCoin    :   FaucetScript
     //Available Games
     public enum Games
     {
-        Coins_2048
+        Coins_2048,
     }
 
     public override void Start ( )
@@ -128,6 +128,42 @@ class RollerCoin    :   FaucetScript
         return ElementByXPath ( "//a[@href='/exit']" )!=null;
     }
 
+    //private const string XPathCoins2048="//img[contains(@src,'/static/img/gamePreview/7-small.png')]";
+    //private const string XPathCoinFlip="//img[contains(@src,'/static/img/gamePreview/8-small.png')]";
+
+    public int FindGamePosition (Games game )
+    {
+        var Elements =ElementsByXPath("//p[@class='game-title']");
+        if ( Elements.Count>0 )
+        {
+            return Elements.IndexOf ( Elements.FirstOrDefault ( x => x.Text.ToLower ( ).Contains (  ( game ).ToString().ToLower ( ) ) ));
+
+        }
+
+        return -1;
+
+
+    }
+    public IWebElement GetSpecificElement (Games game )
+    {
+        int Position=FindGamePosition(game);
+        var Buttons=ElementsByXPath("//button[@class='tree-dimensional-button btn-cyan w-100']");
+        if ( Position>=0  && (Buttons.Count-1)>=Position)
+        {
+            return Buttons[Position];
+        }
+        return Buttons[7];
+    }
+    public override int BeforeSolveFaucet ( )
+    {
+        var ButtonAcceptCookies=ElementByXPath("//button[@class='qc-cmp-button' and contains(text(),'I ACCEPT')]");
+        if ( IsVisible ( ButtonAcceptCookies) )
+        {
+            Click ( ButtonAcceptCookies );
+            Wait ( );
+        }
+        return base.BeforeSolveFaucet ( );
+    }
     public override int DoSolveFaucet ( )
     {
         GoToUrl ( "https://rollercoin.com/game/choose_game" );
@@ -136,49 +172,33 @@ class RollerCoin    :   FaucetScript
     
 
        var GameSelected=   (Games) Enum.Parse ( typeof ( Games ) , GetSetting ( "Game" ));
-
-        if ( GameSelected==Games.Coins_2048 )
+        Wait ( 5 );
+        //var GameElem=GetSpecificElement(GameSelected);
+        var GameElem=ElementByXPath("//div[7]//div[1]//div[2]//div[2]//div[2]//button[1]");
+        if ( IsVisible(GameElem) )
         {
-            var GotoGame=ElementByXPath("//img[contains(@src,'/static/img/gamePreview/7-small.png')]");
-            if ( IsVisible ( GotoGame ) )
-            {
-                Click ( GotoGame );
+       
+        
+                Click ( GameElem );
                 Wait ( );
 
-                var PlayGame=ElementByXPath("//button[@class='btn btn-cyan w-100']");
-                if ( IsVisible ( PlayGame ) )
-                {
-                    Click ( PlayGame );
+              
                     Wait ( );
-                    Play2048Coins ( );
-
-                    var ButtonCaptcha=ElementByXPath("//button[contains(@class,'w-100 btn btn-primary')]");
-                    DateTime timeout=DateTime.Now.AddSeconds(20);
-                    while ( !IsVisible ( ButtonCaptcha ) && DateTime.Now<timeout )
+                    if ( GameSelected==Games.Coins_2048 )
                     {
-                        Wait ( );
-                        ButtonCaptcha=ElementByXPath ( "//button[contains(@class,'w-100 btn btn-primary')]" );
+                        Play2048Coins ( );
 
                     }
-
-                    if ( IsVisible ( ButtonCaptcha ) )
-                    {
-                        DoSolveCaptcha ( );
-                        Wait ( 1 );
-
-                        ButtonCaptcha=ElementByXPath ( "//button[contains(@class,'w-100 btn btn-primary')]" );
-                        Click ( ButtonCaptcha );
-                        Wait ( 8 );
-                    }                 
                   
+                    Wait ( 15 );
                     Log ( "Game successfully played" );
                     IsSuccess=true;
                     ClaimSuccess ( );
                     
                     return GetWaitSetting ( );
-                }
+                
 
-            }
+            
 
         }
 
@@ -186,23 +206,7 @@ class RollerCoin    :   FaucetScript
         return base.DoSolveFaucet ( );
     }
 
-    public override int DoSolveCaptcha ( )
-    {
-        var Img=ElementByXPath("//img[contains(@src,'data:image/png;base64')]");
-        var TextBox=ElementByXPath("//input[@type='text']");
-
-        if(IsVisible(Img) &&IsVisible ( TextBox ) )
-        {
-            Log ( "Solving captcha" );
-          return  DoSolveImageCaptcha ( Img , TextBox );
-        }
-        else
-        {
-            Log ( "Img or textbox not visible" );
-        }
-
-        return 0;
-    }
+  
     #region Game 2048Coins
 
     private const int CanvasWidth=831;
@@ -258,48 +262,14 @@ class RollerCoin    :   FaucetScript
             },
         };
     }
+
     private void Play2048Coins ( )
     {
 
         LoadIcons ( );
-        var ButtonFile=AssetDir("Other")+"\\Startbtn.png";
+        
         //var ButtonFile="Startbtn.png";
-        if ( !File.Exists ( ButtonFile ) )
-        {
-            Log ( "We have problems to get the button , probably assets file was not correctly loaded" );
-
-
-            return;
-        }
-
-        using ( Bitmap Imgbtn = PointIcon.OpenImgInBitmap ( ButtonFile ) )
-        {
-            Bitmap CanvasImg=this.CanvasImg;
-
-            if ( CanvasImg==null )
-            {
-                Log ( "We have problems to find the button to play" );
-                return;
-            }
-            var Location=PointIcon.GetLocations(CanvasImg,Imgbtn);
-            DateTime timeout=DateTime.Now.AddSeconds(10);
-            while ( Location.Count==0&&CanvasImg!=null&&DateTime.Now<timeout )
-            {
-                CanvasImg=this.CanvasImg;
-
-                Location=PointIcon.GetLocations ( CanvasImg , Imgbtn );
-
-                Wait ( );
-            }
-            if ( Location.Count==0 )
-            {
-                Log ( "button didn't finded" );
-                return;
-            }
-            Log ( "Cord X: "+( Location[0].X/ImgPercent ).ToString ( )+" Cord Y"+( Location[0].Y/ImgPercent ) );
-            // Click in the center of the image
-            ClickInCanvas ( ( int )( Location[0].X/ImgPercent )+Imgbtn.Width/2 , ( int )( Location[0].Y/ImgPercent )+Imgbtn.Height/2 );
-        }
+        ClickStartButton ( );
 
         Wait ( );
         var GameTable=this.GameTable;
@@ -331,44 +301,7 @@ class RollerCoin    :   FaucetScript
         }
 
         Log ( "Game finished" );
-        var FinishBtn=AssetDir("Other")+"\\Finishbtn.png";
-        //var FinishBtn="Finishbtn.png";
-        if ( !File.Exists ( FinishBtn ) )
-        {
-            Log ( "We have problems to get the button , probably assets file was not correctly loaded" );
-            return;
-        }
-        using ( Bitmap BtnFinish = PointIcon.OpenImgInBitmap ( FinishBtn ) )
-        {
-
-            Bitmap CanvasImg=this.CanvasImg;
-
-            if ( CanvasImg==null )
-            {
-                Log ( "We have problems to find the button to finish" );
-                return;
-            }
-            var Location=PointIcon.GetLocations(CanvasImg,BtnFinish);
-            DateTime timeout=DateTime.Now.AddSeconds(10);
-            while ( Location.Count==0&&CanvasImg!=null&&DateTime.Now<timeout )
-            {
-                CanvasImg=this.CanvasImg;
-
-                Location=PointIcon.GetLocations ( CanvasImg , BtnFinish );
-
-                Wait ( );
-            }
-            if ( Location.Count==0 )
-            {
-                Log ( "button didn't finded" );
-                return;
-            }
-            Log ( "Cord X: "+( Location[0].X/ImgPercent ).ToString ( )+" Cord Y"+( Location[0].Y/ImgPercent ) );
-            // Click in the center of the image
-            ClickInCanvas ( ( int )( Location[0].X/ImgPercent )+BtnFinish.Width/2 , ( int )( Location[0].Y/ImgPercent )+BtnFinish.Height/2 );
-
-            Log ( "Game Finished" );
-        }
+        ClickFinishButton ( );
 
 
         //Finishbtn.PNG
@@ -506,39 +439,7 @@ class RollerCoin    :   FaucetScript
 
     }
 
-    private void ClickInCanvas (int offsetX,int offsetY )
-    {
-        var CanvasElement=ElementByXPath("//div[@id='game1']",0);
-        if ( !IsVisible ( CanvasElement ) )
-        {
-            Log ( "Canvas element is not visible" );
-            return;
-        }
-
-        Actions action  = new Actions(Driver);
-        action.MoveToElement ( CanvasElement ,offsetX,offsetY).Click ( ).Build ( ).Perform();
-        System.Threading.Thread.Sleep ( 20 );
-        //action.Click ( ).Build ( ).Perform ( );
-    }
-
-    private Bitmap CanvasImg 
-    { 
-        get
-        {
-            var CanvasElement=ElementByXPath ( "//div[@id='game1']//canvas",0 );
-            if ( !IsVisible ( CanvasElement ) )
-            {
-                return null;
-            }
-            var Source = TakeScreenshot ( Base.Captcha.CaptchaService.Manual , CanvasElement );
-
-            if ( Source.Width!=CanvasWidth||Source.Height!=CanvasHeigh )
-            {
-                Source=PointIcon.ResizeImg ( Source , CanvasWidth , CanvasHeigh );
-            }
-            return Source;
-        } 
-    }
+   
 
     private bool GameTableIsEmpty ( List<List<PointIcon.IconType>> GameTable )
     {
@@ -695,5 +596,120 @@ class RollerCoin    :   FaucetScript
         }
     }
     #endregion
+
+
+    #region Shared 
+
+    private void ClickInCanvas ( int offsetX , int offsetY )
+    {
+        var CanvasElement=ElementByXPath("//div[@id='game1']",0);
+        if ( !IsVisible ( CanvasElement ) )
+        {
+            Log ( "Canvas element is not visible" );
+            return;
+        }
+
+        Actions action  = new Actions(Driver);
+        action.MoveToElement ( CanvasElement , offsetX , offsetY ).Click ( ).Build ( ).Perform ( );
+        System.Threading.Thread.Sleep ( 20 );
+        //action.Click ( ).Build ( ).Perform ( );
+    }
+
+    private Bitmap CanvasImg
+    {
+        get
+        {
+            var CanvasElement=ElementByXPath ( "//div[@id='game1']//canvas",0 );
+            if ( !IsVisible ( CanvasElement ) )
+            {
+                return null;
+            }
+            var Source = TakeScreenshot ( Base.Captcha.CaptchaService.Manual , CanvasElement );
+
+            if ( Source.Width!=CanvasWidth||Source.Height!=CanvasHeigh )
+            {
+                Source=PointIcon.ResizeImg ( Source , CanvasWidth , CanvasHeigh );
+            }
+            return Source;
+        }
+    }
+    public class Button
+    {
+        public enum ButtonType
+        {
+            Finish,
+            Start
+        }
+
+       public ButtonType Type { get; set; }
+       public string Dir { get
+            {
+
+                return Type==ButtonType.Finish ? AssetDir +"\\Finishbtn.png" : Type==ButtonType.Start ? AssetDir +"\\Startbtn.png" : string.Empty;
+            }
+        }
+        public string AssetDir { get; set; }
+
+        public Button ( ButtonType Type ,  string AssetDir)
+        {
+
+            this.Type=Type;
+
+            this.AssetDir=AssetDir;
+        }
+
+
+    }
+
+    public bool ClickOnButton( Button button)
+    {
+        using ( Bitmap Imgbtn = PointIcon.OpenImgInBitmap ( button.Dir ) )
+        {
+            Bitmap CanvasImg=this.CanvasImg;
+
+            if ( CanvasImg==null )
+            {
+                Log ( "We have problems to find the button to play" );
+                return false;
+            }
+            var Location=PointIcon.GetLocations(CanvasImg,Imgbtn);
+            DateTime timeout=DateTime.Now.AddSeconds(10);
+            while ( Location.Count==0&&CanvasImg!=null&&DateTime.Now<timeout )
+            {
+                CanvasImg=this.CanvasImg;
+
+                Location=PointIcon.GetLocations ( CanvasImg , Imgbtn );
+
+                Wait ( );
+            }
+            if ( Location.Count==0 )
+            {
+                Log ( "button didn't finded" );
+                return false;
+            }
+            Log ( "Cord X: "+( Location[0].X/ImgPercent ).ToString ( )+" Cord Y"+( Location[0].Y/ImgPercent ) );
+            // Click in the center of the image
+            ClickInCanvas ( ( int )( Location[0].X/ImgPercent )+Imgbtn.Width/2 , ( int )( Location[0].Y/ImgPercent )+Imgbtn.Height/2 );
+
+            return true;
+        }
+
+    }
+    
+    public bool ClickStartButton ( )
+    {
+      return  ClickOnButton ( new Button ( Button.ButtonType.Start , AssetDir ( "Other" ) ) );
+
+    }
+
+    public bool ClickFinishButton ( )
+    {
+
+        return ClickOnButton ( new Button ( Button.ButtonType.Finish , AssetDir ( "Other" ) ) );
+    }
+
+
+
+#endregion
 }
 
