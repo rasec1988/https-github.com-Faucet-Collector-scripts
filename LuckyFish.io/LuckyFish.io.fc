@@ -1,7 +1,7 @@
 
 //==================//
 //script Written by: ••AviramDayan•• 26/05/2019 04:00PM - Version 1
-//Last Update: 18/01/2020 16:00PM - Version 20
+//Last Update: 06/03/2020 17:04PM - Version 21
 //==================//
 
 using System;
@@ -920,7 +920,7 @@ public class luckyfishorg : FaucetScript
         //=========//
         //SolveCaptcha_RightSquare_Function
 		//=========//
-        public void SolveCaptcha_RightSquare_Function()
+        public int SolveCaptcha_RightSquare_Function()
         {	
 		
         Log("SolveCaptcha_RightSquare_Function");
@@ -930,6 +930,30 @@ public class luckyfishorg : FaucetScript
         bool res2=  getestCaptcha.DoInitSolve();
         */
 
+
+        //solve Captcha X2 XPath (1 = captcha image | 2 = input text )
+        var result = DoSolveImageCaptcha(ElementByXPath("//div[contains(@class,'faucet')]/img"),ElementByXPath("//div[contains(@class,'faucet')]/input")); 
+
+        if (result > 0)
+        {
+           return Fail("fail not solve"); //return to solve again - if something wrong
+        }
+
+        var RecaptchaOpen_Iframe = ElementByXPath ("//iframe[contains(@src,'recaptcha/api2/anchor')]"); 
+        if (IsVisible(RecaptchaOpen_Iframe))
+        {
+          //SolveCaptcha if apper
+          var result_2 = base.DoSolveCaptcha();
+          if (result_2 > 0)
+          {
+              return Fail("Fail solving captcha");
+          }
+          RecaptchaUtility utility = new RecaptchaUtility(this);
+          utility.DoSolve();
+         }
+
+
+/*
         var Arrow = FindCorrectArrow();
         if(IsVisible(Arrow))
 		{
@@ -945,7 +969,8 @@ public class luckyfishorg : FaucetScript
 
 			}
         }
-	
+*/
+        return 0;
 		}// end SolveCaptcha_RightSquare_Function
 		//=========//
 
@@ -1400,3 +1425,4 @@ public class luckyfishorg : FaucetScript
 
 	
 } //end public class
+
