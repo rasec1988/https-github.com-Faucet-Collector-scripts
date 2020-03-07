@@ -1,7 +1,7 @@
 
 //==================//
 //script Written by: ••AviramDayan•• 06/01/2020 06:00PM - Version 1
-//Last Update: 16/01/2020 16:00PM - Version 2
+//Last Update: 07/03/2020 03:30PM - Version 3
 //==================//
 
 using System;
@@ -31,7 +31,7 @@ public class FaucetPay : FaucetScript
 				
                 new FaucetSetting(){Name="Rock_Paper_Scissors_Faucet",Display="Rock Paper Scissors - Faucet",Type=EditorType.CheckBox,Default=true},
                 new FaucetSetting(){Name="PaidToClick",Display="PaidToClick - visit ads with Recaptcha",Type=EditorType.CheckBox,Default=true},
-				
+                new FaucetSetting(){Name="RewardPointsConvert",Display="Reward Points - Convert RP to Satoshi when you reach to 1000000 RP (10 RP = 1 SAT)",Type=EditorType.CheckBox,Default=false},			
                 //insert user settings here
                 //new FaucetSetting { 
                 //    Name = "Name of your setting", 
@@ -335,6 +335,7 @@ public class FaucetPay : FaucetScript
                  {
                  var SuccessVAR = ElementByXPath("//div[@class='alert alert-solid alert-dark']");
 		         Log("Success - " + SuccessVAR.Text);
+                 ClaimSuccess(); //success to FC
                  Wait(2);
 				 }
 		         Log("Rock_Paper_Scissors_Faucet - break");
@@ -364,18 +365,17 @@ public class FaucetPay : FaucetScript
            Log("PaidToClick");	
            Wait();	
 	       Wait(2);	
-		   
-		   Title = "View Ad";
-		   
-           var ClaimNow_Available = ElementByXPath ("//div[* and @class='col-sm-4']//a[contains(@href,'faucetpay.io/ptc')]");
+
+		   Title = "View Ad";	  		   
+           var ClaimNow_Available = ElementByXPath ("//div[* and @class='col-sm-4']//button[contains(@onclick,'faucetpay.io/ptc')]");
 	       if (IsVisible(ClaimNow_Available))
 	       { 
 	        Click(ClaimNow_Available);
             Log("PaidToClick - ClaimNow_Available");
 		   }
-		   
+			 
              var SectionOpen = ElementByXPath("//span[@id='duration' and starts-with(text(),'0')]");			 
-             var Time_2_ToWaitForBreak = DateTime.Now.AddSeconds(180);
+             var Time_2_ToWaitForBreak = DateTime.Now.AddSeconds(240);
              while (!IsVisible(SectionOpen))
              {	
 		       Wait();
@@ -386,19 +386,20 @@ public class FaucetPay : FaucetScript
 				 Recaptcha_Function();
 				 
 		         Wait(2);
-				
+
                  if (IsVisible(ElementByXPath ("//div[@class='alert alert-info' and contains(text(),'credit')] | //div[@class='alert alert-info' and contains(text(),'Good job') ]") ))
                  {
                  var SuccessVAR = ElementByXPath("//div[@class='alert alert-info']") ;
 		         Log("Success - " + SuccessVAR.Text);
+                 ClaimSuccess(); //success to FC
                  Wait(2);
 		         Log("PaidToClick - break");
                  break; //after break the while  			 
 				 }
 
-			   }				   
+			   } //end Visible timer ad 0	   
 			   
-	           if (DateTime.Now > Time_2_ToWaitForBreak) //if the time above 120 sec 
+	           if (DateTime.Now > Time_2_ToWaitForBreak)
                {
 		       Log("Rock_Paper_Scissors_Faucet - break - Time_2_ToWaitForBreak");
                break; //break the wait loop
@@ -410,8 +411,42 @@ public class FaucetPay : FaucetScript
       //=============//
 
 
-  
-   ClaimSuccess(); //Marks the claim as a success
+      //=============//
+      //RewardPointsConvert
+      //=============//
+         if (GetBoolSetting("RewardPointsConvert"))
+         {
+           Title = "FaucetPay";
+		   GoToUrl("https://faucetpay.io/page/reward-points");
+           Log("RewardPointsConvert");	
+           Wait();	
+	       Wait(2);	
+			
+           var RewardPointsConvert_Claim = ElementByXPath ("//button[contains(@class,'btn-info') and contains(text(),'RP') or contains(text(),'Convert')]");
+	       if (IsVisible(RewardPointsConvert_Claim))
+	       {
+		     Log("RewardPointsConvert_Claim - Available");
+             Click(RewardPointsConvert_Claim);
+             Wait(6);
+	       }
+
+           var CheckSuccess = ElementByXPath ("//div[contains(@class,'alert-info') and contains(text(),'need a minimum')]");
+	       if (IsVisible(CheckSuccess))
+	       {
+		     Log("CheckSuccess - fail - you need 1000000");
+	       }
+	       if (!IsVisible(CheckSuccess))
+	       {
+		     Log("CheckSuccess - success");
+	       }
+		   
+           Wait();
+		   
+         } //end RewardPointsConvert
+      //=============//
+	  
+	  
+   //ClaimSuccess(); //Marks the claim as a success
    return GetWaitSetting();  
 
   //This faucet has nothing to do here. We will let Faucet Collector handle it.
