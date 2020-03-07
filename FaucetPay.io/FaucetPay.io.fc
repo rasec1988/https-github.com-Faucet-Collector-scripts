@@ -1,7 +1,7 @@
 
 //==================//
 //script Written by: ••AviramDayan•• 06/01/2020 06:00PM - Version 1
-//Last Update: 07/03/2020 03:25PM - Version 3
+//Last Update: 07/03/2020 03:30PM - Version 3
 //==================//
 
 using System;
@@ -335,6 +335,7 @@ public class FaucetPay : FaucetScript
                  {
                  var SuccessVAR = ElementByXPath("//div[@class='alert alert-solid alert-dark']");
 		         Log("Success - " + SuccessVAR.Text);
+                 ClaimSuccess(); //success to FC
                  Wait(2);
 				 }
 		         Log("Rock_Paper_Scissors_Faucet - break");
@@ -390,6 +391,7 @@ public class FaucetPay : FaucetScript
                  {
                  var SuccessVAR = ElementByXPath("//div[@class='alert alert-info']") ;
 		         Log("Success - " + SuccessVAR.Text);
+                 ClaimSuccess(); //success to FC
                  Wait(2);
 		         Log("PaidToClick - break");
                  break; //after break the while  			 
@@ -443,7 +445,7 @@ public class FaucetPay : FaucetScript
          } //end RewardPointsConvert
       //=============//
 	  
-  
+	  
    //ClaimSuccess(); //Marks the claim as a success
    return GetWaitSetting();  
 
