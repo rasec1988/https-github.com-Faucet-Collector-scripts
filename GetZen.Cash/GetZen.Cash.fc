@@ -409,7 +409,7 @@ public class GetZen : FaucetScript
         var ProceedToClaimButton = ElementByXPath("//button[contains(@class,'btn-claim js-Claim') and contains(text(),'claim')]");       
 		if (IsVisible(ProceedToClaimButton))
         {
-         Log("ProceedToClaimButton - 2 - again");
+         Log("ProceedToClaimButton");
          Click(ProceedToClaimButton);
 		}
 
