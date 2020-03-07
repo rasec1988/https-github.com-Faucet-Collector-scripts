@@ -1,7 +1,7 @@
 
 //==================//
 //script Written by: ••AviramDayan•• 06/01/2020 06:00PM - Version 1
-//Last Update: 07/03/2020 03:00PM - Version 3
+//Last Update: 07/03/2020 03:25PM - Version 3
 //==================//
 
 using System;
@@ -267,11 +267,6 @@ public class FaucetPay : FaucetScript
   public override int DoSolveFaucet()
   {
 
-
-
-
-
-
       //=============//
       //Rock_Paper_Scissors_Faucet
       //=============//
@@ -369,18 +364,17 @@ public class FaucetPay : FaucetScript
            Log("PaidToClick");	
            Wait();	
 	       Wait(2);	
-		   
-		   Title = "View Ad";
-		   
-           var ClaimNow_Available = ElementByXPath ("//div[* and @class='col-sm-4']//a[contains(@href,'faucetpay.io/ptc')]");
+
+		   Title = "View Ad";	  		   
+           var ClaimNow_Available = ElementByXPath ("//div[* and @class='col-sm-4']//button[contains(@onclick,'faucetpay.io/ptc')]");
 	       if (IsVisible(ClaimNow_Available))
 	       { 
 	        Click(ClaimNow_Available);
             Log("PaidToClick - ClaimNow_Available");
 		   }
-		   
+			 
              var SectionOpen = ElementByXPath("//span[@id='duration' and starts-with(text(),'0')]");			 
-             var Time_2_ToWaitForBreak = DateTime.Now.AddSeconds(180);
+             var Time_2_ToWaitForBreak = DateTime.Now.AddSeconds(240);
              while (!IsVisible(SectionOpen))
              {	
 		       Wait();
@@ -391,7 +385,7 @@ public class FaucetPay : FaucetScript
 				 Recaptcha_Function();
 				 
 		         Wait(2);
-				
+
                  if (IsVisible(ElementByXPath ("//div[@class='alert alert-info' and contains(text(),'credit')] | //div[@class='alert alert-info' and contains(text(),'Good job') ]") ))
                  {
                  var SuccessVAR = ElementByXPath("//div[@class='alert alert-info']") ;
@@ -401,9 +395,9 @@ public class FaucetPay : FaucetScript
                  break; //after break the while  			 
 				 }
 
-			   }				   
+			   } //end Visible timer ad 0	   
 			   
-	           if (DateTime.Now > Time_2_ToWaitForBreak) //if the time above 120 sec 
+	           if (DateTime.Now > Time_2_ToWaitForBreak)
                {
 		       Log("Rock_Paper_Scissors_Faucet - break - Time_2_ToWaitForBreak");
                break; //break the wait loop
