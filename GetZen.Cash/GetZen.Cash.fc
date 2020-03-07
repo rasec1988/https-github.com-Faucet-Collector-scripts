@@ -1,7 +1,7 @@
 
 //==================//
 //script Written by: ••AviramDayan•• 23/12/2019 01:30PM - Version 1
-//Last Update: 07/03/2020 00:05PM - Version 5
+//Last Update: 07/03/2020 19:35PM - Version 6
 //==================//
 
 using System;
@@ -400,21 +400,31 @@ public class GetZen : FaucetScript
         var Claim_Button = ElementByXPath("//form[@id='form-claim-zen']//button[@type='submit']");       
 		if (IsVisible(Claim_Button))
         {
+         Log("Claim_Button - 1");
          Click(Claim_Button);
 		}
 	
 		Wait(5);
 		
-        var ProceedToClaim = ElementByXPath("//button[contains(@class,'btn-claim js-Claim') and contains(text(),'claim')]");       
-		if (IsVisible(ProceedToClaim))
+        var ProceedToClaimButton = ElementByXPath("//button[contains(@class,'btn-claim js-Claim') and contains(text(),'claim')]");       
+		if (IsVisible(ProceedToClaimButton))
         {
-         Click(ProceedToClaim);
+         Log("ProceedToClaimButton - 2 - again");
+         Click(ProceedToClaimButton);
+		}
+
+		Wait(5);
+
+        if (!IsVisible(ElementByXPath ("//div[@class='modal-content']//div[@id='result1' and contains(text(),'claimed Zen in the last')] | //div[@class='modal-content']//div[@id='result1' and contains(text(),'transferred to your')]") )) 
+        {
+         Log("Claim_Button - 2 - again");
+         Click(Claim_Button);
 		}
 	
 		Wait(5);
 
-        var StatusCheck_Success = ElementByXPath("//div[@class='modal-content']//div[@id='result1' and contains(text(),'This address claimed Zen in the last')]");       
-		if (!IsVisible(StatusCheck_Success))
+        var StatusCheck_Success = ElementByXPath("//div[@class='modal-content']//div[@id='result1' and contains(text(),'transferred to your')]");       
+		if (IsVisible(StatusCheck_Success))
         {
          var SuccessAmountMessage = ElementByXPath("//div[@class='modal-content']//div[contains(@id,'result')]");       
          Log("success"+SuccessAmountMessage.Text);		
@@ -422,7 +432,7 @@ public class GetZen : FaucetScript
 		 ClaimSuccess(); //Marks the claim as a success
 		}
 
-        if (IsVisible(StatusCheck_Success))
+        if (!IsVisible(StatusCheck_Success))
 		{
          Log("fail - need to wait");	
          return GetWaitSetting(); //fail  
