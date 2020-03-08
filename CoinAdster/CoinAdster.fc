@@ -30,7 +30,7 @@ public class CoinAdsterScript : FaucetScript
     {
         OverriteSolvemedia = false;
         //Title that shows in the browser. Is used to identify and close popup windows
-        Title = "CoinAdster - more than just faucet!";
+        Title = "CoinAdster";
 
         //After we did try to claim on the faucet we search for these elements to determine if it was a success or a fail
         SuccessXPath = "//div[@id='faucetMessage']//div[@class='alert alert-success']";
@@ -63,11 +63,6 @@ public class CoinAdsterScript : FaucetScript
 
         //If there is the user info block element then we are logged in - that element is only present when you are logged in.
         var isLoggedIn = ElementByXPath("//div[@class='user']//span[@class='logout']") != null;
-        if (isLoggedIn)
-        {
-            //We are logged in, try to disable the sounds of the faucet.
-            ExecuteScript("faucetVM.alertPlaySound(false)");
-        }
 
         return isLoggedIn;
     }
