@@ -1,8 +1,8 @@
-﻿
+
 
 //==================//
 //script Written by: ••AviramDayan•• 26/06/2019 00:30PM - Version 1
-//Last Update: 07/08/2019 14:00AM - Version 7
+//Last Update: 08/03/2020 03:05AM - Version 8
 //==================//
 
 using System;
@@ -137,12 +137,12 @@ public class betacent : FaucetScript
 */
 		Wait(2);
 		
-        var box_user = ElementByXPath("//div[2]/div/form/div/div[1]/input[@placeholder='email']");
+        var box_user = ElementByXPath("//div[@class='modal-outter']//input[@placeholder='email']");
         SetText(box_user, GetSetting("Email"));
 		
 		Wait(2);
 		
-        var box_pass = ElementByXPath("//div[2]/div/form/div/div[2]/input[@placeholder='password']");
+        var box_pass = ElementByXPath("//div[@class='modal-outter']//input[@placeholder='password']");
         SetText(box_pass, GetPassword("Password"));
 		
 /*			
@@ -157,7 +157,7 @@ public class betacent : FaucetScript
 */		
 		Wait(4);
 		
-        var ButtonLog = ElementByXPath("//div[2]/div/form/div/div[4]/button[2 and @class='sc-kAzzGY kBQagD']");
+        var ButtonLog = ElementByXPath("//div[@class='modal-outter']//button[contains(@type,'submit')]");
         Click(ButtonLog);
 		
 		Wait(2);
@@ -286,7 +286,7 @@ public class betacent : FaucetScript
 		Wait();			  
 		Wait(2);
 		  		  
-		ad = true;    // if i do true - it report as succeed // only one time no multi and also required -> return GetWaitSetting();	
+		ad = true;   	
         //return GetWaitSetting();	
 
 
@@ -428,10 +428,11 @@ public class betacent : FaucetScript
           int N = 0;
           if (Raw_VAR.Count>0)
           {
+	        Log("Function - Click on Raw_VAR");
             int MyCustomTimeINT;
             MyCustomTimeINT = GetIntSetting("UserCustomTime") * 60; 
             return MyCustomTimeINT;
-	        Log("Function - Click on Raw_VAR");
+
 		  }
 		  
 		  var Nothing_Raw_VAR = ElementByXPath("//div[2 and contains(text(),'Nothing')]") ; 
