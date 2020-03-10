@@ -334,7 +334,7 @@ public class CoinAdsterScript : FaucetScript
         //This faucet has nothing to do here. We will let Faucet Collector handle it.
 
         //Find the submit button to claim on the faucet
-        var submitButton = ElementByXPath("//div[@id='rollFaucet']//button[@class='o_o']");
+        var submitButton = ElementByXPath("//div[@id='rollFaucet']//button[@type='button'][contains(text(),' Click & Win ')]");
         if (!IsVisible(submitButton))
         {
             //Unable to find the submit button - return the failure.
