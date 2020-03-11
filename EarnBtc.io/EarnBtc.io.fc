@@ -1,8 +1,8 @@
-﻿
+
 
 //==================//
 //script Written by: ••AviramDayan•• 26/06/2019 00:30PM - Version 1
-//Last Update: 01/09/2019 00:30PM - Version 2
+//Last Update: 11/03/2020 09:30PM - Version 7
 //==================//
 
 using System;
@@ -10,7 +10,6 @@ using FaucetCollector.Script;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Interactions;
 using System.Text.RegularExpressions;
-using System.Linq;
 //css_inc RecaptchaUtilities
 //css_inc ShortLinkUtilities
 
@@ -30,7 +29,14 @@ public class EarnBtc : FaucetScript
             return new FaucetSettings("https://earnbtc.io/user/dashboard.page")
             {
                 new FaucetSetting(){Name="Email",Display="Email",Type=EditorType.TextBox,Required=false},
-                new FaucetSetting(){Name="Password",Display="Password",Type=EditorType.Password,Required=false},                      			
+                new FaucetSetting(){Name="Password",Display="Password",Type=EditorType.Password,Required=false},
+			    //new FaucetSetting(){Name="StoreCookies",Display="StoreCookies - ON/OFF ",Type=EditorType.CheckBox,Default=true },
+                new FaucetSetting() { Name = "FaucetClaim", Display = "FaucetClaim - ON/OFF", Type = EditorType.CheckBox, Default = true},
+                new FaucetSetting() { Name = "FramedAds", Display = "FramedAds - ON/OFF", Type = EditorType.CheckBox, Default = true},
+                new FaucetSetting() { Name = "Choose_Captcha", Display = "Choose_Captcha - ON/OFF - ON Recaptcha - Off SolveMedia", Type = EditorType.CheckBox, Default = true},
+                new FaucetSetting() { Name = "AutoWithdraw", Display = "AutoWithdraw - ON/OFF", Type = EditorType.CheckBox, Default = false},	
+                new FaucetSetting() { Name = "LimitWithdraw", Display = "LimitWithdraw - write the full number of satoshi (without point - 0.0 - and etc ) ", Type = EditorType.Numeric, Default = 8 },
+			
             };
         }
     }
@@ -47,12 +53,21 @@ public class EarnBtc : FaucetScript
         //Title that shows in the browser. Is used to identify and close popup windows
         Title = "Earn B";
 
-		SuccessXPath = "//div[@class='alert alert-success mt-3']//strong[contains(text(),'Congrats')]";  //*[@id='']
+		SuccessXPath = "//*";  //*[@id='']
         FailXPath = "//*"; //*[@id='']
 	
         //TimerIsCountingUp = true;
 
-
+        // Save/Store Cookies OR NOT 
+        if (GetBoolSetting("StoreCookies"))            
+        {
+         StoreCookies = true;
+		}
+		
+        if (!GetBoolSetting("StoreCookies"))            
+        {
+         StoreCookies = false;
+		}	
 		//======================//
 		
         //Let Faucet Collector start up everything
@@ -102,6 +117,7 @@ public class EarnBtc : FaucetScript
     {
 		
 
+     GoToUrl("https://earnbtc.io/user/dashboard.page");
 
 		
         //This faucet has nothing to do here. We will let Faucet Collector handle it.
@@ -121,74 +137,52 @@ public class EarnBtc : FaucetScript
     public override int DoLogin()
     {
 	
-  //   var ExitButton = ElementByXPath("//span[contains(text(),'Logout')]");
+     var ExitButton = ElementByXPath("//span[contains(text(),'Logout')]");
 
-  //      //Not Neccesary
-	 ////if i NOT Login - go to Login Page
-	 //if (!IsVisible(ExitButton))
-	 //{
+
+	 //if i NOT Login - go to Login Page
+	 if (!IsVisible(ExitButton))
+	 {
+
 		GoToUrl("https://earnbtc.io/login.page");
 		Wait();		
-
+		Wait(2);
 /*     
         var StartOpenLogin = ElementByXPath("//div[@class='AuthPage___controls']/button[contains(text(),'Sign In')]");
 	    if (IsVisible(StartOpenLogin))
 	    { 
         Click(StartOpenLogin);
 		}
-*/	
+*/
+		Wait(2);
+		
         var box_user = ElementByXPath("//input[@name='email']");
-        //CHECKING TO box_user
-        if (!IsVisible(box_user))
-        {
-            return Fail("box user not found");
-        }
         SetText(box_user, GetSetting("Email"));
 		
-		//Wait(2);
+		Wait(2);
 		
         var box_pass = ElementByXPath("//input[@name='password']");
-        if (!IsVisible(box_pass))
-        {
-            return Fail("Box pass not visible");
-        }
         SetText(box_pass, GetPassword("Password"));
+		
+		
+		Wait(2);
+		
+        Choose_Captcha_Function(); //call
 
+		Wait();	
 
-        //Wait(2);
-        // We put all of that inside of DoSolveCaptcha
-        //Captcha_Function(); //call
-        var result = DoSolveCaptcha();
-        if (result > 0)
-        {
-            // There is a problem with the captcha
-            return Fail("Somthing is wrong with the captcha");
-        }
+		GoToUrl("https://earnbtc.io/user/dashboard.page");
+		Wait();	
+		Wait(2);	
+		
+        //Title = "test Wallet";
+		
+		Wait();	
 
-        //Click the butotn
+	 } // end ExitButton
 
-        var ButtonLogin = ElementByXPath("//button[@class='genric-btn primary circle btn-lg']");
-        if (!IsVisible(ButtonLogin))
-        {
-            return Fail("Button login not visible");
-        }
-        Click(ButtonLogin);
-        Wait();
-
-        var Error = ElementByXPath("//small[@class='text-danger']//strong");
-        if (IsVisible(Error))
-        {
-            Log(Error.Text);
-            if (Error.Text.Contains("These credentials do not match our records."))
-            {
-               
-                Disable();
-                return Fail("You need to enter correct your credentials");
-            }
-        }
-
-
-        return base.DoLogin();
+        
+       return base.DoLogin();
     }
 //========//
 //DoLogin
@@ -201,8 +195,8 @@ public class EarnBtc : FaucetScript
 //========//
  public override int AfterLogin()
  {
-        GoToUrl("https://earnbtc.io/dashboard");
  
+  
     //we are good to continue
     return base.AfterLogin();
 
@@ -219,25 +213,30 @@ public class EarnBtc : FaucetScript
 //================//
     public override int GetFaucetWaitTime()
     {
-        GoToUrl("https://earnbtc.io/user/roll-win.page");
 
-        var Minutes = ElementByXPath("//span[@id='minutes']");
-        var Second = ElementByXPath("//span[@id='seconds']");
-        if(IsVisible(Minutes) && IsVisible(Second))
+        if (ad)
         {
-            int Seconds, Minute;
-            if (int.TryParse(Minutes.Text, out Minute) &&
-            int.TryParse(Second.Text, out Seconds))
-            {
 
-                return Seconds + Minute;
+		 ad=false;
+		 
+         //Time
+         var Time_Min_Checking_Exist = ElementByXPath("//div[@id='timer']");         
 
-            }
-            else
-            {
-                return GetWaitSetting();
-            }
-        }
+         if(IsVisible(Time_Min_Checking_Exist)) //Visible
+         {
+		 
+         Log("CountDownTimer");  
+
+         var MinVAR = ElementByXPath("//span[@id='minutes']"); 
+         var SecVAR = ElementByXPath("//span[@id='seconds']");
+		 
+         int MinINT = Convert.ToInt32(MinVAR.Text)*60;
+         int SecINT = Convert.ToInt32(SecVAR.Text);
+
+         return MinINT + SecINT;
+         }
+		 
+        }// end ad
 
 		//let Faucet Collector continue.
         return base.GetFaucetWaitTime();
@@ -258,18 +257,11 @@ public class EarnBtc : FaucetScript
 	
     public override int DoSolveCaptcha()
     {
-        var SWitchCaptcha = ElementByXPath("//a[@href='#sm-captcha']");
-        if (IsVisible(SWitchCaptcha))
-        {
-            Click(SWitchCaptcha);
-            Wait(1);
-        }
-
         //This faucet has nothing to do here. We will let Faucet Collector handle it.
         return base.DoSolveCaptcha();
     }
 
-	              
+	
     public override int AfterSolveCaptcha()
     {
         //This faucet has nothing to do here. We will let Faucet Collector handle it.
@@ -290,46 +282,195 @@ public class EarnBtc : FaucetScript
 //==============//
  public override int DoSolveFaucet()
   {
-        if (Driver.Url!= "https://earnbtc.io/user/roll-win.page")
-        {
-            GoToUrl("https://earnbtc.io/user/roll-win.page");
-        }
-       
-        Wait();
-        var GoToClaim = ElementByXPath("//button[@class='btn btn-primary btn-lg']");
-        if (!IsVisible(GoToClaim))
-        {
-            return Fail("Button to claim not visible");
-        }
-        ShortLinkBypasser bypasser = new ShortLinkBypasser(this);
-        Click(GoToClaim);
-        Wait();
-       bool Suc= bypasser.DoShortLink();
 
-        if (Suc)
+
+		//==============//
+		//AutoWithdraw//
+		//==============//
+        if (GetBoolSetting("AutoWithdraw"))
         {
-            var ButtonRoll = ElementByXPath("//button[@class='btn btn-primary btn-lg']");
-            if (!IsVisible(ButtonRoll))
-            {
-                return Fail("Something is wrong");
-            }
+         GoToUrl("https://earnbtc.io/dashboard");
+         Wait();
+         Wait(2);
 
-            var result = DoSolveCaptcha();
-            if (result>0)
-            {
-                return Fail("Fail solving captcha");
-            }
-            Click(ButtonRoll);
-
-        }
-        else
-        {
-            GoToUrl(Url);
-            return Fail("Something is wrong with the shortlink");
-            
-        }
-
+	     AutoWithdraw_Function(); //call 
 	
+		}//end AutoWithdraw
+		//==============//
+	
+
+ 
+//==============//
+//FramedAds//
+//==============//
+if (GetBoolSetting("FramedAds"))
+{
+
+   var TimeToWaitForBreak = DateTime.Now.AddSeconds(480);
+   while (true)
+   {
+     
+     Title = "Earn B";
+   
+     var Card_Exist = ElementByXPath("//div[* and contains(@class,'col-md-4 boxed-ads')]/div[@class='card']/div[@class='header']");         
+     if(IsVisible(Card_Exist)) //Visible
+     {
+   
+       CheckForPopupsEnabled = false; //disable
+    
+       Title = "Framed Ads";
+   	
+   	   Click(Card_Exist);
+   	   Log("Card_Exist");
+   	
+       Wait();
+       Wait(4);
+   
+       Choose_Captcha_Function(); //call
+   	
+       Wait(2);
+   	
+       Recaptcha_Function (); //call
+   
+       Wait(2); 
+   
+       Title = "";
+   	
+       var FaucetButton = ElementByXPath("//button[@id='openAdvertisement']");
+       Click(FaucetButton);
+   
+       var Time_2_Break = DateTime.Now.AddSeconds(65);
+       var WaitForCongratulations = ElementByXPath("//div[contains(@id,'viewCredited') and contains(text(),'Congratulation') ]");
+       while (!IsVisible(WaitForCongratulations)) //not Visible
+       {
+   	     Wait();
+   	     Log("Framed Ads - wait");
+   	  
+         if (DateTime.Now > Time_2_Break) //if the time above 65 sec 
+         {
+         Log("Framed Ads - longer - break - Time_2_Break");
+         break; //break the wait loop
+         }
+       } //end while NOT Visible WaitForCongratulations
+   
+       var SuccessCheck = ElementByXPath("//div[contains(@id,'viewCredited') and contains(text(),'Congratulation') ]");
+       if (IsVisible(SuccessCheck))
+       {
+       Log(SuccessCheck.Text);
+       ClaimSuccess();
+       }
+   
+       Wait(2);
+   
+       Title = "Framed Ads";
+   
+       CheckForPopupsEnabled = true; //enable
+       CheckForPopups(); //call
+   
+       Wait(1);
+   
+     }// end Card_Exist
+   
+     if (!IsVisible(Card_Exist))
+     {
+     Log("Framed Ads - break - not Available");
+     break;
+     }
+   
+     if (DateTime.Now > TimeToWaitForBreak) //if the time above 65 sec 
+     {
+     Log("Framed Ads - break - TimeToWaitForBreak");
+     break; //break the wait loop
+     }
+   
+   } //end while true	
+			
+			
+} // end FramedAds
+//===========//
+
+			
+
+		//==============//
+		//FaucetClaim//
+		//==============//
+        if (GetBoolSetting("FaucetClaim"))
+        {
+        GoToUrl("https://earnbtc.io/user/roll-win.page");
+		Wait();
+		Wait(2);		
+		Log("FaucetClaim");	
+
+         //Time
+         var Time_Min_Checking_Exist = ElementByXPath("//div[@id='timer']");         
+
+         if(IsVisible(Time_Min_Checking_Exist)) //Visible
+         {
+		 
+         Log("CountDownTimer");  
+
+         var MinVAR = ElementByXPath("//span[@id='minutes']"); 
+         var SecVAR = ElementByXPath("//span[@id='seconds']");
+		 
+         int MinINT = Convert.ToInt32(MinVAR.Text)*60;
+         int SecINT = Convert.ToInt32(SecVAR.Text);
+				
+         return MinINT + SecINT;
+         }
+		//=======//
+		
+        Wait();
+        Wait(3);
+
+        var ButtonSrart_1_Cap = ElementByXPath ("//button[contains(text(),'start')]");
+        if (IsVisible(ButtonSrart_1_Cap)) //if NOT visible 
+        {
+        GoToUrl("https://earnbtc.io/url-shortners/generate");
+		Wait();
+		Wait(2);		
+        ShortLink_Function(); //call
+		} //end ButtonSrart_1_Cap
+	
+        Choose_Captcha_Function(); //call
+		
+		Wait();	
+		Wait(5);
+  
+        var ButtonCap = ElementByXPath (" //button[@class='genric-btn primary circle btn-lg'] | //button[contains(text(),'Roll')] ");
+        if (IsVisible(ButtonCap)) //if visible "disabled" 
+        {
+	     Click(ButtonCap);
+         Log("Captcha_Function - ButtonCap");
+        }			
+  		  		
+         Wait(2);
+  
+        var ButtonSrart_2_Cap = ElementByXPath ("//button[contains(text(),'start')]");
+        if (!IsVisible(ButtonSrart_2_Cap)) //if NOT visible 
+        {
+          var Error_Message = ElementByXPath ("//div/strong[contains(text(),'invalid')]");
+          if (IsVisible(Error_Message))
+          {
+              Log("Error_Message - Appear - we return after 1 min ");
+              return 1*60; //we return after 1 min
+          }
+	
+        } //end ButtonSrart_2_Cap
+  
+        Wait();
+
+        Driver.Navigate().Refresh();
+		
+		Wait();	
+		Wait(2);
+
+        } // end FaucetClaim
+	 //===========//
+
+		//ad = true;    // if i do true - it report as succeed // only one time no multi and also required -> return GetWaitSetting();	
+        return GetWaitSetting();	
+
+        //We are good to continue
         return base.DoSolveFaucet();
  }
 //==============//
@@ -369,6 +510,135 @@ public class EarnBtc : FaucetScript
         //This faucet has nothing to do here. We will let Faucet Collector handle it.
         return base.CheckFaucetResult();
     }
+	
+
+ 
+        //=================//
+       //ShortLink_Function
+        //=================//
+
+        public void ShortLink_Function()
+        {
+			
+        //call to ShortLink
+        ShortLinkBypasser bypasser = new ShortLinkBypasser(this);
+        bool ShorBool = bypasser.DoShortLink();
+        if (!ShorBool)
+        {
+            Log("Fail shortlink");
+        }
+
+        }//end ShortLink_Function
+        //=================//
+
+
+
+        //=================//
+       //Choose_Captcha_Function
+        //=================//
+
+        public int Choose_Captcha_Function()
+        {
+
+          if (GetBoolSetting("Choose_Captcha"))
+          {     
+            var RecaptchaChoose = ElementByXPath ("//li[@class='nav-item']//a[contains(text(),'RECAPTCHA')]")  ;
+			Click(RecaptchaChoose);
+			
+            Wait();
+            Wait(2);
+		    
+            Recaptcha_Function (); //call
+		  }
+		  
+          if (!GetBoolSetting("Choose_Captcha"))
+          { 
+            var SolveMediaChoose = ElementByXPath ("//li[@class='nav-item']//a[contains(text(),'SOLVEMEDIA')]") ;
+			Click(SolveMediaChoose);
+         
+		    Wait();
+            Wait(2);
+			
+            Recaptcha_Function (); //call
+		  }
+
+        return 0;
+		  
+        }//end Captcha_Function
+        //=================//
+
+
+      //===================//
+      //Recaptcha_Function
+      //===================//
+      public int Recaptcha_Function ()
+      {
+        ////in the script
+         //for recaptcha popup after click on button - ("//button[contains(@class,'reload')] | //button[contains(@id,'reload')] ")
+          var RecaptchaOpen_Iframe = ElementByXPath ("//iframe[contains(@src,'recaptcha/api2/anchor')] | //div[@id='adcopy-puzzle-image'] "); 
+          if (IsVisible(RecaptchaOpen_Iframe))
+          {
+            //SolveCaptcha if apper
+            var result = base.DoSolveCaptcha();
+            if (result > 0)
+            {
+                return Fail("Fail solving captcha");
+            }
+            RecaptchaUtility utility = new RecaptchaUtility(this);
+            utility.DoSolve();
+           }
+		
+       return 0;		
+	  }
+      //===================//
+
+
+	    //===========//
+        //AutoWithdraw_Function
+	    //===========//
+        public void AutoWithdraw_Function()
+        {
+		  Log("AutoWithdraw_Function");	
+
+        var balance = ElementByXPath("//div[1]/h3/span[@class='m-widget24__stats m--font-brand bither-balance']");
+        string BalanceSTRING = balance.Text.Trim().Split('.')[0];
+        int BalanceINT = Convert.ToInt32(BalanceSTRING);
+
+        int MyAmount;
+        Int32.TryParse(GetSetting("LimitWithdraw"), out MyAmount);
+
+        if (BalanceINT < MyAmount) // - 1000
+        {
+			Log("AutoWithdraw - Under <");
+           //do all stuff
+        }
+ 
+        if (BalanceINT > MyAmount) // the Default Limit to withdraw is 1000
+        {
+			Log("AutoWithdraw - Above >");
+            GoToUrl("https://earnbtc.io/withdraw");
+		    Log("AutoWithdraw");	
+			Wait();
+			Wait(2);
+
+            var WheelButton = ElementByXPath("//button[@id='withdraw-btn' and (@disabled) ]");
+			
+            if (IsVisible(WheelButton)) //if visible "disabled" 
+            {
+             Log("AutoWithdraw - not visible ");
+            }				
+	        if (!IsVisible(WheelButton))  //if NOT visible "disabled" so click on claim button
+	        {
+			 Log("AutoWithdraw - Click on WheelButton");
+			 Click(WheelButton);
+			}
+			
+			Wait();
+        }
+		
+		
+        } //AutoWithdraw_Function
+	    //===========//	
 	
 	
 } //end public class
