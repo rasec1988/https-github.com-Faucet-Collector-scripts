@@ -2,7 +2,7 @@
 
 //==================//
 //script Written by: ••AviramDayan•• 26/06/2019 00:30PM - Version 1
-//Last Update: 11/03/2020 09:30PM - Version 7
+//Last Update: 11/03/2020 19:10PM - Version 7
 //==================//
 
 using System;
@@ -33,7 +33,7 @@ public class EarnBtc : FaucetScript
 			    //new FaucetSetting(){Name="StoreCookies",Display="StoreCookies - ON/OFF ",Type=EditorType.CheckBox,Default=true },
                 new FaucetSetting() { Name = "FaucetClaim", Display = "FaucetClaim - ON/OFF", Type = EditorType.CheckBox, Default = true},
                 new FaucetSetting() { Name = "FramedAds", Display = "FramedAds - ON/OFF", Type = EditorType.CheckBox, Default = true},
-                new FaucetSetting() { Name = "Choose_Captcha", Display = "Choose_Captcha - ON/OFF - ON Recaptcha - Off SolveMedia", Type = EditorType.CheckBox, Default = true},
+                new FaucetSetting() { Name = "Choose_Captcha", Display = "Choose_Captcha - ON/OFF - ON Recaptcha - Off SolveMedia", Type = EditorType.CheckBox, Default = false},
                 new FaucetSetting() { Name = "AutoWithdraw", Display = "AutoWithdraw - ON/OFF", Type = EditorType.CheckBox, Default = false},	
                 new FaucetSetting() { Name = "LimitWithdraw", Display = "LimitWithdraw - write the full number of satoshi (without point - 0.0 - and etc ) ", Type = EditorType.Numeric, Default = 8 },
 			
