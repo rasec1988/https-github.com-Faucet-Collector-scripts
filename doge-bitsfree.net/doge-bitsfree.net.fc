@@ -308,6 +308,14 @@ public class Dogebitsfree: FaucetScript
             Wait();
         }
 
+        var LoadingFaucet=ElementByXPath("//div[@id='loadingFaucet']");
+        DateTime timeout=DateTime.Now.AddSeconds(20);
+        while ( IsVisible ( LoadingFaucet ) && DateTime.Now<timeout )
+        {
+            Wait ( );
+            LoadingFaucet=ElementByXPath ( "//div[@id='loadingFaucet']" );
+        }
+
         var FaucetLocked = ElementByXPath("//b[contains(text(),'Faucet Locked!')]");
         if (IsVisible(FaucetLocked))
         {
@@ -325,7 +333,7 @@ public class Dogebitsfree: FaucetScript
             }
         }
 
-        var ButtonRoll = ElementByXPath("//button[contains(text(),'Roll & Win')]");
+        var ButtonRoll = ElementByXPath("//button[@data-target='#myModal2']");
         if (!IsVisible(ButtonRoll))
         {
             return Fail("Button roll is not visible");
@@ -335,7 +343,7 @@ public class Dogebitsfree: FaucetScript
         {
             return Fail("Fail solving captcha");
         }
-        ButtonRoll = ElementByXPath("//button[contains(text(),'Roll & Win')]");
+        ButtonRoll=ElementByXPath ( "//button[@data-target='#myModal2']" );
         if (!IsVisible(ButtonRoll))
         {
             return Fail("Button roll is not visible");
