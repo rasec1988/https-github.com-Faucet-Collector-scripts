@@ -47,7 +47,7 @@ public class southxchange : FaucetScript
         //Title that shows in the browser. Is used to identify and close popup windows
         Title = "southxchange";
 
-		SuccessXPath = "//*";  //*[@id='']
+	SuccessXPath = "//*";  //*[@id='']
         FailXPath = "//*"; //*[@id='']
 	
         //TimerIsCountingUp = true;
@@ -65,9 +65,7 @@ public class southxchange : FaucetScript
 
     public override int DoInit()
     {
-			
 
-		
         //Let Faucet Collector continue.
         return base.DoInit();
     }
@@ -95,10 +93,8 @@ public class southxchange : FaucetScript
 //=============//
     public override int BeforeLogin()
     {
-		
 
      GoToUrl("https://www.southxchange.com/");
-
 		
         //This faucet has nothing to do here. We will let Faucet Collector handle it.
         return base.BeforeLogin();
@@ -180,15 +176,12 @@ public class southxchange : FaucetScript
 
         if (ad)
         {
-		    //Log("return ad");
-			ad=false;
-			Driver.Close();  // Close specific chrome window
-            Driver.Quit();  // also Close the console app, that was used to kick off the chrome window
-            Driver.Dispose();  // Close the chromedriver.exe
+	    //Log("return ad");
+	    ad=false;
             return GetWaitSetting();
         }
 
-		//let Faucet Collector continue.
+        //let Faucet Collector continue.
         return base.GetFaucetWaitTime();
     }
 //================//
@@ -199,7 +192,6 @@ public class southxchange : FaucetScript
 
     public override int BeforeSolveCaptcha()
     {
- 
         //Return we are ready to proceed
         return base.BeforeSolveFaucet();
     }
