@@ -1,0 +1,298 @@
+
+
+//==================//
+//script Written by: ••AviramDayan•• 12/03/2020 06:00AM - Version 1
+//Last Update: 12/03/2020 06:00AM - Version 1
+//==================//
+
+using System;
+using FaucetCollector.Script;
+using OpenQA.Selenium;
+using OpenQA.Selenium.Interactions;
+//css_inc recaptchaUtilities
+
+public class southxchange : FaucetScript
+{
+    /// <summary>
+    /// List of Settings that will be shown in the bot when selecting this Faucet in the bot.
+    /// You can get the value the user entered with the methods: GetSetting("[Name of the FaucetSetting]"), GetBoolSetting and GetDateTimeSetting
+    /// You can also create a new setting value using SetSetting("[Name you want to use]", "value")
+    /// </summary>
+    public override FaucetSettings Settings
+    {
+        get
+        {
+			
+            return new FaucetSettings("https://www.southxchange.com")
+            {
+                new FaucetSetting(){Name="Email",Display="Email",Type=EditorType.TextBox,Required=false},
+                new FaucetSetting(){Name="Password",Display="Password",Type=EditorType.Password,Required=false},
+                new FaucetSetting() { Name = "GetActivityToken", Display = "GetActivityToken - on/off (it's recommended to set the time every 360 min '6 hours') ", Type = EditorType.CheckBox, Default = true},				
+				
+                //new FaucetSetting() { Name = "FaucetClaim", Display = "FaucetClaim", Type = EditorType.CheckBox, Default = true},	
+ 
+				
+            };
+        }
+    }
+
+	
+//============================================================//
+//the number of "successes" in the script - when are finished  
+//============================================================//
+    public override void Start()
+    {
+        ad = false;
+       
+        //Title that shows in the browser. Is used to identify and close popup windows
+        Title = "southxchange";
+
+	SuccessXPath = "//*";  //*[@id='']
+        FailXPath = "//*"; //*[@id='']
+	
+        //TimerIsCountingUp = true;
+		
+        //Let Faucet Collector start up everything
+        base.Start();
+    }
+//============================================================//
+//the number of "successes" in the script - when are finished  
+//============================================================//
+
+	
+    bool ad; //custom bool
+
+
+    public override int DoInit()
+    {
+
+        //Let Faucet Collector continue.
+        return base.DoInit();
+    }
+
+	
+//==================//
+//save Login Cookies 
+//==================//
+    public override bool IsLoggedIn()
+    {
+	    //save Login Cookies - Check if the "Logout" exist
+        return ElementByXPath("//li[contains(@role,'presentation')]/div[contains(text(),'log')]")!= null;
+	 
+        //return base.IsLoggedIn();
+    }
+//==================//
+//save Login Cookies 
+//==================//	
+
+
+
+
+//=============//
+//BeforeLogin
+//=============//
+    public override int BeforeLogin()
+    {
+
+     GoToUrl("https://www.southxchange.com/");
+		
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.BeforeLogin();
+    }
+//=============//
+//BeforeLogin
+//=============//
+
+	
+
+
+	
+//========//
+//DoLogin
+//========//
+    public override int DoLogin()
+    {
+	
+      var ExitButton = ElementByXPath("//li[contains(@role,'presentation')]/div[contains(text(),'log')]");
+	
+	 //if i NOT Login - go to Login Page
+	 if (!IsVisible(ExitButton))
+	 {
+
+	    GoToUrl("https://www.southxchange.com/Account/Login");
+	    Wait();		
+	    Wait(2);
+		
+        var box_user = ElementByXPath("//input[@name='email']");
+	    if (IsVisible(box_user))
+        {
+        SetText(box_user, GetSetting("Email"));
+	    }
+	
+        Wait(2);
+		
+        var box_pass = ElementByXPath("//input[@name='password']");
+	    if (IsVisible(box_pass))
+        {
+        SetText(box_pass, GetPassword("Password"));
+        }
+	
+        Wait(2);
+		
+        var ButtonLog = ElementByXPath("//input[@type='submit']");
+        if (IsVisible(ButtonLog))
+        {
+        Click(ButtonLog);
+        }
+	
+        Wait();	
+
+	 } // end ExitButton
+
+        
+       return base.DoLogin();
+    }
+//========//
+//DoLogin
+//========//
+ 
+
+
+//========//
+//AfterLogin
+//========//
+ public override int AfterLogin()
+ {
+ 
+  
+    //we are good to continue
+    return base.AfterLogin();
+
+ }
+//========//
+//AfterLogin
+//========//
+
+
+	
+
+//================//
+//GetFaucetWaitTime
+//================//
+    public override int GetFaucetWaitTime()
+    {
+
+        if (ad)
+        {
+	    //Log("return ad");
+	    ad=false;
+        return GetWaitSetting();
+        }
+
+        //let Faucet Collector continue.
+        return base.GetFaucetWaitTime();
+    }
+//================//
+//GetFaucetWaitTime
+//================//
+
+
+
+    public override int BeforeSolveCaptcha()
+    {
+        //Return we are ready to proceed
+        return base.BeforeSolveFaucet();
+    }
+
+	
+    public override int DoSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.DoSolveCaptcha();
+    }
+
+	
+    public override int AfterSolveCaptcha()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.AfterSolveCaptcha();
+    }
+
+	
+    public override int BeforeSolveFaucet()
+    {
+        //Return we can continue
+        return base.BeforeSolveFaucet();
+    }
+  
+	
+	
+//==============//
+//DoSolveFaucet
+//==============//
+ public override int DoSolveFaucet()
+  {
+
+		//==============//
+		//GetActivityToken//
+		//==============//
+        if (GetBoolSetting("GetActivityToken"))
+        {
+
+        GoToUrl("https://www.southxchange.com/");
+		Log("GetActivityToken - Go to promotions , we just waiting 20 seconds, to act normal and get the bounos daily");	
+		
+        Wait();
+        Wait(20);
+        }	
+		
+		ad = true;    // if i do true - it report as succeed // only one time no multi and also required -> return GetWaitSetting();	
+        //return GetWaitSetting();	
+
+
+        //We are good to continue
+        return base.DoSolveFaucet();
+ }
+//==============//
+//DoSolveFaucet
+//==============///
+	
+	
+	
+	
+	
+//==============//
+//AfterSolveFaucet
+//==============//
+  public override int AfterSolveFaucet()
+  {
+
+   //This faucet has nothing to do here. We will let Faucet Collector handle it.
+   return base.AfterSolveFaucet();
+   
+  }
+	
+//==============//
+//AfterSolveFaucet
+//==============//
+
+
+
+    /// <summary>
+    /// This method gets called in the end after the BeforeSolveFaucet/DoSolveFaucet and AfterSolveFaucet methods were done.
+    /// The base.CheckFaucetResult will try to find a visible element on the page using the XPath from SuccessXPath and FailXPath (see the Start method)
+    /// These properties should contain XPath expressions to find certain elements on the page.
+    /// For example if it finds one of the elements from the SuccessXPath, and it is visible, then it will flag the claim attempt as a success.
+    /// Or if it finds one of the elements from the FailXPath, and it is visible, then it will flag the claim attempt as a failure.
+    /// </summary>
+    public override int CheckFaucetResult()
+    {
+        //This faucet has nothing to do here. We will let Faucet Collector handle it.
+        return base.CheckFaucetResult();
+    }
+	
+	
+
+	
+} //end public class
+
