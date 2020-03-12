@@ -54,10 +54,17 @@ public override FaucetSettings Settings
     {
         //Find the submit button to claim on the faucet
         OpenQA.Selenium.IWebElement submitButton = ElementByXPath("//*[@id='free_play_tab']/div[4]/div/p/button");
+
         if (!IsVisible(submitButton))
         {
             //Unable to find the submit button - return the failure.
             return Fail("Submit button not found or not visible.");
+        }
+    int result = DoSolveCaptcha();
+    if (result > 0)
+        {
+            //Unable to solve the captcha - return the failure
+        return result;
         }
     Click(submitButton);
     return base.DoSolveFaucet();
