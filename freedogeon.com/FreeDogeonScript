@@ -1,0 +1,96 @@
+using FaucetCollector.Script;
+using System;
+public class FreeDogeonScript : FaucetScript
+{
+public override int DoLogin()
+{
+    OpenQA.Selenium.IWebElement signInEmail = ElementById("login_form_doge_address");
+    if (signInEmail == null)
+    {
+        return Fail("Signin email input not found.");
+        
+    }
+    OpenQA.Selenium.IWebElement signInPassword = ElementById("login_form_password");
+    if (signInPassword == null)
+    {
+        return Fail("Signin password input not found.");
+        }
+    SetText(signInEmail, GetSetting("Email"));
+    SetText(signInPassword, GetPassword("Password"));
+    var button = ElementById("login_button");
+    if (!IsVisible(button))
+    {
+       return Fail("Login button not found");
+       
+    }
+
+    Click(button);
+    return base.DoLogin();
+}
+
+public override void Start()
+{
+    Title = "FreeDogeon.com - Win free dogecoins every hour!|Free Dogecoin Every Hour";
+
+    SuccessXPath = "//*[@id='free_play_result']";
+    FailXPath = "//*[@id='free_play_error']";
+    base.Start();
+}
+ 
+
+public override FaucetSettings Settings
+{
+    get
+    {
+        return new FaucetSettings("https://freedogeon.com/")
+        {
+            new FaucetSetting() {Name = "Email", Display = "Email", Type = EditorType.TextBox, Required = true},
+
+            new FaucetSetting() { Name = "Password", Display = "Password", Type = EditorType.Password, Required = true }
+        };
+    }
+}
+ public override int DoSolveFaucet()
+    {
+        //Find the submit button to claim on the faucet
+        OpenQA.Selenium.IWebElement submitButton = ElementByXPath("//*[@id='free_play_tab']/div[4]/div/p/button");
+        if (!IsVisible(submitButton))
+        {
+            //Unable to find the submit button - return the failure.
+            return Fail("Submit button not found or not visible.");
+        }
+    Click(submitButton);
+    return base.DoSolveFaucet();
+}
+ public override int GetFaucetWaitTime()
+    {
+        OpenQA.Selenium.IWebElement timerCheck = ElementById("time_remaining");
+        if (!IsVisible(timerCheck))
+        {
+            //no time remaining element, so we are good to go.
+            return 0;
+        }
+
+        string minutes = Convert.ToString(ExecuteScript("return $('#time_remaining .countdown_amount')[0].innerText"));
+        string seconds = Convert.ToString(ExecuteScript("return $('#time_remaining .countdown_amount')[1].innerText"));
+        if (string.IsNullOrEmpty(seconds) || string.IsNullOrEmpty(minutes))
+        {
+            return 0;
+        }
+
+        int min = Convert.ToInt32(minutes.Trim());
+        int sec = Convert.ToInt32(seconds.Trim());
+
+        //Driver.Close();  // Close specific chrome window
+        //Driver.Quit();  // also Close the console app, that was used to kick off the chrome window
+        //Driver.Dispose();  // Close the chromedriver.exe
+
+        //we need to return the total number of seconds
+        return (min * 60) + sec;
+    }
+    public override bool IsLoggedIn()
+    {
+        //If there is a visible element time_remaining or free_play_form_button then we are logged in.     
+        return IsVisible(ElementById("free_play_tab")) || IsVisible(ElementById("time_remaining"));
+    }
+}
