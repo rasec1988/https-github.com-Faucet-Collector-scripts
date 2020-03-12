@@ -30,7 +30,7 @@ public override int DoLogin()
 
 public override void Start()
 {
-    Title = "FreeDogeon.com - Win free dogecoins every hour!|Free Dogecoin Every Hour";
+    Title = "FreeDogeon.com|Free dogecoin";
 
     SuccessXPath = "//*[@id='free_play_result']";
     FailXPath = "//*[@id='free_play_error']";
