@@ -1,8 +1,8 @@
 
 
 //==================//
-//script Written by: ••AviramDayan••  11/03/2020 06:30AM - Version 1
-//Last Update: 11/03/2020 06:30AM - Version 1
+//script Written by: ••AviramDayan•• 12/03/2020 06:00AM - Version 1
+//Last Update: 12/03/2020 06:00AM - Version 1
 //==================//
 
 using System;
@@ -114,30 +114,38 @@ public class southxchange : FaucetScript
     {
 	
       var ExitButton = ElementByXPath("//li[contains(@role,'presentation')]/div[contains(text(),'log')]");
-
 	
 	 //if i NOT Login - go to Login Page
 	 if (!IsVisible(ExitButton))
 	 {
 
-		GoToUrl("https://www.southxchange.com/Account/Login");
-		Wait();		
-		Wait(2);
+	    GoToUrl("https://www.southxchange.com/Account/Login");
+	    Wait();		
+	    Wait(2);
 		
         var box_user = ElementByXPath("//input[@name='email']");
+	    if (IsVisible(box_user))
+        {
         SetText(box_user, GetSetting("Email"));
-		
-		Wait(2);
+	    }
+	
+        Wait(2);
 		
         var box_pass = ElementByXPath("//input[@name='password']");
+	    if (IsVisible(box_pass))
+        {
         SetText(box_pass, GetPassword("Password"));
-
-		Wait(2);
+        }
+	
+        Wait(2);
 		
         var ButtonLog = ElementByXPath("//input[@type='submit']");
+        if (IsVisible(ButtonLog))
+        {
         Click(ButtonLog);
-
-		Wait();	
+        }
+	
+        Wait();	
 
 	 } // end ExitButton
 
@@ -178,7 +186,7 @@ public class southxchange : FaucetScript
         {
 	    //Log("return ad");
 	    ad=false;
-            return GetWaitSetting();
+        return GetWaitSetting();
         }
 
         //let Faucet Collector continue.
