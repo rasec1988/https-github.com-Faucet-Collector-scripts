@@ -87,12 +87,12 @@ public override FaucetSettings Settings
 if (!int.TryParse(minutes.Trim(), out minutes))
 {
   //unable to parse.
-  return base.GetFaucetWaitTime();
+  return GetWaitSetting();
 }
 if (!int.TryParse(seconds.Trim(), out seconds))
 {
   //unable to parse.
-  return base.GetFaucetWaitTime();
+  return GetWaitSetting();();
 }
 
         //Driver.Close();  // Close specific chrome window
