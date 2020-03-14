@@ -2,7 +2,7 @@
 
 //==================//
 //script Written by: ••AviramDayan•• 26/06/2019 00:30PM - Version 1
-//Last Update: 11/03/2020 19:10PM - Version 7
+//Last Update: 14/03/2020 19:10PM - Version 7
 //==================//
 
 using System;
@@ -34,9 +34,7 @@ public class EarnBtc : FaucetScript
                 new FaucetSetting() { Name = "FaucetClaim", Display = "FaucetClaim - ON/OFF", Type = EditorType.CheckBox, Default = true},
                 new FaucetSetting() { Name = "FramedAds", Display = "FramedAds - ON/OFF", Type = EditorType.CheckBox, Default = true},
                 new FaucetSetting() { Name = "Choose_Captcha", Display = "Choose_Captcha - ON/OFF - ON Recaptcha - Off SolveMedia", Type = EditorType.CheckBox, Default = false},
-                new FaucetSetting() { Name = "AutoWithdraw", Display = "AutoWithdraw - ON/OFF", Type = EditorType.CheckBox, Default = false},	
-                new FaucetSetting() { Name = "LimitWithdraw", Display = "LimitWithdraw - write the full number of satoshi (without point - 0.0 - and etc ) ", Type = EditorType.Numeric, Default = 8 },
-			
+
             };
         }
     }
@@ -283,21 +281,6 @@ public class EarnBtc : FaucetScript
  public override int DoSolveFaucet()
   {
 
-
-		//==============//
-		//AutoWithdraw//
-		//==============//
-        if (GetBoolSetting("AutoWithdraw"))
-        {
-         GoToUrl("https://earnbtc.io/dashboard");
-         Wait();
-         Wait(2);
-
-	     AutoWithdraw_Function(); //call 
-	
-		}//end AutoWithdraw
-		//==============//
-	
 
  
 //==============//
@@ -592,54 +575,6 @@ if (GetBoolSetting("FramedAds"))
 	  }
       //===================//
 
-
-	    //===========//
-        //AutoWithdraw_Function
-	    //===========//
-        public void AutoWithdraw_Function()
-        {
-		  Log("AutoWithdraw_Function");	
-
-        var balance = ElementByXPath("//div[1]/h3/span[@class='m-widget24__stats m--font-brand bither-balance']");
-        string BalanceSTRING = balance.Text.Trim().Split('.')[0];
-        int BalanceINT = Convert.ToInt32(BalanceSTRING);
-
-        int MyAmount;
-        Int32.TryParse(GetSetting("LimitWithdraw"), out MyAmount);
-
-        if (BalanceINT < MyAmount) // - 1000
-        {
-			Log("AutoWithdraw - Under <");
-           //do all stuff
-        }
- 
-        if (BalanceINT > MyAmount) // the Default Limit to withdraw is 1000
-        {
-			Log("AutoWithdraw - Above >");
-            GoToUrl("https://earnbtc.io/withdraw");
-		    Log("AutoWithdraw");	
-			Wait();
-			Wait(2);
-
-            var WheelButton = ElementByXPath("//button[@id='withdraw-btn' and (@disabled) ]");
-			
-            if (IsVisible(WheelButton)) //if visible "disabled" 
-            {
-             Log("AutoWithdraw - not visible ");
-            }				
-	        if (!IsVisible(WheelButton))  //if NOT visible "disabled" so click on claim button
-	        {
-			 Log("AutoWithdraw - Click on WheelButton");
-			 Click(WheelButton);
-			}
-			
-			Wait();
-        }
-		
-		
-        } //AutoWithdraw_Function
-	    //===========//	
-	
 	
 } //end public class
 
