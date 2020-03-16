@@ -1,0 +1,153 @@
+﻿using FaucetCollector.Script;
+using System;
+
+class mybitcointubeScript : FaucetScript
+{
+
+
+    public override FaucetSettings Settings
+    {
+        get
+        {
+
+            return new FaucetSettings ( "https://www.mybitcointube.com/" )
+            {
+                new FaucetSetting ( )
+                {
+                    Name="User",
+                    Type=EditorType.TextBox,
+                    Required=true,
+                    Display="Username"
+
+                },
+                new FaucetSetting ( )
+                {
+                    Name="Pass",
+                    Type=EditorType.Password,
+                    Required=true,
+                    Display="Password"
+                }
+
+            };
+
+        }
+
+    }
+
+    public const string  LoginUrl=BaseUrl+"/login.php";
+
+    public const string BaseUrl="https://www.mybitcointube.com/";
+    public const string DashboardUrl=BaseUrl+"/dashboard.php";
+    public const string FaucetUrl=BaseUrl+"/faucet.php";
+
+    public override void Start ( )
+    {
+        Title="myBitcoinTube";
+
+        SuccessXPath="//div[@class='alert alert-success']";
+        FailXPath="//div[@class='alert alert-warning']";
+
+
+        base.Start ( );
+    }
+    public override int DoLogin ( )
+    {
+        GoToUrl ( LoginUrl );
+        Wait ( );
+
+        var UserBox=ElementByXPath("//input[@name='username']");
+        if ( !IsVisible ( UserBox ) )
+        {
+            return Fail ( "User box is not visible" );
+        }
+        var PasswordBox=ElementByXPath("//input[@name='password']");
+        if ( !IsVisible ( PasswordBox ) )
+        {
+            return Fail ( "Password box is not visible" );
+        }
+        SetText ( UserBox , GetSetting ( "User" ) );
+        SetText ( PasswordBox , GetPassword ( "Pass" ) );
+
+        var result=DoSolveCaptcha();
+        if ( result>0 )
+        {
+            return result;
+        }
+
+        var LoginBtn=ElementByXPath("//input[@name='connect']");
+        if ( !IsVisible ( LoginBtn ) )
+        {
+            return Fail ( "Login btn not visbile" );
+        }
+
+        Click ( LoginBtn );
+
+        Wait ( );
+        return base.DoLogin ( );
+    }
+
+    public override bool IsLoggedIn ( )
+    {
+        GoToUrl ( DashboardUrl );
+        Wait ( );
+
+        return ElementByXPath ( "//a[contains(@href,'logout')]" )!=null;
+    }
+
+    public override int DoSolveFaucet ( )
+    {
+        GoToUrl ( FaucetUrl );
+        Wait ( );
+        var ButtonSeeVideo=ElementByXPath("//button[@class='container_baps_button']");
+        if ( !IsVisible ( ButtonSeeVideo ) )
+        {
+            return Fail ( "Button see video is not visible" );
+
+        }
+        Click ( ButtonSeeVideo );
+        Wait ( );
+
+        var YtPlayer=ElementByXPath("//iframe[@id='ytPlayer']");
+        if ( !IsVisible ( YtPlayer ) )
+        {
+            return Fail ( "Button play video not visible" );
+        }
+        Click ( YtPlayer );
+
+        DateTime timeout=DateTime.Now.AddSeconds(200);
+        while (!IsVisible ( ElementByXPath ( "//div[@class='alert alert-success' and contains(text(),'SUCCESS! Click here to go back.')]" ) )&&DateTime.Now<timeout )
+        {
+
+            var Played=ElementByXPath ( "//span[@id='played']" );
+            if ( !IsVisible ( Played ) )
+            {
+                break;
+            }
+            else
+            {
+                Log ( "Seeing video: " + Played.Text );
+            }
+            Wait (2,3 );
+        }
+
+
+        return base.DoSolveFaucet ( );
+    }
+
+    public override int GetFaucetWaitTime ( )
+    {
+        GoToUrl ( FaucetUrl );
+        if(IsVisible(ElementByXPath( "//button[@class='container_baps_button' and contains(text(),'Wait One Hour')]" ) ) )
+        {
+
+            return 3600;
+        }
+        return base.GetFaucetWaitTime ( );
+    }
+
+
+
+
+
+}
+
