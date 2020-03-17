@@ -1,110 +1,136 @@
 using FaucetCollector.Script;
 using System;
+
+//css_inc RecaptchaUtilities
 public class FreeDogeonScript : FaucetScript
 {
-public override int DoLogin()
-{
-    OpenQA.Selenium.IWebElement signInEmail = ElementById("login_form_doge_address");
-    if (signInEmail == null)
+    public override int DoLogin ( )
     {
-        return Fail("Signin email input not found.");
-        
-    }
-    OpenQA.Selenium.IWebElement signInPassword = ElementById("login_form_password");
-    if (signInPassword == null)
-    {
-        return Fail("Signin password input not found.");
+        OpenQA.Selenium.IWebElement signInEmail = ElementById("login_form_doge_address");
+        if ( signInEmail==null )
+        {
+            return Fail ( "Signin email input not found." );
+
         }
-    SetText(signInEmail, GetSetting("Email"));
-    SetText(signInPassword, GetPassword("Password"));
-    var button = ElementById("login_button");
-    if (!IsVisible(button))
-    {
-       return Fail("Login button not found");
-       
+        OpenQA.Selenium.IWebElement signInPassword = ElementById("login_form_password");
+        if ( signInPassword==null )
+        {
+            return Fail ( "Signin password input not found." );
+        }
+        SetText ( signInEmail , GetSetting ( "Email" ) );
+        SetText ( signInPassword , GetPassword ( "Password" ) );
+        var button = ElementById("login_button");
+        if ( !IsVisible ( button ) )
+        {
+            return Fail ( "Login button not found" );
+
+        }
+
+        Click ( button );
+        return base.DoLogin ( );
     }
 
-    Click(button);
-    return base.DoLogin();
-}
-
-public override void Start()
-{
-    Title = "FreeDogeon.com|Free dogecoin";
-
-    SuccessXPath = "//*[@id='free_play_result']";
-    FailXPath = "//*[@id='free_play_error']";
-    base.Start();
-}
- 
-
-public override FaucetSettings Settings
-{
-    get
+    public override void Start ( )
     {
-        return new FaucetSettings("https://freedogeon.com/")
+        Title="FreeDogeon.com|Free dogecoin";
+
+        SuccessXPath="//*[@id='free_play_result']";
+        FailXPath="//*[@id='free_play_error']";
+        base.Start ( );
+    }
+
+
+    public override FaucetSettings Settings
+    {
+        get
+        {
+            return new FaucetSettings ( "https://freedogeon.com/" )
         {
             new FaucetSetting() {Name = "Email", Display = "Email", Type = EditorType.TextBox, Required = true},
 
             new FaucetSetting() { Name = "Password", Display = "Password", Type = EditorType.Password, Required = true }
         };
+        }
     }
-}
- public override int DoSolveFaucet()
+    public override int DoSolveFaucet ( )
     {
-        //Find the submit button to claim on the faucet
-        OpenQA.Selenium.IWebElement submitButton = ElementByXPath("//*[@id='free_play_tab']/div[4]/div/p/button");
 
-        if (!IsVisible(submitButton))
+        // Better to use small xpath
+        var submitButton=ElementByXPath("//button[@class='button free_play_element']");
+
+        OpenQA.Selenium.IWebElement captcha = ElementByXPath("//div[@id='free_play_tab']//iframe[contains(@src, 'recaptcha/api2')]");
+        if ( !IsVisible ( submitButton ) )
         {
             //Unable to find the submit button - return the failure.
-            return Fail("Submit button not found or not visible.");
+            return Fail ( "Submit button not found or not visible." );
         }
-    int result = SolveCaptcha();
-    if (result > 0)
+        if ( IsVisible ( captcha ) )
         {
-            //Unable to solve the captcha - return the failure
-        return result;
+
+
+            int result = DoSolveCaptcha();
+            if ( result>0 )
+            {
+                //Unable to solve the captcha - return the failure
+                return result;
+            }
         }
-    Click(submitButton);
-    return base.DoSolveFaucet();
-}
- public override int GetFaucetWaitTime()
+        Click ( submitButton );
+
+        return base.DoSolveFaucet ( );
+    }
+    public override int DoSolveCaptcha ( )
+    {
+
+
+
+        var result= base.DoSolveCaptcha ( );
+        if ( result>0 )
+        {
+            return result;
+        }
+
+        RecaptchaUtility recaptchaUtility=new RecaptchaUtility(this);
+        recaptchaUtility.DoSolve ( );
+
+        return result;
+    }
+    public override int GetFaucetWaitTime ( )
     {
         OpenQA.Selenium.IWebElement timerCheck = ElementById("time_remaining");
-        if (!IsVisible(timerCheck))
+        if ( !IsVisible ( timerCheck ) )
         {
             //no time remaining element, so we are good to go.
             return 0;
         }
 
-        string minutes = Convert.ToString(ExecuteScript("return $('#time_remaining .countdown_amount')[0].innerText"));
-        string seconds = Convert.ToString(ExecuteScript("return $('#time_remaining .countdown_amount')[1].innerText"));
-        if (string.IsNullOrEmpty(seconds) || string.IsNullOrEmpty(minutes))
+        string minutes_ = Convert.ToString(ExecuteScript("return $('#time_remaining .countdown_amount')[0].innerText"));
+        string secounds_ = Convert.ToString(ExecuteScript("return $('#time_remaining .countdown_amount')[1].innerText"));
+        if ( string.IsNullOrEmpty ( secounds_ )||string.IsNullOrEmpty ( minutes_ ) )
         {
             return 0;
         }
-if (!int.TryParse(minutes.Trim(), out minutes))
-{
-  //unable to parse.
-  return GetWaitSetting();
-}
-if (!int.TryParse(seconds.Trim(), out seconds))
-{
-  //unable to parse.
-  return GetWaitSetting();();
-}
 
-        //Driver.Close();  // Close specific chrome window
-        //Driver.Quit();  // also Close the console app, that was used to kick off the chrome window
-        //Driver.Dispose();  // Close the chromedriver.exe
+        int minutes,seconds;
+        if ( !int.TryParse ( minutes_.Trim ( ) , out minutes ) )
+        {
+            //unable to parse.
+            return GetWaitSetting ( );
+        }
+        if ( !int.TryParse ( secounds_.Trim ( ) , out seconds ) )
+        {
+            //unable to parse.
+            return GetWaitSetting ( );
+        }
+
+      
 
         //we need to return the total number of seconds
-        return (minutes * 60) + seconds;
+        return ( minutes*60 )+seconds;
     }
-    public override bool IsLoggedIn()
+    public override bool IsLoggedIn ( )
     {
         //If there is a visible element time_remaining or free_play_form_button then we are logged in.     
-        return IsVisible(ElementById("free_play_tab")) || IsVisible(ElementById("time_remaining"));
+        return IsVisible ( ElementById ( "free_play_tab" ) )||IsVisible ( ElementById ( "time_remaining" ) );
     }
 }
