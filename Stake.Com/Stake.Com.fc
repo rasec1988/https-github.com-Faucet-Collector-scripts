@@ -1,8 +1,8 @@
-﻿
+
 
 //==================//
 //script Written by: ••AviramDayan•• 26/05/2019 04:00PM
-//Last Update: 22/08/2019 09:00AM - Version 4
+//Last Update: 19/03/2020 09:00AM - Version 7
 //==================//
 
 using System;
@@ -36,7 +36,7 @@ public class stake : FaucetScript
                 new FaucetSetting(){Name="Email",Display="Email OR UserName",Type=EditorType.TextBox,Required=false},
                 new FaucetSetting(){Name="Password",Display="Password",Type=EditorType.Password,Required=false},
 				
-                new FaucetSetting() { Name = "btc", Display = "btc - claim", Type = EditorType.CheckBox, Default =false},	
+                new FaucetSetting() { Name = "btc", Display = "btc - claim", Type = EditorType.CheckBox, Default =true},	
                 new FaucetSetting() { Name = "eth", Display = "eth - claim", Type = EditorType.CheckBox, Default = false},	
                 new FaucetSetting() { Name = "ltc", Display = "ltc - claim", Type = EditorType.CheckBox, Default = false},	
                 new FaucetSetting() { Name = "doge", Display = "doge - claim", Type = EditorType.CheckBox, Default = false},	
@@ -283,24 +283,27 @@ public class stake : FaucetScript
 		Log("AffWithdraw");
 		GoToUrl("https://stake.com/affiliate/funds");
 
-        var WithdrawCommission = ElementByXPath("//button[@class='Button-sc-1n30nq3-0 dyQPHX' and not (@disabled) ]");
-        if (IsVisible(WithdrawCommission))
-        {		
-		Log("WithdrawCommission");		
-        Click(WithdrawCommission);
+        var CheckWithdrawCommission = ElementByXPath("//div[contains(@class,'styles__Buttons')]//button[contains(@class,'Button__StyledButton') and (@disabled) ]"); 
+        if (!IsVisible(CheckWithdrawCommission))
+        {	
+          Log("Claim_Function");
+          var WithdrawCommission = ElementByXPath("//div[contains(@class,'styles__Buttons')]//button[contains(@class,'Button__StyledButton')]"); 
+          Click(WithdrawCommission);
         }//end WithdrawCommission
-		
-		
+
 	 }//end AffWithdraw
      //=============//	 
  
 
-        GoToUrl("https://www.stake.com/");
-		Log("Go to faucet");	
+     GoToUrl("https://stake.com/?currency=btc&modal=vipReload");
+	 Log("Go to faucet");	
 		
-		Wait();
-		Wait(2);	
-		
+	 Wait();
+	 Wait(2);	
+
+     var ReloadAvailable = ElementByXPath("//a[contains(@href,'Reload')]/span[contains(text(),'Reload')]"); 
+     if (IsVisible(ReloadAvailable))
+     {
 
 		//======//
 		//btc//
@@ -313,7 +316,7 @@ public class stake : FaucetScript
 
 	    Wait(2);
 
-        var btc_VAR = ElementByXPath("//ul[@class='styles__ActionList-sc-10xbq0o-0 gyYHwY styles__Ul-sc-18fkhar-0 gsiUwX']/li[1]");
+        var btc_VAR = ElementByXPath("//li[1]/button[contains(@class,'Button__StyledButton')]");
         if (IsVisible(btc_VAR))
         {		
 		Log("btc");		
@@ -342,7 +345,7 @@ public class stake : FaucetScript
 
 	    Wait(2);
 
-        var eth_VAR = ElementByXPath("//ul[@class='styles__ActionList-sc-10xbq0o-0 gyYHwY styles__Ul-sc-18fkhar-0 gsiUwX']/li[2]");
+        var eth_VAR = ElementByXPath("//li[2]/button[contains(@class,'Button__StyledButton')]");
         if (IsVisible(eth_VAR))
         {	
 		Log("eth");		
@@ -370,7 +373,7 @@ public class stake : FaucetScript
 
 	    Wait(2);
 
-        var ltc_VAR = ElementByXPath("//ul[@class='styles__ActionList-sc-10xbq0o-0 gyYHwY styles__Ul-sc-18fkhar-0 gsiUwX']/li[3]");
+        var ltc_VAR = ElementByXPath("//li[3]/button[contains(@class,'Button__StyledButton')]");
         if (IsVisible(ltc_VAR))
         {	
 		Log("ltc");			
@@ -398,7 +401,7 @@ public class stake : FaucetScript
 
 	    Wait(2);
 
-        var doge_VAR = ElementByXPath("//ul[@class='styles__ActionList-sc-10xbq0o-0 gyYHwY styles__Ul-sc-18fkhar-0 gsiUwX']/li[4]");
+        var doge_VAR = ElementByXPath("//li[4]/button[contains(@class,'Button__StyledButton')]");
         if (IsVisible(doge_VAR))
         {	
 		Log("doge");	
@@ -426,7 +429,7 @@ public class stake : FaucetScript
 
 	    Wait(2);
 
-        var bch_VAR = ElementByXPath("//ul[@class='styles__ActionList-sc-10xbq0o-0 gyYHwY styles__Ul-sc-18fkhar-0 gsiUwX']/li[5]");
+        var bch_VAR = ElementByXPath("//li[5]/button[contains(@class,'Button__StyledButton')]");
         if (IsVisible(bch_VAR))
         {	
 		Log("bch");
@@ -454,7 +457,7 @@ public class stake : FaucetScript
 
 	    Wait(2);
 
-        var xrp_VAR = ElementByXPath("//ul[@class='styles__ActionList-sc-10xbq0o-0 gyYHwY styles__Ul-sc-18fkhar-0 gsiUwX']/li[6]");
+        var xrp_VAR = ElementByXPath("//li[6]/button[contains(@class,'Button__StyledButton')]");
         if (IsVisible(xrp_VAR))
         {	
 		Log("xrp");
@@ -471,7 +474,7 @@ public class stake : FaucetScript
 		}
         //=====//				
 		
-
+	 }
 
 		ad = true;    // if i do true - it report as succeed // only one time no multi and also required -> return GetWaitSetting();	
         //return GetWaitSetting();	
@@ -524,6 +527,7 @@ public class stake : FaucetScript
 		//=========//
         public void FaucetButton_Function()
         {	
+		/*
         var DepositButton = ElementByXPath("//a/span[contains(text(),'Deposit')]");
         Click(DepositButton);
 		
@@ -533,7 +537,7 @@ public class stake : FaucetScript
         Click(FaucetTAB);
 		
 		Wait(2);	
-
+        */
 		}//end FaucetButton_Function
 		//=========//
 		
@@ -543,9 +547,14 @@ public class stake : FaucetScript
 		//=========//
         public void Menu_Function()
         {	
-        Log("Menu_Function");		
-        var MenuVAR = ElementByXPath("//div[2]/div/div[1]/span/button[@class='Button-sc-1n30nq3-0 hbLKty']");       			
-        Click(MenuVAR);
+		
+          var MenuVAR = ElementByXPath("//form[contains(@class,'styles__Form')]//button[contains(@class,'Button__StyledButton-sc-8bd3dp-0 jXTFLj')]"); 
+          if (IsVisible(MenuVAR))
+          {
+            Log("Menu_Function");				  
+		    Click(MenuVAR);			  
+		  }
+		  
 		}//end Menu_Function
 		//=========//
 		
@@ -556,12 +565,13 @@ public class stake : FaucetScript
         public void Claim_Function()
         {			
 		
-        var ClaimVAR = ElementByXPath("//button[@class='Button-sc-1n30nq3-0 feVsk' and not (@disabled) ]");   
-        if (IsVisible(ClaimVAR))
-        {	
-        Log("Claim_Function");	
-        Click(ClaimVAR);
-        }//end ClaimVAR
+          var CheckClaim = ElementByXPath("//div[contains(@class,'styles__Buttons')]//button[contains(@class,'Button__StyledButton') and (@disabled) ]"); 
+          if (!IsVisible(CheckClaim))
+          {	
+            Log("Claim_Function");
+            var ClaimVAR = ElementByXPath("//div[contains(@class,'styles__Buttons')]//button[contains(@class,'Button__StyledButton')]"); 
+            Click(ClaimVAR);
+          }//end ClaimVAR
 		
 		}//end Claim_Function
 		//=========//
@@ -615,7 +625,7 @@ public class stake : FaucetScript
         public void BalanceNeedToBeZero_Function()
         {	
 		
-        var BalanceNeedToBeZero = ElementByXPath("//p/span[contains(text(),'Balance must be')]");
+        var BalanceNeedToBeZero = ElementByXPath("//span[contains(text(),'Reload expires at')]"); 
         if (!IsVisible(BalanceNeedToBeZero)) //if is not visible - BalanceNeedToBeZero - DoSolveCaptcha 
         {	
         var result = DoSolveCaptcha();
