@@ -1,8 +1,7 @@
 
-
 //==================//
 //script Written by: ••AviramDayan•• 26/05/2019 04:00PM
-//Last Update: 19/03/2020 09:00AM - Version 7
+//Last Update: 20/03/2020 12:00AM - Version 8
 //==================//
 
 using System;
@@ -91,7 +90,7 @@ public class stake : FaucetScript
     public override bool IsLoggedIn()
     {
 	    //save Login Cookies - Check if the "Logout" exist
-        return ElementByXPath("//button[@data-test='user-dropdown-menu']") != null;
+        return ElementByXPath("//div[contains(@class,'RightContentWrapper')]") != null;
 	 
         //return base.IsLoggedIn();
     }
@@ -130,57 +129,46 @@ public class stake : FaucetScript
     public override int DoLogin()
     {
 	
-      var ExitButton = ElementByXPath("//button[@data-test='user-dropdown-menu']");
-
+      var ExitButton = ElementByXPath("//div[contains(@class,'RightContentWrapper')]");
 	
 	 //if i NOT Login - go to Login Page
 	 if (!IsVisible(ExitButton))
 	 {
 
-		GoToUrl("https://www.stake.com/");
+		GoToUrl("https://stake.com/?modal=login");
 		Wait();		
 		Wait(2);
-     
-        var StartOpenLogin = ElementByXPath("//a[@data-test='login-link']");
-	    if (IsVisible(StartOpenLogin))
-	    { 
-        Click(StartOpenLogin);
-		}
 
-		Wait(2);
-		
-        var box_user = ElementByXPath("//input[@name='emailOrName']");
+        var box_user = ElementByXPath("//input[contains(@name,'email')]");
         SetText(box_user, GetSetting("Email"));
 		
 		Wait(2);
 		
-        var box_pass = ElementByXPath("//input[@name='password']");
+        var box_pass = ElementByXPath("//input[contains(@name,'password')]");
         SetText(box_pass, GetPassword("Password"));
 
 		Wait(4);
 		
-        var ButtonLog = ElementByXPath("//button[@data-test='button-login']");
+        var ButtonLog = ElementByXPath("//button[contains(@type,'submit')]");
         Click(ButtonLog);
 		
 		Wait(2);
-		
-        var RecaptchaOpen_Iframe = ElementByXPath ("//iframe[contains(@src,'recaptcha/api2/anchor')]"); // iframe
+
+        var RecaptchaOpen_Iframe = ElementByXPath ("//iframe[contains(@src,'recaptcha/api2/anchor')]"); 
         if (IsVisible(RecaptchaOpen_Iframe))
-		{
-        //SolveCaptcha if apper
-        var result = base.DoSolveCaptcha();
-        RecaptchaUtility utility = new RecaptchaUtility(this);
-        utility.DoSolve();
-		}
-		
-/*		
-        var Error_Message = ElementByXPath ("//div[@id='add_err']/div/div[@class='message' and contains(text(),'fille' | 'captcha' ) ]");
-        if (IsVisible(Error_Message))
         {
-            Log("Error_Message - Appear - we return after 1 min ");
-            return 1*60; //we return after 1 min
-        }
-*/		
+          //SolveCaptcha if apper
+          var result = base.DoSolveCaptcha();
+          if (result > 0)
+          {
+              return Fail("Fail solving captcha");
+          }
+          RecaptchaUtility utility = new RecaptchaUtility(this);
+          utility.DoSolve();
+         }
+
+
+		
 		Wait();	
 
 	 } // end ExitButton
@@ -617,20 +605,18 @@ public class stake : FaucetScript
     }
 
 
-
-
         //=========//
         //BalanceNeedToBeZero_Function
 		//=========//
         public void BalanceNeedToBeZero_Function()
         {	
 		
-        var BalanceNeedToBeZero = ElementByXPath("//span[contains(text(),'Reload expires at')]"); 
-        if (!IsVisible(BalanceNeedToBeZero)) //if is not visible - BalanceNeedToBeZero - DoSolveCaptcha 
-        {	
-        var result = DoSolveCaptcha();
-		}
-		
+          var BalanceNeedToBeZero = ElementByXPath("//span[contains(text(),'Next claim available')]"); 
+          if (!IsVisible(BalanceNeedToBeZero)) //if is not visible - BalanceNeedToBeZero - DoSolveCaptcha 
+          {	
+          var result = DoSolveCaptcha();
+		  }
+
 		}// end BalanceNeedToBeZero_Function
 		//=========//
 
