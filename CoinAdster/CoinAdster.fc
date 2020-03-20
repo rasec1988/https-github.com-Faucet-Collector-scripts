@@ -213,7 +213,22 @@ public class CoinAdsterScript : FaucetScript
     /// </summary>
     public override int GetFaucetWaitTime()
     {
-        //let Faucet Collector continue.
+        Wait(0, 10);
+        var countdownTimer = ElementByXPath("//div[@id='grey-box']//div[@class='alert alert-danger']//span[@id='claimTime']");
+
+        if (IsVisible(countdownTimer)) {
+            try {
+                string[] splitedTimer = countdownTimer.Text.Split(' ');
+                int timeout = Convert.ToInt32(splitedTimer[0]) * 10;
+
+                return timeout;
+            }
+            catch ( Exception ex ) {
+                Log("Problem catching time: " + ex.Message);
+                return 5 * 60;
+            }
+        }
+
         return base.GetFaucetWaitTime();
     }
 
