@@ -2,7 +2,7 @@
 //css_inc ShortLinkUtilities
 using FaucetCollector.Script;
 
-public class BitsFreeScript_2: FaucetScript
+public class MoreMoneyScript: FaucetScript
 {
     /// <summary>
     /// List of Settings that will be shown in the bot when selecting this Faucet in the bot.
@@ -230,9 +230,9 @@ public class BitsFreeScript_2: FaucetScript
     {
         if (GetBoolSetting("DoShortLink"))
         {
-            GoToUrl("https://moremoney.io/shortlinks.html");
+            GoToUrl( "https://moremoney.io/?page=shortlinks" );
             Wait();
-            var Shortlinks = ElementsByXPath("//a[@class='btn btn-success btn-sm']");
+            var Shortlinks = ElementsByXPath("//a[@class='btn btn-infos btn-sm w-75 mt-1']");
             if (Shortlinks.Count > 0)
             {
                 int NShort = Random(0, Shortlinks.Count - 1);
@@ -308,7 +308,7 @@ public class BitsFreeScript_2: FaucetScript
             }
         }
 
-        var ButtonRoll = ElementByXPath("//button[contains(text(),'Roll & Win')]");
+        var ButtonRoll = ElementByXPath("//button[@class='btn btn-infos btn-sm w-50 mt-1']");
         if (!IsVisible(ButtonRoll))
         {
             return Fail("Button roll is not visible");
