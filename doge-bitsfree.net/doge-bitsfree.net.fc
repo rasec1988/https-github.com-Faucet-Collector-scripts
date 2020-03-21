@@ -43,7 +43,7 @@ public class Dogebitsfree: FaucetScript
     public override void Start()
     {
         //Title that shows in the browser. Is used to identify and close popup windows
-        Title ="Earn FREE Dogecoin";
+        Title ="Earn FREE Dogecoin|Doge";
 
         //After we did try to claim on the faucet we search for these elements to determine if it was a success or a fail
         SuccessXPath = "//div[@class='alert alert-success']";
@@ -260,17 +260,34 @@ public class Dogebitsfree: FaucetScript
                     {
                         solver.DoSolve ( );
                         Wait ( 4 , 5 );
-                        ShortLinkBypasser bypasser = new ShortLinkBypasser(this);
-                        bool cs = bypasser.DoShortLink();
-
-                        if ( cs )
+                        if ( !solver.IsVisibleIconCaptcha ( ) )
                         {
-                            Log ( "ShortlinkSuccess" );
+                            ShortLinkBypasser bypasser = new ShortLinkBypasser(this);
+                            if ( bypasser.IsValidShortLink ( ) )
+                            {
+                                bool cs = bypasser.DoShortLink();
+
+                                if ( cs )
+                                {
+                                    Log ( "ShortlinkSuccess" );
+                                }
+                                else
+                                {
+                                    Log ( "Something is wrong with the shortlink" );
+                                }
+
+                            }
+                            else
+                            {
+                                GoToUrl ( "https://doge-bitsfree.net/shortlinks.html" );
+                                return Fail ( "Something went wrong shortlink this is not a shortlink" );
+                            }
                         }
                         else
                         {
-                            Log ( "Something is wrong with the shortlink" );
+                            return Fail ( "Icon captcha incorrectly solved" );
                         }
+                       
                     }
 
 
