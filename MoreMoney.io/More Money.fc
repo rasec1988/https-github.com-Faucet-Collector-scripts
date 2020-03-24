@@ -13,7 +13,7 @@ public class MoreMoneyScript: FaucetScript
     {
         get
         {
-            return new FaucetSettings("https://moremoney.io/")
+            return new FaucetSettings(BaseUrl)
             {
                 new FaucetSetting(){Name="User",Display="Username",Type=EditorType.TextBox,Required=true},
                 new FaucetSetting(){Name="Pass",Display="Password",Type=EditorType.Password,Required=true},
@@ -35,7 +35,10 @@ public class MoreMoneyScript: FaucetScript
             };
         }
     }
-
+    public const string BaseUrl="https://moremoney.io/";
+    public const string FaucetUrl="?page=faucet";
+    public const string ShortlinkUrl="?page=shortlinks";
+    
     /// <summary>
     /// This method gets called when the faucet is enabled and the GO button is clicked
     /// </summary>
@@ -153,8 +156,12 @@ public class MoreMoneyScript: FaucetScript
     /// </summary>
     public override int GetFaucetWaitTime()
     {
-        Driver.Navigate().Refresh();
-        Wait();
+        if ( Driver.Url!=FaucetUrl )
+        {
+            GoToUrl ( FaucetUrl );
+            Wait ( );
+        }
+
         var Timer = ElementByXPath("//span[@id='claimTime']");
         if (IsVisible(Timer))
         {
@@ -230,7 +237,7 @@ public class MoreMoneyScript: FaucetScript
     {
         if (GetBoolSetting("DoShortLink"))
         {
-            GoToUrl( "https://moremoney.io/?page=shortlinks" );
+            GoToUrl( ShortlinkUrl );
             Wait();
             var Shortlinks = ElementsByXPath("//a[@class='btn btn-infos btn-sm w-75 mt-1']");
             if (Shortlinks.Count > 0)
@@ -285,9 +292,9 @@ public class MoreMoneyScript: FaucetScript
     /// <returns></returns>
     public override int DoSolveFaucet()
     {
-        if(Driver.Url!= "https://moremoney.io/")
+        if(Driver.Url!=FaucetUrl )
         {
-            GoToUrl("https://moremoney.io/");
+            GoToUrl( FaucetUrl );
             Wait();
         }
 
