@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 //css_inc ShortLinkUtilities
 //css_inc IconCaptcha
 using FaucetCollector.Script;
@@ -355,6 +356,8 @@ public class Dogebitsfree: FaucetScript
         {
             return Fail("Button roll is not visible");
         }
+        Click ( ButtonRoll );
+        Wait ( 1 );
         var result = DoSolveCaptcha();
         if (result > 0)
         {
@@ -365,9 +368,14 @@ public class Dogebitsfree: FaucetScript
         {
             return Fail("Button roll is not visible");
         }
-        Click(ButtonRoll);
+        var FinalButtonRoll=ElementsByXPath("//div[@id='myModal2']//button[@type='button']").FirstOrDefault(x=>IsVisible(x));
+        if ( FinalButtonRoll==null )
+        {
+            return Fail ( "Final button roll not visible" );
+        }
+        ExecuteScript ( "startRoll();" );
+        //Click ( FinalButtonRoll );
 
-     
         //This faucet has nothing to do here. We will let Faucet Collector handle it.
         return base.DoSolveFaucet();
     }
