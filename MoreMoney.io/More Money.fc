@@ -36,8 +36,8 @@ public class MoreMoneyScript: FaucetScript
         }
     }
     public const string BaseUrl="https://moremoney.io/";
-    public const string FaucetUrl="?page=faucet";
-    public const string ShortlinkUrl="?page=shortlinks";
+    public const string FaucetUrl=BaseUrl+"?page=faucet";
+    public const string ShortlinkUrl=BaseUrl+"?page=shortlinks";
     
     /// <summary>
     /// This method gets called when the faucet is enabled and the GO button is clicked
