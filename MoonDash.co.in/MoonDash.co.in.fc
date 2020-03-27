@@ -19,8 +19,10 @@ public class MoonDashScript : FaucetScript
                 //We have a setting to get the email address used for the coinpot account
                 new FaucetSetting() { Name = "Email", Display = "Coinpot email addres", Type = EditorType.TextBox, Required = true },
                 //Option to use SolveMedia or reCAPTCHA
+
                  new FaucetSetting(){Name="SwitchC",Display="SwitchCaptcha if the other is not visible",Type=EditorType.CheckBox,Default=true},
                   new FaucetSetting(){Name="SolveMediaRetry", Display="Do three SolveMedia attempts when failed to answer",Type=EditorType.CheckBox,Default=true},
+
 
                 new FaucetSetting() { Name = "UseSolveMedia", Display = "Use SolveMedia", Type = EditorType.CheckBox, Default = true }
             };
@@ -110,7 +112,9 @@ public class MoonDashScript : FaucetScript
 
         int tries = 0;
         bool FirstTime = true;
+
         while ( ( IsVisible ( ElementByXPath ( "//input[@id='adcopy_response']|//input[@name='adcopy_response']" ) )&&tries<3&&!OverriteSolvemedia&&GetBoolSetting ( "SolveMediaRetry" ) )||FirstTime )
+
         {
             FirstTime=false;
             var result = DoSolveCaptcha();
@@ -144,7 +148,9 @@ public class MoonDashScript : FaucetScript
         if ( tries>=3&&GetBoolSetting ( "SwitchC" ) )
         {
 
+
             OverriteSolvemedia=true;
+
         }
 
 
