@@ -20,11 +20,11 @@ public class BonusBitcoinScript : FaucetScript
                 new FaucetSetting() { Name = "Email", Display = "Email", Type = EditorType.TextBox, Required = true },
                 //And we also need the password
                 new FaucetSetting() { Name = "Password", Display = "Password", Type = EditorType.Password, Required = true },
-                new FaucetSetting(){Name="SwitchC",Display="SwitchCaptcha is the other is not visible",Type=EditorType.CheckBox,Default=true},
+                new FaucetSetting(){Name="SwitchC",Display="SwitchCaptcha if the other is not visible",Type=EditorType.CheckBox,Default=true},
 
                 //Option to use SolveMedia or reCAPTCHA
                 new FaucetSetting() { Name = "UseSolveMedia", Display = "Use SolveMedia (instead of reCAPTCHA)", Type = EditorType.CheckBox, Default = true },
-                 new FaucetSetting(){Name="NotReload", Display="Not reload site on captcha error",Type=EditorType.CheckBox,Default=true},
+                 new FaucetSetting(){Name="SolveMediaRetry", Display="Do three SolveMedia attempts when failed to answer",Type=EditorType.CheckBox,Default=true},
                 //Option to select the claim amount - random or average
                 new FaucetSetting() { Name = "ClaimAverage", Display = "Receive the average claim amount (instead of random)", Type = EditorType.CheckBox }
             };
@@ -71,7 +71,7 @@ public class BonusBitcoinScript : FaucetScript
 
         int tries = 0;
         bool FirstTime = true;
-        while ( ( IsVisible ( ElementByXPath ( "//input[@id='adcopy_response']|//input[@name='adcopy_response']" ) )&&tries<3&&!OverriteSolvemedia&&GetBoolSetting ( "NotReload" ) )||FirstTime )
+        while ( ( IsVisible ( ElementByXPath ( "//input[@id='adcopy_response']|//input[@name='adcopy_response']" ) )&&tries<3&&!OverriteSolvemedia&&GetBoolSetting ( "SolveMediaRetry" ) )||FirstTime )
         {
             FirstTime=false;
             var result = DoSolveCaptcha();
@@ -105,7 +105,7 @@ public class BonusBitcoinScript : FaucetScript
         if ( tries>=3&&GetBoolSetting ( "SwitchC" ) )
         {
 
-            OverriteSolvemedia=false;
+            OverriteSolvemedia=true;
         }
 
 
