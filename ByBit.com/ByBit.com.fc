@@ -271,7 +271,7 @@ public class bybit : FaucetScript
 		GoToUrl("https://www.bybit.com/en-US/prize_page");
 		
 	    Wait();
-	    Wait(4);
+	    Wait(2);
 
         var Button_Claim = ElementByXPath("//div[@class='prize__banner-info']//span[contains(text(),'Claim Now') ]");  
         if (IsVisible(Button_Claim))
@@ -279,15 +279,11 @@ public class bybit : FaucetScript
 		Click(Button_Claim);		
 		}
 		
-	    Wait();		
 	    Wait(2);
 		
 		Recaptcha_Function (); //call if apper	
 		
-	    Wait();		
 	    Wait(4);
-		
-	    Driver.Navigate().Refresh(); //Refresh		
 		
         var Success_Claim = ElementByXPath("//div/h3/b[contains(text(),'have won')] "); //("//div[@class='alert alert-success']")
         if (IsVisible(Success_Claim))
@@ -304,8 +300,6 @@ public class bybit : FaucetScript
         return base.DoSolveFaucet();
     }
 	
-	
-
 	
 	
     public override int AfterSolveFaucet()
