@@ -1,8 +1,10 @@
 ﻿using FaucetCollector.Script;
+using OpenQA.Selenium;
 using System;
+using System.Linq;
 
 //css_inc RecaptchaUtilities
-class ScriptBitPayU : FaucetScript
+class ScriptCoinPayU: FaucetScript
 {
    
 
@@ -184,17 +186,45 @@ class ScriptBitPayU : FaucetScript
         return base.BeforeSolveCaptcha();
     }
 
+    public IWebElement FindCorrectXPath (string PageNumber )
+    {
+        var Pages= ElementsByXPath("//div[@class='coinpayu-pagination']//li//span");
+        if ( Pages.Count>0 )
+        {
+            var CorrectPage=Pages.FirstOrDefault(x=>x.Text.Contains(PageNumber));
+            if ( CorrectPage!=null ) {
 
+
+                int XPathNumber=Pages.IndexOf(CorrectPage);
+
+                var AvailableButtons=ElementsByXPath("//div[@class='coinpayu-pagination']//li");
+                if ( AvailableButtons.Count-1>=XPathNumber )
+                {
+                    return AvailableButtons[XPathNumber];
+                }
+           }
+            
+
+        }
+        return null;
+
+    }
     public override int DoSolveFaucet()
     {
 
         if (!Driver.Url.Contains("https://coinpayu.com/dashboard/viewAds/ads_surf"))
         {
             GoToUrl("https://coinpayu.com/dashboard/viewAds/ads_surf");
-            Wait();
+            Wait(3,4);
+        }
+        DateTime Timeout=DateTime.Now.AddSeconds(20);
+        Log ( "Waiting for ads load" );
+        while(IsVisible(ElementByXPath( "//div[@class='loader']" ) ) && DateTime.Now<Timeout )
+        {
+            Wait ( );
         }
         int cont = 1;
-        var Page = ElementByXPath("//a[contains(@class,'page-link') and contains(text(),'"+cont.ToString()+"')]");
+        var Page = FindCorrectXPath(cont.ToString());
       
         while (IsVisible(Page))
         {
@@ -202,7 +232,7 @@ class ScriptBitPayU : FaucetScript
             Wait(1);
             int n = 0;
 			int PastAd=0;
-            var Ads = ElementsByXPath("//div[@class='clearfix container-fluid bgwhite']//div[@class='col-12 text-overflow ags-description pull-left']");
+            var Ads = ElementsByXPath("//div[@class='col-lg-9 ags-left no-padding-right col-lg-9 col-xl-9']//div[contains(@class,'col-12 text-overflow ags-description pull-left')]");
             while (Ads.Count > n)
             {
                 if (!IsVisible(Ads[n]))
@@ -269,18 +299,18 @@ class ScriptBitPayU : FaucetScript
                        
                         
                     }
-                    Ads=ElementsByXPath ( "//div[@class='clearfix container-fluid bgwhite']//div[@class='col-12 text-overflow ads-description pull-left']" );
-                    DateTime Timeout=DateTime.Now.AddSeconds(10);
+                    Ads=ElementsByXPath ( "//div[@class='col-lg-9 ags-left no-padding-right col-lg-9 col-xl-9']//div[contains(@class,'col-12 text-overflow ags-description pull-left')]" );
+                   Timeout=DateTime.Now.AddSeconds(10);
                     while ( Ads.Count==0  && Timeout>DateTime.Now)
                     {
-                        Ads=ElementsByXPath ( "//div[@class='clearfix container-fluid bgwhite']//div[@class='col-12 text-overflow ads-description pull-left']" );
+                        Ads=ElementsByXPath ( "//div[@class='col-lg-9 ags-left no-padding-right col-lg-9 col-xl-9']//div[contains(@class,'col-12 text-overflow ags-description pull-left')]" );
                         Wait ( );
                     }
                 }
 
             }
             cont++;
-            Page = ElementByXPath("//a[contains(@class,'page-link') and contains(text(),'" + cont.ToString() + "')]");
+            Page =FindCorrectXPath ( cont.ToString ( ) );
         }
 
         return GetWaitSetting();
