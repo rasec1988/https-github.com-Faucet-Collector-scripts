@@ -24,14 +24,14 @@ public class BitsFreeScript_2: FaucetScript
                     Name="DoShortLink",Display="DoShortLink",Type=EditorType.CheckBox,Default=true
                 }
                 //insert user settings here
-                //new FaucetSetting { 
-                //    Name = "Name of your setting", 
-                //    Display = "Display shown in Faucet Collector", 
-                //    Type = EditorType.TextBox | EditorType.Password | EditorType.CheckBox | EditorType.Wallet | EditorType.Numeric | EditorType.ComboBox | EditorType.CheckComboBox, 
-                //    Required = true | false, 
+                //new FaucetSetting {
+                //    Name = "Name of your setting",
+                //    Display = "Display shown in Faucet Collector",
+                //    Type = EditorType.TextBox | EditorType.Password | EditorType.CheckBox | EditorType.Wallet | EditorType.Numeric | EditorType.ComboBox | EditorType.CheckComboBox,
+                //    Required = true | false,
                 //    Default = "Optionally a default value" | true | false | null.
                 //    Items = new List<string> { "item1", "item2" } (only valid for ComboBox or CheckComboBox)
-                //} 
+                //}
             };
         }
     }
@@ -97,13 +97,13 @@ public class BitsFreeScript_2: FaucetScript
     /// <returns></returns>
     public override int DoLogin()
     {
-        var UserLogin = ElementByXPath("//input[@id='userLogin']");
+        var UserLogin = ElementByXPath("//input[@placeholder='Username / Email']");
         if (!IsVisible(UserLogin))
         {
             return Fail("User login is not visible");
         }
         SetText(UserLogin, GetSetting("User"));
-        var PasswordBox = ElementByXPath("//input[@id='userPass']");
+        var PasswordBox = ElementByXPath("//input[@type='password']");
         if (!IsVisible(PasswordBox)){
             return Fail("Password box is not visible");
         }
@@ -179,7 +179,7 @@ public class BitsFreeScript_2: FaucetScript
     }
 
     /// <summary>
-    /// This method is called right before a captcha will be solved. 
+    /// This method is called right before a captcha will be solved.
     /// If you call SolveCaptcha() in other methods it will start this flow and tries to solve the captcha on the page.
     /// </summary>
     public override int BeforeSolveCaptcha()
@@ -190,7 +190,7 @@ public class BitsFreeScript_2: FaucetScript
 
     /// <summary>
     /// This method gets called after BeforeSolveCaptcha and it does the actual captcha solving
-    /// It will automatically try to see if there is a SolveMedia captcha active or a reCAPTCHA active. 
+    /// It will automatically try to see if there is a SolveMedia captcha active or a reCAPTCHA active.
     /// If it finds either one it will then use the selected method on the Captcha tab of FaucetCollector to solve the Captcha.
     /// </summary>
     public override int DoSolveCaptcha()
@@ -222,6 +222,15 @@ public class BitsFreeScript_2: FaucetScript
         return base.AfterSolveCaptcha();
     }
 
+    public int SolveShortLinkCaptcha()
+    {
+        int tries = 0;
+        bool FirstTime = true;
+        var result = DoSolveCaptcha();
+
+        return result != 9999 ? result : 0;
+    }
+
     /// <summary>
     /// This method is called right before we attempt to claim on the faucet. So we are logged in and good to go.
     /// Next methods that will be called are DoSolveFaucet, AfterSolveFaucet and CheckFaucetResult.
@@ -232,31 +241,34 @@ public class BitsFreeScript_2: FaucetScript
         {
             GoToUrl("https://neobits.net/shortlinks.html");
             Wait();
-            var Shortlinks = ElementsByXPath("//a[@class='btn btn-success btn-sm']");
+            var Shortlinks = ElementsByXPath("//button[@class='btn btn-success btn-sm']");
             if (Shortlinks.Count > 0)
             {
                 int NShort = Random(0, Shortlinks.Count - 1);
 
                 try
                 {
-                    string uri = Shortlinks[NShort].GetAttribute("href");
-                    if (!string.IsNullOrEmpty(uri))
-                    {
-                        ShortLinkBypasser bypasser = new ShortLinkBypasser(this);
-                        GoToUrl(uri);
-                        Wait();
-                        bool cs = bypasser.DoShortLink();
+                    ShortLinkBypasser bypasser = new ShortLinkBypasser(this);
+                    Click(Shortlinks[NShort]);
+                    Wait(2, 5);
+                    var result = SolveShortLinkCaptcha();
 
-                        if (cs)
-                        {
-                            Log("ShortlinkSuccess");
-                        }
-                        else
-                        {
-                            Log("Something is wrong with the shortlink");
-                        }
+                    if (result > 0) {
+                        Disable();
+
+                        return Fail("Cannot solve ShortLink image captcha, please do it manually");
                     }
 
+                    bool cs = bypasser.DoShortLink();
+
+                    if (cs)
+                    {
+                        Log("ShortlinkSuccess");
+                    }
+                    else
+                    {
+                        Log("Something is wrong with the shortlink");
+                    }
                 }
                 finally
                 {
@@ -301,7 +313,7 @@ public class BitsFreeScript_2: FaucetScript
             }
             else
             {
-                
+
                 Disable();
 
                 return Fail("You need other shortlink to unlock the faucet, please do it manually or enable the option to do shortlink in the script");
@@ -325,7 +337,7 @@ public class BitsFreeScript_2: FaucetScript
         }
         Click(ButtonRoll);
 
-     
+
         //This faucet has nothing to do here. We will let Faucet Collector handle it.
         return base.DoSolveFaucet();
     }
