@@ -26,14 +26,14 @@ public class CoinAdsterScript : FaucetScript
                     Name="DoShortLink",Display="DoShortLink",Type=EditorType.CheckBox,Default=true
                 }
                 //insert user settings here
-                //new FaucetSetting { 
-                //    Name = "Name of your setting", 
-                //    Display = "Display shown in Faucet Collector", 
-                //    Type = EditorType.TextBox | EditorType.Password | EditorType.CheckBox | EditorType.Wallet | EditorType.Numeric | EditorType.ComboBox | EditorType.CheckComboBox, 
-                //    Required = true | false, 
+                //new FaucetSetting {
+                //    Name = "Name of your setting",
+                //    Display = "Display shown in Faucet Collector",
+                //    Type = EditorType.TextBox | EditorType.Password | EditorType.CheckBox | EditorType.Wallet | EditorType.Numeric | EditorType.ComboBox | EditorType.CheckComboBox,
+                //    Required = true | false,
                 //    Default = "Optionally a default value" | true | false | null.
                 //    Items = new List<string> { "item1", "item2" } (only valid for ComboBox or CheckComboBox)
-                //} 
+                //}
             };
         }
     }
@@ -184,7 +184,7 @@ public class CoinAdsterScript : FaucetScript
     }
 
     /// <summary>
-    /// This method is called right before a captcha will be solved. 
+    /// This method is called right before a captcha will be solved.
     /// If you call SolveCaptcha() in other methods it will start this flow and tries to solve the captcha on the page.
     /// </summary>
     public override int BeforeSolveCaptcha ( )
@@ -195,7 +195,7 @@ public class CoinAdsterScript : FaucetScript
 
     /// <summary>
     /// This method gets called after BeforeSolveCaptcha and it does the actual captcha solving
-    /// It will automatically try to see if there is a SolveMedia captcha active or a reCAPTCHA active. 
+    /// It will automatically try to see if there is a SolveMedia captcha active or a reCAPTCHA active.
     /// If it finds either one it will then use the selected method on the Captcha tab of FaucetCollector to solve the Captcha.
     /// </summary>
     public override int DoSolveCaptcha ( )
@@ -282,7 +282,7 @@ public class CoinAdsterScript : FaucetScript
                             }
                             else
                             {
-                                GoToUrl ( "https://doge-bitsfree.net/shortlinks.html" );
+                                GoToUrl ( "https://coinadster.com/shortlinks.html" );
                                 return Fail ( "Something went wrong shortlink this is not a shortlink" );
                             }
                         }

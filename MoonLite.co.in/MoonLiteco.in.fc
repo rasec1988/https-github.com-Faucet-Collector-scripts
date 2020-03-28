@@ -3,7 +3,7 @@ using System.Text.RegularExpressions;
 using FaucetCollector.Script;
 using OpenQA.Selenium;
 
-public class MoonLiteCoinScript_ : FaucetScript
+public class MoonLiteCoinScript : FaucetScript
 {
     /// <summary>
     /// List of Settings that will be shown in the bot when selecting this Faucet in the bot.
@@ -18,10 +18,11 @@ public class MoonLiteCoinScript_ : FaucetScript
             {
                 //We have a setting to get the email address used for the coinpot account
                 new FaucetSetting() { Name = "Email", Display = "Coinpot email addres", Type = EditorType.TextBox, Required = true },
-                 new FaucetSetting(){Name="SwitchC",Display="SwitchCaptcha is the other is not visible",Type=EditorType.CheckBox,Default=true},
+                 new FaucetSetting(){Name="SwitchC",Display="SwitchCaptcha if the other is not visible",Type=EditorType.CheckBox,Default=true},
 
                 //Option to use SolveMedia or reCAPTCHA
-                new FaucetSetting() { Name = "UseSolveMedia", Display = "Use SolveMedia", Type = EditorType.CheckBox, Default = true }
+                new FaucetSetting() { Name = "UseSolveMedia", Display = "Use SolveMedia", Type = EditorType.CheckBox, Default = true },
+                new FaucetSetting(){Name="SolveMediaRetry", Display="Do three SolveMedia attempts when failed to answer",Type=EditorType.CheckBox,Default=true}
             };
         }
     }
@@ -175,13 +176,17 @@ public class MoonLiteCoinScript_ : FaucetScript
         //we are good to continue
         return base.AfterLogin();
     }
-
+    public void RefreshSolvemedia ( )
+    {
+        ExecuteScript ( "ACPuzzle.reload();" );
+    }
     public int SolveCapt()
     {
         var XPathAdcopyRefresh = "//a[@id='adcopy-link-refresh']";
+
         int tries = 0;
         bool FirstTime = true;
-        while ((IsVisible(ElementByXPath("//input[@id='adcopy_response']|//input[@name='adcopy_response']")) && tries < 3 && !OverriteSolvemedia) || FirstTime)
+        while ((IsVisible(ElementByXPath("//input[@id='adcopy_response']|//input[@name='adcopy_response']")) && tries < 3 && !OverriteSolvemedia && GetBoolSetting( "SolveMediaRetry") ) || FirstTime)
         {
             FirstTime = false;
             var result = DoSolveCaptcha();
@@ -190,8 +195,8 @@ public class MoonLiteCoinScript_ : FaucetScript
                 var AdcopyRefresh = ElementByXPath(XPathAdcopyRefresh);
                 if (IsVisible(AdcopyRefresh))
                 {
-                    Click(AdcopyRefresh);
-                    Wait(2);
+                    RefreshSolvemedia ();
+                    Wait (2);
                 }
                 tries++;
                 continue;
@@ -202,7 +207,7 @@ public class MoonLiteCoinScript_ : FaucetScript
                 var AdcopyRefresh = ElementByXPath(XPathAdcopyRefresh);
                 if (IsVisible(AdcopyRefresh))
                 {
-                    Click(AdcopyRefresh);
+                    RefreshSolvemedia ( );
                     Wait(3);
                 }
                 tries++;
@@ -215,7 +220,7 @@ public class MoonLiteCoinScript_ : FaucetScript
         if (tries >= 3 && GetBoolSetting("SwitchC"))
         {
 
-            OverriteSolvemedia = false;
+            OverriteSolvemedia = true;
         }
 
 
