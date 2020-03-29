@@ -1,0 +1,57 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using FaucetCollector.Script;
+    
+class ExampleScript:FaucetScript
+ {
+    public override bool IsLoggedIn ( )
+    {
+        return true;
+    }
+
+    public override FaucetSettings Settings
+    {
+        get
+        {
+            return new FaucetSettings ( "https://faucetcollector.com" )
+            {
+              
+            };
+        }
+    }
+
+    public override void Start ( )
+    {
+        ad=false;
+        base.Start ( );
+
+    }
+    public bool ad;
+    public override int GetFaucetWaitTime ( )
+    {
+        if ( ad )
+        {
+            Log ( "Retorning time in get faucetwait time" );
+            return 30;
+        }
+        return base.GetFaucetWaitTime ( );
+            
+            }
+
+    public override int DoSolveFaucet ( )
+    {
+        Log ( "In DosolveFaucet" );
+        ad=true;
+        Log ( "Success: Retorning time in DoSolveFaucet" );
+
+        return GetWaitSetting ( );
+    }
+
+
+
+
+}
+
