@@ -38,13 +38,13 @@ public class FreeDogeonScript : FaucetScript
         FailXPath="//*[@id='free_play_error']";
         base.Start ( );
     }
-
-
+    public const string BaseUrl="https://freedogeon.com/";
+    public const string FaucetUrl=BaseUrl+"free-doge";
     public override FaucetSettings Settings
     {
         get
         {
-            return new FaucetSettings ( "https://freedogeon.com/" )
+            return new FaucetSettings ( BaseUrl )
         {
             new FaucetSetting() {Name = "Email", Display = "Email", Type = EditorType.TextBox, Required = true},
 
@@ -55,6 +55,12 @@ public class FreeDogeonScript : FaucetScript
     public override int DoSolveFaucet ( )
     {
 
+        if ( !Driver.Url.Contains ( FaucetUrl ) )
+        {
+            GoToUrl ( FaucetUrl );
+            Wait ( 2 );
+        }
+        //OpenQA.Selenium.IWebElement submitButton = ElementByXPath("//*[@id='free_play_tab']/div[4]/div/p/button");
         // Better to use small xpath
         var submitButton=ElementByXPath("//button[@class='button free_play_element']");
 
@@ -81,15 +87,13 @@ public class FreeDogeonScript : FaucetScript
     }
     public override int DoSolveCaptcha ( )
     {
-
-
-
+        // Solve the captcha
         var result= base.DoSolveCaptcha ( );
         if ( result>0 )
         {
             return result;
         }
-
+        // If the captcha is solved correctly call the callback of the recaptcha
         RecaptchaUtility recaptchaUtility=new RecaptchaUtility(this);
         recaptchaUtility.DoSolve ( );
 
@@ -97,6 +101,11 @@ public class FreeDogeonScript : FaucetScript
     }
     public override int GetFaucetWaitTime ( )
     {
+        if ( !Driver.Url.Contains ( FaucetUrl ) )
+        {
+            GoToUrl ( FaucetUrl );
+            Wait ( 2 );
+        }
         OpenQA.Selenium.IWebElement timerCheck = ElementById("time_remaining");
         if ( !IsVisible ( timerCheck ) )
         {
