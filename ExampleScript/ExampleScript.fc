@@ -35,6 +35,7 @@ class ExampleScript:FaucetScript
         if ( ad )
         {
             Log ( "Retorning time in get faucetwait time" );
+            ad=false;
             return 30;
         }
         return base.GetFaucetWaitTime ( );
