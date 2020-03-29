@@ -140,6 +140,6 @@ public class FreeDogeonScript : FaucetScript
     public override bool IsLoggedIn ( )
     {
         //If there is a visible element time_remaining or free_play_form_button then we are logged in.     
-        return IsVisible ( ElementById ( "free_play_tab" ) )||IsVisible ( ElementById ( "time_remaining" ) );
+        return IsVisible ( ElementById ( "balance" ) );
     }
 }
