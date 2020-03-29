@@ -209,8 +209,6 @@ public class bybit : FaucetScript
         return GetWaitSetting();  
 		
     }	//end ad
-	
-        return GetWaitSetting();  
 
    //let Faucet Collector continue.
    return base.GetFaucetWaitTime();
