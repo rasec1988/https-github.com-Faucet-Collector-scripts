@@ -285,12 +285,12 @@ public class bybit : FaucetScript
 		
 	    Wait(4);
 		
-        var Success_Claim = ElementByXPath("//div/h3/b[contains(text(),'have won')] "); //("//div[@class='alert alert-success']")
+        var Success_Claim = ElementByXPath("//div/h3/b[contains(text(),'have won')] "); 
         if (IsVisible(Success_Claim))
-		{
-		Log("FaucetClaim - Success_Claim ");  
-        ad = true; //call to timer / and do success
-		}
+	{
+	 Log("FaucetClaim - Success_Claim ");  
+         ClaimSuccess();
+        }
 		
       } //end FaucetClaim
 
