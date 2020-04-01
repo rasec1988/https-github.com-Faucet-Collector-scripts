@@ -232,7 +232,7 @@ class ScriptCoinPayU: FaucetScript
             Wait(1);
             int n = 0;
 			int PastAd=0;
-            var Ads = ElementsByXPath("//div[@class='col-lg-9 ags-left no-padding-right col-lg-9 col-xl-9']//div[contains(@class,'col-12 text-overflow ags-description pull-left')]");
+            var Ads = ElementsByXPath("//div[@class='clearfix container-fluid bgwhite']//div[@class='col-lg-9 ags-left no-padding-right col-lg-9 col-xl-9']//div[contains(@class,'col-12 text-overflow ags-description pull-left')]");
             while (Ads.Count > n)
             {
                 if (!IsVisible(Ads[n]))
@@ -299,11 +299,11 @@ class ScriptCoinPayU: FaucetScript
                        
                         
                     }
-                    Ads=ElementsByXPath ( "//div[@class='col-lg-9 ags-left no-padding-right col-lg-9 col-xl-9']//div[contains(@class,'col-12 text-overflow ags-description pull-left')]" );
+                    Ads=ElementsByXPath ( "//div[@class='clearfix container-fluid bgwhite']//div[@class='col-lg-9 ags-left no-padding-right col-lg-9 col-xl-9']//div[contains(@class,'col-12 text-overflow ags-description pull-left')]" );
                    Timeout=DateTime.Now.AddSeconds(10);
                     while ( Ads.Count==0  && Timeout>DateTime.Now)
                     {
-                        Ads=ElementsByXPath ( "//div[@class='col-lg-9 ags-left no-padding-right col-lg-9 col-xl-9']//div[contains(@class,'col-12 text-overflow ags-description pull-left')]" );
+                        Ads=ElementsByXPath ( "//div[@class='clearfix container-fluid bgwhite']//div[@class='col-lg-9 ags-left no-padding-right col-lg-9 col-xl-9']//div[contains(@class,'col-12 text-overflow ags-description pull-left')]" );
                         Wait ( );
                     }
                 }
@@ -312,6 +312,8 @@ class ScriptCoinPayU: FaucetScript
             cont++;
             Page =FindCorrectXPath ( cont.ToString ( ) );
         }
+
+      
 
         return GetWaitSetting();
     }
