@@ -1,7 +1,7 @@
-﻿
+
 //============================================//
 //script Written first by: cgerabit 21/08/2018
-//last update by: AviramDayan 03/06/2019 19:37PM - Version: 10
+//last update by: AviramDayan 01/04/2020 19:37PM - Version: 13
 //============================================//
 
 using System;
@@ -22,6 +22,9 @@ public class Mellowads : FaucetScript
             {
                 new FaucetSetting(){Name="User",Display="Email",Type=EditorType.TextBox,Required=true},
                 new FaucetSetting(){Name="Pass",Display="Password",Type=EditorType.Password,Required=true},
+	
+				new FaucetSetting(){Name="FaucetClaim",Display="FaucetClaim - ON/OFF",Type=EditorType.CheckBox,Default=true},	
+				
                 //insert user settings here
                 //new FaucetSetting { 
                 //    Name = "Name of your setting", 
@@ -35,14 +38,18 @@ public class Mellowads : FaucetScript
         }
     }
 
-    /// <summary>
-    /// This method gets called when the faucet is enabled and the GO button is clicked
-    /// </summary>
+
+
+//============================================================//
+//the number of "successes" in the script - when are finished  
+//============================================================//
     public override void Start()
     {
+        cs = false;	
+		
         //Title that shows in the browser. Is used to identify and close popup windows
         Title = "Mellow";
-        cs = false;
+
         //After we did try to claim on the faucet we search for these elements to determine if it was a success or a fail
         SuccessXPath = "//div[@class='modal-body text-success']|//*[contains(@class,'suc')]";
         FailXPath = "//div[@class='modal-body text-failed']";
@@ -50,22 +57,25 @@ public class Mellowads : FaucetScript
         //Let Faucet Collector start up everything
         base.Start();
     }
+//============================================================//
+//the number of "successes" in the script - when are finished  
+//============================================================//
 
-    /// <summary>
-    /// This is the first method to run after the browser is opened and the first page is loaded.
-    /// </summary>
+
+
+    bool cs;
+
     public override int DoInit()
     {
         //Let Faucet Collector continue.
         return base.DoInit();
     }
 
-    /// <summary>
-    /// This method gets called after the Start method, here you need to return if we are logged in or not.
-    /// If you return false then it will call the BeforeLogin, Login and AfterLogin methods so you can login.
-    /// After those Login methods are called it will call this IsLoggedIn method again to see if the login did succeed.
-    /// If you return true Faucet Collector will store all cookies so it will probably be already logged in on the next attempt.
-    /// </summary>
+
+
+//==================//
+//save Login Cookies 
+//==================//
     public override bool IsLoggedIn()
     {
         if (!Driver.Url.Contains("https://mellowads.com/dashboard"))
@@ -84,21 +94,28 @@ public class Mellowads : FaucetScript
             return false;
         }
     }
+//==================//
+//save Login Cookies 
+//==================//
+
+
 
     /// <summary>
     /// This method gets called if IsLoggedIn returned false, right before the DoLogin method is called.
     /// </summary>
     public override int BeforeLogin()
     {
+		
         //This faucet has nothing to do here. We will let Faucet Collector handle it.
         return base.BeforeLogin();
     }
+	
 
-    /// <summary>
-    /// This method gets called after BeforeLogin, but only if IsLoggedIn returned false.
-    /// It can be used to actually login the user/enter wallet details in the faucet
-    /// </summary>
-    /// <returns></returns>
+
+//=======//
+//DoLogin//
+//=======//
+
     public override int DoLogin()
     {
         if (!Driver.Url.Contains("https://mellowads.com/home/signin"))
@@ -137,51 +154,45 @@ public class Mellowads : FaucetScript
         //This faucet has nothing to do here. We will let Faucet Collector handle it.
         return base.DoLogin();
     }
+//=======//
+//DoLogin//
+//=======//
 
-    /// <summary>
-    /// This method gets called after the DoLogin method.
-    /// </summary>
+
+
     public override int AfterLogin()
     {
         //This faucet has nothing to do here. We will let Faucet Collector handle it.
         return base.AfterLogin();
     }
 
-    /// <summary>
-    /// This method gets called after the login methods are successful, so we are logged into the faucet.
-    /// If the faucet is not yet ready to claim you should return a TimeStamp value to return how long it takes before the Faucet claim can be done.
-    /// This is used to pause the script while the faucet its timer runs out.
-    /// Return the number of seconds the bot should wait.
-    /// </summary>
+
+
+//=============//
+//GetFaucetWaitTime
+//=============//
     public override int GetFaucetWaitTime()
     {
         if (cs)
         {
-    Driver.Close();  // Close specific chrome window
-    Driver.Quit();  // also Close the console app, that was used to kick off the chrome window
-    Driver.Dispose();  // Close the chromedriver.exe
-    return GetWaitSetting();
+          return GetWaitSetting();
         }
         //let Faucet Collector continue.
         return base.GetFaucetWaitTime();
     }
+//=============//
+//GetFaucetWaitTime
+//=============//
 
-    /// <summary>
-    /// This method is called right before a captcha will be solved. 
-    /// If you call SolveCaptcha() in other methods it will start this flow and tries to solve the captcha on the page.
-    /// </summary>
+
+
     public override int BeforeSolveCaptcha()
     {
         //This faucet has nothing to do here. We will let Faucet Collector handle it.
         return base.BeforeSolveCaptcha();
     }
 
-    /// <summary>
-    /// This method gets called after BeforeSolveCaptcha and it does the actual captcha solving
-    /// It will automatically try to see if there is a SolveMedia captcha active or a reCAPTCHA active. 
-    /// If it finds either one it will then use the selected method on the Captcha tab of FaucetCollector to solve the Captcha.
-    /// </summary>
-    bool cs;
+
     public override int DoSolveCaptcha()
     {
  
@@ -189,20 +200,13 @@ public class Mellowads : FaucetScript
         return base.DoSolveCaptcha();
     }
 
-    /// <summary>
-    /// This method will get called after DoSolveCaptcha returned it was a success.
-    /// </summary>
-    /// <returns></returns>
+
     public override int AfterSolveCaptcha()
     {
         //This faucet has nothing to do here. We will let Faucet Collector handle it.
         return base.AfterSolveCaptcha();
     }
 
-    /// <summary>
-    /// This method is called right before we attempt to claim on the faucet. So we are logged in and good to go.
-    /// Next methods that will be called are DoSolveFaucet, AfterSolveFaucet and CheckFaucetResult.
-    /// </summary>
     public override int BeforeSolveFaucet()
     {
       
@@ -210,14 +214,17 @@ public class Mellowads : FaucetScript
         return base.BeforeSolveCaptcha();
     }
 
-    /// <summary>
-    /// This method gets called after the BeforeSolveFaucet. You can do the actual claiming of the faucet in here.
-    /// </summary>
-    /// <returns></returns>
-    public override int DoSolveFaucet()
+
+
+//=============//
+//DoSolveFaucet
+//=============//
+ public override int DoSolveFaucet()
+ {
+
+    //FaucetClaim
+	if (GetBoolSetting("FaucetClaim"))
     {
-
-
         //first go to account details - to cahck if was claim in "hours ago"		
         GoToUrl("https://mellowads.com/accountdetails");
         Wait();
@@ -229,9 +236,6 @@ public class Mellowads : FaucetScript
         if (IsVisible(NowAgoVAR) || IsVisible(HoursAgoVAR) || IsVisible(MinutesAgoVAR))
         {
 		 Log("hours ago - visible - so we return after your time");
-         Driver.Close();  // Close specific chrome window
-         Driver.Quit();  // also Close the console app, that was used to kick off the chrome window
-         Driver.Dispose();  // Close the chromedriver.exe
          return GetWaitSetting();		 
 		 //cs = true;    // if i do true - it report as succeed - so its not good
         }
@@ -266,25 +270,33 @@ public class Mellowads : FaucetScript
         }
         Click(claim_b_);
 
-        cs = true;
+        //cs = true;
+        ClaimSuccess(); //Marks the claim as a success
 		
         } // end hours ago" not visible
 		
-		
-        //This faucet has nothing to do here. We will let Faucet Collector handle it.
-        return base.DoSolveFaucet();
-    }
+    } // end FaucetClaim
+	
+	
+    return GetWaitSetting();
+	
+	
+  //This faucet has nothing to do here. We will let Faucet Collector handle it.
+  return base.DoSolveFaucet();
+ }
+//=============//
+//DoSolveFaucet
+//=============//
 
-    /// <summary>
-    /// This method will get called after the DoSolveFaucet is completed and returned it was a success.
-    /// For example you can wait for a processing popup to go away until actual faucet claim result is on the page.
-    /// </summary>
+
+
     public override int AfterSolveFaucet()
     {
         //This faucet has nothing to do here. We will let Faucet Collector handle it.
         return base.AfterSolveFaucet();
     }
-
+	
+	
     /// <summary>
     /// This method gets called in the end after the BeforeSolveFaucet/DoSolveFaucet and AfterSolveFaucet methods were done.
     /// The base.CheckFaucetResult will try to find a visible element on the page using the XPath from SuccessXPath and FailXPath (see the Start method)
@@ -297,4 +309,7 @@ public class Mellowads : FaucetScript
         //This faucet has nothing to do here. We will let Faucet Collector handle it.
         return base.CheckFaucetResult();
     }
-}
+	
+	
+	
+}//end class
