@@ -273,7 +273,7 @@ public class CoinbulbScript : FaucetScript
         if (GetBoolSetting("Surf"))
         {
             GoToUrl("https://www.coinbulb.com/view_ads?type=active");
-            var ViewAdButton = ElementsByXPath("//button[@class='btn btn-primary btn-middle']");
+            var ViewAdButton = ElementsByXPath("//button[contains(@class,'btn btn-primary btn-middle')]");
             int n = 0;
             while (ViewAdButton.Count > n)
             {
@@ -312,7 +312,7 @@ public class CoinbulbScript : FaucetScript
                             Wait();
                             var Coundown = ElementByXPath("//b[@id='countdown']");
                             int Time = 50;
-                            var Button = ElementByXPath("//button[@class='btn btn-primary']");
+                            var Button = ElementByXPath("//button[contains(@class,'btn btn-primary btn-middle')]");
                             DateTime time = DateTime.Now.AddSeconds(100);
                             while (IsVisible(Coundown) && Time>0  &&!IsVisible(Button))
                             {
@@ -322,7 +322,7 @@ public class CoinbulbScript : FaucetScript
                                 }
                                 Coundown = ElementByXPath("//b[@id='countdown']");
                                 int.TryParse(Coundown.Text, out Time);
-                                Button = ElementByXPath("//button[@class='btn btn-primary']");
+                                Button = ElementByXPath( "//button[contains(@class,'btn btn-primary btn-middle')]" );
                                 Wait();
                             }
                             Wait(1);
@@ -355,7 +355,7 @@ public class CoinbulbScript : FaucetScript
                     Driver.SwitchTo().Window(Driver.WindowHandles[0]);
                     Driver.Navigate().Refresh();
                     Wait(1);
-                    ViewAdButton = ElementsByXPath("//button[@class='btn btn-primary btn-middle']");
+                    ViewAdButton = ElementsByXPath( "//button[contains(@class,'btn btn-primary btn-middle')]" );
                 }
 
 
