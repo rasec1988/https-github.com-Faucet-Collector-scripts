@@ -5,7 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using FaucetCollector.Script;
 
-public class FreeBitcoinScript_ : FaucetScript
+public class FreeBitcoinScript : FaucetScript
 {
     public override FaucetSettings Settings
     {
@@ -28,15 +28,7 @@ public class FreeBitcoinScript_ : FaucetScript
                     Name = "AutoRedeemBtc",
                     Display = "Auto redeem BTC BONUS",
                     Type = EditorType.ComboBox,
-                    Items = new List<string>
-                    {
-                        "None",
-                        "1000% BTC Bonus",
-                        "500% BTC Bonus",
-                        "100% BTC Bonus",
-                        "50% BTC Bonus",
-                        "10% BTC Bonus",
-                    },
+                    Items = AvailableBtcSettings,
                     Default = "None"
                 },
                  new FaucetSetting(){Name="PointBonus",Type=EditorType.TextBox,Display="AutoRedeemPoints only if my points >=", Default=0},
@@ -45,15 +37,7 @@ public class FreeBitcoinScript_ : FaucetScript
                       Name = "AutoRedeemPoint",
                     Display = "Auto redeem Point Bonus",
                     Type = EditorType.ComboBox,
-                    Items = new List<string>
-                    {
-                        "None",
-                        "100 Reward Points / Roll",
-                        "50 Reward Points / Roll",
-                        "25 Reward Points / Roll",
-                        "10 Reward Points / Roll",
-                        "1 Reward Point / Roll",
-                    },
+                    Items = AvailablePointsSettings,
                     Default = "None"
 
                 },
@@ -64,22 +48,45 @@ public class FreeBitcoinScript_ : FaucetScript
                       Name = "AutoRedeemTicket",
                     Display = "Auto redeem Ticket Bonus",
                     Type = EditorType.ComboBox,
-                    Items = new List<string>
-                    {
-                        "None",
-                        "100 Tickets / Roll",
-                        "50 Tickets / Roll",
-                        "25 tickets / roll",
-                        "10 Tickets / Roll",
-                        "1 Tickets / Roll",
-                    },
+                    Items = AvailableTicketSettings,
                     Default = "None"
 
                 },
             };
         }
     }
+    private  readonly List<string> AvailableBtcSettings=new List<string>
+    {
 
+                        "None",
+                        "The largest BTC Bonus",
+                        "1000% BTC Bonus",
+                        "500% BTC Bonus",
+                        "100% BTC Bonus",
+                        "50% BTC Bonus",
+                        "10% BTC Bonus",
+    };
+
+   private readonly List<string> AvailableTicketSettings=new List<string>
+    {
+                        "None",
+                        "The largest Ticket Bonus",
+                        "100 Tickets / Roll",
+                        "50 Tickets / Roll",
+                        "25 tickets / roll",
+                        "10 Tickets / Roll",
+                        "1 Tickets / Roll",
+    };
+    private readonly List<string> AvailablePointsSettings=new List<string>
+    {
+                        "None",
+                        "The largest Points Bonus",
+                        "100 Reward Points / Roll",
+                        "50 Reward Points / Roll",
+                        "25 Reward Points / Roll",
+                        "10 Reward Points / Roll",
+                        "1 Reward Point / Roll",
+    };
     public override void Start()
     {
         //Title that shows in the browser. Is used to close popups
@@ -276,11 +283,13 @@ public class FreeBitcoinScript_ : FaucetScript
         public RedemSetting(string Setting)
         {
             this.Setting = Setting;
+            this.PointBalance=PointBalance;
         }
         /// <summary>
         /// Setting in the script
         /// </summary>
         public string Setting { get; set; }
+        public int PointBalance { get; set; }
         /// <summary>
         /// Redem Javascript function name
         /// </summary>
@@ -297,9 +306,6 @@ public class FreeBitcoinScript_ : FaucetScript
                 return GetAutoRedeemName(Setting);
             }
         }
-
-
-
         /// <summary>
         /// Points required to redem that bonus
         /// </summary>
@@ -310,16 +316,20 @@ public class FreeBitcoinScript_ : FaucetScript
                 return GetPointsRequired(Setting);
             }
         }
+        public static RedemType ClassifyRedem ( string Setting)
+        {
+            return Setting.ToLower ( ).Contains ( "points" ) ? RedemType.Points : Setting.ToLower ( ).Contains ( "btc" ) ? RedemType.Btc : RedemType.Lottery;
+        }
 
         public RedemType Type
         {
             get
             {
-                return Setting.ToLower().Contains("points") ? RedemType.Points : Setting.ToLower().Contains("btc") ? RedemType.Btc : RedemType.Lottery;
+                return ClassifyRedem ( Setting );
             }
         }
 
-        private string GetAutoRedeemName(string autoRedeem)
+        public static string GetAutoRedeemName(string autoRedeem)
         {
             if (autoRedeem == null)
             {
@@ -362,7 +372,7 @@ public class FreeBitcoinScript_ : FaucetScript
 
             return null;
         }
-        private int GetPointsRequired(string autoRedeem)
+        public static int GetPointsRequired(string autoRedeem)
         {
             if (autoRedeem == null)
             {
@@ -472,9 +482,64 @@ public class FreeBitcoinScript_ : FaucetScript
         }
     }
 
+    private string RedemBtcSetting { get
+        {
+            string setting=GetSetting("AutoRedeemBtc");
+            if(!setting.Contains( "The largest" ) )
+            {
+                return setting;
+            }
 
+            return GetLargestBonus ( setting );
+        } 
+    }
+    private string RedemPointSetting {
+        get
+        {
+            string setting=GetSetting("AutoRedeemPoint");
+            if ( !setting.Contains ( "The largest" ) )
+            {
+                return setting;
+            }
 
+            return GetLargestBonus ( setting );
+        }
+    }
+    private string RedemTicketSetting
+    {
 
+        get
+        {
+            string setting=GetSetting("AutoRedeemTicket");
+            if ( !setting.Contains ( "The largest" ) )
+            {
+                return setting;
+            }
+
+            return GetLargestBonus ( setting );
+        }
+    }
+
+    private string GetLargestBonus ( string setting)
+    {
+        RedemSetting.RedemType type = RedemSetting.ClassifyRedem(setting);
+
+        List<string> AvailableOptions=type==RedemSetting.RedemType.Btc?AvailableBtcSettings:type==RedemSetting.RedemType.Points?AvailablePointsSettings:AvailableTicketSettings;
+        int RewardPoints=this.RewardPoints;
+        string LastSetting="None";
+        int LastPoints=0;
+        for(int i=0 ;i<AvailableOptions.Count ;i++ )
+        {
+            int PointsRequired=RedemSetting.GetPointsRequired(AvailableOptions[i]);
+            if(PointsRequired>LastPoints && PointsRequired<=RewardPoints )
+            {
+                LastPoints=PointsRequired;
+                LastSetting=AvailableOptions[i];
+            }
+
+        }
+        return LastSetting;
+    }
     /// <summary>
     /// This method is called right before we attempt to claim on the faucet. 
     /// Next methods that will be called are DoSolveFaucet and AfterSolveFaucet and CheckFaucetResult.
@@ -483,11 +548,12 @@ public class FreeBitcoinScript_ : FaucetScript
     {
 
 
+        var RewardPoints=this.RewardPoints;
         List<RedemSetting> ActualSettings = new List<RedemSetting> {
 
-            new RedemSetting(GetSetting("AutoRedeemBtc")),
-            new RedemSetting(GetSetting("AutoRedeemPoint")),
-            new RedemSetting(GetSetting("AutoRedeemTicket")),
+            new RedemSetting(RedemBtcSetting),
+            new RedemSetting(RedemPointSetting),
+            new RedemSetting(RedemTicketSetting)
         }.Where(x=>x.RedemName!=null).ToList();
         
 
