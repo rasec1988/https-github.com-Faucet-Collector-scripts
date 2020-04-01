@@ -206,6 +206,7 @@ public class FreeBitcoinScript : FaucetScript
         var min = Convert.ToInt32(minutes.Trim());
         var sec = Convert.ToInt32(seconds.Trim());
         //return the total wait time in seconds
+        
         return (min * 60) + sec;
     }
 
@@ -283,13 +284,11 @@ public class FreeBitcoinScript : FaucetScript
         public RedemSetting(string Setting)
         {
             this.Setting = Setting;
-            this.PointBalance=PointBalance;
         }
         /// <summary>
         /// Setting in the script
         /// </summary>
         public string Setting { get; set; }
-        public int PointBalance { get; set; }
         /// <summary>
         /// Redem Javascript function name
         /// </summary>
