@@ -1,7 +1,7 @@
 
 //==================//
 //script Written by: ••AviramDayan•• 23/12/2019 01:30PM - Version 1
-//Last Update: 07/03/2020 19:35PM - Version 6
+//Last Update: 01/04/2020 04:35PM - Version 7
 //==================//
 
 using System;
@@ -376,11 +376,28 @@ public class GetZen : FaucetScript
 	    Wait();
 	    Wait(2);
 
-        if (IsVisible(ElementByXPath ("//form[@id='form-claim-zen']//input[@name='zen_address']") )) 
+
+        if (!IsVisible(ElementByXPath ("//div[contains(@class,'input-group')]//button[contains(text(),'Remove')] ") )) // Remove address not visible
 	    {
-         var box_address = ElementByXPath("//form[@id='form-claim-zen']//input[@name='zen_address']");
-         SetText(box_address, GetSetting("Address"));
-        }
+
+           var inputAddress = ElementByXPath("//form[@id='form-claim-zen']//input[@name='zen_address']");
+           if (IsVisible(inputAddress))
+	       {
+            Log("inputAddress");
+            SetText(inputAddress, GetSetting("Address"));
+           }
+		   
+	       Wait(2);
+		   
+           var SaveAddress = ElementByXPath("//button[contains(@class,'btn btn-success') and contains(text(),'Save') ]");
+           if (IsVisible(SaveAddress))
+           {
+           Log("SaveAddress");
+           Click(SaveAddress);
+		   }
+		   
+		} 
+	
 		
 	    Wait(2);
 
