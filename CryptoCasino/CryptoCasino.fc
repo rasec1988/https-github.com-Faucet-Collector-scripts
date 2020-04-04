@@ -165,9 +165,6 @@ public class CryptoCasino : FaucetScript
 	{
         ad=false; //solve the problem in start - after he return to script again
         return GetWaitSetting();  
-
-        return GetWaitSetting();  
-		
     }	//end ad
 	
 		
