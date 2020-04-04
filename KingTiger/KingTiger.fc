@@ -162,13 +162,10 @@ public class KingTiger : FaucetScript
  {
 
     if(ad)
-	{
-        ad=false; //solve the problem in start - after he return to script again
-        return GetWaitSetting();  
-
-        return GetWaitSetting();  
-		
-    }	//end ad
+    {
+     ad=false; //solve the problem in start - after he return to script again
+     return GetWaitSetting();  	
+    }//end ad
 	
 		
    //let Faucet Collector continue.
