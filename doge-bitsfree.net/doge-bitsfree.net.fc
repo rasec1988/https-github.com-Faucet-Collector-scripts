@@ -342,8 +342,8 @@ public class Dogebitsfree: FaucetScript
             LoadingFaucet=ElementByXPath ( "//div[@id='loadingFaucet']" );
             if( DateTime.Now<timeout )
             {
-                Log ( "Seems that there is a problem and faucet is not loading" );
-
+                return Fail( "Seems that there is a problem and faucet is not loading" );
+               
             }
         }
 
