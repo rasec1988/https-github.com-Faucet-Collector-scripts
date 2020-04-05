@@ -1,0 +1,165 @@
+﻿using FaucetCollector.Script;
+using System.Collections.Generic;
+using System.Linq;
+//css_inc ShortLinkUtilities
+class HelicoinPw : FaucetScript
+{
+    public const string BaseUrl="https://helicoin.pw/";
+    public readonly Dictionary<string,string>  AvailableFaucets=new  Dictionary<string, string>
+    {
+        {"Ethereum",BaseUrl+"faucets/eth"},
+        {"Dash",BaseUrl+"faucets/dash"}
+    };
+
+    public string ActiveFaucet
+    {
+        get
+        {
+            var SettingSelected=GetSetting("Faucet");
+            if ( AvailableFaucets.ContainsKey ( SettingSelected ) )
+            {
+                return AvailableFaucets[SettingSelected];
+            }
+            return AvailableFaucets.Values.FirstOrDefault ( );
+        }
+    }
+    public override FaucetSettings Settings
+    {
+        get
+        {
+
+            return new FaucetSettings ( BaseUrl )
+            {
+                new FaucetSetting ( )
+                {
+                    Name="User",
+                    Display="CCBox Key",
+                    Type=EditorType.TextBox,
+                    Required=true
+                },
+                new FaucetSetting ( )
+                {
+                    Name="Faucet",
+                    Display="Faucet Selected:",
+                    Type=EditorType.ComboBox,
+                    Items=AvailableFaucets.Keys.ToList(),
+                    Default=AvailableFaucets.Keys.FirstOrDefault()
+                }
+            };
+
+
+        }
+    }
+    public void AddValidTitles ( )
+    {
+        AvailableFaucets.Keys.ToList ( ).ForEach ( x => Title+="FREE "+x+"|" );
+    }
+    public override void Start ( )
+    {
+        SuccessXPath="//p[@class='won center bordered_gr' and contains(text(),'Reward')]";
+        FailXPath="//p[@class='won center bordered_gr' and contains(text(),'Failed')]";
+
+        Title="Helicoin.pw|";
+        AddValidTitles ( );
+        base.Start ( );
+    }
+
+    public override int DoLogin ( )
+    {
+        if ( Driver.Url!=BaseUrl )
+        {
+            // Base url is the login url
+            GoToUrl ( BaseUrl );
+            Wait ( 2 );
+        }
+        var UserBox=ElementByXPath("//input[@id='key']");
+        if ( !IsVisible ( UserBox ) )
+        {
+            return Fail ( "User box not visible" );
+        }
+        SetText ( UserBox , GetSetting ( "User" ) );
+
+        var LoginBtn=ElementByXPath("//button[@id='registration']");
+        if ( !IsVisible ( LoginBtn ) )
+        {
+            return Fail ( "Login btn not visible" );
+        }
+        Click ( LoginBtn );
+        return base.DoLogin ( );
+    }
+
+    public override bool IsLoggedIn ( )
+    {
+        if ( Driver.Url!=ActiveFaucet )
+        {
+            GoToUrl ( ActiveFaucet );
+            Wait ( 2 );
+        }
+
+        return ElementByXPath ( "//button[@id='claim']" )!=null;
+    }
+
+    public override int GetFaucetWaitTime ( )
+    {
+        if ( Driver.Url!=ActiveFaucet )
+        {
+            GoToUrl ( ActiveFaucet );
+            Wait ( 2 );
+        }
+
+        var Timers=ElementsByXPath("//span[@class='countdown-period']").Where(x=>IsVisible(x)).ToList();
+
+        if ( Timers.Count<3 )
+        {
+            return 0;
+        }
+        int TotalTime=0;
+
+
+        for ( int i = 0 ; i<Timers.Count ; i++ )
+        {
+            // First case hour them minute and last second
+            int multiply=i==0?3600:i==1?60:1;
+            int value;
+            if ( int.TryParse ( Timers[i].Text , out value ) )
+            {
+                // Parse correctly sum to total time
+                TotalTime+=value*multiply;
+            }
+        }
+
+        return TotalTime;
+    }
+    public override int DoSolveFaucet ( )
+    {
+        if ( Driver.Url!=ActiveFaucet )
+        {
+            GoToUrl ( ActiveFaucet );
+            Wait ( 2 );
+        }
+
+        var ClaimBtn=ElementByXPath("//button[@id='claim']");
+        if ( !IsVisible ( ClaimBtn ) )
+        {
+            return Fail ( "Claim btn not visible, probably we are not login" );
+        }
+        ShortLinkBypasser shortLinkBypasser =new ShortLinkBypasser(this);
+
+        Click ( ClaimBtn );
+        Wait ( );
+        if ( shortLinkBypasser.IsValidShortLink ( ) )
+        {
+            bool solved=shortLinkBypasser.DoShortLink ( );
+            if ( solved )
+            {
+                Log ( "Shortlink successfully solved" );
+            }
+        }
+
+
+
+        return base.DoSolveFaucet ( );
+    }
+
+}
+
