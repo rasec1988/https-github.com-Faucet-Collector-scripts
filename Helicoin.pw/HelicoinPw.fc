@@ -57,7 +57,7 @@ class HelicoinPw : FaucetScript
     public override void Start ( )
     {
         SuccessXPath="//p[@class='won center bordered_gr' and contains(text(),'Reward')]";
-        FailXPath="//p[@class='won center bordered_gr' and contains(text(),'Failed')]";
+        FailXPath="//p[@class='err center bordered']";
 
         Title="Helicoin.pw|";
         AddValidTitles ( );
@@ -106,10 +106,25 @@ class HelicoinPw : FaucetScript
             GoToUrl ( ActiveFaucet );
             Wait ( 2 );
         }
+        var Timer1=ElementByXPath("//p[@class='err center bordered' and contains(text(),'Try again after')]");
+        if(IsVisible(Timer1 ) )
+        {
+            //return 30 minutes.
+            var Splited=Timer1.Text.Split(' ');
+            if ( Splited.Length>3 )
+            {
+                int time;
+                if(int.TryParse(Splited[3],out time ) )
+                {
+                    return time;
+                }
+            }
+
+        }
 
         var Timers=ElementsByXPath("//span[@class='countdown-period']").Where(x=>IsVisible(x)).ToList();
 
-        if ( Timers.Count<3 )
+        if ( Timers.Count==0 )
         {
             return 0;
         }
