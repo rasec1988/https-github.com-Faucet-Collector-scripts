@@ -198,9 +198,17 @@ public class Dogebitsfree: FaucetScript
     /// </summary>
     public override int DoSolveCaptcha()
     {
+
+       
         var ToggleCaptcha = ElementByXPath("//select[@id='toggleCaptcha']");
         if (IsVisible(ToggleCaptcha))
         {
+            var ButtonCloseChat=ElementByXPath("//button[@class='chatbro_header_button chatbro_minimize_button']");
+            if ( IsVisible ( ButtonCloseChat ) )
+            {
+                Click ( ButtonCloseChat );
+                Wait ( 2 );
+            }
             if (GetBoolSetting("UseSolvemedia"))
             {
                 SelectOptionByValue(ToggleCaptcha, "0");
@@ -323,15 +331,20 @@ public class Dogebitsfree: FaucetScript
         if(Driver.Url!= "https://doge-bitsfree.net/")
         {
             GoToUrl("https://doge-bitsfree.net/");
-            Wait();
+            Wait(3,4);
         }
 
         var LoadingFaucet=ElementByXPath("//div[@id='loadingFaucet']");
         DateTime timeout=DateTime.Now.AddSeconds(20);
-        while ( IsVisible ( LoadingFaucet ) && DateTime.Now<timeout )
+        while ( IsVisible ( LoadingFaucet ))
         {
             Wait ( );
             LoadingFaucet=ElementByXPath ( "//div[@id='loadingFaucet']" );
+            if( DateTime.Now<timeout )
+            {
+                return Fail( "Seems that there is a problem and faucet is not loading" );
+               
+            }
         }
 
         var FaucetLocked = ElementByXPath("//b[contains(text(),'Faucet Locked!')]");
