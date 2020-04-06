@@ -1,7 +1,7 @@
 
 //==================//
 //script Written by: ••AviramDayan•• 03/03/2020 23:50PM - Version 1
-//Last Update: 25/03/2020 02:25PM - Version 3
+//Last Update: 06/04/2020 12:30AM - Version 4
 //==================//
 
 using System;
@@ -138,7 +138,7 @@ public class mydropzxyz : FaucetScript
         Wait();		
         Wait(2);
       
-        var Email_VAR = ElementByXPath("//input[@id='email']");      
+        var Email_VAR = ElementByXPath("//div[@class='box box-info']//input[@type='email']");      
         if (IsVisible(Email_VAR))
         {
          SetText(Email_VAR, GetSetting("Email"));
@@ -146,7 +146,7 @@ public class mydropzxyz : FaucetScript
         
         Wait(2);
 
-        var Password_VAR = ElementByXPath("//input[@id='password']");      
+        var Password_VAR = ElementByXPath("//div[@class='box box-info']//input[@type='password']");      
         if (IsVisible(Password_VAR))
         {
          SetText(Password_VAR, GetPassword("Password"));
@@ -154,7 +154,7 @@ public class mydropzxyz : FaucetScript
 
         Wait(2);
 		
-        var ButtonLog = ElementByXPath("//button[@type='submit' and @id='signin_bt']");  
+        var ButtonLog = ElementByXPath("//div[@class='box box-info']//button[@type='submit']");  
         if (IsVisible(ButtonLog))
         {
          Click(ButtonLog);
@@ -291,10 +291,10 @@ public class mydropzxyz : FaucetScript
            Wait();	
 	       Wait(2);	
 			
-           var AutoSurf_Check = ElementByXPath("//i[@class='fa fa-play'] | //div[@id='adcopy-puzzle-image'] | //iframe[contains(@src,'recaptcha/api2')]");
+           var AutoSurf_Check = ElementByXPath("//i[contains(@class,'fa fa-arrow-right')] | //i[contains(@class,'fa-chevron-right')] | //div[@id='adcopy-puzzle-image'] | //iframe[contains(@src,'recaptcha/api2')]");
 	       if (IsVisible(AutoSurf_Check))
 	       {
-			   
+			  
 		     Log("AutoSurfAds - Available");
              var TimeToWaitForBreak = DateTime.Now.AddSeconds(65);
              while (true)
@@ -302,7 +302,7 @@ public class mydropzxyz : FaucetScript
 			   
                CheckForPopupsEnabled = false;
 			   
-               var ClaimNow_Available = ElementByXPath("//i[@class='fa fa-play']");
+               var ClaimNow_Available = ElementByXPath("//i[contains(@class,'fa fa-arrow-right')] | //i[contains(@class,'fa-chevron-right')]");
 	           if (IsVisible(ClaimNow_Available))
 	           {
 			   Click(ClaimNow_Available);
@@ -321,13 +321,13 @@ public class mydropzxyz : FaucetScript
 			   
                Driver.SwitchTo().Window(Driver.WindowHandles[0]);
 			   
-               var ButtonToWait = ElementByXPath("//a[@class='btn btn-app' and contains(text(),'Please wait')]");
+               var ButtonToWait = ElementByXPath("//a[@class='btn btn-app' and contains(text(),'wait')]");
                while (IsVisible(ButtonToWait))
                {
 				  Wait();
 				  Log("wait");
 
-                  if (!IsVisible(ElementByXPath ("//a[@class='btn btn-app' and contains(text(),'Please wait')]") )) 
+                  if (!IsVisible(ElementByXPath ("//a[@class='btn btn-app' and contains(text(),'wait')]") )) 
 	              {
 				  Log("AutoSurf - Success");
 				  ClaimSuccess(); //Success
@@ -343,7 +343,7 @@ public class mydropzxyz : FaucetScript
                   }
 			   }	  		
 			   
-               if (!IsVisible(ElementByXPath ("//i[@class='fa fa-play']") )) 
+               if (!IsVisible(ElementByXPath ("//i[contains(@class,'fa fa-arrow-right')] | //i[contains(@class,'fa-chevron-right')]") )) 
 	           {
 		         Log("AutoSurfAds - break - not Available");
                  break; //after break the while  
@@ -361,6 +361,7 @@ public class mydropzxyz : FaucetScript
          } //end AutoSurfAds
       //=============//
 		
+	  
 	  
       //=============//
       //FaucetClaim
