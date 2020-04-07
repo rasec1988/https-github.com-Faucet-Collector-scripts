@@ -369,7 +369,9 @@ public class Dogebitsfree: FaucetScript
         {
             return Fail("Button roll is not visible");
         }
-        Click ( ButtonRoll );
+        // Use Jquery instead to click the button to avoid button blocked from ad
+        ExecuteScript( "$('#myModal2').modal('show');");
+        //Click ( ButtonRoll );
         Wait ( 1 );
         var result = DoSolveCaptcha();
         if (result > 0)
