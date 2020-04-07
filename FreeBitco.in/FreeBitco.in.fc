@@ -85,7 +85,7 @@ public class FreeBitcoinScript : FaucetScript
                         "50 Reward Points / Roll",
                         "25 Reward Points / Roll",
                         "10 Reward Points / Roll",
-                        "1 Reward Points / Roll",
+                        "1 Reward Point / Roll",
     };
     public override void Start()
     {
@@ -319,7 +319,7 @@ public class FreeBitcoinScript : FaucetScript
         }
         public static RedemType ClassifyRedem ( string Setting)
         {
-            return Setting.ToLower ( ).Contains ( "points" ) ? RedemType.Points : Setting.ToLower ( ).Contains ( "btc" ) ? RedemType.Btc : RedemType.Lottery;
+            return (Setting.ToLower ( ).Contains ( "points" ) || Setting.ToLower().Contains("point"))  ? RedemType.Points : Setting.ToLower ( ).Contains ( "btc" ) ? RedemType.Btc : RedemType.Lottery;
         }
 
         public RedemType Type
