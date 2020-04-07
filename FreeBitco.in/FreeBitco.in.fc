@@ -85,7 +85,7 @@ public class FreeBitcoinScript : FaucetScript
                         "50 Reward Points / Roll",
                         "25 Reward Points / Roll",
                         "10 Reward Points / Roll",
-                        "1 Reward Point / Roll",
+                        "1 Reward Points / Roll",
     };
     public override void Start()
     {
@@ -94,6 +94,7 @@ public class FreeBitcoinScript : FaucetScript
 
         //After we did try to claim on the faucet we search for these elements to determine if it was a success or a fail
         SuccessXPath = "//*[@id='free_play_result']";
+  
         FailXPath = "//*[@id='free_play_error']";
 
         //Let Faucet Collector start up everything
@@ -228,7 +229,8 @@ public class FreeBitcoinScript : FaucetScript
             Wait();
 
         }
-
+        
+        
 
         //Let Faucet Collector continue
         return base.BeforeSolveCaptcha();
@@ -648,10 +650,8 @@ public class FreeBitcoinScript : FaucetScript
             return Fail("Button to claim is not visible");
         }
         Click(ButtonClaim);
-
-
-            //Let Faucet Collector continue its work
-            return base.DoSolveFaucet();
+        //Let Faucet Collector continue its work
+        return base.DoSolveFaucet();
     }
     public bool AvailableRollWithoutPoints
     {
