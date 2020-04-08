@@ -1,15 +1,24 @@
 
-
 //==================//
 //script Written by: ••AviramDayan•• 30/04/2019 21:09PM - Version 1
-//Last Update: 19/01/2020 16:00PM - Version 27
+//Last Update: 08/04/2020 05:00AM - Version 28
 //==================//
 
 using System;
+using System.IO;
 using FaucetCollector.Script;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Interactions;
-//css_inc recaptchaUtilities
+using System.Drawing;
+using System.Threading.Tasks;
+using System.Collections.Generic;
+
+//css_inc ShortLinkUtilities
+//css_inc RecaptchaUtilities
+//css_inc AntiBotLinksUtility
+//css_ref ImageProcessing
+//css_ref ProcessingImagesUsingLockBits
+//css_inc GetestCaptcha
 
 public class bcgame : FaucetScript
 {
@@ -148,7 +157,7 @@ public class bcgame : FaucetScript
 	 if (!IsVisible(ExitButton))
 	 {
 	
-		//GoToUrl("https://dogeads.top/login");
+		GoToUrl("https://bc.game/");
 		Wait();		
 		Wait(2);
 		
@@ -172,26 +181,44 @@ public class bcgame : FaucetScript
         Click(ButtonLog);
 		
 		Wait(1);
-
 		
-        var Error_1_Message = ElementByXPath("//label[@class='xinput captcha']/div/img | //div[@class='xmessage-content' and contains(text(),'verify' )] | //div[@class='xnotify-content' and contains(text(),'error')] ");
+        var Error_1_Message = ElementByXPath("//div[@class='xinput captcha']//img | //div[@class='xmessage-content' and contains(text(),'verify' )] | //div[@class='xnotify-content' and contains(text(),'error')] ");
         if (IsVisible(Error_1_Message))
         {
-          //solve Captcha X2 XPath (1 = captcha image | 2 = input text )
-          var result = DoSolveImageCaptcha(ElementByXPath ("//label[@class='xinput captcha']/div/img"),ElementByXPath("//input[@placeholder='Verification Code']") ); 
-          if (result > 0)
-          {
-          return Fail("Error_1_Message - Fail login --- captcha failed");
-          }
-		  
-		  Wait(5);
-		  
-          var Button_2_Log = ElementByXPath("//button[@class='xbutton xbutton-big xbutton-full' and contains(text(),'Login' | 'Login')]");
-          Click(Button_2_Log);
+			
+		  var TimeToWaitForBreak = DateTime.Now.AddSeconds(120);
+		  while(true)
+		  {
+            //solve Captcha X2 XPath (1 = captcha image | 2 = input text )
+            var result = DoSolveImageCaptcha(ElementByXPath ("//div[@class='xinput captcha']//img"),ElementByXPath("//input[@placeholder='Verification Code']") ); 
+            if (result > 0)
+            {
+            return Fail("Error_1_Message - Fail login --- captcha failed");
+            }
+		    
+		    Wait(5);
+		    
+            var Button_2_Log = ElementByXPath("//button[@class='xbutton xbutton-big xbutton-full' and contains(text(),'Login' | 'Login')]");
+            Click(Button_2_Log);
+		    
+		    Wait(10);
 		
-		  Wait(1);
+            var Captcha_image_Check = ElementByXPath("//div[@class='xinput captcha']//img");
+            if (!IsVisible(Captcha_image_Check))
+            {
+            Log("break - Captcha_image_Check - not visible");
+            break; //break the wait loop
+			}
+			
+            if (DateTime.Now > TimeToWaitForBreak) //if the time above 65 sec 
+            {
+            Log("break - TimeToWaitForBreak");
+            break; //break the wait loop
+            }
+			
+          }	//end while true
         }
-		
+
 		
         var Error_2_Message = ElementByXPath("//div[@class='xmessage-content' and contains(text(),'verify' )] | //div[@class='xnotify-content' and contains(text(),'error')] ");
         if (IsVisible(Error_2_Message))
@@ -210,6 +237,8 @@ public class bcgame : FaucetScript
 //========//
 //DoLogin
 //========//
+ 
+
  
 
 
