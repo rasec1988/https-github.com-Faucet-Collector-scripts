@@ -1,7 +1,7 @@
 
 //==================//
 //script Written by: ••AviramDayan•• 03/03/2020 23:50PM - Version 1
-//Last Update: 06/04/2020 12:30AM - Version 4
+//Last Update: 08/04/2020 05:30AM - Version 5
 //==================//
 
 using System;
@@ -35,7 +35,7 @@ public class mydropzxyz : FaucetScript
                 new FaucetSetting(){Name="AutoSurfAds",Display="AutoSurfAds",Type=EditorType.CheckBox,Default=true},
 
                 new FaucetSetting(){Name="AutoWithdraw",Display="AutoWithdraw",Type=EditorType.CheckBox,Default=true},
-                new FaucetSetting() { Name = "LimitWithdraw", Display = "LimitWithdraw", Type = EditorType.TextBox, Default = 12000 },
+                new FaucetSetting() { Name = "LimitWithdraw", Display = "LimitWithdraw", Type = EditorType.TextBox, Default = 9000 },
 
 			
                 //insert user settings here
@@ -289,8 +289,20 @@ public class mydropzxyz : FaucetScript
 		   GoToUrl("https://my.dropz.xyz/site-friends/");
            Log("AutoSurfAds");	
            Wait();	
-	       Wait(2);	
-			
+	       Wait(7);	
+
+           var Balance_Check = ElementByXPath("//div[contains(@class,'box-body')]//small[contains(text(),'having 10K Drops')]");
+	       if (IsVisible(Balance_Check))
+	       {
+			  Log("AutoWithdraw_Function - required to withdraw above 10k - so we do that :) ");
+			  AutoWithdraw_Function(); //call 
+
+		      GoToUrl("https://my.dropz.xyz/site-friends/");
+              Log("AutoSurfAds - go again after withdraw");	
+              Wait();	
+	          Wait(7);	
+		   }
+	   
            var AutoSurf_Check = ElementByXPath("//i[contains(@class,'fa fa-arrow-right')] | //i[contains(@class,'fa-chevron-right')] | //div[@id='adcopy-puzzle-image'] | //iframe[contains(@src,'recaptcha/api2')]");
 	       if (IsVisible(AutoSurf_Check))
 	       {
@@ -425,31 +437,9 @@ public class mydropzxyz : FaucetScript
       //=============//
          if (GetBoolSetting("AutoWithdraw"))
          {
-			 
-           GoToUrl("https://my.dropz.xyz/account/");
-		   Wait(2);
-		   
-           var balance = ElementByXPath("//b[@id='display_pending_drops']");
-           string BalanceSTRING = balance.Text.Trim().Replace(",", "").Split('.')[0];
-           int BalanceINT = Convert.ToInt32(BalanceSTRING);
-   
-           int MyAmount;
-           Int32.TryParse(GetSetting("LimitWithdraw"), out MyAmount);
-   
-           if (BalanceINT < MyAmount) // - 3000
-           {
-               Log("AutoWithdraw - Under <");
-              //do all stuff
-           }
-   
-           if (BalanceINT > MyAmount) // + 3000
-           {
-               Log("AutoWithdraw - Above >");
-               var WithdrawButton = ElementByXPath("//button[@id='payout_bt']");
-			   Click(WithdrawButton);
-               Wait(7);			   
-			   Log("Withdraw success");
-           }
+			 Log("AutoWithdraw - Active");
+			 AutoWithdraw_Function(); //call
+
          } //end AutoWithdraw
       //=============//
 
@@ -481,6 +471,47 @@ public class mydropzxyz : FaucetScript
         //This faucet has nothing to do here. We will let Faucet Collector handle it.
         return base.CheckFaucetResult();
     }
+
+
+
+
+
+
+        //=================//
+       //AutoWithdraw_Function
+        //=================//
+        public int AutoWithdraw_Function()
+        {
+			
+           GoToUrl("https://my.dropz.xyz/account/");
+		   Wait(2);
+		   
+           var balance = ElementByXPath("//b[@id='display_pending_drops']");
+           string BalanceSTRING = balance.Text.Trim().Replace(",", "").Split('.')[0];
+           int BalanceINT = Convert.ToInt32(BalanceSTRING);
+   
+           int MyAmount;
+           Int32.TryParse(GetSetting("LimitWithdraw"), out MyAmount);
+   
+           if (BalanceINT < MyAmount) // - 3000
+           {
+               Log("AutoWithdraw - Under < not good ");
+              //do all stuff
+           }
+   
+           if (BalanceINT > MyAmount) // + 3000
+           {
+               Log("AutoWithdraw - Above > good we do stuff");
+               var WithdrawButton = ElementByXPath("//button[@id='payout_bt']");
+			   Click(WithdrawButton);
+               Wait(7);			   
+			   Log("Withdraw success");
+           }
+			
+		return 0;
+        }//end AutoWithdraw_Function
+        //=================//	
+
 
 	
         //=================//
