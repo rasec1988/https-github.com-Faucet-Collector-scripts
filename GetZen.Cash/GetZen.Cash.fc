@@ -1,7 +1,7 @@
 
 //==================//
 //script Written by: ••AviramDayan•• 23/12/2019 01:30PM - Version 1
-//Last Update: 01/04/2020 04:35PM - Version 7
+//Last Update: 09/04/2020 03:00PM - Version 8
 //==================//
 
 using System;
@@ -401,7 +401,7 @@ public class GetZen : FaucetScript
 		
 	    Wait(2);
 
-        var RecaptchaOpen_Iframe = ElementByXPath ("//iframe[contains(@src,'recaptcha/api2/bframe' | 'recaptcha/api2/anchor')]"); // iframe
+        var RecaptchaOpen_Iframe = ElementByXPath ("//textarea[contains(@name,'recaptcha') and contains(@style,'block')] | //div[contains(@class,'recaptcha')] | //iframe[contains(@src,'recaptcha')] "); //iframe[contains(@src,'recaptcha')]
         if (IsVisible(RecaptchaOpen_Iframe))
         {
           var result = DoSolveCaptcha();
