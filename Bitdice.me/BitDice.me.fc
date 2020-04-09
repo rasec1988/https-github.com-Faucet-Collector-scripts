@@ -1,4 +1,4 @@
-﻿
+
 using System;
 using FaucetCollector.Script;
 using OpenQA.Selenium;
@@ -83,7 +83,7 @@ public class BitDice : FaucetScript
     {
 		
 	   //save Login Cookies - Check if the image of balance is there
-       return ElementByXPath("//a[text()='Sign Out']") != null;
+       return ElementByXPath("//div[contains(@class,'deposit')]//a[contains(text(),'Sign Out') ]") != null;
 
     }
 //==================//
@@ -112,21 +112,10 @@ public class BitDice : FaucetScript
  public override int DoLogin()
  {
 
-	 //var checks login or exit
-	 var LoginStart =ElementByXPath("//button[text()='Get In']"); //Log in
-     var LogoutButton =ElementByXPath("//a[text()='Sign Out']"); //Log Out
-
-	 
-	 //if i already Login - go to "bonus"	 
-	 if (IsVisible(LogoutButton))
-	 {
-		Log("we are in: go to dashboard");
-        GoToUrl("https://www.bitdice.me/dashboard");
-     }
-
+     var LogoutButton =ElementByXPath("//div[contains(@class,'deposit')]//a[contains(text(),'Sign Out') ]"); //Log Out
 
 	 //if i NOT Login - go to Login Page
-	 if (IsVisible(LoginStart))
+	 if (!IsVisible(LogoutButton))
 	 {
 	
 		//if i already login - go to here
@@ -135,9 +124,12 @@ public class BitDice : FaucetScript
 
         Wait(2);
 		
-
 		Log("Login: set Email");
-        Click(LoginStart);
+		var GetIn =ElementByXPath("//button[contains(text(),'Get In')] ");
+	    if (IsVisible(LogoutButton))
+	    {
+        Click(GetIn);
+		}
 
         Wait(2);
 
@@ -154,7 +146,6 @@ public class BitDice : FaucetScript
         //Click on LoginButtonVar
         var LoginButtonVar = ElementByXPath("//button[@class='btn btn-index btn-block']"); //button[text()='Sign In']
         Click(LoginButtonVar);
-
 
 	 }	
 		
@@ -204,12 +195,9 @@ public class BitDice : FaucetScript
 		//wait 36 min
         if (cs)
         {
-            return 60 * 60;
+            return GetWaitSetting(); 
         }
 
-        //0 mean let Faucet Collector continue.
-        //return 0;
-		
 		//let Faucet Collector continue.
         return base.GetFaucetWaitTime();
 
@@ -303,27 +291,26 @@ public override int DoSolveFaucet()
 
         Wait(5);
 
-		//Image of DailyTreasureChest
-		var ImageCheckVar = ElementByXPath("//img[@src='/dashboard/daily_chest-6699a8b29960ce530a5d48f8da8e17ad.jpg']");
-	    //info
-		var info2Var = ElementByXPath("//div[@class='relative']");	//div[@class='error']
-	
         //Click on DailyTreasureChest image
+		var ImageCheckVar = ElementByXPath("//img[contains(@src,'dashboard/daily_chest')] ");
 		if (IsVisible(ImageCheckVar))
         {		
-        Click(ImageCheckVar);	    
-        Log(info2Var.Text);	
-		return 180*60;
+        Click(ImageCheckVar);	
+        Wait(2);		
         }
 		
-		//if is not visible
-		if (!IsVisible(ImageCheckVar))
+		//if is not visible		
+		var info2Var = ElementByXPath("//div[@class='relative']/div[@class='error']");	
+		if (IsVisible(info2Var))
         {
-        Log("DailyTreasureChest: we return after 180 min ");
-		return 180*60;
+        Log(info2Var.Text);	
         }
 	
     } // end DailyTreasureChest
+
+
+		return GetWaitSetting(); 
+		
 
         //This faucet has nothing to do here. We will let Faucet Collector handle it.
         return base.DoSolveFaucet();
