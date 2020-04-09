@@ -1,7 +1,7 @@
 
 //==================//
 //script Written by: ••AviramDayan•• 30/04/2019 21:09PM - Version 1
-//Last Update: 08/04/2020 05:00AM - Version 28
+//Last Update: 09/04/2020 05:20AM - Version 29
 //==================//
 
 using System;
@@ -36,7 +36,8 @@ public class bcgame : FaucetScript
                 new FaucetSetting(){Name="UserName",Display="UserName",Type=EditorType.TextBox,Required=false},
                 new FaucetSetting(){Name="Pass",Display="Password",Type=EditorType.Password,Required=false},
                 //new FaucetSetting(){Name="DeleteCookies",Display="Delete Cookies - Sometimes solves problems (in login) if you have (Recommended)",Type=EditorType.CheckBox,Default=false},
-                
+                new FaucetSetting(){Name="FaucetClaim",Display="FaucetClaim - LuckySpin",Type=EditorType.CheckBox,Default=true},	
+				 
 				new FaucetSetting(){Name="MenuCoins",Display="MenuCoins - Select Favorite Coins",Type=EditorType.ComboBox,Default="JB",Items=new System.Collections.Generic.List<string>{"TRTL","EOS","TRX","VSYS","BCG","BKBT","DOGE","LTC","JB"}},
                 
 				new FaucetSetting() { Name = "3rd_DailyTasks_ClaimBonus", Display = "3rd_DailyTasks_ClaimBonus - ON/OFF", Type = EditorType.CheckBox, Default = true},		
@@ -329,6 +330,41 @@ public class bcgame : FaucetScript
     Wait();
     Wait(2);
 
+
+     //=============//
+     //FaucetClaim
+     //=============//
+     if (GetBoolSetting("FaucetClaim"))
+     {
+	
+		GoToUrl("https://bc.game/");
+		Wait();		
+		Wait(2);
+
+		var Timer_Counter = ElementByXPath("//div[@class='count-down-wrap']");
+		if (!IsVisible(Timer_Counter))
+		{
+		
+		  var OpenLuckySpin_Button = ElementByXPath("//div[@id='spin-enter']");
+		  if (IsVisible(OpenLuckySpin_Button))
+		  {
+           Click(OpenLuckySpin_Button);
+		   Wait(4);
+          }
+		  
+          // mouse position click switch - good for "canvas" TagName flash/Games
+          var canvas_VAR = Driver.FindElement(By.ClassName("ctx"));              
+          var size = canvas_VAR.Size;
+          new Actions(Driver).MoveToElement(canvas_VAR, 800, 246).Click().MoveByOffset(size.Width / 800, size.Height / 246).Release().Perform();
+          //=======//
+		  
+		  Wait(6);
+		  
+		}//end Timer_Counter
+		
+     } //end FaucetClaim
+     //=============//
+	 
 
           //=======================//
 		  //Agent_Commissions_Reward
