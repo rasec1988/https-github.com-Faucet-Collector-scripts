@@ -206,7 +206,7 @@ class HitBits : FaucetScript
                     Wait ( 3,4 );
                     int count=0;
                     var PlayButton=this.PlayButton;
-                    while ( EnergyLevel>0&&count<10&&PlayButton!=null )
+                    while ( EnergyLevel>0 && count<10 && PlayButton!=null )
                     {
                         Click ( PlayButton );
                         Wait ( );
@@ -277,7 +277,12 @@ class HitBits : FaucetScript
     {
         get
         {
-            return ElementsByXPath ( "//button[@class='button is-success is-large']" ).Where ( x => x.Enabled&&IsVisible ( x ) ).LastOrDefault ( );
+            var AvailableButtons= ElementsByXPath ( "//button[@class='button is-success is-large' and not(@disabled='disabled')]" );
+            if ( AvailableButtons.Count==0 )
+            {
+                return null;
+            }
+            return AvailableButtons.Where ( x => x.Enabled && IsVisible ( x ) ).LastOrDefault ( );
 
         }
     }
