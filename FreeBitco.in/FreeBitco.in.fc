@@ -162,9 +162,8 @@ public class FreeBitcoinScript : FaucetScript
         //We are ready to click the login button.
         Click(loginButton);
 
-        Wait(1);
 
-        var Error = ElementByXPath("//p[@class='center reward_point_redeem_result_box reward_point_redeem_result_error']//span[@class='reward_point_redeem_result']");
+        var Error = ElementByXPath("//span[@class='reward_point_redeem_result']");
         if (IsVisible(Error))
         {
 
@@ -650,6 +649,7 @@ public class FreeBitcoinScript : FaucetScript
             return Fail("Button to claim is not visible");
         }
         Click(ButtonClaim);
+
         //Let Faucet Collector continue its work
         return base.DoSolveFaucet();
     }
@@ -675,5 +675,7 @@ public class FreeBitcoinScript : FaucetScript
 
             }
     }
+
+    
 
 }
