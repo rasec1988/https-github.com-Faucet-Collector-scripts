@@ -225,16 +225,11 @@ public class MichaLitecoinScript : FaucetScript
             var VisitOpen = ElementByXPath("//div[@class='progress active progress-striped']");
             Wait(VisitTime);
 
-            // Driver.Close();  // Close specific chrome window
-            // Driver.Quit();  // also Close the console app, that was used to kick off the chrome window
-            // Driver.Dispose();  // Close the chromedriver.exe
-
             IconCaptchaSolver solver = new IconCaptchaSolver(this);
 
             // Max time before icon captcha appear
             if (solver.IsVisibleIconCaptcha()) {
                 Log("Solving IconCaptcha");
-                // Driver.Dispose();
                 solver.DoSolve();
                 Wait(4, 6);
 
@@ -245,27 +240,6 @@ public class MichaLitecoinScript : FaucetScript
                     return 55;
                 }
             }
-
-            // DateTime Timeout = DateTime.Now.AddSeconds(45);
-            // while (!solver.IsVisibleIconCaptcha() && DateTime.Now < Timeout) {
-            //     Wait();
-            // }
-
-
-            Log("Progress done");
-
-            // if (!solver.IsVisibleIconCaptcha()) {
-            //     return Fail( "Fail icon captcha not loaded" );
-            // }
-
-            // bool solved = solver.DoSolve();
-            // if (solved) {
-            //     Log("Icon captcha succesfully solved");
-            // }
-
-            // IconCaptchaSolver solver = new IconCaptchaSolver(this);
-
-            // Fail("Could not do Paid To Click");
             return 55;
         }
 
@@ -336,11 +310,7 @@ public class MichaLitecoinScript : FaucetScript
     public override int BeforeSolveFaucet()
     {
         if (GetBoolSetting("Paid_To_Click")) {
-            var PTCResult = DoPaidToClick();
-
-            while (PTCResult < 1) {
-                Wait(10, 20);
-            }
+            DoPaidToClick();
         }
 
         if (GetBoolSetting("Do_Shortlinks")) {
