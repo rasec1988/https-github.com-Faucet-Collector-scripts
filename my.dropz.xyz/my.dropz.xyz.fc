@@ -1,7 +1,7 @@
 
 //==================//
 //script Written by: ••AviramDayan•• 03/03/2020 23:50PM - Version 1
-//Last Update: 10/04/2020 15:00PM - Version 6
+//Last Update: 11/04/2020 15:40PM - Version 7
 //==================//
 
 using System;
@@ -28,13 +28,15 @@ public class mydropzxyz : FaucetScript
                 new FaucetSetting(){Name="Email",Display="Email",Type=EditorType.TextBox,Required=true},
                 new FaucetSetting(){Name="Password",Display="Password",Type=EditorType.Password,Required=true},
                 
+                new FaucetSetting(){Name="SetWallet",Display="SetWallet - ON/OFF - the default is on",Type=EditorType.CheckBox,Default=true},		
+
 				new FaucetSetting(){Name="WalletAdress",Display="WalletAdress xrp",Type=EditorType.TextBox,Required=true},
 				new FaucetSetting(){Name="DestinationTag",Display="Destination Tag xrp",Type=EditorType.TextBox,Required=true},
  			
-                new FaucetSetting(){Name="FaucetClaim",Display="FaucetClaim",Type=EditorType.CheckBox,Default=false},		
-                new FaucetSetting(){Name="AutoSurfAds",Display="AutoSurfAds",Type=EditorType.CheckBox,Default=true},
+                new FaucetSetting(){Name="FaucetClaim",Display="FaucetClaim - ON/OFF - the default is off",Type=EditorType.CheckBox,Default=false},		
+                new FaucetSetting(){Name="AutoSurfAds",Display="AutoSurfAds - ON/OFF",Type=EditorType.CheckBox,Default=true},
 
-                new FaucetSetting(){Name="AutoWithdraw",Display="AutoWithdraw",Type=EditorType.CheckBox,Default=true},
+                new FaucetSetting(){Name="AutoWithdraw",Display="AutoWithdraw - ON/OFF",Type=EditorType.CheckBox,Default=true},
                 new FaucetSetting() { Name = "LimitWithdraw", Display = "LimitWithdraw", Type = EditorType.TextBox, Default = 9000 },
 
 			
@@ -277,8 +279,14 @@ public class mydropzxyz : FaucetScript
   public override int DoSolveFaucet()
   {
 
-        SetWallet_Function(); //call	
-
+      //=============//
+      //AutoSurfAds
+      //=============//
+      if (GetBoolSetting("SetWallet"))
+      {
+       SetWallet_Function(); //call	
+	  }
+      //=============//
 
       //=============//
       //AutoSurfAds
@@ -303,7 +311,7 @@ public class mydropzxyz : FaucetScript
 	          Wait(7);	
 		   }
 
-           var AutoSurf_Check = ElementByXPath("//a[contains(text(),'Visit Advertiser')] | //i[contains(@class,'fa fa-arrow-right')] | //i[contains(@class,'fa-chevron-right')] | //div[@id='adcopy-puzzle-image'] | //iframe[contains(@src,'recaptcha/api2')]");
+           var AutoSurf_Check = ElementByXPath("//a[contains(@class,'btn-app')]/i | //a[contains(text(),'Visit Advertiser')] | //i[contains(@class,'fa fa-arrow-right')] | //i[contains(@class,'fa-chevron-right')] | //div[@id='adcopy-puzzle-image'] | //iframe[contains(@src,'recaptcha/api2')]");
 	       if (IsVisible(AutoSurf_Check))
 	       {
 			  
@@ -314,7 +322,7 @@ public class mydropzxyz : FaucetScript
 			   
                CheckForPopupsEnabled = false;
 			   
-               var ClaimNow_Available = ElementByXPath("//a[contains(text(),'Visit Advertiser')] | //i[contains(@class,'fa fa-arrow-right')] | //i[contains(@class,'fa-chevron-right')]");
+               var ClaimNow_Available = ElementByXPath("//a[contains(@class,'btn-app')]/i | //a[contains(text(),'Visit Advertiser')] | //i[contains(@class,'fa fa-arrow-right')] | //i[contains(@class,'fa-chevron-right')]");
 	           if (IsVisible(ClaimNow_Available))
 	           {
 			   Click(ClaimNow_Available);
@@ -355,7 +363,7 @@ public class mydropzxyz : FaucetScript
                   }
 			   }	  		
 			   
-               if (!IsVisible(ElementByXPath ("//a[contains(text(),'Visit Advertiser')] | //i[contains(@class,'fa fa-arrow-right')] | //i[contains(@class,'fa-chevron-right')]") )) 
+               if (!IsVisible(ElementByXPath ("//a[contains(@class,'btn-app')]/i | //a[contains(text(),'Visit Advertiser')] | //i[contains(@class,'fa fa-arrow-right')] | //i[contains(@class,'fa-chevron-right')]") )) 
 	           {
 		         Log("AutoSurfAds - break - not Available");
                  break; //after break the while  
@@ -482,7 +490,9 @@ public class mydropzxyz : FaucetScript
         //=================//
         public int AutoWithdraw_Function()
         {
-			
+
+		   Log("AutoWithdraw_Function - check");
+
            GoToUrl("https://my.dropz.xyz/account/");
 		   Wait(2);
 		   
@@ -519,6 +529,9 @@ public class mydropzxyz : FaucetScript
         //=================//
         public int SetWallet_Function()
         {
+
+		  Log("SetWallet_Function - check");
+		  
 		  GoToUrl("https://my.dropz.xyz/account/");
 		
           var AdressAndDestinationTagCheck = ElementByXPath("//table[@class='table table-condensed']//b[contains(text(),'Specified')]");
