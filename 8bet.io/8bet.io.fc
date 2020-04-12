@@ -1,8 +1,8 @@
-﻿
+
 
 //==================//
 //script Written by: ••AviramDayan•• 13/08/2018 04:00PM - Version 1
-//Last Update: 19/07/2019 07:00AM - Version 8
+//Last Update: 12/04/2019 08:00AM - Version 11
 //==================//
 
 using System;
@@ -28,6 +28,7 @@ public class Bet8Script : FaucetScript
                 new FaucetSetting(){Name="Pass",Display="Password",Type=EditorType.Password,Required=true},
                 //new FaucetSetting() { Name = "UseSolveMedia", Display = "Use SolveMedia", Type = EditorType.CheckBox, Default = true},
 
+                new FaucetSetting(){Name="LuckSpin",Display="LuckSpin - every 24 hours ",Type=EditorType.CheckBox,Default=true},
                 new FaucetSetting(){Name="FreeLottery",Display="FreeLottery - hit random number every 8 hours ",Type=EditorType.CheckBox,Default=true},
                 new FaucetSetting(){Name="Time",Display="Custom time to wait If there was a double-entry, and FC has already made a claim, My recommendation is to put 260min - 4 hours",Type=EditorType.Numeric,Default=260},
 				
@@ -202,11 +203,7 @@ public class Bet8Script : FaucetScript
 
         if (ad)
         {
-		    //Log("return ad");
 			ad=false;
-			Driver.Close();  // Close specific chrome window
-            Driver.Quit();  // also Close the console app, that was used to kick off the chrome window
-            Driver.Dispose();  // Close the chromedriver.exe
             return GetWaitSetting();
         }
 
@@ -217,83 +214,26 @@ public class Bet8Script : FaucetScript
 //GetFaucetWaitTime
 //================//
 
-	
-	
-	
-    /// <summary>
-    /// This method is called right before a captcha will be solved. 
-    /// If you call SolveCaptcha() in other methods it will start this flow and tries to solve the captcha on the page.
-    /// </summary>
+
+
     public override int BeforeSolveCaptcha()
     {
-		
-		
-       /*		
-        //Check if the user wants to do SolveMedia or reCAPTCHA.
-        if (GetBoolSetting("UseSolveMedia"))
-        {
-            //Make sure SolveMedia is active by clicking the link.
-            Click(ElementByLinkText("Switch to SolveMedia captcha"));
-        }
-        else
-        {
-            //Make sure reCAPTCHA is active by clicking the link.
-            Click(ElementByLinkText("Switch to Recaptcha"));
-        }
-
-        //Wait a little (1 - 2 seconds) for the captcha to switch.
-        Wait();
-		
-       */
-
-
         //Return we are ready to proceed
         return base.BeforeSolveFaucet();
     }
-	
-	
 
-	
-	
-    /// <summary>
-    /// This method gets called after BeforeSolveCaptcha and it does the actual captcha solving
-    /// It will automatically try to see if there is a SolveMedia captcha active or a reCAPTCHA active. 
-    /// If it finds either one it will then use the selected method on the Captcha tab of FaucetCollector to solve the Captcha.
-    /// </summary>
     public override int DoSolveCaptcha()
     {
-
-		
         //This faucet has nothing to do here. We will let Faucet Collector handle it.
         return base.DoSolveCaptcha();
     }
 
-	
-	
-
-	
-	
-    /// <summary>
-    /// This method will get called after DoSolveCaptcha returned it was a success.
-    /// </summary>
-    /// <returns></returns>
     public override int AfterSolveCaptcha()
     {
-		
-
         //This faucet has nothing to do here. We will let Faucet Collector handle it.
         return base.AfterSolveCaptcha();
     }
 
-	
-
-	
-	
-	
-	
-//================================//
-//start BeforeSolveFaucet
-//================================//
     public override int BeforeSolveFaucet()
     {
 
@@ -301,30 +241,45 @@ public class Bet8Script : FaucetScript
         return base.BeforeSolveCaptcha();
     }
 
-//================================//
-//end BeforeSolveFaucet
-//================================//
 
 
-
-
-
-
-
-
-//================================//
-//end DoSolveFaucet
-//================================//
-	
+//==============//
+//DoSolveFaucet
+//==============//
 public override int DoSolveFaucet()
 {
 
+    //============//
+    //LuckSpin
+    //============//
+	if (GetBoolSetting("LuckSpin"))
+    {
+		
+       GoToUrl("https://8bet.io/");
+       Wait();
+       Wait(2);
+	  	
+       var LuckSpin_Disable = ElementByXPath("//button[contains(@class,'btn disabled hide')]"); 
+	   if (!IsVisible(LuckSpin_Disable))
+	   {
+       var LuckSpin_Available = ElementByXPath("//button[contains(@id,'btnWheelOfLuckSpin')]"); 
+       Click(LuckSpin_Available);
+       Log("LuckSpin_Available - click");
+	   }
+	 
+	}
+    //============//
+
+
+
+    //============//
+    //FreeLottery
+    //============//
 	if (GetBoolSetting("FreeLottery"))
     {
 
 		//first go to "FreeLottery page"
         GoToUrl("https://8bet.io/bitcoin-lottery/free-crypto-lotto");
-
         Wait();
         Wait(2);
 		
@@ -344,9 +299,6 @@ public override int DoSolveFaucet()
 
         int MyCustomTimeINT;
         MyCustomTimeINT = GetIntSetting("Time") * 60; 
-		Driver.Close();  // Close specific chrome window
-        Driver.Quit();  // also Close the console app, that was used to kick off the chrome window
-        Driver.Dispose();  // Close the chromedriver.exe
         return MyCustomTimeINT;
         }
 		//====================================//
@@ -393,24 +345,26 @@ public override int DoSolveFaucet()
 		if (IsVisible(PurchaseTextSuccess))		
 	    {	
 		Log("AutoFreeLottery: Success got it - we return after your time");
-		ad=true; // call to do Success
+        ClaimSuccess(); //Marks the claim as a success
         }
 		
         } //end FreeLottery_Yes
         //==============// 	
 
-    }
+    }// end FreeLottery
 
-        //This faucet has nothing to do here. We will let Faucet Collector handle it.
-        return base.DoSolveFaucet();
-}
-//================================//
-//end DoSolveFaucet
-//================================//
+
+   return GetWaitSetting();
+
+  //This faucet has nothing to do here. We will let Faucet Collector handle it.
+  return base.DoSolveFaucet();
+ }
+//==============//
+//DoSolveFaucet
+//==============//
 	
 	
-	
-	
+		
 	
 //================//
 //AfterSolveFaucet//
@@ -443,6 +397,4 @@ public override int DoSolveFaucet()
     }
 	
 
-	
-	
 } //end class
