@@ -198,126 +198,106 @@ public class MichaLitecoinScript : FaucetScript
     }
 
     /// <summary>
-    /// This method will perform the Paid To Click Ads
-    /// </summary>
-    public int DoPaidToClick()
-    {
-        if (Driver.Url != PtcUrl) {
-            GoToUrl(PtcUrl);
-            Wait(3, 6);
-        }
-
-        var VisitButton = ElementByXPath("//div[@class='website_block']//button[@type='button' and contains(text(), 'Visit')]");
-        var VisitTimeElement = ElementByXPath("//div[@class='website_block']//div[@class='time']//span");
-        var VisitTime = Convert.ToInt32(VisitTimeElement.Text) + 2;
-
-        if (IsVisible(VisitButton)) {
-            Log("Paid To Click available");
-            CheckForPopupsEnabled = false;
-            CheckForPopups();
-
-            // var TimeOut = DateTime.Now.AddSeconds(VisitTime);
-            Click(VisitButton);
-            Wait(3, 5);
-
-            Driver.SwitchTo().Window(Driver.WindowHandles[1]);
-
-            var VisitOpen = ElementByXPath("//div[@class='progress active progress-striped']");
-            Wait(VisitTime);
-
-            IconCaptchaSolver solver = new IconCaptchaSolver(this);
-
-            // Max time before icon captcha appear
-            if (solver.IsVisibleIconCaptcha()) {
-                Log("Solving IconCaptcha");
-                solver.DoSolve();
-                Wait(4, 6);
-
-                if (!solver.IsVisibleIconCaptcha()) {
-                    Driver.SwitchTo().Window(Driver.WindowHandles[0]);
-                    CheckForPopupsEnabled = true;
-                    CheckForPopups();
-                    return 55;
-                }
-            }
-            return 55;
-        }
-
-        return 55;
-    }
-
-    /// <summary>
-    /// This method performs Shorlinks
-    /// </summary>
-    public int Do_Shortlinks()
-    {
-        GoToUrl(ShorlinksUrl);
-        Wait();
-        var Shortlinks = ElementsByXPath("//*[@class='btn btn-success btn-sm']");
-
-        if (Shortlinks.Count > 0) {
-            int NShort = Random(0, Shortlinks.Count - 1);
-            try {
-                IconCaptchaSolver solver = new IconCaptchaSolver(this);
-                Click(Shortlinks[NShort]);
-                Wait();
-                int count = 0;
-                while (IsVisible(Shortlinks[NShort]) && !solver.IsVisibleIconCaptcha() && count < 5) {
-                    Click(Shortlinks[NShort]);
-                    Wait();
-                    count++;
-                }
-
-                if (solver.IsVisibleIconCaptcha()) {
-                    solver.DoSolve();
-                    Wait(4, 5);
-
-                    if (!solver.IsVisibleIconCaptcha()) {
-                        ShortLinkBypasser bypasser = new ShortLinkBypasser(this);
-
-                        if (bypasser.IsValidShortLink()) {
-                            bool cs = bypasser.DoShortLink();
-
-                            if (cs) {
-                                Log("ShortlinkSuccess");
-                            } else {
-                                Log("Something is wrong with the shortlink");
-                            }
-                        } else {
-                            GoToUrl(BaseUrl);
-                            return Fail("Something went wrong shortlink this is not a shortlink");
-                        }
-                    } else {
-                        return Fail("Icon captcha incorrectly solved");
-                    }
-                }
-            } finally {
-                if (!Driver.Url.Contains(ShorlinksUrl)){
-                    GoToUrl(ShorlinksUrl);
-                }
-            }
-        } else {
-            Log("No more shortlinks available");
-        }
-
-        return 55;
-    }
-
-    /// <summary>
     /// This method is called right before we attempt to claim on the faucet. So we are logged in and good to go.
     /// Next methods that will be called are DoSolveFaucet, AfterSolveFaucet and CheckFaucetResult.
     /// </summary>
     public override int BeforeSolveFaucet()
     {
+        /////////////////////
+        /// Paid To Click ///
+        /////////////////////
         if (GetBoolSetting("Paid_To_Click")) {
-            DoPaidToClick();
+            if (Driver.Url != PtcUrl) {
+                GoToUrl(PtcUrl);
+                Wait(3, 6);
+            }
+
+            var VisitButton = ElementByXPath("//div[@class='website_block']//button[@type='button' and contains(text(), 'Visit')]");
+            var VisitTimeElement = ElementByXPath("//div[@class='website_block']//div[@class='time']//span");
+            var VisitTime = Convert.ToInt32(VisitTimeElement.Text) + 2;
+
+            if (IsVisible(VisitButton)) {
+                Log("Paid To Click available");
+                CheckForPopupsEnabled = false;
+                CheckForPopups();
+
+                // var TimeOut = DateTime.Now.AddSeconds(VisitTime);
+                Click(VisitButton);
+                Wait(3, 5);
+
+                Driver.SwitchTo().Window(Driver.WindowHandles[1]);
+
+                var VisitOpen = ElementByXPath("//div[@class='progress active progress-striped']");
+                Wait(VisitTime);
+
+                IconCaptchaSolver solver = new IconCaptchaSolver(this);
+
+                // Max time before icon captcha appear
+                if (solver.IsVisibleIconCaptcha()) {
+                    Log("Solving IconCaptcha");
+                    solver.DoSolve();
+                    Wait(4, 6);
+
+                    if (!solver.IsVisibleIconCaptcha()) {
+                        Driver.SwitchTo().Window(Driver.WindowHandles[0]);
+                        CheckForPopupsEnabled = true;
+                        CheckForPopups();
+                    }
+                }
+            }
         }
 
+        /////////////////////
+        /// Do Shortlinks ///
+        /////////////////////
         if (GetBoolSetting("Do_Shortlinks")) {
-            var ShortlinksResult = Do_Shortlinks();
+            GoToUrl(ShorlinksUrl);
+            Wait();
+            var Shortlinks = ElementsByXPath("//*[@class='btn btn-success btn-sm']");
 
-            if (ShortlinksResult > 0) {
-                return base.BeforeSolveFaucet();
+            if (Shortlinks.Count > 0) {
+                int NShort = Random(0, Shortlinks.Count - 1);
+                try {
+                    IconCaptchaSolver solver = new IconCaptchaSolver(this);
+                    Click(Shortlinks[NShort]);
+                    Wait();
+                    int count = 0;
+                    while (IsVisible(Shortlinks[NShort]) && !solver.IsVisibleIconCaptcha() && count < 5) {
+                        Click(Shortlinks[NShort]);
+                        Wait();
+                        count++;
+                    }
+
+                    if (solver.IsVisibleIconCaptcha()) {
+                        solver.DoSolve();
+                        Wait(4, 5);
+
+                        if (!solver.IsVisibleIconCaptcha()) {
+                            ShortLinkBypasser bypasser = new ShortLinkBypasser(this);
+
+                            if (bypasser.IsValidShortLink()) {
+                                bool cs = bypasser.DoShortLink();
+
+                                if (cs) {
+                                    Log("ShortlinkSuccess");
+                                } else {
+                                    Log("Something is wrong with the shortlink");
+                                }
+                            } else {
+                                GoToUrl(BaseUrl);
+                                return Fail("Something went wrong shortlink this is not a shortlink");
+                            }
+                        } else {
+                            return Fail("Icon captcha incorrectly solved");
+                        }
+                    }
+                } finally {
+                    if (!Driver.Url.Contains(ShorlinksUrl)){
+                        GoToUrl(ShorlinksUrl);
+                    }
+                }
+            } else {
+                Log("No more shortlinks available");
             }
         }
 
@@ -338,11 +318,8 @@ public class MichaLitecoinScript : FaucetScript
         }
 
         var LoadingFaucet = ElementByXPath("//div[@id='claimTime']");
-        DateTime timeout = DateTime.Now.AddSeconds(30);
-        while (IsVisible(LoadingFaucet) && DateTime.Now < timeout)
-        {
-            Wait();
-            LoadingFaucet = ElementByXPath("//div[@id='claimTime']");
+        if (IsVisible(LoadingFaucet)) {
+            return GetFaucetWaitTime();
         }
 
         var ClaimButton = ElementByXPath("//div[@id='claimFaucet']//button[contains(text(), 'Roll & Win')]");
