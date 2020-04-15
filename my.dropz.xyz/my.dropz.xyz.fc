@@ -1,7 +1,7 @@
 
 //==================//
 //script Written by: ••AviramDayan•• 03/03/2020 23:50PM - Version 1
-//Last Update: 15/04/2020 21:25PM - Version 10
+//Last Update: 15/04/2020 22:00PM - Version 10
 //==================//
 
 using System;
@@ -566,34 +566,51 @@ public class mydropzxyz : FaucetScript
         //=================//
         public int Recaptcha_Function()
         {
-
-          //solve Captcha X2 XPath (1 = captcha image | 2 = input text )
-          var ImageCap_VAR = DoSolveImageCaptcha(ElementByXPath("//div[contains(@class,'box-info')]//img"),ElementByXPath("//div[contains(@class,'box-info')]//input[@placeholder='Captcha']")); 
-          if (IsVisible(ImageCap_VAR))
+		
+          if (IsVisible(ElementByXPath ("//div[contains(@class,'box-info')]//img") ))
 		  {
+			Log("solve - ImageCap");
+            //solve Captcha X2 XPath (1 = captcha image | 2 = input text )
+            var ImageCap_VAR = DoSolveImageCaptcha(ElementByXPath("//div[contains(@class,'box-info')]//img"),ElementByXPath("//div[contains(@class,'box-info')]//input[@placeholder='Captcha']")); 
 
             if (ImageCap_VAR > 0)
             {
                return Fail("fail not solve"); //return to solve again - if something wrong
             }
+			
+		  } // end ImageCap
 
-		  }
-		  
+
+          if (IsVisible(ElementByXPath ("//div[contains(@id,'adcopy-puzzle-image')]/img") ))
+		  {
+			Log("solve - SolveMedia_VAR");
+            //solve Captcha X2 XPath (1 = captcha image | 2 = input text )
+            var SolveMedia_VAR = DoSolveImageCaptcha(ElementByXPath("//div[contains(@id,'adcopy-puzzle-image')]/img"),ElementByXPath("//input[contains(@id,'adcopy_response')]")); 
+
+            if (SolveMedia_VAR > 0)
+            {
+               return Fail("fail not solve"); //return to solve again - if something wrong
+            }
+			
+		  } // end SolveMedia
+
+
           //Recaptcha OR SolveMedia	  
           var RecaptchaOpen_Iframe = ElementByXPath ("//iframe[contains(@src,'recaptcha/api2')]");
-          var SolveMedia_VAR = ElementByXPath ("//div[@id='adcopy-puzzle-image']");
-		  
-          if (IsVisible(RecaptchaOpen_Iframe) || IsVisible(SolveMedia_VAR) )
+          if (IsVisible(RecaptchaOpen_Iframe) )
 		  {
-            //SolveCaptcha if apper
-            var result = base.DoSolveCaptcha();
-            if (result > 0)
+			Log("solve - Recaptcha");
+            //RecaptchaUtility utility = new RecaptchaUtility(this);
+            //utility.DoSolve();
+			
+			var Recap = DoSolveCaptcha(); //solve
+			
+            if (Recap > 0)
             {
-                return Fail("Fail solving captcha");
+               return Fail("fail not solve"); //return to solve again - if something wrong
             }
-            RecaptchaUtility utility = new RecaptchaUtility(this);
-            utility.DoSolve();
-		  }
+			
+		  }//end RecaptchaOpen_Iframe
 
      	return 0;
         }//end VOID_Template_Function
