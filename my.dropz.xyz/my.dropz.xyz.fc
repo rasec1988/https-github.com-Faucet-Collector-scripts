@@ -1,7 +1,7 @@
 
 //==================//
 //script Written by: ••AviramDayan•• 03/03/2020 23:50PM - Version 1
-//Last Update: 15/04/2020 21:00PM - Version 9
+//Last Update: 15/04/2020 18:30PM - Version 9
 //==================//
 
 using System;
@@ -565,7 +565,9 @@ public class mydropzxyz : FaucetScript
 
           var RecaptchaOpen_Iframe = ElementByXPath ("//iframe[contains(@src,'recaptcha/api2')]");
           var SolveMedia_VAR = ElementByXPath ("//div[@id='adcopy-puzzle-image']");
-          if (IsVisible(RecaptchaOpen_Iframe) || IsVisible(SolveMedia_VAR) )
+          var ImageCap_VAR = ElementByXPath ("//div[@class='box box-info']//input[@placeholder='Captcha']");
+		  
+          if (IsVisible(RecaptchaOpen_Iframe) || IsVisible(SolveMedia_VAR)  || IsVisible(ImageCap_VAR) )
 		  {
             //SolveCaptcha if apper
             var result = base.DoSolveCaptcha();
