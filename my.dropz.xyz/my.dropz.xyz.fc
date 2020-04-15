@@ -1,7 +1,7 @@
 
 //==================//
 //script Written by: ••AviramDayan•• 03/03/2020 23:50PM - Version 1
-//Last Update: 15/04/2020 22:50PM - Version 10
+//Last Update: 15/04/2020 00:40PM - Version 10
 //==================//
 
 using System;
@@ -170,14 +170,15 @@ public class mydropzxyz : FaucetScript
         if (IsVisible(ErrorMessage))
         {
 	     Log("something wrong - your info is wrong or your account is not activate ");
-         return 1*60;  
+         Driver.Navigate().Refresh();
+         //return 1*60;  
         } 
 
         Driver.Navigate().Refresh();
 
         Wait(2);
         
-        Recaptcha_Function (); //call if apper again
+        Recaptcha_Function (); //call if apper again after you click on login button
         
         Wait();			
 
@@ -313,7 +314,7 @@ public class mydropzxyz : FaucetScript
 	          Wait(7);	
 		   }
 
-           var AutoSurf_Check = ElementByXPath("//a[@style]/i | //a[contains(@class,'btn-block')]/i | //a[contains(@class,'btn-default')]/i | //a[contains(text(),'Visit Advertiser')] | //i[contains(@class,'fa fa-arrow-right')] | //i[contains(@class,'fa-chevron-right')] | //div[@id='adcopy-puzzle-image'] | //iframe[contains(@src,'recaptcha/api2')]");
+           var AutoSurf_Check = ElementByXPath("//a[@style]/i | //a[contains(@class,'btn-success')]/i | //a[contains(@class,'btn-default')]/i | //a[contains(text(),'Visit Advertiser')] | //i[contains(@class,'fa fa-arrow-right')] | //i[contains(@class,'fa-chevron-right')] | //div[@id='adcopy-puzzle-image'] | //iframe[contains(@src,'recaptcha/api2')]"); 
 	       if (IsVisible(AutoSurf_Check))
 	       {
 			  
@@ -324,7 +325,7 @@ public class mydropzxyz : FaucetScript
 			   
                CheckForPopupsEnabled = false;
 			   
-               var ClaimNow_Available = ElementByXPath("//a[@style]/i | //a[contains(@class,'btn-block')]/i | //a[contains(@class,'btn-default')]/i | //a[contains(text(),'Visit Advertiser')] | //i[contains(@class,'fa fa-arrow-right')] | //i[contains(@class,'fa-chevron-right')]");
+               var ClaimNow_Available = ElementByXPath("//a[@style]/i | //a[contains(@class,'btn-success')]/i | //a[contains(@class,'btn-default')]/i | //a[contains(text(),'Visit Advertiser')] | //i[contains(@class,'fa fa-arrow-right')] | //i[contains(@class,'fa-chevron-right')] | //div[@id='adcopy-puzzle-image'] | //iframe[contains(@src,'recaptcha/api2')]"); 
 	           if (IsVisible(ClaimNow_Available))
 	           {
 			   Click(ClaimNow_Available);
@@ -343,13 +344,13 @@ public class mydropzxyz : FaucetScript
 			   
                Driver.SwitchTo().Window(Driver.WindowHandles[0]);
 			   
-               var ButtonToWait = ElementByXPath("//a[@class='btn btn-app' and contains(text(),'wait')]");
+               var ButtonToWait = ElementByXPath("//a[contains(text(),'wait')] | //a[contains(text(),'Wait')]");
                while (IsVisible(ButtonToWait))
                {
 				  Wait();
 				  Log("wait");
 
-                  if (!IsVisible(ElementByXPath ("//a[@class='btn btn-app' and contains(text(),'wait')]") )) 
+                  if (!IsVisible(ElementByXPath ("//a[contains(text(),'wait')] | //a[contains(text(),'Wait')]") )) 
 	              {
 				  Log("AutoSurf - Success");
 				  ClaimSuccess(); //Success
@@ -365,7 +366,7 @@ public class mydropzxyz : FaucetScript
                   }
 			   }	  		
 			   
-               if (!IsVisible(ElementByXPath ("//a[@style]/i | //a[contains(@class,'btn-block')]/i | //a[contains(@class,'btn-default')]/i | //a[contains(text(),'Visit Advertiser')] | //i[contains(@class,'fa fa-arrow-right')] | //i[contains(@class,'fa-chevron-right')]") )) 
+               if (!IsVisible(ElementByXPath ("//a[@style]/i | //a[contains(@class,'btn-success')]/i | //a[contains(@class,'btn-default')]/i | //a[contains(text(),'Visit Advertiser')] | //i[contains(@class,'fa fa-arrow-right')] | //i[contains(@class,'fa-chevron-right')] ") )) 
 	           {
 		         Log("AutoSurfAds - break - not Available");
                  break; //after break the while  
@@ -453,9 +454,8 @@ public class mydropzxyz : FaucetScript
          } //end AutoWithdraw
       //=============//
 
-
 	 return GetWaitSetting();
-	
+
   //This faucet has nothing to do here. We will let Faucet Collector handle it.
   return base.DoSolveFaucet();
   }
