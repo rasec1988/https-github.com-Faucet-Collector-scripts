@@ -1,7 +1,7 @@
 
 //==================//
 //script Written by: ••AviramDayan•• 03/03/2020 23:50PM - Version 1
-//Last Update: 15/04/2020 22:45PM - Version 10
+//Last Update: 15/04/2020 22:50PM - Version 10
 //==================//
 
 using System;
@@ -170,7 +170,7 @@ public class mydropzxyz : FaucetScript
         if (IsVisible(ErrorMessage))
         {
 	     Log("something wrong - your info is wrong or your account is not activate ");
-         return GetWaitSetting();  
+         return 1*60;  
         } 
 
         Driver.Navigate().Refresh();
