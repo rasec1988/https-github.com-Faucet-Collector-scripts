@@ -1,7 +1,7 @@
 
 //==================//
 //script Written by: ••AviramDayan•• 03/03/2020 23:50PM - Version 1
-//Last Update: 14/04/2020 21:00PM - Version 8
+//Last Update: 15/04/2020 21:00PM - Version 9
 //==================//
 
 using System;
@@ -309,7 +309,7 @@ public class mydropzxyz : FaucetScript
 	          Wait(7);	
 		   }
 
-           var AutoSurf_Check = ElementByXPath("//a[contains(@class,'btn-default')]/i | //a[contains(text(),'Visit Advertiser')] | //i[contains(@class,'fa fa-arrow-right')] | //i[contains(@class,'fa-chevron-right')] | //div[@id='adcopy-puzzle-image'] | //iframe[contains(@src,'recaptcha/api2')]");
+           var AutoSurf_Check = ElementByXPath("//a[contains(@class,'btn-block')]/i | //a[contains(@class,'btn-default')]/i | //a[contains(text(),'Visit Advertiser')] | //i[contains(@class,'fa fa-arrow-right')] | //i[contains(@class,'fa-chevron-right')] | //div[@id='adcopy-puzzle-image'] | //iframe[contains(@src,'recaptcha/api2')]");
 	       if (IsVisible(AutoSurf_Check))
 	       {
 			  
@@ -320,7 +320,7 @@ public class mydropzxyz : FaucetScript
 			   
                CheckForPopupsEnabled = false;
 			   
-               var ClaimNow_Available = ElementByXPath("//a[contains(@class,'btn-default')]/i | //a[contains(text(),'Visit Advertiser')] | //i[contains(@class,'fa fa-arrow-right')] | //i[contains(@class,'fa-chevron-right')]");
+               var ClaimNow_Available = ElementByXPath("//a[contains(@class,'btn-block')]/i | //a[contains(@class,'btn-default')]/i | //a[contains(text(),'Visit Advertiser')] | //i[contains(@class,'fa fa-arrow-right')] | //i[contains(@class,'fa-chevron-right')]");
 	           if (IsVisible(ClaimNow_Available))
 	           {
 			   Click(ClaimNow_Available);
@@ -361,7 +361,7 @@ public class mydropzxyz : FaucetScript
                   }
 			   }	  		
 			   
-               if (!IsVisible(ElementByXPath ("//a[contains(@class,'btn-default')]/i | //a[contains(text(),'Visit Advertiser')] | //i[contains(@class,'fa fa-arrow-right')] | //i[contains(@class,'fa-chevron-right')]") )) 
+               if (!IsVisible(ElementByXPath ("//a[contains(@class,'btn-block')]/i | //a[contains(@class,'btn-default')]/i | //a[contains(text(),'Visit Advertiser')] | //i[contains(@class,'fa fa-arrow-right')] | //i[contains(@class,'fa-chevron-right')]") )) 
 	           {
 		         Log("AutoSurfAds - break - not Available");
                  break; //after break the while  
