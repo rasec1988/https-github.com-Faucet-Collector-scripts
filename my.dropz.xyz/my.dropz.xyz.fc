@@ -1,7 +1,7 @@
 
 //==================//
 //script Written by: ••AviramDayan•• 03/03/2020 23:50PM - Version 1
-//Last Update: 15/04/2020 22:00PM - Version 10
+//Last Update: 15/04/2020 22:45PM - Version 10
 //==================//
 
 using System;
@@ -156,28 +156,28 @@ public class mydropzxyz : FaucetScript
 
         Wait(2);
 		
+        Recaptcha_Function (); //call once	
+
+        Wait();			
+	
         var ButtonLog = ElementByXPath("//div[@class='box box-info']//button[@type='submit']");  
         if (IsVisible(ButtonLog))
         {
          Click(ButtonLog);
         }
 
-        Wait(2);
-		
-        Recaptcha_Function (); //call	
-		
-        Wait(2);
-        
         var ErrorMessage = ElementByXPath("//h2[contains(text(),'Oops')]");  
         if (IsVisible(ErrorMessage))
         {
 	     Log("something wrong - your info is wrong or your account is not activate ");
          return GetWaitSetting();  
         } 
- 
+
+        Driver.Navigate().Refresh();
+
         Wait(2);
         
-        Recaptcha_Function (); //call
+        Recaptcha_Function (); //call if apper again
         
         Wait();			
 
