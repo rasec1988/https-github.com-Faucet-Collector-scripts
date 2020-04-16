@@ -1,7 +1,7 @@
 
 //==================//
 //script Written by: ••AviramDayan•• 03/03/2020 23:50PM - Version 1
-//Last Update: 15/04/2020 18:30PM - Version 9
+//Last Update: 15/04/2020 02:45PM - Version 10
 //==================//
 
 using System;
@@ -140,40 +140,18 @@ public class mydropzxyz : FaucetScript
         Wait();		
         Wait(2);
       
-        var Email_VAR = ElementByXPath("//div[@class='box box-info']//input[@type='email']");      
-        if (IsVisible(Email_VAR))
-        {
-         SetText(Email_VAR, GetSetting("Email"));
-        }
-        
-        Wait(2);
+        Login_Elements_Function();
 
-        var Password_VAR = ElementByXPath("//div[@class='box box-info']//input[@type='password']");      
-        if (IsVisible(Password_VAR))
-        {
-         SetText(Password_VAR, GetPassword("Password"));
-        }
-
-        Wait(2);
-		
-        var ButtonLog = ElementByXPath("//div[@class='box box-info']//button[@type='submit']");  
-        if (IsVisible(ButtonLog))
-        {
-         Click(ButtonLog);
-        }
-
-        Wait(2);
-		
         var ErrorMessage = ElementByXPath("//h2[contains(text(),'Oops')]");  
         if (IsVisible(ErrorMessage))
         {
 	     Log("something wrong - your info is wrong or your account is not activate ");
-         return GetWaitSetting();  
+		 Wait(2);	
+         Driver.Navigate().Refresh();
+         Login_Elements_Function();
         } 
- 
-        Wait(2);
-        
-        Recaptcha_Function (); //call
+       
+        Captcha_Function (); //call if apper invisible recaptcha after you click on "login button"
         
         Wait();			
 
@@ -309,7 +287,7 @@ public class mydropzxyz : FaucetScript
 	          Wait(7);	
 		   }
 
-           var AutoSurf_Check = ElementByXPath("//a[contains(@class,'btn-block')]/i | //a[contains(@class,'btn-default')]/i | //a[contains(text(),'Visit Advertiser')] | //i[contains(@class,'fa fa-arrow-right')] | //i[contains(@class,'fa-chevron-right')] | //div[@id='adcopy-puzzle-image'] | //iframe[contains(@src,'recaptcha/api2')]");
+           var AutoSurf_Check = ElementByXPath("//a[@style]/i | //a[contains(@class,'btn-success')]/i | //a[contains(@class,'btn-default')]/i | //a[contains(text(),'Visit Advertiser')] | //i[contains(@class,'fa fa-arrow-right')] | //i[contains(@class,'fa-chevron-right')] | //div[@id='adcopy-puzzle-image'] | //iframe[contains(@src,'recaptcha/api2')]"); 
 	       if (IsVisible(AutoSurf_Check))
 	       {
 			  
@@ -320,7 +298,7 @@ public class mydropzxyz : FaucetScript
 			   
                CheckForPopupsEnabled = false;
 			   
-               var ClaimNow_Available = ElementByXPath("//a[contains(@class,'btn-block')]/i | //a[contains(@class,'btn-default')]/i | //a[contains(text(),'Visit Advertiser')] | //i[contains(@class,'fa fa-arrow-right')] | //i[contains(@class,'fa-chevron-right')]");
+               var ClaimNow_Available = ElementByXPath("//a[@style]/i | //a[contains(@class,'btn-success')]/i | //a[contains(@class,'btn-default')]/i | //a[contains(text(),'Visit Advertiser')] | //i[contains(@class,'fa fa-arrow-right')] | //i[contains(@class,'fa-chevron-right')] | //div[@id='adcopy-puzzle-image'] | //iframe[contains(@src,'recaptcha/api2')]"); 
 	           if (IsVisible(ClaimNow_Available))
 	           {
 			   Click(ClaimNow_Available);
@@ -329,9 +307,9 @@ public class mydropzxyz : FaucetScript
                var Captcha_Available = ElementByXPath("//div[@id='adcopy-puzzle-image'] | //iframe[contains(@src,'recaptcha/api2')]");
 	           if (IsVisible(Captcha_Available))
 	           {
-			   Recaptcha_Function(); //call
+			   Captcha_Function(); //call
 			   Wait();
-               var FaucetButton = ElementByXPath("//input[@type='submit' and @value='Submit']");
+               var FaucetButton = ElementByXPath("//button[contains(text(),'Submit')] | //button[contains(text(),'submit')]");
                Click(FaucetButton);
 			   Wait(2);
 			   Driver.Navigate().Refresh(); //refresh page
@@ -339,13 +317,13 @@ public class mydropzxyz : FaucetScript
 			   
                Driver.SwitchTo().Window(Driver.WindowHandles[0]);
 			   
-               var ButtonToWait = ElementByXPath("//a[@class='btn btn-app' and contains(text(),'wait')]");
+               var ButtonToWait = ElementByXPath("//a[contains(text(),'wait')] | //a[contains(text(),'Wait')]");
                while (IsVisible(ButtonToWait))
                {
 				  Wait();
 				  Log("wait");
 
-                  if (!IsVisible(ElementByXPath ("//a[@class='btn btn-app' and contains(text(),'wait')]") )) 
+                  if (!IsVisible(ElementByXPath ("//a[contains(text(),'wait')] | //a[contains(text(),'Wait')]") )) 
 	              {
 				  Log("AutoSurf - Success");
 				  ClaimSuccess(); //Success
@@ -361,7 +339,7 @@ public class mydropzxyz : FaucetScript
                   }
 			   }	  		
 			   
-               if (!IsVisible(ElementByXPath ("//a[contains(@class,'btn-block')]/i | //a[contains(@class,'btn-default')]/i | //a[contains(text(),'Visit Advertiser')] | //i[contains(@class,'fa fa-arrow-right')] | //i[contains(@class,'fa-chevron-right')]") )) 
+               if (!IsVisible(ElementByXPath ("//a[@style]/i | //a[contains(@class,'btn-success')]/i | //a[contains(@class,'btn-default')]/i | //a[contains(text(),'Visit Advertiser')] | //i[contains(@class,'fa fa-arrow-right')] | //i[contains(@class,'fa-chevron-right')] ") )) 
 	           {
 		         Log("AutoSurfAds - break - not Available");
                  break; //after break the while  
@@ -403,7 +381,7 @@ public class mydropzxyz : FaucetScript
  
             Wait(7);
 			
-            Recaptcha_Function (); //call
+            Captcha_Function (); //call
 			
             Wait(2); 
 			
@@ -449,9 +427,8 @@ public class mydropzxyz : FaucetScript
          } //end AutoWithdraw
       //=============//
 
-
 	 return GetWaitSetting();
-	
+
   //This faucet has nothing to do here. We will let Faucet Collector handle it.
   return base.DoSolveFaucet();
   }
@@ -478,6 +455,48 @@ public class mydropzxyz : FaucetScript
         return base.CheckFaucetResult();
     }
 
+
+
+        //=================//
+       //Login_Elements_Function
+        //=================//
+        public int Login_Elements_Function()
+        {
+			
+           var Email_VAR = ElementByXPath("//div[@class='box box-info']//input[@type='email']");      
+           if (IsVisible(Email_VAR))
+           {
+            SetText(Email_VAR, GetSetting("Email"));
+           }
+           
+           Wait(2);
+		   
+           var Password_VAR = ElementByXPath("//div[@class='box box-info']//input[@type='password']");      
+           if (IsVisible(Password_VAR))
+           {
+            SetText(Password_VAR, GetPassword("Password"));
+           }
+		   
+           Wait(2);
+
+           Captcha_Function(); //call
+
+           Wait();			
+	
+           var ButtonLog = ElementByXPath("//div[@class='box box-info']//button[@type='submit']");  
+           if (IsVisible(ButtonLog))
+           {
+            Click(ButtonLog);
+           }
+
+           Driver.Navigate().Refresh();
+
+           Wait(2);
+
+     	return 0;
+        }//end Login_Elements_Function
+        //=================//	
+	
 
 
         //=================//
@@ -558,26 +577,55 @@ public class mydropzxyz : FaucetScript
 
 
         //=================//
-       //Recaptcha_Function
+       //Captcha_Function
         //=================//
-        public int Recaptcha_Function()
+        public int Captcha_Function()
         {
-
-          var RecaptchaOpen_Iframe = ElementByXPath ("//iframe[contains(@src,'recaptcha/api2')]");
-          var SolveMedia_VAR = ElementByXPath ("//div[@id='adcopy-puzzle-image']");
-          var ImageCap_VAR = ElementByXPath ("//div[@class='box box-info']//input[@placeholder='Captcha']");
-		  
-          if (IsVisible(RecaptchaOpen_Iframe) || IsVisible(SolveMedia_VAR)  || IsVisible(ImageCap_VAR) )
+		
+          if (IsVisible(ElementByXPath ("//div[contains(@class,'box-info')]//img") ))
 		  {
+			Log("solve - ImageCap");
+            //solve Captcha X2 XPath (1 = captcha image | 2 = input text )
+            var ImageCap_VAR = DoSolveImageCaptcha(ElementByXPath("//div[contains(@class,'box-info')]//img"),ElementByXPath("//div[contains(@class,'box-info')]//input[@placeholder='Captcha']")); 
+
+            if (ImageCap_VAR > 0)
+            {
+               return Fail("fail not solve"); //return to solve again - if something wrong
+            }
+			
+		  } // end ImageCap
+
+
+          if (IsVisible(ElementByXPath ("//div[contains(@id,'adcopy-puzzle-image')]/img") ))
+		  {
+			Log("solve - SolveMedia_VAR");
+            //solve Captcha X2 XPath (1 = captcha image | 2 = input text )
+            var SolveMedia_VAR = DoSolveImageCaptcha(ElementByXPath("//div[contains(@id,'adcopy-puzzle-image')]/img"),ElementByXPath("//input[contains(@id,'adcopy_response')]")); 
+
+            if (SolveMedia_VAR > 0)
+            {
+               return Fail("fail not solve"); //return to solve again - if something wrong
+            }
+			
+		  } // end SolveMedia
+
+
+          //Recaptcha	  
+          var RecaptchaOpen_Iframe = ElementByXPath ("//iframe[contains(@src,'recaptcha/api2/anchor')]");
+          if (IsVisible(RecaptchaOpen_Iframe) )
+		  {
+			Log("solve - Recaptcha");
+
             //SolveCaptcha if apper
-            var result = base.DoSolveCaptcha();
-            if (result > 0)
+            var Recap = base.DoSolveCaptcha();
+            if (Recap > 0)
             {
                 return Fail("Fail solving captcha");
             }
             RecaptchaUtility utility = new RecaptchaUtility(this);
             utility.DoSolve();
-		  }
+			
+		  }//end RecaptchaOpen_Iframe
 
      	return 0;
         }//end VOID_Template_Function
