@@ -1,7 +1,7 @@
 
 //==================//
 //script Written by: ••AviramDayan•• 03/03/2020 23:50PM - Version 1
-//Last Update: 15/04/2020 02:45PM - Version 10
+//Last Update: 17/04/2020 07:15PM - Version 11
 //==================//
 
 using System;
@@ -287,7 +287,7 @@ public class mydropzxyz : FaucetScript
 	          Wait(7);	
 		   }
 
-           var AutoSurf_Check = ElementByXPath("//a[@style]/i | //a[contains(@class,'btn-success')]/i | //a[contains(@class,'btn-default')]/i | //a[contains(text(),'Visit Advertiser')] | //i[contains(@class,'fa fa-arrow-right')] | //i[contains(@class,'fa-chevron-right')] | //div[@id='adcopy-puzzle-image'] | //iframe[contains(@src,'recaptcha/api2')]"); 
+           var AutoSurf_Check = ElementByXPath("//a[@style]/i | //a[@class and @id]/i | //a[contains(@class,'btn-app')]/i | //a[contains(@class,'btn-success')]/i | //a[contains(@class,'btn-default')]/i | //a[contains(text(),'Visit Advertiser')] | //i[contains(@class,'fa fa-arrow-right')] | //i[contains(@class,'fa-chevron-right')] | //div[@id='adcopy-puzzle-image'] | //iframe[contains(@src,'recaptcha/api2')]"); 
 	       if (IsVisible(AutoSurf_Check))
 	       {
 			  
@@ -298,7 +298,7 @@ public class mydropzxyz : FaucetScript
 			   
                CheckForPopupsEnabled = false;
 			   
-               var ClaimNow_Available = ElementByXPath("//a[@style]/i | //a[contains(@class,'btn-success')]/i | //a[contains(@class,'btn-default')]/i | //a[contains(text(),'Visit Advertiser')] | //i[contains(@class,'fa fa-arrow-right')] | //i[contains(@class,'fa-chevron-right')] | //div[@id='adcopy-puzzle-image'] | //iframe[contains(@src,'recaptcha/api2')]"); 
+               var ClaimNow_Available = ElementByXPath("//a[@style]/i | //a[@class and @id]/i | //a[contains(@class,'btn-app')]/i | //a[contains(@class,'btn-success')]/i | //a[contains(@class,'btn-default')]/i | //a[contains(text(),'Visit Advertiser')] | //i[contains(@class,'fa fa-arrow-right')] | //i[contains(@class,'fa-chevron-right')] | //div[@id='adcopy-puzzle-image'] | //iframe[contains(@src,'recaptcha/api2')]"); 
 	           if (IsVisible(ClaimNow_Available))
 	           {
 			   Click(ClaimNow_Available);
@@ -339,7 +339,7 @@ public class mydropzxyz : FaucetScript
                   }
 			   }	  		
 			   
-               if (!IsVisible(ElementByXPath ("//a[@style]/i | //a[contains(@class,'btn-success')]/i | //a[contains(@class,'btn-default')]/i | //a[contains(text(),'Visit Advertiser')] | //i[contains(@class,'fa fa-arrow-right')] | //i[contains(@class,'fa-chevron-right')] ") )) 
+               if (!IsVisible(ElementByXPath ("//a[@style]/i | //a[@class and @id]/i | //a[contains(@class,'btn-app')]/i | //a[contains(@class,'btn-success')]/i | //a[contains(@class,'btn-default')]/i | //a[contains(text(),'Visit Advertiser')] | //i[contains(@class,'fa fa-arrow-right')] | //i[contains(@class,'fa-chevron-right')] ") )) 
 	           {
 		         Log("AutoSurfAds - break - not Available");
                  break; //after break the while  
