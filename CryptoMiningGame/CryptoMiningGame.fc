@@ -1,0 +1,510 @@
+﻿using FaucetCollector.Script;
+using OpenQA.Selenium;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+//css_inc Shortlinkutilities
+//css_ref HumanActions
+class CryptoMiningGameScript : FaucetScript
+{
+    public override FaucetSettings Settings
+    {
+        get
+        {
+
+            return new FaucetSettings ( BaseUrl )
+                {
+                    new FaucetSetting ( )
+                    {
+                        Name="User",
+                        Type=EditorType.TextBox,
+                        Required=true,
+                        Display="Username",
+                    },
+                    new FaucetSetting()
+                    {
+                        Name="Pass",
+                        Type=EditorType.Password,
+                        Required=true,
+                        Display="Password"
+                    },
+                    new FaucetSetting ( )
+                    {
+                        Name="Job",
+                        Type=EditorType.ComboBox,
+                        Default=ListJobs.FirstOrDefault(),
+                        Display="Select Job to claim",
+                        Items=ListJobs
+                    },
+                    new FaucetSetting ( )
+                    {
+                        Name="UseShortlink",
+                        Type=EditorType.CheckBox,
+                        Display="Use Shortlink for Antibot if it's available",
+                        Default=true
+
+                    },
+                    new FaucetSetting ( )
+                    {
+                        Name="Mining",
+                        Type=EditorType.ComboBox,
+                        Items=ListMiningCoins,
+                        Default=ListMiningCoins.FirstOrDefault(),
+                        Display="Coin selected for mining"
+                    }
+
+                };
+        }
+
+    }
+    public const string BaseUrl="https://cryptomininggame.com/";
+    public const string JobsUrl=BaseUrl+"jobs";
+    public const string MiningUrl=BaseUrl+"mining";
+
+    public List<string> ListMiningCoins=new List<string>
+    {
+        "none",
+        "bitcoin",
+        "doge",
+        "litecoin",
+        "dash",
+        "ethereum",
+        "bitcoin cash"
+    };
+    public List<string> ListJobs=new List<string>
+    {
+        "None",
+        "Crystal",
+        "CRYPTOCOINZ",
+        "Satoshi",
+        "Doge",
+        "Litoshi",
+        "Dash",
+        "Ether",
+        "BCH Satoshi",
+        "Crypto Game Token"
+    };
+    public override void Start ( )
+    {
+        Title="CRYPTO";
+        SuccessXPath="//div[@class='text-center alert fixtop alert-success']|//div[@id='result_details']";
+        FailXPath="//div[@class='text-center alert fixtop alert-danger']";
+        base.Start ( );
+    }
+    public override int BeforeLogin ( )
+    {
+        var ModalLogin=ElementByXPath("//div[contains(@id,'modalLogin')]");
+        if ( !IsVisible ( ModalLogin ) )
+        {
+            var ModalLoginBtn=ElementByXPath("//button[contains(@data-target,'modalLogin')]");
+            if ( !IsVisible ( ModalLogin ) )
+            {
+                return Fail ( "Modal login not visible" );
+            }
+            Click ( ModalLogin );
+        }
+
+        return base.BeforeLogin ( );
+    }
+    public override bool IsLoggedIn ( )
+    {
+        return ElementByXPath ( "//a[@href='/logout']" )!=null;
+    }
+    public override int DoLogin ( )
+    {
+        var UserBox=ElementByXPath("//input[@id='username']");
+        if ( !IsVisible ( UserBox ) )
+        {
+            return Fail ( "User box not visible" );
+        }
+
+        SetText ( UserBox , GetSetting ( "User" ) );
+        Wait ( 1 );
+
+        var PasswordBox=ElementByXPath("//input[@id='password']");
+        if ( !IsVisible ( PasswordBox ) )
+        {
+            return Fail ( "Password box not visible" );
+        }
+        SetText ( PasswordBox , GetPassword ( "Pass" ) );
+
+        var result=DoSolveCaptcha();
+        if ( result>0 )
+        {
+            return result;
+        }
+        var Submit=ElementByXPath("//button[@id='_submit']");
+        if ( !IsVisible ( Submit ) )
+        {
+            return Fail ( "Submit button not found" );
+        }
+        Click ( Submit );
+
+        return base.DoLogin ( );
+    }
+
+    public override int DoSolveCaptcha ( )
+    {
+        var CaptchaSelector=ElementByXPath("//select[@id='captchatype']");
+        if ( IsVisible ( CaptchaSelector ) )
+        {
+            SelectOptionByValue ( CaptchaSelector , "g-recaptcha" );
+            Wait ( 1 );
+        }
+
+        return base.DoSolveCaptcha ( );
+    }
+    private AntibotOption LastAntibotUsed { get; set; }
+    public override int BeforeSolveFaucet ( )
+    {
+        var Antibot=ElementByXPath("//a[@href='/antibot']");
+        if ( IsVisible ( Antibot ) )
+        {
+            Click ( Antibot );
+            Wait ( 3 , 4 );
+            var ModalAntibot=ElementByXPath("//button[@data-target='#modalAntibotLink']");
+            if ( IsVisible ( ModalAntibot ) )
+            {
+                Click ( ModalAntibot );
+                Wait ( 2 );
+
+                var AntibotOpt=GetAvailableAntibot();
+                if ( AntibotOpt!=null )
+                {
+
+                    if ( LastAntibotUsed==AntibotOption.Shortlink )
+                    {
+                        ShortLinkBypasser shortLinkBypasser =new ShortLinkBypasser(this);
+                        Click ( AntibotOpt );
+                        Wait ( );
+                        if ( shortLinkBypasser.IsValidShortLink ( ) )
+                        {
+                            bool Sol=shortLinkBypasser.DoShortLink ( );
+                            if ( !Sol )
+                            {
+                                Log ( "Something is wrong  "+Driver.Url+" Is not a valid shortlink or is not correctly added" );
+                            }
+                        }
+                        else
+                        {
+                            Log ( "Something is wrong  "+Driver.Url+" Is not a valid shortlink or is not correctly added" );
+                        }
+
+                    }
+                    else
+                    {
+                        Click ( AntibotOpt );
+                        Wait ( 2 );
+
+                        if ( IsValidAntibot ( ) )
+                        {
+                            bool Sol=SolveAntibot ( );
+                            if ( !Sol )
+                            {
+                                Log ( "Fail solving antibot" );
+                            }
+                            else
+                            {
+                                Log ( "Antibot solved successfully" );
+                            }
+                        }
+
+                    }
+
+                }
+
+                CheckFaucetResult ( );
+
+            }
+        }
+        return base.BeforeSolveFaucet ( );
+    }
+
+    public override int DoSolveFaucet ( )
+    {
+        var SelectedJob=this.SelectedJob;
+        if ( SelectedJob!=JobType.None )
+        {
+            GoToUrl ( JobsUrl );
+            Wait ( );
+
+            int minutes=GetMinutesofWorkRemaining();
+            if ( minutes>0 )
+            {
+                 bool Claimed=ClaimJob ( );
+                if ( Claimed )
+                {
+                    CheckFaucetResult ( );
+                    Log ( "Job Claimed successfully" );
+                }
+            }
+        }
+
+        var MOption=SelectedMiningOption;
+        if ( SelectedMiningOption!=MiningType.none )
+        {
+            GoToUrl ( MiningUrl );
+            Wait ( );
+
+            var XPathMiningButton=GetXPathMiningButton(MOption);
+            if ( !string.IsNullOrEmpty ( XPathMiningButton ) )
+            {
+                var ButtonMining=ElementByXPath(XPathMiningButton);
+                if ( IsVisible ( ButtonMining ) )
+                {
+                    Click ( ButtonMining );
+                    Wait ( );
+                    CheckFaucetResult ( );
+                }
+                else
+                {
+                    Log ( "Script is already mining, will wait to mine again" );
+                }
+            }
+        }
+        return GetWaitSetting ( );
+        
+    }
+
+    #region antibot
+    public IWebElement GetAvailableAntibot ( )
+    {
+        var AntibotOptions=ElementsByXPath("//button[@class='btn btn-block btn-sm btn-info']").Where(x=>IsVisible(x)).ToList();
+        if ( AntibotOptions.Count>0 )
+        {
+            var SelectedAntibot=this.SelectedAntibot;
+            var FirstOption=SelectedAntibot==AntibotOption.Shortlink?AntibotOptions.FirstOrDefault(x => !x.Text.ToLower().Contains("cmg")):AntibotOptions.FirstOrDefault(x => x.Text.ToLower().Contains("cmg"));
+
+            if ( FirstOption!=null )
+            {
+                LastAntibotUsed=SelectedAntibot;
+                return FirstOption;
+            }
+
+
+            LastAntibotUsed=SelectedAntibot==AntibotOption.Shortlink ? AntibotOption.CmgAntibot : AntibotOption.Shortlink;
+
+            Log ( "First option selected for antibot is not available, using: "+LastAntibotUsed.ToString ( ) );
+
+            return AntibotOptions[Random ( 0 , AntibotOptions.Count )];
+
+        }
+
+        return null;
+    }
+   
+    public enum AntibotOption
+    {
+        Shortlink,
+        CmgAntibot
+    }
+
+    public AntibotOption SelectedAntibot
+    {
+        get
+        {
+            if ( GetBoolSetting ( "UseShortlink" ) )
+            {
+                return AntibotOption.Shortlink;
+            }
+            return AntibotOption.CmgAntibot;
+        }
+    }
+
+
+    public bool IsValidAntibot ( )
+    {
+        return ElementByXPath ( "//div[@id='antispyware_block']" )!=null;
+    }
+
+    public bool SolveAntibot ( )
+    {
+        HumanActions.DriverHumanActions driver=new HumanActions.DriverHumanActions(Driver);
+        var Timer =ElementByXPath("//span[@id='beattime']");
+        var Block=ElementByXPath("//div[@id='antispyware_block']");
+        while ( IsVisible ( Timer )&&IsVisible ( Block ) )
+        {
+            Wait ( );
+            driver.GotoElement ( Block );
+            Block=ElementByXPath ( "//div[@id='antispyware_block']" );
+            Timer=ElementByXPath ( "//span[@id='beattime']" );
+
+        }
+        Wait (3 );
+        var ButtonGo=ElementByXPath("//div[@id='btn_validate_antibotrefill']");
+        if ( !IsVisible ( ButtonGo ) )
+        {
+            return false;
+        }
+        driver.Click ( ButtonGo );
+
+        return true;
+
+    }
+    #endregion
+    #region Jobs
+    public enum JobType
+    {
+        None,
+        Crystal,
+        CRYPTOCOINZ,
+        Satoshi,
+        Doge,
+        Litoshi,
+        Dash,
+        Ether,
+        BCH_Satoshi,
+        Crypto_Game_Token
+    }
+
+   
+    public JobType SelectedJob
+    {
+        get
+        {
+            return (JobType)Enum.Parse(typeof(JobType), GetSetting ( "Job" ).Trim ( ).Replace ( ' ' , '_' ) );
+        }
+    }
+
+    public string GetValueNeeded (JobType job )
+    {
+        return job==JobType.Satoshi ? "satoshi" : job==JobType.Litoshi ? "litoshi" : job==JobType.Ether ? "ether" : job==JobType.Doge ? "doge" : job==JobType.Dash ? "dash" : job==JobType.BCH_Satoshi ? "bchsatoshi" : job==JobType.Crypto_Game_Token ? "cmg" : string.Empty;
+    }
+
+    public void FinishStartedJobs ( )
+    {
+        var FinishedJobs=ElementsByXPath("//button[contains(@class,'btn btn-scifi mining')]").Where(x=>IsVisible(x)).ToList();
+
+        FinishedJobs.ForEach ( x => FinishJob ( x ) );
+    }
+    public void FinishJob(IWebElement JobButton )
+    {
+        Click ( JobButton );
+        Wait ( 2 );
+
+        CheckFaucetResult ( );
+
+        CloseJobResult ( );
+    }
+
+    public void CloseJobResult ( )
+    {
+        var JobWindow=ElementByXPath("//div[@id='job_result']");
+        if ( IsVisible ( JobWindow ) ){
+
+            Click ( JobWindow );
+            Wait ( 1 );
+        }
+    }
+    public bool ClaimJob ( )
+    {
+        var AvailableBoxs=ElementsByXPath ( "//input[@name='energy']" );
+        var AvailableButtons=ElementsByXPath("//button[@name='startworking']" );
+        IWebElement EnergyBox;
+        IWebElement ButtonStartJob;
+        string NeddedValue=string.Empty;
+        var SelectedJob=this.SelectedJob;
+        if ( SelectedJob==JobType.Crystal )
+        {
+            EnergyBox=ElementByXPath ( "//form[@id='crystal_job']//input[@name='energy']" );
+            ButtonStartJob=ElementByXPath ( "//div[@id='start_crystal_job']//button[contains(@name,'startworking')]" );
+        }
+        else if ( SelectedJob==JobType.CRYPTOCOINZ )
+        {
+            EnergyBox=AvailableBoxs.Count>1 ? AvailableBoxs[1] : null;
+            ButtonStartJob=AvailableButtons.Count>1 ? AvailableButtons[1] : null;
+                
+        }
+        else
+        {
+            NeddedValue=GetValueNeeded ( SelectedJob );
+            EnergyBox=AvailableBoxs.Count>2 ? AvailableBoxs[2] : null;
+            ButtonStartJob=AvailableButtons.Count>2 ? AvailableButtons[2] : null;
+        }
+
+        if(!IsVisible(EnergyBox) || !IsVisible(ButtonStartJob) )
+        {
+            Log ( "Job start failed can't find the button or energy box" );
+
+            return false;
+        }
+
+        int MinutesRemaining=GetMinutesofWorkRemaining();
+
+        SetText ( EnergyBox , MinutesRemaining>10 ? "10" : MinutesRemaining.ToString ( ) );
+        if ( !string.IsNullOrWhiteSpace ( NeddedValue) )
+        {
+            var JobSelect=ElementByXPath("//select[contains(@name,'job_subtype')]");
+            if ( !IsVisible ( JobSelect ) )
+            {
+                return false;
+            }
+            SelectOptionByValue ( JobSelect , NeddedValue );
+
+        }
+        Wait ( 1 );
+
+        Click ( ButtonStartJob );
+
+        return true;
+    }
+    /// <summary>
+    /// Get minutes available in jobs section 
+    /// </summary>
+    /// <returns></returns>
+    public int GetMinutesofWorkRemaining ( )
+    {
+        var RemainingTime=ElementByXPath("//span[@id='workinghoursremaining']");
+        if ( !IsVisible ( RemainingTime ) )
+        {
+            var SplittedText=RemainingTime.Text.ToLower().Replace("m","").Split('h');
+            int min;
+            int hour;
+            if ( int.TryParse ( SplittedText[0] , out hour )&&int.TryParse ( SplittedText[1] , out min ) )
+            {
+                return hour*60+min;
+            }
+
+            return 0;
+        }
+
+        return 0;
+    }
+    #endregion
+    #region Mining
+
+    public enum MiningType
+    {
+        none,
+        bitcoin,
+        doge,
+        litecoin,
+        dash,
+        ethereum,
+        bitcoin_cash
+
+    }
+
+    public MiningType SelectedMiningOption
+    {
+
+        get
+        {
+            return ( MiningType )Enum.Parse ( typeof ( MiningType ) , GetSetting ( "Mining" ).Trim ( ).Replace ( ' ' , '_' ) );
+        }
+    }
+
+    public string GetXPathMiningButton (MiningType minings )
+    {
+        return minings==MiningType.bitcoin ? "//div[@id='satoshi_mining_panel']//button[@class='btn btn-scifi']" : 
+            minings==MiningType.doge ? "//div[@id='doge_mining_panel']//button[@class='btn btn-scifi']" : 
+            minings==MiningType.litecoin? "//div[@id='litoshi_mining_panel']//button[@class='btn btn-scifi']" : 
+            minings==MiningType.dash? "//div[@id='dash_mining_panel']//button[@class='btn btn-scifi']" : 
+            minings==MiningType.ethereum? "//div[@id='ethereum_mining_panel']//button[@class='btn btn-scifi']" : 
+            minings==MiningType.bitcoin_cash? "//div[@id='bitcoincash_mining_panel']//button[@class='btn btn-scifi']" :
+            string.Empty;
+
+    }
+    #endregion
+
+}
