@@ -1,7 +1,8 @@
 
+
 //==================//
 //script Written by: ••AviramDayan•• 26/05/2019 04:00PM
-//Last Update: 20/03/2020 12:00AM - Version 8
+//Last Update: 17/04/2020 21:30AM - Version 9
 //==================//
 
 using System;
@@ -36,11 +37,11 @@ public class stake : FaucetScript
                 new FaucetSetting(){Name="Password",Display="Password",Type=EditorType.Password,Required=false},
 				
                 new FaucetSetting() { Name = "btc", Display = "btc - claim", Type = EditorType.CheckBox, Default =true},	
-                new FaucetSetting() { Name = "eth", Display = "eth - claim", Type = EditorType.CheckBox, Default = false},	
-                new FaucetSetting() { Name = "ltc", Display = "ltc - claim", Type = EditorType.CheckBox, Default = false},	
-                new FaucetSetting() { Name = "doge", Display = "doge - claim", Type = EditorType.CheckBox, Default = false},	
-                new FaucetSetting() { Name = "bch", Display = "bch - claim", Type = EditorType.CheckBox, Default = false},	
-                new FaucetSetting() { Name = "xrp", Display = "xrp - claim", Type = EditorType.CheckBox, Default = false},	
+                //new FaucetSetting() { Name = "eth", Display = "eth - claim", Type = EditorType.CheckBox, Default = false},	
+                //new FaucetSetting() { Name = "ltc", Display = "ltc - claim", Type = EditorType.CheckBox, Default = false},	
+                //new FaucetSetting() { Name = "doge", Display = "doge - claim", Type = EditorType.CheckBox, Default = false},	
+                //new FaucetSetting() { Name = "bch", Display = "bch - claim", Type = EditorType.CheckBox, Default = false},	
+                //new FaucetSetting() { Name = "xrp", Display = "xrp - claim", Type = EditorType.CheckBox, Default = false},	
 				
                 new FaucetSetting() { Name = "AffWithdraw", Display = "AffWithdraw", Type = EditorType.CheckBox, Default = false},	
 
@@ -292,6 +293,7 @@ public class stake : FaucetScript
      var ReloadAvailable = ElementByXPath("//a[contains(@href,'Reload')]/span[contains(text(),'Reload')]"); 
      if (IsVisible(ReloadAvailable))
      {
+	    Log("ReloadAvailable");	
 
 		//======//
 		//btc//
@@ -556,7 +558,7 @@ public class stake : FaucetScript
           var CheckClaim = ElementByXPath("//div[contains(@class,'styles__Buttons')]//button[contains(@class,'Button__StyledButton') and (@disabled) ]"); 
           if (!IsVisible(CheckClaim))
           {	
-            Log("Claim_Function");
+            Log("Claim_Function - claim button available after captch - do click");
             var ClaimVAR = ElementByXPath("//div[contains(@class,'styles__Buttons')]//button[contains(@class,'Button__StyledButton')]"); 
             Click(ClaimVAR);
           }//end ClaimVAR
@@ -614,7 +616,15 @@ public class stake : FaucetScript
           var BalanceNeedToBeZero = ElementByXPath("//span[contains(text(),'Next claim available')]"); 
           if (!IsVisible(BalanceNeedToBeZero)) //if is not visible - BalanceNeedToBeZero - DoSolveCaptcha 
           {	
-          var result = DoSolveCaptcha();
+		    Log("faucet visible - do stuff");
+		  
+            var ReCaptchaIframe = ElementByXPath("//iframe[contains(@src,'recaptcha/api2/anchor')]"); 
+            if (IsVisible(ReCaptchaIframe))
+            {	
+		      Log("call to solve captch");
+              var result = DoSolveCaptcha(); //call to solve captch		   
+		    }
+
 		  }
 
 		}// end BalanceNeedToBeZero_Function
