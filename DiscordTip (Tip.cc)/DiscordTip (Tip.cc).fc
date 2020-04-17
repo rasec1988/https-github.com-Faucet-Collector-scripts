@@ -1,7 +1,7 @@
 
 //==================//
 //script Written by: ••AviramDayan•• 05/12/2018 06:00AM 
-//Last Update: 17/04/2020 05:30PM - Version 56
+//Last Update: 17/04/2020 21:00PM - Version 56
 //==================//
 
 using System;
@@ -121,7 +121,7 @@ public class discordapp_ : FaucetScript
        if (GetBoolSetting("ALLIN_Success"))
        {
 		Log("ALLIN_Success");  
-		CheckFaucetResult(); //skip all actions - and call to --> CheckFaucetResult - to make sure That FC mark as "Payout" before
+		ClaimSuccess(); 
         ad = true;    // if i do true - it report as succeed // only one time no multi and also required -> return GetWaitSetting();
 	   } 
 	   
@@ -465,14 +465,16 @@ public class discordapp_ : FaucetScript
 				if (GetBoolSetting("All_AirDrop_Success"))
 				{
 		         Log(" ThanksMessage - All_AirDrop_Success ");  
-		    	 CheckFaucetResult(); //skip all actions - and call to --> CheckFaucetResult - to make sure That FC mark as "Payout" before
+	             Notification("ThanksMessage - All_AirDrop_Success");	
+		    	 ClaimSuccess();
                  return GetWaitSetting();		 
 				}
 				
                 if (!GetBoolSetting("Discordtip_FaucetCollector_OnOff") && !GetBoolSetting("Discordtip_LaccsFaucet_BTC_OnOff") )
                 {
+	             Notification("ThanksMessage' - appear && the all AirDrop from Discordtip are disabled");	
 		         Log(" 'ThanksMessage' - appear && the all AirDrop from Discordtip are disabled ");  
-		         CheckFaucetResult(); //skip all actions - and call to --> CheckFaucetResult - to make sure That FC mark as "Payout" before
+		         ClaimSuccess();
                 }
 
             }
@@ -483,15 +485,17 @@ public class discordapp_ : FaucetScript
 				
 				if (GetBoolSetting("All_AirDrop_Success"))
 				{
+	             Notification("AlreadyVoted - All_AirDrop_Success");	
 		         Log("AlreadyVoted - All_AirDrop_Success ");  
-		    	 CheckFaucetResult(); //skip all actions - and call to --> CheckFaucetResult - to make sure That FC mark as "Payout" before
+		    	 ClaimSuccess(); 
                  return GetWaitSetting();	
 				}
 				
                 if (!GetBoolSetting("Discordtip_FaucetCollector_OnOff") && !GetBoolSetting("Discordtip_LaccsFaucet_BTC_OnOff") )
                 {
+	             Notification(" 'AlreadyVoted' - appear && the all AirDrop from Discordtip are disabled ");	
 		         Log(" 'AlreadyVoted' - appear && the all AirDrop from Discordtip are disabled ");  
-		    	 CheckFaucetResult(); //skip all actions - and call to --> CheckFaucetResult - to make sure That FC mark as "Payout" before			
+		    	 ClaimSuccess();
                 }
              
             }
@@ -563,6 +567,7 @@ public class discordapp_ : FaucetScript
 	    if (IsVisible(ReactionButton_Full_After_Check))
         {
 		Log("Discordtip_FaucetCollector: Click On Reaction - done"); 
+	    Notification("Discordtip_FaucetCollector: Click On Reaction - done");	
 		ClaimSuccess(); //Marks the claim as a success
 		}
 
@@ -906,7 +911,8 @@ public class discordapp_ : FaucetScript
         var ReactionButton_Full_After_Check = ElementByXPath("//div[contains(@class,'reactionInner') and @aria-pressed='true' ]//img[contains(@src,'assets/b052a4bef57')]");
 	    if (IsVisible(ReactionButton_Full_After_Check))
         {
-		Log("Discordtip_LaccsFaucet_BTC: Click On Reaction - done"); 			
+		Log("Reaction: Click On Reaction - done");
+	    Notification("Reaction: Click On Reaction - done");	
 		}
 		*/
 
@@ -1190,7 +1196,13 @@ public class discordapp_ : FaucetScript
           {
            Log("Reaction - airdrop not exist right now");
           }  
-
+		  
+          if (!IsVisible(ReactionButton_Full)) //problem with elements
+          {
+           Log("Reaction - problem with elements");
+           Notification("Reaction - problem with elements");
+          }  
+		  
           if (IsVisible(ReactionButton_Clean))
           {
            Log("ReactionButton_Clean - visible - we click on it");
