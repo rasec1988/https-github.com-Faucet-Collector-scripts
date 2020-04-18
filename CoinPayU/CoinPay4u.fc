@@ -212,9 +212,9 @@ class ScriptCoinPayU: FaucetScript
     public override int DoSolveFaucet()
     {
 
-        if (!Driver.Url.Contains("https://coinpayu.com/dashboard/viewAds/ads_surf"))
+        if (!Driver.Url.Contains("https://coinpayu.com/dashboard/ads_surf"))
         {
-            GoToUrl("https://coinpayu.com/dashboard/viewAds/ads_surf");
+            GoToUrl("https://coinpayu.com/dashboard/ads_surf");
             Wait(3,4);
         }
         DateTime Timeout=DateTime.Now.AddSeconds(20);
