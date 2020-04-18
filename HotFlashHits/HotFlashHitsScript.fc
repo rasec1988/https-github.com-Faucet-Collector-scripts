@@ -70,7 +70,7 @@ public class HotFlashHits : FaucetScript
     {
         //In here we can check for the presence of an element that is only present when you are logged in.
         //In this case we check for en element with the class "loggedIn"
-        return ElementByXPath("//span[contains(text(),'Logout')]") != null;
+        return ElementByXPath( "//a[@href='members.php?mf=lo']" ) != null;
     }
 
     /// <summary>
