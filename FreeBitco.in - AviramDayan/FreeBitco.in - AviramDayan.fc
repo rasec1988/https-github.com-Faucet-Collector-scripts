@@ -70,8 +70,7 @@ public class FreeBitcoinScript : FaucetScript
  public override void Start()
  {
         //Title that shows in the browser. Is used to close popups
-        Title = "freebitco.in | investimer.name";
-
+        Title = "freebitco.in";
 		
         SuccessXPath = "//*[@id='free_play_result']";   
         FailXPath = "//*[text()='']";   //*[@id='free_play_error']
