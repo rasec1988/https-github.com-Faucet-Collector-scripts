@@ -96,14 +96,14 @@ class CryptoMiningGameScript : FaucetScript
         var ModalLogin=ElementByXPath("//div[contains(@id,'modalLogin')]");
         if ( !IsVisible ( ModalLogin ) )
         {
-            var ModalLoginBtn=ElementByXPath("//button[contains(@data-target,'modalLogin')]");
+            ModalLogin=ElementByXPath("//button[contains(@data-target,'modalLogin')]");
             if ( !IsVisible ( ModalLogin ) )
             {
                 return Fail ( "Modal login not visible" );
             }
-            Click ( ModalLogin );
+   
         }
-
+        Click ( ModalLogin );
         return base.BeforeLogin ( );
     }
     public override bool IsLoggedIn ( )
@@ -322,7 +322,8 @@ class CryptoMiningGameScript : FaucetScript
         HumanActions.DriverHumanActions driver=new HumanActions.DriverHumanActions(Driver);
         var Timer =ElementByXPath("//span[@id='beattime']");
         var Block=ElementByXPath("//div[@id='antispyware_block']");
-        while ( IsVisible ( Timer )&&IsVisible ( Block ) )
+        DateTime Timeout=DateTime.Now.AddSeconds(65);
+        while ( IsVisible ( Timer )&&IsVisible ( Block ) && DateTime.Now<Timeout )
         {
             Wait ( );
             driver.GotoElement ( Block );
