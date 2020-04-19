@@ -60,6 +60,7 @@ class CryptoMiningGameScript : FaucetScript
     public const string BaseUrl="https://cryptomininggame.com/";
     public const string JobsUrl=BaseUrl+"jobs";
     public const string MiningUrl=BaseUrl+"mining";
+    HumanActions.DriverHumanActions driver { get; set; }
 
     public List<string> ListMiningCoins=new List<string>
     {
@@ -90,6 +91,11 @@ class CryptoMiningGameScript : FaucetScript
         SuccessXPath="//div[@class='text-center alert fixtop alert-success']|//div[@id='result_details']";
         FailXPath="//div[@class='text-center alert fixtop alert-danger']";
         base.Start ( );
+    }
+    public override int DoInit ( )
+    {
+        driver=new HumanActions.DriverHumanActions ( Driver );
+        return base.DoInit ( );
     }
     public override int BeforeLogin ( )
     {
@@ -138,7 +144,8 @@ class CryptoMiningGameScript : FaucetScript
         {
             return Fail ( "Submit button not found" );
         }
-        Click ( Submit );
+        // Sometimes ad block selenium click 
+        ExecuteScript ( "arguments[0].click()" , Submit );
 
         return base.DoLogin ( );
     }
@@ -149,7 +156,13 @@ class CryptoMiningGameScript : FaucetScript
         if ( IsVisible ( CaptchaSelector ) )
         {
             SelectOptionByValue ( CaptchaSelector , "g-recaptcha" );
-            Wait ( 1 );
+            Wait ( 2,3 );
+            DateTime timeout=DateTime.Now.AddSeconds(20);
+            // Wait some time to recaptcha appear
+            while(!IsVisible(ElementByXPath( "//div[@class='g-recaptcha']" )) && DateTime.Now<timeout  )
+            {
+                Wait ( );
+            }
         }
 
         return base.DoSolveCaptcha ( );
@@ -226,7 +239,7 @@ class CryptoMiningGameScript : FaucetScript
         if ( SelectedJob!=JobType.None )
         {
             GoToUrl ( JobsUrl );
-            Wait ( );
+            Wait (2 );
 
             int minutes=GetMinutesofWorkRemaining();
             if ( minutes>0 )
@@ -319,7 +332,7 @@ class CryptoMiningGameScript : FaucetScript
 
     public bool SolveAntibot ( )
     {
-        HumanActions.DriverHumanActions driver=new HumanActions.DriverHumanActions(Driver);
+        driver=new HumanActions.DriverHumanActions(Driver);
         var Timer =ElementByXPath("//span[@id='beattime']");
         var Block=ElementByXPath("//div[@id='antispyware_block']");
         DateTime Timeout=DateTime.Now.AddSeconds(65);
@@ -458,17 +471,17 @@ class CryptoMiningGameScript : FaucetScript
         var RemainingTime=ElementByXPath("//span[@id='workinghoursremaining']");
         if ( !IsVisible ( RemainingTime ) )
         {
-            var SplittedText=RemainingTime.Text.ToLower().Replace("m","").Split('h');
+            var SplittedText=RemainingTime.Text.ToLower().Replace("min","").Split('h');
             int min;
             int hour;
             if ( int.TryParse ( SplittedText[0] , out hour )&&int.TryParse ( SplittedText[1] , out min ) )
             {
-                return hour*60+min;
+                int TotalTime=hour*60+min;
+                Log ( "You have "+TotalTime.ToString ( )+"Minutes remaining of work" );
+                return TotalTime;
             }
-
-            return 0;
         }
-
+        Log ( "You have 0 minutes remaining of work" );
         return 0;
     }
     #endregion
