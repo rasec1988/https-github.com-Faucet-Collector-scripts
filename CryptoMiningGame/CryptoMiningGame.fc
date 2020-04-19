@@ -30,6 +30,13 @@ class CryptoMiningGameScript : FaucetScript
                     },
                     new FaucetSetting ( )
                     {
+                        Name="Refill",
+                        Type=EditorType.CheckBox,
+                        Default=true,
+                        Display="Refill Energy if it's avaible"
+                    },
+                    new FaucetSetting ( )
+                    {
                         Name="Job",
                         Type=EditorType.ComboBox,
                         Default=ListJobs.FirstOrDefault(),
@@ -190,53 +197,22 @@ class CryptoMiningGameScript : FaucetScript
                 Click ( ModalAntibot );
                 Wait ( 2 );
 
-                var AntibotOpt=GetAvailableAntibot();
-                if ( AntibotOpt!=null )
-                {
-
-                    if ( LastAntibotUsed==AntibotOption.Shortlink )
-                    {
-                        ShortLinkBypasser shortLinkBypasser =new ShortLinkBypasser(this);
-                        Click ( AntibotOpt );
-                        Wait ( );
-                        if ( shortLinkBypasser.IsValidShortLink ( ) )
-                        {
-                            bool Sol=shortLinkBypasser.DoShortLink ( );
-                            if ( !Sol )
-                            {
-                                Log ( "Something is wrong  "+Driver.Url+" Is not a valid shortlink or is not correctly added" );
-                            }
-                        }
-                        else
-                        {
-                            Log ( "Something is wrong  "+Driver.Url+" Is not a valid shortlink or is not correctly added" );
-                        }
-
-                    }
-                    else
-                    {
-                        Click ( AntibotOpt );
-                        Wait ( 2 );
-
-                        if ( IsValidAntibot ( ) )
-                        {
-                            bool Sol=SolveAntibot ( );
-                            if ( !Sol )
-                            {
-                                Log ( "Fail solving antibot" );
-                            }
-                            else
-                            {
-                                Log ( "Antibot solved successfully" );
-                            }
-                        }
-
-                    }
-
-                }
+                SolveAntibotWithBest ( );
 
                 CheckFaucetResult ( );
 
+            }
+        }
+        #endregion
+        #region Refill_Energy
+        if ( GetBoolSetting ( "Refill" ) )
+        {
+            var RefillEnergyBtn=ElementByXPath("//span[@id='refill_energy_btn_txt']");
+            if ( IsVisible ( RefillEnergyBtn ) )
+            {
+                Click ( RefillEnergyBtn );
+                Wait ( 2 );
+                SolveAntibotWithBest ( );
             }
         }
         #endregion
@@ -301,6 +277,54 @@ class CryptoMiningGameScript : FaucetScript
     }
 
     #region antibot
+    public void SolveAntibotWithBest ( )
+    {
+        var AntibotOpt=GetAvailableAntibot();
+        if ( AntibotOpt!=null )
+        {
+
+            if ( LastAntibotUsed==AntibotOption.Shortlink )
+            {
+                ShortLinkBypasser shortLinkBypasser =new ShortLinkBypasser(this);
+                Click ( AntibotOpt );
+                Wait ( );
+                if ( shortLinkBypasser.IsValidShortLink ( ) )
+                {
+                    bool Sol=shortLinkBypasser.DoShortLink ( );
+                    if ( !Sol )
+                    {
+                        Log ( "Something is wrong  "+Driver.Url+" Is not a valid shortlink or is not correctly added" );
+                    }
+                }
+                else
+                {
+                    Log ( "Something is wrong  "+Driver.Url+" Is not a valid shortlink or is not correctly added" );
+                }
+
+            }
+            else
+            {
+                Click ( AntibotOpt );
+                Wait ( 2 );
+
+                if ( IsValidAntibot ( ) )
+                {
+                    bool Sol=SolveAntibot ( );
+                    if ( !Sol )
+                    {
+                        Log ( "Fail solving antibot" );
+                    }
+                    else
+                    {
+                        Log ( "Antibot solved successfully" );
+                    }
+                }
+
+            }
+
+        }
+
+    }
     public IWebElement GetAvailableAntibot ( )
     {
         var AntibotOptions=ElementsByXPath("//button[@class='btn btn-block btn-sm btn-info']").Where(x=>IsVisible(x)).ToList();
