@@ -114,7 +114,7 @@ class CryptoMiningGameScript : FaucetScript
     }
     public override bool IsLoggedIn ( )
     {
-        return ElementByXPath ( "//a[@href='/logout']" )!=null;
+        return ElementByXPath ( "//a[contains(@href,'/logout')]" )!=null;
     }
     public override int DoLogin ( )
     {
@@ -469,7 +469,7 @@ class CryptoMiningGameScript : FaucetScript
     public int GetMinutesofWorkRemaining ( )
     {
         var RemainingTime=ElementByXPath("//span[@id='workinghoursremaining']");
-        if ( !IsVisible ( RemainingTime ) )
+        if ( IsVisible ( RemainingTime ) )
         {
             var SplittedText=RemainingTime.Text.ToLower().Replace("min","").Split('h');
             int min;
