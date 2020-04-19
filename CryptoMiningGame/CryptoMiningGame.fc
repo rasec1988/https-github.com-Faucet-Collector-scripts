@@ -207,7 +207,7 @@ class CryptoMiningGameScript : FaucetScript
         #region Refill_Energy
         if ( GetBoolSetting ( "Refill" ) )
         {
-            var RefillEnergyBtn=ElementByXPath("//span[@id='refill_energy_btn_txt']");
+            var RefillEnergyBtn=ElementByXPath("//button[@data-target='#modalRefillLink']");
             if ( IsVisible ( RefillEnergyBtn ) )
             {
                 Click ( RefillEnergyBtn );
