@@ -51,6 +51,13 @@ class CryptoMiningGameScript : FaucetScript
                         Items=ListMiningCoins,
                         Default=ListMiningCoins.FirstOrDefault(),
                         Display="Coin selected for mining"
+                    },
+                    new FaucetSetting ( )
+                    {
+                        Name="DailyBonus",
+                        Type=EditorType.CheckBox,
+                        Default=true,
+                        Display="Try to claim daily bonus"
                     }
 
                 };
@@ -58,8 +65,9 @@ class CryptoMiningGameScript : FaucetScript
 
     }
     public const string BaseUrl="https://cryptomininggame.com/";
-    public const string JobsUrl=BaseUrl+"jobs";
-    public const string MiningUrl=BaseUrl+"mining";
+
+
+
     HumanActions.DriverHumanActions driver { get; set; }
 
     public List<string> ListMiningCoins=new List<string>
@@ -170,6 +178,7 @@ class CryptoMiningGameScript : FaucetScript
     private AntibotOption LastAntibotUsed { get; set; }
     public override int BeforeSolveFaucet ( )
     {
+        #region antibot
         var Antibot=ElementByXPath("//a[@href='/antibot']");
         if ( IsVisible ( Antibot ) )
         {
@@ -230,13 +239,21 @@ class CryptoMiningGameScript : FaucetScript
 
             }
         }
+        #endregion
+        #region dailybonus
+        if ( IsAvailableDailyBonus ( ) )
+        {
+            ClaimDailyBonus ( );
+        }
+        #endregion
         return base.BeforeSolveFaucet ( );
     }
 
     public override int DoSolveFaucet ( )
     {
+        #region Jobs
         var SelectedJob=this.SelectedJob;
-        if ( SelectedJob!=JobType.None )
+        if ( SelectedJob!=JobType.None && IsJobAvailable() )
         {
             GoToUrl ( JobsUrl );
             Wait (2 );
@@ -252,6 +269,9 @@ class CryptoMiningGameScript : FaucetScript
                 }
             }
         }
+        #endregion
+
+        #region Mining
 
         var MOption=SelectedMiningOption;
         if ( SelectedMiningOption!=MiningType.none )
@@ -275,6 +295,7 @@ class CryptoMiningGameScript : FaucetScript
                 }
             }
         }
+        #endregion
         return GetWaitSetting ( );
         
     }
@@ -357,6 +378,7 @@ class CryptoMiningGameScript : FaucetScript
     }
     #endregion
     #region Jobs
+    public const string JobsUrl=BaseUrl+"jobs";
     public enum JobType
     {
         None,
@@ -378,6 +400,26 @@ class CryptoMiningGameScript : FaucetScript
         {
             return (JobType)Enum.Parse(typeof(JobType), GetSetting ( "Job" ).Trim ( ).Replace ( ' ' , '_' ) );
         }
+    }
+
+    public  bool IsJobAvailable ( )
+    {
+        DateTime Nextclaim;
+
+        if(DateTime.TryParse( GetSetting("NextJobAvailableTime"),out Nextclaim )){
+
+            if ( DateTime.Now>Nextclaim )
+            {
+                return true;
+            }
+            else
+            {
+                Log ( "You need to wait "+( Nextclaim-DateTime.Now ).TotalMinutes.ToString()+" for the next job" );
+                return false;
+            }
+        }
+
+        return true;
     }
 
     public string GetValueNeeded (JobType job )
@@ -481,12 +523,14 @@ class CryptoMiningGameScript : FaucetScript
                 return TotalTime;
             }
         }
-        Log ( "You have 0 minutes remaining of work" );
+        int NextReset=this.NextReset;
+        Log ( "You have 0 minutes remaining of work you need to wait"+NextReset.ToString()+" minutes for next job" );
+        SetSetting ( "NextJobAvailableTime" , DateTime.Now.AddMinutes ( NextReset ) );
         return 0;
     }
     #endregion
     #region Mining
-
+    public const string MiningUrl=BaseUrl+"mining";
     public enum MiningType
     {
         none,
@@ -520,5 +564,85 @@ class CryptoMiningGameScript : FaucetScript
 
     }
     #endregion
+    #region dailybonus
+    public const string DailyBonus=BaseUrl+"daily-bonus";
+    public bool IsAvailableDailyBonus ( )
+    {
+        if ( !IsEnabledDailyBonus )
+        {
+            return false;
+        }
 
+        DateTime NextClaimTime;
+
+        if(DateTime.TryParse( GetSetting ( "NextClaimTime" ),out NextClaimTime ) )
+        {
+            if ( DateTime.Now>NextClaimTime )
+            {
+                return true;
+            }
+            else
+            {
+                Log ( "You need to wait "+( NextClaimTime-DateTime.Now ).TotalMinutes.ToString ( )+" to claim next daily bonus" );
+                return false;
+            }
+        }
+
+        return true;
+    }
+    public bool IsEnabledDailyBonus
+    {
+        get
+        {
+            return GetBoolSetting ( "DailyBonus" );
+        }
+    }
+
+    public int NextReset
+    {
+        get
+        {
+            var TimeEl=ElementByXPath("//span[@id='serverTime']");
+            if ( IsVisible ( TimeEl ) )
+            {
+                int h,m,s;
+
+                var Splited=TimeEl.Text.Trim().Split(' ')[0].Split(':');
+
+                if ( int.TryParse ( Splited[0] , out h )&&int.TryParse ( Splited[1] , out m )&&int.TryParse ( Splited[2] , out s ) )
+                {
+
+                    return ( 24-h )*60+( 60-m )+( s>=30 ? 1 : 0 );
+
+                }
+            }
+            // fail getting server time return local time.
+            return 0;
+        }
+    }
+
+    public void ClaimDailyBonus ( )
+    {
+        GoToUrl ( DailyBonus );
+        Wait ( 3 );
+
+        var ClaimDailyBonusBtn=ElementByXPath("//button[contains(@class,'btn btn-default')]");
+        if ( IsVisible ( ClaimDailyBonusBtn ) )
+        {
+            Click ( ClaimDailyBonusBtn );
+            Wait ( 3 );
+            CheckFaucetResult ( );
+            if ( IsSuccess )
+            {
+                SetSetting ( "NextClaimTime" , DateTime.Now.AddMinutes (NextReset ) );
+            }
+        }
+        else
+        {
+            Log ( "Daily bonus is not available" );
+            SetSetting ( "NextClaimTime" , DateTime.Now.AddMinutes ( NextReset ) );
+        }
+    }
+
+    #endregion
 }
