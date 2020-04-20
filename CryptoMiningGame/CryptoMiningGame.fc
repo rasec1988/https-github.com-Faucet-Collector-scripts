@@ -45,6 +45,13 @@ class CryptoMiningGameScript : FaucetScript
                     },
                     new FaucetSetting ( )
                     {
+                        Name="JobMinutes",
+                        Type=EditorType.TextBox,
+                        Default="10",
+                        Display="Minutes to claim job:"
+                    },
+                    new FaucetSetting ( )
+                    {
                         Name="UseShortlink",
                         Type=EditorType.CheckBox,
                         Display="Use Shortlink for Antibot if it's available",
@@ -219,6 +226,7 @@ class CryptoMiningGameScript : FaucetScript
         #region dailybonus
         if ( IsAvailableDailyBonus ( ) )
         {
+
             ClaimDailyBonus ( );
         }
         #endregion
@@ -232,7 +240,9 @@ class CryptoMiningGameScript : FaucetScript
         if ( SelectedJob!=JobType.None && IsJobAvailable() )
         {
             GoToUrl ( JobsUrl );
-            Wait (2 );
+            Wait (3,4 );
+            FinishStartedJobs ( );
+
 
             int minutes=GetMinutesofWorkRemaining();
             if ( minutes>0 )
@@ -396,7 +406,12 @@ class CryptoMiningGameScript : FaucetScript
             return false;
         }
         driver.Click ( ButtonGo );
-
+        Wait ( 1 );
+        ButtonGo=ElementByXPath ( "//div[@id='btn_validate_antibotrefill']" );
+        if ( IsVisible(ButtonGo ))
+        {
+            Click ( ButtonGo );
+        }
         return true;
 
     }
@@ -423,6 +438,22 @@ class CryptoMiningGameScript : FaucetScript
         get
         {
             return (JobType)Enum.Parse(typeof(JobType), GetSetting ( "Job" ).Trim ( ).Replace ( ' ' , '_' ) );
+        }
+    }
+    public int JobMinutes
+    {
+        get
+        {
+            try
+            {
+                return Convert.ToInt32 ( GetSetting ( "JobMinutes" ) );
+
+
+            }
+            catch ( Exception )
+            {
+                return 1;
+            }
         }
     }
 
@@ -478,6 +509,7 @@ class CryptoMiningGameScript : FaucetScript
     }
     public bool ClaimJob ( )
     {
+        Wait ( 3 , 4 );
         var AvailableBoxs=ElementsByXPath ( "//input[@name='energy']" );
         var AvailableButtons=ElementsByXPath("//button[@name='startworking']" );
         IWebElement EnergyBox;
@@ -511,7 +543,7 @@ class CryptoMiningGameScript : FaucetScript
 
         int MinutesRemaining=GetMinutesofWorkRemaining();
 
-        SetText ( EnergyBox , MinutesRemaining>10 ? "10" : MinutesRemaining.ToString ( ) );
+        SetText ( EnergyBox , MinutesRemaining>JobMinutes ? JobMinutes.ToString() : MinutesRemaining.ToString ( ) );
         if ( !string.IsNullOrWhiteSpace ( NeddedValue) )
         {
             var JobSelect=ElementByXPath("//select[contains(@name,'job_subtype')]");
@@ -651,6 +683,14 @@ class CryptoMiningGameScript : FaucetScript
         Wait ( 3 );
 
         var ClaimDailyBonusBtn=ElementByXPath("//button[contains(@class,'btn btn-default')]");
+        DateTime Timeout=DateTime.Now.AddSeconds(10);
+        while ( !IsVisible ( ClaimDailyBonusBtn )  && DateTime.Now<Timeout)
+        {
+            Wait ( );
+            ClaimDailyBonusBtn=ElementByXPath ( "//button[contains(@class,'btn btn-default')]" );
+
+        }
+
         if ( IsVisible ( ClaimDailyBonusBtn ) )
         {
             Click ( ClaimDailyBonusBtn );
