@@ -364,26 +364,30 @@ public class Dogebitsfree: FaucetScript
             }
         }
 
-        var ButtonRoll = ElementByXPath("//button[@data-target='#myModal2']");
+        var ButtonRoll = ElementsByXPath("//button[contains(@data-target,'#myModal')]").FirstOrDefault(x=>IsVisible(x));
         if (!IsVisible(ButtonRoll))
         {
             return Fail("Button roll is not visible");
         }
-        // Use Jquery instead to click the button to avoid button blocked from ad
-        ExecuteScript( "$('#myModal2').modal('show');");
-        //Click ( ButtonRoll );
+        // Get dinamically name of the modal from the button
+        string DataTarget=ButtonRoll.GetAttribute("data-target");
+        if ( !string.IsNullOrWhiteSpace ( DataTarget ) )
+        {
+            // Use Jquery instead to click the button to avoid button blocked from ad
+            ExecuteScript ( "$('"+DataTarget+"').modal('show');" );
+        }
+        else
+        {
+            Click ( ButtonRoll );
+        }
+
         Wait ( 1 );
         var result = DoSolveCaptcha();
         if (result > 0)
         {
             return Fail("Fail solving captcha");
         }
-        ButtonRoll=ElementByXPath ( "//button[@data-target='#myModal2']" );
-        if (!IsVisible(ButtonRoll))
-        {
-            return Fail("Button roll is not visible");
-        }
-        var FinalButtonRoll=ElementsByXPath("//div[@id='myModal2']//button[@type='button']").FirstOrDefault(x=>IsVisible(x));
+        var FinalButtonRoll=ElementsByXPath("//div[contains(@id,'myModal')]//button[@type='button']").FirstOrDefault(x=>IsVisible(x));
         if ( FinalButtonRoll==null )
         {
             return Fail ( "Final button roll not visible" );
