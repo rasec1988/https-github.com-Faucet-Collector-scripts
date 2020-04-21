@@ -48,7 +48,7 @@ public class MoreMoneyScript: FaucetScript
         Title = "More";
 
         //After we did try to claim on the faucet we search for these elements to determine if it was a success or a fail
-        SuccessXPath = "//div[@class='alert alert-success']";
+        SuccessXPath ="//div[@class='alert' and contains(text(),'Congratulations')]";
         FailXPath = "//div[@class='alert alert-danger']";
 
         //Let Faucet Collector start up everything
