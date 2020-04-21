@@ -109,7 +109,7 @@ class CryptoMiningGameScript : FaucetScript
     };
     public override void Start ( )
     {
-        Title="CRYPTO";
+        Title="CRYPTO|CMG";
         SuccessXPath="//div[@class='text-center alert fixtop alert-success']|//div[@id='result_details']";
         FailXPath="//div[@class='text-center alert fixtop alert-danger']";
         base.Start ( );
@@ -185,6 +185,7 @@ class CryptoMiningGameScript : FaucetScript
             {
                 Wait ( );
             }
+            
         }
 
         return base.DoSolveCaptcha ( );
@@ -198,16 +199,11 @@ class CryptoMiningGameScript : FaucetScript
         {
             Click ( Antibot );
             Wait ( 3 , 4 );
-            var ModalAntibot=ElementByXPath("//button[@data-target='#modalAntibotLink']");
-            if ( IsVisible ( ModalAntibot ) )
+            if ( IsVisibleAntiBot ( ) )
             {
-                Click ( ModalAntibot );
-                Wait ( 2 );
-
                 SolveAntibotWithBest ( );
 
                 CheckFaucetResult ( );
-
             }
         }
         #endregion
@@ -272,6 +268,10 @@ class CryptoMiningGameScript : FaucetScript
                 if ( IsVisible ( ButtonMining ) )
                 {
                     Click ( ButtonMining );
+                    if ( IsVisibleAntiBot ( ) )
+                    {
+                        SolveAntibotWithBest ( );
+                    }
                     Wait ( );
                     CheckFaucetResult ( );
                 }
@@ -289,6 +289,15 @@ class CryptoMiningGameScript : FaucetScript
     #region antibot
     public void SolveAntibotWithBest ( )
     {
+        var ModalAntibot=ElementByXPath("//button[@data-target='#modalAntibotLink']");
+        if ( !IsVisible ( ModalAntibot ) )
+        {
+            return;
+        }
+
+        Click ( ModalAntibot );
+        Wait ( 2 );
+
         var AntibotOpt=GetAvailableAntibot();
         if ( AntibotOpt!=null )
         {
@@ -335,8 +344,15 @@ class CryptoMiningGameScript : FaucetScript
         }
 
     }
+    public bool IsVisibleAntiBot ( )
+    {
+       return IsVisible(ElementByXPath("//button[@data-target='#modalAntibotLink']"));
+    }
+
+
     public IWebElement GetAvailableAntibot ( )
     {
+       
         var AntibotOptions=ElementsByXPath("//button[@class='btn btn-block btn-sm btn-info']").Where(x=>IsVisible(x)).ToList();
         if ( AntibotOptions.Count>0 )
         {
@@ -387,6 +403,7 @@ class CryptoMiningGameScript : FaucetScript
 
     public bool SolveAntibot ( )
     {
+
         driver=new HumanActions.DriverHumanActions(Driver);
         var Timer =ElementByXPath("//span[@id='beattime']");
         var Block=ElementByXPath("//div[@id='antispyware_block']");
@@ -510,8 +527,6 @@ class CryptoMiningGameScript : FaucetScript
     public bool ClaimJob ( )
     {
         Wait ( 3 , 4 );
-        var AvailableBoxs=ElementsByXPath ( "//input[@name='energy']" );
-        var AvailableButtons=ElementsByXPath("//button[@name='startworking']" );
         IWebElement EnergyBox;
         IWebElement ButtonStartJob;
         string NeddedValue=string.Empty;
@@ -523,20 +538,20 @@ class CryptoMiningGameScript : FaucetScript
         }
         else if ( SelectedJob==JobType.CRYPTOCOINZ )
         {
-            EnergyBox=AvailableBoxs.Count>1 ? AvailableBoxs[1] : null;
-            ButtonStartJob=AvailableButtons.Count>1 ? AvailableButtons[1] : null;
-                
+            EnergyBox=ElementByXPath ( "//div[@class='panel panel-card panel-job'][2]//input[@name='energy']" );
+            ButtonStartJob=ElementByXPath ( "//div[@class='panel panel-card panel-job'][2]//button[@name='startworking']" );
+
         }
         else
         {
             NeddedValue=GetValueNeeded ( SelectedJob );
-            EnergyBox=AvailableBoxs.Count>2 ? AvailableBoxs[2] : null;
-            ButtonStartJob=AvailableButtons.Count>2 ? AvailableButtons[2] : null;
+            EnergyBox=ElementByXPath ( "//div[@class='panel panel-card panel-job'][3]//input[@name='energy']" );
+            ButtonStartJob=ElementByXPath ( "//div[@class='panel panel-card panel-job'][3]//button[@name='startworking']" );
         }
 
         if(!IsVisible(EnergyBox) || !IsVisible(ButtonStartJob) )
         {
-            Log ( "Job start failed can't find the button or energy box" );
+            Log ( "Job start failed can't find the button or energy box, probably we are already doing job" );
 
             return false;
         }
@@ -557,6 +572,12 @@ class CryptoMiningGameScript : FaucetScript
         Wait ( 1 );
 
         Click ( ButtonStartJob );
+
+        Wait ( 1 );
+        if ( IsVisibleAntiBot ( ) )
+        {
+            SolveAntibotWithBest ( );
+        }
 
         return true;
     }
@@ -695,10 +716,19 @@ class CryptoMiningGameScript : FaucetScript
         {
             Click ( ClaimDailyBonusBtn );
             Wait ( 3 );
-            CheckFaucetResult ( );
-            if ( IsSuccess )
+            if ( IsVisibleAntiBot ( ) )
             {
-                SetSetting ( "NextClaimTime" , DateTime.Now.AddMinutes (NextReset ) );
+
+                SolveAntibotWithBest ( );
+
+            }
+            else
+            {
+                CheckFaucetResult ( );
+                if ( IsSuccess )
+                {
+                    SetSetting ( "NextClaimTime" , DateTime.Now.AddMinutes ( NextReset ) );
+                }
             }
         }
         else
@@ -706,6 +736,7 @@ class CryptoMiningGameScript : FaucetScript
             Log ( "Daily bonus is not available" );
             SetSetting ( "NextClaimTime" , DateTime.Now.AddMinutes ( NextReset ) );
         }
+
     }
 
     #endregion
