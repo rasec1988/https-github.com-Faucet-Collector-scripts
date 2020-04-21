@@ -1,7 +1,7 @@
 
 //==================//
 //script Written by: ••AviramDayan•• 05/12/2018 06:00AM 
-//Last Update: 17/04/2020 21:00PM - Version 56
+//Last Update: 21/04/2020 05:05PM - Version 57
 //==================//
 
 using System;
@@ -561,8 +561,15 @@ public class discordapp_ : FaucetScript
 		Wait();
 		Wait(15);
         
+		var ReactionButton_Clean = ElementByXPath("//div[contains(@class,'reactionInner') and @aria-pressed='false' ]//img[contains(@src,'assets/b052a4bef57')]");
+	    if (IsVisible(ReactionButton_Clean))
+        {
+		Log("Reaction is now Clean - call to function - to click"); 
 		Reaction_Function(); //call to Reaction_Function
-		
+		}
+
+		Wait(2);
+
         var ReactionButton_Full_After_Check = ElementByXPath("//div[contains(@class,'reactionInner') and @aria-pressed='true' ]//img[contains(@src,'assets/b052a4bef57')]");
 	    if (IsVisible(ReactionButton_Full_After_Check))
         {
@@ -906,7 +913,15 @@ public class discordapp_ : FaucetScript
         } //end TextCommand NOT visible
 	
 		/*
+
+		var ReactionButton_Clean = ElementByXPath("//div[contains(@class,'reactionInner') and @aria-pressed='false' ]//img[contains(@src,'assets/b052a4bef57')]");
+	    if (IsVisible(ReactionButton_Clean))
+        {
+		Log("Reaction is now Clean - call to function - to click"); 
 		Reaction_Function(); //call to Reaction_Function
+		}
+
+        Wait(2);
 		
         var ReactionButton_Full_After_Check = ElementByXPath("//div[contains(@class,'reactionInner') and @aria-pressed='true' ]//img[contains(@src,'assets/b052a4bef57')]");
 	    if (IsVisible(ReactionButton_Full_After_Check))
