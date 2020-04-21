@@ -353,7 +353,7 @@ public class CoinAdsterScript : FaucetScript
             }
         }
 
-        var ButtonRoll = ElementByXPath("//button[@data-target='#myModal2']");
+        var ButtonRoll = ElementByXPath("//button[contains(@data-target,'myModal')]");
         if ( !IsVisible ( ButtonRoll ) )
         {
             return Fail ( "Button roll is not visible" );
@@ -365,12 +365,7 @@ public class CoinAdsterScript : FaucetScript
         {
             return Fail ( "Fail solving captcha" );
         }
-        ButtonRoll=ElementByXPath ( "//button[@data-target='#myModal2']" );
-        if ( !IsVisible ( ButtonRoll ) )
-        {
-            return Fail ( "Button roll is not visible" );
-        }
-        var FinalButtonRoll=ElementsByXPath("//div[@id='myModal2']//button[@type='button']").FirstOrDefault(x=>IsVisible(x));
+        var FinalButtonRoll=ElementsByXPath("//div[contains(@id,'myModal')]//button[@type='button']").FirstOrDefault(x=>IsVisible(x));
         if ( FinalButtonRoll==null )
         {
             return Fail ( "Final button roll not visible" );
