@@ -1,7 +1,7 @@
 
 //==================//
 //script Written by: ••AviramDayan•• 30/04/2019 21:09PM - Version 1
-//Last Update: 22/04/2020 07:30AM - Version 30
+//Last Update: 22/04/2020 09:00AM - Version 30
 //==================//
 
 using System;
@@ -926,7 +926,7 @@ public class bcgame : FaucetScript
 			  
 			  Wait(3);
 			  
-              var YouGrab_1_Today = ElementByXPath("//div[contains(@class,'xbutton border')]");
+              var YouGrab_1_Today = ElementByXPath("//div[contains(@class,'xbutton grab ripple') and contains(text(),'Grab my') ]");
 	          Click(YouGrab_1_Today);
 			  
               Log("Success - Grab Token");
