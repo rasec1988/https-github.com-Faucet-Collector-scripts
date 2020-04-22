@@ -1,7 +1,7 @@
 
 //==================//
 //script Written by: ••AviramDayan•• 30/04/2019 21:09PM - Version 1
-//Last Update: 09/04/2020 05:20AM - Version 29
+//Last Update: 22/04/2020 09:00AM - Version 30
 //==================//
 
 using System;
@@ -37,6 +37,8 @@ public class bcgame : FaucetScript
                 new FaucetSetting(){Name="Pass",Display="Password",Type=EditorType.Password,Required=false},
                 //new FaucetSetting(){Name="DeleteCookies",Display="Delete Cookies - Sometimes solves problems (in login) if you have (Recommended)",Type=EditorType.CheckBox,Default=false},
                 new FaucetSetting(){Name="FaucetClaim",Display="FaucetClaim - LuckySpin",Type=EditorType.CheckBox,Default=true},	
+                new FaucetSetting(){Name="ToiletPaper",Display="ToiletPaper - Claim Token",Type=EditorType.CheckBox,Default=true},	
+
 				 
 				new FaucetSetting(){Name="MenuCoins",Display="MenuCoins - Select Favorite Coins",Type=EditorType.ComboBox,Default="JB",Items=new System.Collections.Generic.List<string>{"TRTL","EOS","TRX","VSYS","BCG","BKBT","DOGE","LTC","JB"}},
                 
@@ -77,7 +79,7 @@ public class bcgame : FaucetScript
         ad = false;
        
         //Title that shows in the browser. Is used to identify and close popup windows
-        Title = "bc.game";
+        Title = "bc.game | BcGame";
 
 		SuccessXPath = "//*";  //*[@id='']
         FailXPath = "//*"; //*[@id='']
@@ -178,55 +180,12 @@ public class bcgame : FaucetScript
 		
 		Wait(2);
 			
-        var ButtonLog = ElementByXPath("//button[@class='xbutton xbutton-big xbutton-full' and contains(text(),'LOGIN' | 'Login')]");
+        var ButtonLog = ElementByXPath("//button[contains(@class,'xbutton') and contains(text(),'SIGN IN')]");
         Click(ButtonLog);
 		
 		Wait(1);
 		
-        var Error_1_Message = ElementByXPath("//div[@class='xinput captcha']//img | //div[@class='xmessage-content' and contains(text(),'verify' )] | //div[@class='xnotify-content' and contains(text(),'error')] ");
-        if (IsVisible(Error_1_Message))
-        {
-			
-		  var TimeToWaitForBreak = DateTime.Now.AddSeconds(120);
-		  while(true)
-		  {
-            //solve Captcha X2 XPath (1 = captcha image | 2 = input text )
-            var result = DoSolveImageCaptcha(ElementByXPath ("//div[@class='xinput captcha']//img"),ElementByXPath("//input[@placeholder='Verification Code']") ); 
-            if (result > 0)
-            {
-            return Fail("Error_1_Message - Fail login --- captcha failed");
-            }
-		    
-		    Wait(5);
-		    
-            var Button_2_Log = ElementByXPath("//button[@class='xbutton xbutton-big xbutton-full' and contains(text(),'Login' | 'Login')]");
-            Click(Button_2_Log);
-		    
-		    Wait(10);
-		
-            var Captcha_image_Check = ElementByXPath("//div[@class='xinput captcha']//img");
-            if (!IsVisible(Captcha_image_Check))
-            {
-            Log("break - Captcha_image_Check - not visible");
-            break; //break the wait loop
-			}
-			
-            if (DateTime.Now > TimeToWaitForBreak) //if the time above 65 sec 
-            {
-            Log("break - TimeToWaitForBreak");
-            break; //break the wait loop
-            }
-			
-          }	//end while true
-        }
-
-		
-        var Error_2_Message = ElementByXPath("//div[@class='xmessage-content' and contains(text(),'verify' )] | //div[@class='xnotify-content' and contains(text(),'error')] ");
-        if (IsVisible(Error_2_Message))
-        {
-          Log("Error_2_Message - Appear - we return after 1 min ");
-          return 2*60; //we return after 1 min	
-        }	
+        CaptchaX2Function(); //call
 		
 		Wait();	
 
@@ -344,10 +303,13 @@ public class bcgame : FaucetScript
 		var Timer_Counter = ElementByXPath("//div[@class='count-down-wrap']");
 		if (!IsVisible(Timer_Counter))
 		{
-		
+
+		  Log("FaucetClaim - Timer not visible - go to LuckySpin");
+
 		  var OpenLuckySpin_Button = ElementByXPath("//div[@id='spin-enter']");
 		  if (IsVisible(OpenLuckySpin_Button))
 		  {
+		   Log("FaucetClaim - OpenLuckySpin_Button");
            Click(OpenLuckySpin_Button);
 		   Wait(4);
           }
@@ -359,6 +321,10 @@ public class bcgame : FaucetScript
           //=======//
 		  
 		  Wait(6);
+
+		  Log("FaucetClaim - LuckySpin - Success");
+          Notification("FaucetClaim - LuckySpin - Success");
+          ClaimSuccess(); //Marks the claim as a success
 		  
 		}//end Timer_Counter
 		
@@ -748,14 +714,97 @@ public class bcgame : FaucetScript
 		//===========================//
  
  
- 
-   // }//end BalanceDOUBLE > 0
 
- 	
-     ad = true;    // if i do true - it report as succeed // only one time no multi and also required -> return GetWaitSetting();	
-	 //CheckFaucetResult(); //skip all actions - and call to --> CheckFaucetResult - to make sure That FC mark as "Payout" before
-     //return GetWaitSetting();	
+     //=============//
+     //ToiletPaper
+     //=============//
+     if (GetBoolSetting("ToiletPaper"))
+     {
+
+		GoToUrl("https://campaign.bc.game/");
+		Wait();		
+		Wait(2);
+
+        var GrabStart = ElementByXPath("//div[@class='xbutton grab ripple']"); //big start button "Grab"
+		
+        if (!IsVisible(GrabStart))
+        {
+          Log("GrabStart - not here - call to try to Check");
+          CheckToday_Function(); //if the big button "Grab" not visible - call to try to Check  
+		}
 	
+        if (IsVisible(GrabStart))
+        {
+          Log("click on GrabStart");
+	      Click(GrabStart);
+
+          Wait(3);
+
+          var LoginIfram = ElementByXPath("//section[contains(@class,'login-dialog')]//div[contains(@style,'z-index') and contains(@style,'0000') ]");
+          
+          if (!IsVisible(LoginIfram))
+          {			  
+            CheckToday_Function(); //call    
+			
+		  } //end LoginIfram NOT Visible
+		  
+		  
+		  if (IsVisible(LoginIfram))
+          {
+            Log("LoginIfram visible");
+		  
+            var iframeMainTag = ElementByXPath("//iframe[@id='iframe']");
+            Driver.SwitchTo().Frame(iframeMainTag); //after active & switch to "iframe"
+
+            var LoginTab = ElementByXPath("//div[contains(text(),'SIGNIN')]");
+            if (IsVisible(LoginTab))
+            {
+              Log("click LoginTab");
+	          Click(LoginTab);
+		    }
+
+		    Wait(2);
+
+            var box_user = ElementByXPath("//input[@placeholder='Email']");
+            SetText(box_user, GetSetting("UserName"));
+		
+		    Wait(2);
+		
+            var box_pass = ElementByXPath("//input[@placeholder='Password']");
+            SetText(box_pass, GetPassword("Pass"));
+		
+		    Wait(2);
+
+            var ButtonLog = ElementByXPath("//button[contains(@class,'xbutton') and contains(text(),'SIGN IN')]");
+            if (IsVisible(ButtonLog))
+            {
+              Log("click ButtonLog");
+	          Click(ButtonLog);
+		    }
+			
+			Wait();	
+			
+            CaptchaX2Function();
+		  
+		    Wait();
+		
+            Driver.SwitchTo().DefaultContent(); //go back to default content in <html>
+		  
+		    Wait();
+				
+          } //end LoginIfram Visible
+
+          CheckToday_Function(); //call    
+
+          Wait(2);
+		  		  		
+        } //end GrabStart
+		
+     } //end ToiletPaper
+		//===========================//
+
+     ClaimSuccess(); //Marks the claim as a success
+     return GetWaitSetting();  
 	
         //We are good to continue
         return base.DoSolveFaucet();
@@ -799,6 +848,98 @@ public class bcgame : FaucetScript
     }
 	
  
+ 
+   //====================//	
+   //CaptchaX2Function
+   //====================//	
+   public int CaptchaX2Function()
+   {
+
+        var Error_1_Message = ElementByXPath("//div[contains(@class,'xinput captcha')]//img | //div[contains(@class,'xform-item')]//img | //div[@class='xmessage-content' and contains(text(),'verify' )] | //div[@class='xnotify-content' and contains(text(),'error')] ");
+        if (IsVisible(Error_1_Message))
+        {
+			
+		  var TimeToWaitForBreak = DateTime.Now.AddSeconds(120);
+		  while(true)
+		  {
+            //solve Captcha X2 XPath (1 = captcha image | 2 = input text )
+            var result = DoSolveImageCaptcha(ElementByXPath ("//div[contains(@class,'xinput captcha')]//img | //div[contains(@class,'xform-item')]//img"),ElementByXPath("//input[@placeholder='Verification Code']") ); 
+            if (result > 0)
+            {
+            return Fail("Error_1_Message - Fail login --- captcha failed");
+            }
+		    
+		    Wait(5);
+		    
+            var Button_2_Log = ElementByXPath("//button[contains(@class,'xbutton') and contains(text(),'SIGN IN')]");
+            Click(Button_2_Log);
+		    
+		    Wait(10);
+		
+            var Captcha_image_Check = ElementByXPath("//div[contains(@class,'xinput captcha')]//img | //div[contains(@class,'xform-item')]//img");
+            if (!IsVisible(Captcha_image_Check))
+            {
+            Log("break - Captcha_image_Check - not visible");
+            break; //break the wait loop
+			}
+			
+            if (DateTime.Now > TimeToWaitForBreak) //if the time above 65 sec 
+            {
+            Log("break - TimeToWaitForBreak");
+            break; //break the wait loop
+            }
+			
+          }	//end while true
+        }
+		
+        var Error_2_Message = ElementByXPath("//div[@class='xmessage-content' and contains(text(),'verify' )] | //div[@class='xnotify-content' and contains(text(),'error')] ");
+        if (IsVisible(Error_2_Message))
+        {
+          Log("Error_2_Message - Appear - we return after 1 min ");
+          //return 2*60; //we return after 1 min	
+        }	
+		
+   return 0;				 
+   }//end CaptchaX2Function
+   //====================//	
+		
+
+
+   //====================//	
+   //CheckToday_Function
+   //====================//	
+   public int CheckToday_Function()
+   {
+
+            var CheckToday = ElementByXPath("//div[contains(@class,'xbutton border')]//span[contains(text(),'today')]");
+		    
+		    if (IsVisible(CheckToday))
+            {
+              Log("already grabbed Token - try next time");
+            }	
+			
+			if (!IsVisible(CheckToday))
+            {
+				
+              var Grab_1_Start = ElementByXPath("//div[@class='xbutton grab ripple']");
+	          Click(Grab_1_Start);
+			  
+			  Wait(3);
+			  
+              var YouGrab_1_Today = ElementByXPath("//div[contains(@class,'xbutton grab ripple') and contains(text(),'Grab my') ]");
+	          Click(YouGrab_1_Today);
+			  
+              Log("Success - Grab Token");
+              Notification("Success - Grab Token");
+              ClaimSuccess(); //Marks the claim as a success
+            }
+
+   return 0;				 
+   }//end CheckToday_Function
+   //====================//	
+
+
+
 
 //====================//	
 //Coins_Function
