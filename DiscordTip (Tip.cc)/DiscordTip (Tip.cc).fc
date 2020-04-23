@@ -1,7 +1,7 @@
 
 //==================//
 //script Written by: ••AviramDayan•• 05/12/2018 06:00AM 
-//Last Update: 23/04/2020 03:20AM - Version 58
+//Last Update: 23/04/2020 03:45AM - Version 58
 //==================//
 
 using System;
@@ -561,14 +561,25 @@ public class discordapp_ : FaucetScript
 		Wait();
 		Wait(15);
 
+        Scroll_Function(); //call to scroll down
+		
+		Wait(3);
+		
 		var ReactionButton_Clean = ElementByXPath("//div[contains(@class,'reactionInner') and @aria-pressed='false' ]//img[contains(@src,'assets/b052a4bef57')]");
-	    if (IsVisible(ReactionButton_Clean))
+        
+		if (!IsVisible(ReactionButton_Clean)) 
+        {
+         Log("Reaction - already claimed full - OR - problem with button");
+         Notification("Reaction - already claimed full - OR - problem with button");
+        } 
+ 	    
+		if (IsVisible(ReactionButton_Clean))
         {
 		Log("Reaction is now Clean - call to function - to click"); 
 		Reaction_Function(); //call to Reaction_Function
 		}
 
-		Wait(2);
+        Wait(2);
 
         break; //after break the while
 
@@ -906,8 +917,19 @@ public class discordapp_ : FaucetScript
 	
 		/*
 
+        Scroll_Function(); //call to scroll down
+		
+		Wait(3);
+		
 		var ReactionButton_Clean = ElementByXPath("//div[contains(@class,'reactionInner') and @aria-pressed='false' ]//img[contains(@src,'assets/b052a4bef57')]");
-	    if (IsVisible(ReactionButton_Clean))
+        
+		if (!IsVisible(ReactionButton_Clean)) 
+        {
+         Log("Reaction - already claimed full - OR - problem with button");
+         Notification("Reaction - already claimed full - OR - problem with button");
+        } 
+ 	    
+		if (IsVisible(ReactionButton_Clean))
         {
 		Log("Reaction is now Clean - call to function - to click"); 
 		Reaction_Function(); //call to Reaction_Function
@@ -1174,10 +1196,32 @@ public class discordapp_ : FaucetScript
   
   
   
+   //=================//
+  //Scroll_Function
+  //=================//
+  private int Scroll_Function()
+  {
+		  var MarkAsRead = ElementByXPath("//button[contains(@type,'button') and contains(text(),'Mark') ]"); 
+		  if (IsVisible(MarkAsRead))
+          {
+           Log("MarkAsRead - click on MarkAsRead + scroll to bottom");				  
+		   Click(MarkAsRead);
+		   Wait(2);
+		   ExecuteScript("window.scrollBy(0,1000)"); //Scroll Down
+		   Wait(2);
+		  }  
+		  
+        return 0;
+		
+  } //end Scroll_Function
+   //=================//
+   
+  
+  
   //=================//
   //Reaction_Function
   //=================//
-  private bool Reaction_Function()
+  private int Reaction_Function()
   {
 
 		  var InputTextToCheckBefore = ElementByXPath("//div[contains(text(),'You do not have permission')]"); 
@@ -1188,22 +1232,9 @@ public class discordapp_ : FaucetScript
 		  } 
 		  
 		  Wait(3);
-		  
-		  var MarkAsRead = ElementByXPath("//button[contains(@type,'button') and contains(text(),'Mark') ]"); 
-		  if (IsVisible(MarkAsRead))
-          {
-           Log("MarkAsRead - click on MarkAsRead + scroll to bottom");				  
-		   Click(MarkAsRead);
-		   Wait(2);
-		   ExecuteScript("window.scrollBy(0,1000)"); //Scroll Down
-		   Wait(2);
-		  } 
-
-		  Wait(3);
 
           var Reaction_General_apper = ElementByXPath("//div[contains(@class,'embedTitle') and contains(text(),'airdrop')]");
           var ReactionButton_Clean = ElementByXPath("//div[contains(@class,'reactionInner') and @aria-pressed='false' ]//img[contains(@src,'assets/b052a4bef57')]");
-          var ReactionButton_Full = ElementByXPath("//div[contains(@class,'reactionInner') and @aria-pressed='true' ]//img[contains(@src,'assets/b052a4bef57')]");
 
           if (!IsVisible(Reaction_General_apper)) //if not apper at all "An airdrop appears"
           {
@@ -1222,14 +1253,8 @@ public class discordapp_ : FaucetScript
 		   ClaimSuccess(); //Marks the claim as a success
 		   Wait();
           } 
-  
-          if (IsVisible(ReactionButton_Full)) 
-          {
-           Log("Reaction - already claimed");
-           Notification("Reaction - already claimed");
-          }  
-  
-        return true;
+   
+        return 0;
   } //end Reaction_Function
 
   //====================//
