@@ -1,7 +1,7 @@
 
 //==================//
 //script Written by: ••AviramDayan•• 13/11/2019 09:00AM - Version 1
-//Last Update: 23/04/2020 05:20PM - Version 3
+//Last Update: 23/04/2020 06:00PM - Version 3
 //==================//
 
 using System;
@@ -39,8 +39,9 @@ public class TrustDice : FaucetScript
 				
  				new FaucetSetting() { Name = "TXT", Display = "TXT - ON/OFF", Type = EditorType.CheckBox, Default =true},	               
 				new FaucetSetting() { Name = "TXT_Claim", Display = "TXT_Claim - Mining Page - Claim TXT", Type = EditorType.CheckBox, Default =true},	
+				new FaucetSetting() { Name = "TXT_Stake", Display = "TXT_Stake - Rewards Page - Stake TXT", Type = EditorType.CheckBox, Default =true},
                 new FaucetSetting() { Name = "TXT_Reward", Display = "TXT_Reward - Rewards Page - Claim Reward TXT", Type = EditorType.CheckBox, Default =true},
-				new FaucetSetting() { Name = "TXT_Stake", Display = "TXT_Stake - Rewards Page - Stake TXT", Type = EditorType.CheckBox, Default =false},				
+				
 
                 //new FaucetSetting() { Name = "LimitFaucet", Display = "LimitFaucet - write the full number of satoshi without point/decimals - 0.0 | 1.1 and etc (for example write: 100 200)", Type = EditorType.Numeric, Default = 1 },
 
@@ -408,26 +409,6 @@ public class TrustDice : FaucetScript
 		      }
            } //end TXT_Claim
 		   
-		   
-           if (GetBoolSetting("TXT_Reward"))
-           {	
-	          Log("TXT_Reward - Rewards Page - Claim Reward TXT - try now");	
-			  
-		      var RewardsTab = ElementByXPath("//button[contains(@class,'MuiTab-fullWidth') and @aria-selected='false'] //span[contains(text(),'Rewards')]"); 
-              Click(RewardsTab);
-
-              Wait(3);
-			  
-		      var MyRewardsTab = ElementByXPath("//span[contains(@class,'MuiBadge-root') and contains(text(),'My Rewards')] "); 
-              Click(MyRewardsTab);	
-			  
-              Wait(3);
-			  
-		      var ClaimButton = ElementByXPath("//span[contains(@class,'MuiButton-label') and contains(text(),'Claim')]"); 
-              Click(ClaimButton);
-	   
-           } //end TXT_Reward
-		 
 
            if (GetBoolSetting("TXT_Stake"))
            {	
@@ -453,6 +434,26 @@ public class TrustDice : FaucetScript
 		      }
 			  
 		   } //end TXT_Stake
+
+		   
+           if (GetBoolSetting("TXT_Reward"))
+           {	
+	          Log("TXT_Reward - Rewards Page - Claim Reward TXT - try now");	
+			  
+		      var RewardsTab = ElementByXPath("//button[contains(@class,'MuiTab-fullWidth') and @aria-selected='false'] //span[contains(text(),'Rewards')]"); 
+              Click(RewardsTab);
+
+              Wait(3);
+			  
+		      var MyRewardsTab = ElementByXPath("//span[contains(@class,'MuiBadge-root') and contains(text(),'My Rewards')] "); 
+              Click(MyRewardsTab);	
+			  
+              Wait(3);
+			  
+		      var ClaimButton = ElementByXPath("//span[contains(@class,'MuiButton-label') and contains(text(),'Claim')]"); 
+              Click(ClaimButton);
+	   
+           } //end TXT_Reward
 		 
 		   
          return 0;
