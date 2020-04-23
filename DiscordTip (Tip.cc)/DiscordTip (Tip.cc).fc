@@ -1,7 +1,7 @@
 
 //==================//
 //script Written by: ••AviramDayan•• 05/12/2018 06:00AM 
-//Last Update: 21/04/2020 05:05PM - Version 57
+//Last Update: 23/04/2020 03:20AM - Version 58
 //==================//
 
 using System;
@@ -560,7 +560,7 @@ public class discordapp_ : FaucetScript
 		Log("Discordtip_FaucetCollector: go to to claim in channel  | FaucetCollector "); 	
 		Wait();
 		Wait(15);
-        
+
 		var ReactionButton_Clean = ElementByXPath("//div[contains(@class,'reactionInner') and @aria-pressed='false' ]//img[contains(@src,'assets/b052a4bef57')]");
 	    if (IsVisible(ReactionButton_Clean))
         {
@@ -569,14 +569,6 @@ public class discordapp_ : FaucetScript
 		}
 
 		Wait(2);
-
-        var ReactionButton_Full_After_Check = ElementByXPath("//div[contains(@class,'reactionInner') and @aria-pressed='true' ]//img[contains(@src,'assets/b052a4bef57')]");
-	    if (IsVisible(ReactionButton_Full_After_Check))
-        {
-		Log("Discordtip_FaucetCollector: Click On Reaction - done"); 
-	    Notification("Discordtip_FaucetCollector: Click On Reaction - done");	
-		ClaimSuccess(); //Marks the claim as a success
-		}
 
         break; //after break the while
 
@@ -922,13 +914,7 @@ public class discordapp_ : FaucetScript
 		}
 
         Wait(2);
-		
-        var ReactionButton_Full_After_Check = ElementByXPath("//div[contains(@class,'reactionInner') and @aria-pressed='true' ]//img[contains(@src,'assets/b052a4bef57')]");
-	    if (IsVisible(ReactionButton_Full_After_Check))
-        {
-		Log("Reaction: Click On Reaction - done");
-	    Notification("Reaction: Click On Reaction - done");	
-		}
+
 		*/
 
 		break; //after break the while
@@ -1195,7 +1181,7 @@ public class discordapp_ : FaucetScript
   {
 
 		  var InputTextToCheckBefore = ElementByXPath("//div[contains(text(),'You do not have permission')]"); 
-		  if (IsVisible(InputTextToCheckBefore)) //if the input NOT Lock - only then set text	
+		  if (IsVisible(InputTextToCheckBefore)) //if the input Lock
           {
 		   //do not do anything
            Log("You do not have permission to send messages in this channel.");		   
@@ -1203,33 +1189,51 @@ public class discordapp_ : FaucetScript
 		  
 		  Wait(3);
 		  
+		  var MarkAsRead = ElementByXPath("//button[contains(@type,'button') and contains(text(),'Mark') ]"); 
+		  if (IsVisible(MarkAsRead))
+          {
+           Log("MarkAsRead - click on MarkAsRead + scroll to bottom");				  
+		   Click(MarkAsRead);
+		   Wait(2);
+		   ExecuteScript("window.scrollBy(0,1000)"); //Scroll Down
+		   Wait(2);
+		  } 
+
+		  Wait(3);
+
           var Reaction_General_apper = ElementByXPath("//div[contains(@class,'embedTitle') and contains(text(),'airdrop')]");
-          var ReactionButton_Full = ElementByXPath("//div[contains(@class,'reactionInner') and @aria-pressed='true' ]//img[contains(@src,'assets/b052a4bef57')]");
           var ReactionButton_Clean = ElementByXPath("//div[contains(@class,'reactionInner') and @aria-pressed='false' ]//img[contains(@src,'assets/b052a4bef57')]");
-		  
+          var ReactionButton_Full = ElementByXPath("//div[contains(@class,'reactionInner') and @aria-pressed='true' ]//img[contains(@src,'assets/b052a4bef57')]");
+
           if (!IsVisible(Reaction_General_apper)) //if not apper at all "An airdrop appears"
           {
-           Log("Reaction - airdrop not exist right now");
+           Log("Reaction - airdrop not exist at all right now");
+	       Notification("Reaction - airdrop not exist at all right now");
           }  
-		  
-          if (!IsVisible(ReactionButton_Full)) //problem with elements
-          {
-           Log("Reaction - problem with elements");
-           Notification("Reaction - problem with elements");
-          }  
-		  
+  
           if (IsVisible(ReactionButton_Clean))
           {
            Log("ReactionButton_Clean - visible - we click on it");
 		   Wait(3);
 		   Click(ReactionButton_Clean);
+		   Wait(2);
+		   Log("Discordtip_FaucetCollector: Click On Reaction - done"); 
+	       Notification("Discordtip_FaucetCollector: Click On Reaction - done");	
+		   ClaimSuccess(); //Marks the claim as a success
 		   Wait();
           } 
+  
+          if (IsVisible(ReactionButton_Full)) 
+          {
+           Log("Reaction - already claimed");
+           Notification("Reaction - already claimed");
+          }  
   
         return true;
   } //end Reaction_Function
 
   //====================//
+  
   
   
   //====================//
