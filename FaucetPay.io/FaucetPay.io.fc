@@ -1,7 +1,7 @@
 
 //==================//
 //script Written by: ••AviramDayan•• 06/01/2020 06:00PM - Version 1
-//Last Update: 07/03/2020 03:30PM - Version 3
+//Last Update: 28/04/2020 03:00PM - Version 4
 //==================//
 
 using System;
@@ -277,78 +277,83 @@ public class FaucetPay : FaucetScript
            Log("Rock_Paper_Scissors_Faucet");	
            Wait();	
 	       Wait(2);	
-			
-           var ClaimNow_Available = ElementByXPath ("//button[@id='matcher']");
-	       if (IsVisible(ClaimNow_Available))
+
+           var TextBlock = ElementByXPath ("//div[contains(@class,'alert alert-primar') and contains(@role,'alert') ] ");
+	       if (!IsVisible(TextBlock)) // if not visible - do stuff
 	       {
-		     Log("Rock_Paper_Scissors_Faucet - Available");
-             Click(ClaimNow_Available);
-             Wait(6);
-	       } // end ClaimNow_Available
-		   
-             Time_Function(); //call if is visible
-			 
-             Wait(3);
-			 
-             if (IsVisible(ElementByXPath ("//div[contains(@style,'visibility: visible; position: absolute;')]") )) 
-	         {
-                Log("Rock_Paper_Scissors_Faucet - do Recaptcha"); //call
-                Recaptcha_Function(); //call
-                Time_Function(); //call again if is visible	
-                Wait(2);	
-
-                var WaitingForOpponentText = ElementByXPath("//h4[@class='tx-black-6 tx-sans tx-10 tx-bold' and contains(text(),'Waiting') ]");	
-                var Time_1_ToWaitForBreak = DateTime.Now.AddSeconds(180);
-                while (IsVisible(WaitingForOpponentText))
-                {
-					Wait();
-		            Log("Rock_Paper_Scissors_Faucet - Bonus_Available - WaitingForOpponent");
-			  	    if(IsVisible(ElementByXPath ("//div[@class='row game-section hidden']") )) 
-	                {
-                    break; //after break the while  
-			  	    }
-			  	  
-                    if (DateTime.Now > Time_1_ToWaitForBreak) //if the time above 120 sec 
+              var ClaimNow_Available = ElementByXPath ("//button[@id='matcher']");
+	          if (IsVisible(ClaimNow_Available))
+	          {
+		        Log("Rock_Paper_Scissors_Faucet - Available");
+                Click(ClaimNow_Available);
+                Wait(6);
+	          } // end ClaimNow_Available
+		      
+                Time_Function(); //call if is visible
+			    
+                Wait(3);
+			    
+                if (IsVisible(ElementByXPath ("//div[contains(@style,'visibility: visible; position: absolute;')]") )) 
+	            {
+                   Log("Rock_Paper_Scissors_Faucet - do Recaptcha"); //call
+                   Recaptcha_Function(); //call
+                   Time_Function(); //call again if is visible	
+                   Wait(2);	
+		      
+                   var WaitingForOpponentText = ElementByXPath("//h4[@class='tx-black-6 tx-sans tx-10 tx-bold' and contains(text(),'Waiting') ]");	
+                   var Time_1_ToWaitForBreak = DateTime.Now.AddSeconds(180);
+                   while (IsVisible(WaitingForOpponentText))
+                   {
+			   		Wait();
+		               Log("Rock_Paper_Scissors_Faucet - Bonus_Available - WaitingForOpponent");
+			     	    if(IsVisible(ElementByXPath ("//div[@class='row game-section hidden']") )) 
+	                   {
+                       break; //after break the while  
+			     	    }
+			     	  
+                       if (DateTime.Now > Time_1_ToWaitForBreak) //if the time above 120 sec 
+                       {
+		               Log("Rock_Paper_Scissors_Faucet - break - Time_2_ToWaitForBreak");
+                       break; //break the wait loop
+                       }
+			   		
+			       } //end while (true)
+		      
+			    } //end @style,'visibility - Recaptcha
+			    
+                Wait(3);
+		      
+                var SectionOpen = ElementByXPath("//div[@class='row game-section']");			 
+                var Time_2_ToWaitForBreak = DateTime.Now.AddSeconds(180);
+                while (IsVisible(SectionOpen))
+                {	
+                  Wait();		 
+		          Log("Rock_Paper_Scissors_Faucet - Bonus_Available - wait normal");
+		      
+                  if (IsVisible(ElementByXPath ("//div[@class='row game-section hidden']") ))  //if zero break ("//h3[@id='timer-response' and starts-with(text(),'0') ]")
+	              {
+                    Wait(8);
+                    var SuccessMessage = ElementByXPath("//div[@class='alert alert-solid alert-dark' and contains(text(),'Congratulations') ]");
+			   	 if (IsVisible(SuccessMessage))
                     {
-		            Log("Rock_Paper_Scissors_Faucet - break - Time_2_ToWaitForBreak");
-                    break; //break the wait loop
-                    }
+                    var SuccessVAR = ElementByXPath("//div[@class='alert alert-solid alert-dark']");
+		            Log("Success - " + SuccessVAR.Text);
+                    ClaimSuccess(); //success to FC
+                    Wait(2);
+			   	 }
+		            Log("Rock_Paper_Scissors_Faucet - break");
+                    break; //after break the while  
+	              }
+		      
+                  if (DateTime.Now > Time_2_ToWaitForBreak) //if the time above 120 sec 
+                  {
+		          Log("Rock_Paper_Scissors_Faucet - break - Time_2_ToWaitForBreak");
+                  break; //break the wait loop
+                  }
+			      
+                } //end while (true)
 					
-			    } //end while (true)
-
-			 } //end @style,'visibility - Recaptcha
-			 
-             Wait(3);
-
-             var SectionOpen = ElementByXPath("//div[@class='row game-section']");			 
-             var Time_2_ToWaitForBreak = DateTime.Now.AddSeconds(180);
-             while (IsVisible(SectionOpen))
-             {	
-               Wait();		 
-		       Log("Rock_Paper_Scissors_Faucet - Bonus_Available - wait normal");
-
-               if (IsVisible(ElementByXPath ("//div[@class='row game-section hidden']") ))  //if zero break ("//h3[@id='timer-response' and starts-with(text(),'0') ]")
-	           {
-                 Wait(8);
-                 var SuccessMessage = ElementByXPath("//div[@class='alert alert-solid alert-dark' and contains(text(),'Congratulations') ]");
-				 if (IsVisible(SuccessMessage))
-                 {
-                 var SuccessVAR = ElementByXPath("//div[@class='alert alert-solid alert-dark']");
-		         Log("Success - " + SuccessVAR.Text);
-                 ClaimSuccess(); //success to FC
-                 Wait(2);
-				 }
-		         Log("Rock_Paper_Scissors_Faucet - break");
-                 break; //after break the while  
-	           }
-
-               if (DateTime.Now > Time_2_ToWaitForBreak) //if the time above 120 sec 
-               {
-		       Log("Rock_Paper_Scissors_Faucet - break - Time_2_ToWaitForBreak");
-               break; //break the wait loop
-               }
-			   
-             } //end while (true)
+		   } // end TextBlock
 
          } //end Rock_Paper_Scissors_Faucet
       //=============//
@@ -387,6 +392,15 @@ public class FaucetPay : FaucetScript
 				 
 		         Wait(2);
 
+                 var GetButton = ElementByXPath("//div[@class='modal fade show']//input[contains(@type,'submit') ]");
+	             if (IsVisible(GetButton))
+	             { 
+	              Click(GetButton);
+                  Log("PaidToClick - GetButton - click");
+		         }
+
+		         Wait();
+
                  if (IsVisible(ElementByXPath ("//div[@class='alert alert-info' and contains(text(),'credit')] | //div[@class='alert alert-info' and contains(text(),'Good job') ]") ))
                  {
                  var SuccessVAR = ElementByXPath("//div[@class='alert alert-info']") ;
@@ -401,13 +415,13 @@ public class FaucetPay : FaucetScript
 			   
 	           if (DateTime.Now > Time_2_ToWaitForBreak)
                {
-		       Log("Rock_Paper_Scissors_Faucet - break - Time_2_ToWaitForBreak");
+		       Log("PaidToClick - break - Time_2_ToWaitForBreak");
                break; //break the wait loop
                }
 			 
              } //end while (true)
 		
-         } //end Rock_Paper_Scissors_Faucet
+         } //end PaidToClick
       //=============//
 
 
