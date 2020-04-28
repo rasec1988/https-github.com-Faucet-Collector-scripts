@@ -1,10 +1,9 @@
-﻿using System;
-using System.Linq;
-//css_inc ShortLinkUtilities
-//css_inc IconCaptcha
-//css_ref BfreeTemplate
+﻿//css_ref FaucetCollector.Utilities
+//css_ref FaucetCollector.Captcha
+//css_ref FaucetCollector.FaucetTemplates
 using BfreeTemplate;
 using FaucetCollector.Script;
+
 public class MoreMoneyScript: FaucetScript
 {
     /// <summary>
@@ -54,10 +53,10 @@ public class MoreMoneyScript: FaucetScript
         //After we did try to claim on the faucet we search for these elements to determine if it was a success or a fail
         SuccessXPath ="//div[@class='alert' and contains(text(),'Congratulations')]";
         FailXPath = "//div[@class='alert alert-danger']";
-
+        manager=new BfreeSolver ( this );
         //Let Faucet Collector start up everything
         base.Start();
-        manager=new BfreeSolver ( this );
+
     }
 
 
@@ -106,7 +105,7 @@ public class MoreMoneyScript: FaucetScript
             if ( Shortlinks.Count>0 )
             {
                 int NShort = Random(0, Shortlinks.Count - 1);
-
+                
                 try
                 {
 
