@@ -1,7 +1,7 @@
 ﻿//css_ref FaucetCollector.Utilities
 //css_ref FaucetCollector.Captcha
 //css_ref FaucetCollector.FaucetTemplates
-using BfreeTemplate;
+using FaucetCollector.FaucetTemplates;
 using FaucetCollector.Script;
 
 
@@ -105,7 +105,7 @@ public class Dogebitsfree: FaucetScript
 
 
 
-                    IconCaptchaSolver solver=new IconCaptchaSolver(this);
+                    FaucetCollector.Captcha.IconCaptchaSolver solver=new FaucetCollector.Captcha.IconCaptchaSolver(this);
                     Click ( Shortlinks[NShort] );
                     Wait ( );
                     int count=0;
@@ -123,7 +123,7 @@ public class Dogebitsfree: FaucetScript
                         Wait ( 4 , 5 );
                         if ( !solver.IsVisibleIconCaptcha ( ) )
                         {
-                            ShortLinkBypasser bypasser = new ShortLinkBypasser(this);
+                            FaucetCollector.Utilities.ShortLinkBypasser bypasser = new FaucetCollector.Utilities.ShortLinkBypasser(this);
                             if ( bypasser.IsValidShortLink ( ) )
                             {
                                 bool cs = bypasser.DoShortLink();
