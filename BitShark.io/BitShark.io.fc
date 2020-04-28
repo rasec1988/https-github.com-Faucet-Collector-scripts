@@ -2,7 +2,7 @@
 
 //==================//
 //script Written by: ••AviramDayan•• 10/04/2020 17:30PM - Version 1
-//Last Update: 28/04/2020 06:00PM - Version 1
+//Last Update: 28/04/2020 07:15PM - Version 1
 //==================//
 
 using System;
@@ -225,14 +225,20 @@ public class BitShark : FaucetScript
             return min+75; //(add more custom sec 75sec for protection)
           } //end MiningTime
 	
-	
-	        /*
-		    else if (!IsVisible(MiningTime)) //need help if int fail  
-		    {
-			  Log("return to custom time");
-		      return GetWaitSetting();
-		    }	
-            */
+
+          if (!IsVisible(MiningTime))
+		  {
+	        Log("BackUp - return");
+	        return 60*60;
+          } //end MiningTime
+
+	      /*
+		  else if (!IsVisible(MiningTime)) //need help if int fail  
+		  {
+		  Log("return to custom time");
+		    return GetWaitSetting();
+		  }	
+          */
 		
     }	//end ad
 	
@@ -343,15 +349,12 @@ public override int DoSolveFaucet()
             }
 		  
           } //end while (true)
-		  
-          ad=true; //call to do success
-		   
-		} //end MiningTime - NOT visible
 
+		} //end MiningTime - NOT visible	
+		  
       } //end MiningClick
-	  	  
-	  Log("BackUp - return");
-	  return GetWaitSetting();
+
+      ad=true; //call to do success
 	 
    //This faucet has nothing to do here. We will let Faucet Collector handle it.
    return base.DoSolveFaucet();
