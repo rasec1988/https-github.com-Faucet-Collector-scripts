@@ -1,5 +1,4 @@
-﻿using DoubleMathCaptchaUtility;
-using FaucetCollector.Script;
+﻿using FaucetCollector.Script;
 using OpenQA.Selenium;
 using System;
 using System.Collections.Generic;
@@ -7,8 +6,8 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
-//css_ref DoubleMathCaptchaUtility.dll
-//css_inc RecaptchaUtilities
+//css_ref FaucetCollector.Utilities
+//css_ref FaucetCollector.Captcha
 namespace Adbtc
 {
     public class TemplateScript : FaucetScript
@@ -33,7 +32,7 @@ namespace Adbtc
             }
         }
 
-        private DoubleMathCaptchaCuter cuter;
+        private FaucetCollector.Captcha.DoubleMathCaptchaCuter cuter;
         public override void Start()
         {
 
@@ -48,7 +47,7 @@ namespace Adbtc
 
         public override int DoInit ( )
         {
-            cuter=new DoubleMathCaptchaCuter ( true );
+            cuter=new FaucetCollector.Captcha.DoubleMathCaptchaCuter ( true );
             return base.DoInit ( );
         }
         public override bool IsLoggedIn()
@@ -96,7 +95,7 @@ namespace Adbtc
                     return;
                 }
 
-                RecaptchaUtility recaptchaUtility=new RecaptchaUtility(this);
+                FaucetCollector.Captcha.RecaptchaUtility recaptchaUtility=new FaucetCollector.Captcha.RecaptchaUtility(this);
                 recaptchaUtility.DoSolve ( );
                 Wait ( 1 );
 
@@ -126,7 +125,7 @@ namespace Adbtc
             SetText(PasswordBox, GetPassword("Pass"));
             Wait(1);
 
-            var ButtonLogin = ElementByXPath("//input[@class='btn-large light-blue darken-4']");
+            var ButtonLogin = ElementByXPath("//input[@class='btn light-blue darken-4']");
             if (!IsVisible(ButtonLogin))
             {
                 return Fail("Fail, button login is not visible");
@@ -175,7 +174,7 @@ namespace Adbtc
                         {
                             if ( cuter==null )
                             {
-                                cuter=new DoubleMathCaptchaCuter ( true);
+                                cuter=new FaucetCollector.Captcha.DoubleMathCaptchaCuter ( true);
                             }
 
 
@@ -540,6 +539,14 @@ namespace Adbtc
             }
         }
       
+        public bool CheckConditions ( IWebElement element)
+        {
+            if ( element==null )
+            {
+                return false;
+            }
+            return !element.Text.ToLower().Contains ( "hcaptcha" );
+        }
         public int SolveCapt ( )
         {
             var SwitchCaptcha = NeedChange?ElementByXPath("//input[contains(@class,'select-dropdown')]"):null;
@@ -547,8 +554,10 @@ namespace Adbtc
             {
                 Click ( SwitchCaptcha );
                 Wait ( 1 );
-
-                var SelectCaptcha=ElementByXPath("//li[not(contains(@class,'selected')) and contains(@id,'select')]");
+                FaucetCollector.Utilities.HtmlFilter.HtmlElement filter =new FaucetCollector.Utilities.HtmlFilter.HtmlElement();
+               
+                
+                var SelectCaptcha=ElementsByXPath("//li[not(contains(@class,'selected')) and contains(@id,'select')]").FirstOrDefault(x=>CheckConditions(filter.GetFirstChild(x,this))) ;
                 if ( SelectCaptcha!=null )
                 {
                     Click ( SelectCaptcha );
