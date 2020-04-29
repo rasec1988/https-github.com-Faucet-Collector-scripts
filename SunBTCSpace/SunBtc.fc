@@ -1,241 +1,136 @@
 ﻿
-//============================================//
-//script Written first by: cgerabit 
-//============================================//
-
-//============================================//
-//script Written last updates + Features by: AviramDayan 08/02/2019 15:00PM
-//============================================//
-
-using System;
+using FaucetCollector.Captcha.AntibotLinksImageType;
 using FaucetCollector.Script;
+using System;
+using System.Linq;
 using System.Threading.Tasks;
-using System.Collections.Generic;
-using OpenQA.Selenium;
-using OpenQA.Selenium.Interactions;
-//css_inc AntiBotLinksUtility
-//css_ref ImageProcessing
-//css_ref ProcessingImagesUsingLockBits
-//css_inc GetestCaptcha
+//css_ref FaucetCollector.Utilities
+//css_ref FaucetCollector.Captcha
 public class sunbtcScript : FaucetScript
 {
-    /// <summary>
-    /// List of Settings that will be shown in the bot when selecting this Faucet in the bot.
-    /// You can get the value the user entered with the methods: GetSetting("[Name of the FaucetSetting]"), GetBoolSetting and GetDateTimeSetting
-    /// You can also create a new setting value using SetSetting("[Name you want to use]", "value")
-    /// </summary>
+
     public override FaucetSettings Settings
     {
         get
         {
-            return new FaucetSettings("http://sunbtc.space")
+            return new FaucetSettings ( "http://sunbtc.space" )
             {
                 new FaucetSetting(){Name="User",Display="Wallet",Type=EditorType.TextBox,Required=true},
                 new FaucetSetting(){Name="Bonus",Display="Bonus - on/off",Type=EditorType.CheckBox,Default=true},
-                new FaucetSetting(){Name="AutoWithdraw",Display="AutoWithdraw - on/off",Type=EditorType.CheckBox,Default=true},
-                new FaucetSetting(){Name="LimiToWithdraw",Display="LimiToWithdraw - the Default is 1000 (you can change the limit, Less than 1000 if it's possible in the website)",Type=EditorType.TextBox,Default="1000"},
 
-                //insert user settings here
-                //new FaucetSetting { 
-                //    Name = "Name of your setting", 
-                //    Display = "Display shown in Faucet Collector", 
-                //    Type = EditorType.TextBox | EditorType.Password | EditorType.CheckBox | EditorType.Wallet | EditorType.Numeric | EditorType.ComboBox | EditorType.CheckComboBox, 
-                //    Required = true | false, 
-                //    Default = "Optionally a default value" | true | false | null.
-                //    Items = new List<string> { "item1", "item2" } (only valid for ComboBox or CheckComboBox)
-                //} 
+
             };
         }
     }
-	
-	
 
-//============================================================//
-//the number of "successes" in the script - when are finished  
-//============================================================//
-    public override void Start()
+
+
+    public override void Start ( )
     {
         //Title that shows in the browser. Is used to identify and close popup windows
-        Title = "Get";
+        Title="Get";
 
         //After we did try to claim on the faucet we search for these elements to determine if it was a success or a fail
-        SuccessXPath = "//div[@class='additionally success' and contains(text(),'satoshi')]";
-        FailXPath = "//*"; //div[@class='additionally error']
+        SuccessXPath="//div[@class='additionally success' and contains(text(),'satoshi')]";
+        FailXPath="//div[@class='additionally error']";
 
         //Let Faucet Collector start up everything
-        base.Start();
+        base.Start ( );
     }
-//============================================================//
-//the number of "successes" in the script - when are finished  
-//============================================================//
 
-
-
-//======//
-//DoInit
-//======//
-    public override int DoInit()
-    {
-        //Let Faucet Collector continue.
-        return base.DoInit();
-    }
-//======//
-//DoInit
-//======//
-
-
-
-//==================//
-//save Login Cookies 
-//==================//
-    public override bool IsLoggedIn()
+    public override bool IsLoggedIn ( )
     {
         //In here we can check for the presence of an element that is only present when you are logged in.
         //In this case we check for en element with the class "loggedIn"
-        return ElementByXPath("//a[@id='signout']") != null;
+        return ElementByXPath ( "//a[@id='signout']" )!=null;
     }
-//==================//
-//save Login Cookies 
-//==================//
-
-
-//===========//
-//BeforeLogin
-//===========//
-    public override int BeforeLogin()
-    {
-        //This faucet has nothing to do here. We will let Faucet Collector handle it.
-        return base.BeforeLogin();
-    }
-//===========//
-//BeforeLogin
-//===========//
-
-
-
-//=======//
-//DoLogin
-//=======//
-    public override int DoLogin()
+ 
+    //=======//
+    public override int DoLogin ( )
     {
         var WalletAddress = ElementByXPath("//input[@id='addressField']");
-        if (!IsVisible(WalletAddress))
+        if ( !IsVisible ( WalletAddress ) )
         {
-            return Fail("Wallet address is not visible");
+            return Fail ( "Wallet address is not visible" );
         }
-        SetText(WalletAddress, GetSetting("User"));
-        Wait(1);
+        SetText ( WalletAddress , GetSetting ( "User" ) );
+        Wait ( 1 );
         var buttonLogin = ElementByXPath("//input[@id='signin']");
-        if (!IsVisible(buttonLogin))
+        if ( !IsVisible ( buttonLogin ) )
         {
-            return Fail("Button login is not visible");
+            return Fail ( "Button login is not visible" );
         }
-        Click(buttonLogin);
-        Wait(1);
+        Click ( buttonLogin );
+        Wait ( 1 );
         var Login2 = ElementByXPath("//div[contains(@id,'captchaButton')]");
-        if (IsVisible(Login2))
+        if ( IsVisible ( Login2 ) )
         {
-            Click(Login2);
+            Click ( Login2 );
         }
 
         //This faucet has nothing to do here. We will let Faucet Collector handle it.
-        return base.DoLogin();
+        return base.DoLogin ( );
     }
-//=======//
-//DoLogin
-//=======//
 
-
-
-//=======//
-//AfterLogin
-//=======//
-    public override int AfterLogin()
-    {
-        //This faucet has nothing to do here. We will let Faucet Collector handle it.
-        return base.AfterLogin();
-    }
-//=======//
-//AfterLogin
-//=======//
-
-
-
-//================//
-//GetFaucetWaitTime
-//================//
-    public override int GetFaucetWaitTime()
+    public override int GetFaucetWaitTime ( )
     {
         var timer = ElementByXPath("//div[@id='claim' and contains(text(),':')]");
-        if (IsVisible(timer))
+        if ( IsVisible ( timer ) )
         {
             try
             {
-                int sec = Convert.ToInt32(timer.Text.Replace(" ", "").Split(':')[1]);
-                int min = Convert.ToInt32(timer.Text.Replace(" ", "").Split(':')[0]) * 60;
-                Driver.Close();  // Close specific chrome window
-                Driver.Quit();  // also Close the console app, that was used to kick off the chrome window
-                Driver.Dispose();  // Close the chromedriver.exe
-				return sec + min;
+                var Splited=timer.Text.Replace(" ","").Split(':');
+                int sec,min;
+                if(int.TryParse(Splited[1],out sec) && int.TryParse(Splited[0], out min ) )
+                {
+                    return sec+min*60;
+                }
+
             }
-            catch (Exception)
+            catch ( Exception )
             {
                 return 300;
             }
         }
         //let Faucet Collector continue.
-        return base.GetFaucetWaitTime();
+        return base.GetFaucetWaitTime ( );
 
-       
+
     }
-//================//
-//GetFaucetWaitTime
-//================//
 
-
-    public override int BeforeSolveCaptcha()
+    public override int DoSolveCaptcha ( )
     {
-        //This faucet has nothing to do here. We will let Faucet Collector handle it.
-        return base.BeforeSolveCaptcha();
-    }
-	
-
-//================//
-//DoSolveCaptcha
-//================//
-    public override int DoSolveCaptcha()
-    {
-	Wait();
-	 if (IsVisible(ElementByXPath("//*[@class='geetest_radar_tip']")))
+        Wait ( );
+        if ( IsVisible ( ElementByXPath ( "//*[@class='geetest_radar_tip']" ) ) )
         {
             int result = 0;
-            GetestCaptchaUtilities.GetestCaptcha getestCaptcha = new GetestCaptchaUtilities.GetestCaptcha(this);
-          bool res2=  getestCaptcha.DoInitSolve();
-            Wait(2);
-            if (IsVisible(ElementByXPath("//img[contains(@src,'data:image/png;base64,')]")))
+            FaucetCollector.Captcha.GetestCaptcha getestCaptcha = new FaucetCollector.Captcha.GetestCaptcha(this);
+            bool res2=  getestCaptcha.DoInitSolve();
+            Wait ( 2 );
+            if ( IsVisible ( ElementByXPath ( "//img[contains(@src,'data:image/png;base64,')]" ) ) )
             {
-                AntiBotLinks.AntibotLinksImageType.AntiBotLinksUtility solver = new AntiBotLinks.AntibotLinksImageType.AntiBotLinksUtility(this);
+              AntiBotLinksUtility solver = new AntiBotLinksUtility(this);
                 bool res = solver.DoInit();
-                if (!res || !res2)
+                if ( !res||!res2 )
                 {
-                    result = 1;
+                    result=1;
                 }
             }
             return result;
         }
-        if (IsVisible(ElementByXPath("//iframe[contains(@src,'bit-puzzle')]")))
+        if ( IsVisible ( ElementByXPath ( "//iframe[contains(@src,'bit-puzzle')]" ) ) )
         {
             int result = 0;
-            AntiBotLinks.AntibotLinksImageType.PuzzleBall puzzleBallSolver = new AntiBotLinks.AntibotLinksImageType.PuzzleBall(this);
-            puzzleBallSolver.DoSolve();
-            Wait(1);
-            if (IsVisible(ElementByXPath("//img[contains(@src,'data:image/png;base64,')]")))
+            PuzzleBall puzzleBallSolver = new PuzzleBall(this);
+            puzzleBallSolver.DoSolve ( );
+            Wait ( 1 );
+            if ( IsVisible ( ElementByXPath ( "//img[contains(@src,'data:image/png;base64,')]" ) ) )
             {
-                AntiBotLinks.AntibotLinksImageType.AntiBotLinksUtility solver = new AntiBotLinks.AntibotLinksImageType.AntiBotLinksUtility(this);
+                AntiBotLinksUtility solver = new AntiBotLinksUtility(this);
                 bool res = solver.DoInit();
-                if (!res)
+                if ( !res )
                 {
-                    result = 1;
+                    result=1;
                 }
             }
             return result;
@@ -243,28 +138,28 @@ public class sunbtcScript : FaucetScript
         else
         {
             Task<int> extraTask = null;
-            extraTask = Task.Run(() =>
+            extraTask=Task.Run ( ( ) =>
             {
-                return base.DoSolveCaptcha();
-            });
+                return base.DoSolveCaptcha ( );
+            } );
             var result = 0;
-            if (IsVisible(ElementByXPath("//img[contains(@src,'data:image/png;base64,')]")))
+            if ( IsVisible ( ElementByXPath ( "//img[contains(@src,'data:image/png;base64,')]" ) ) )
             {
-                AntiBotLinks.AntibotLinksImageType.AntiBotLinksUtility solver = new AntiBotLinks.AntibotLinksImageType.AntiBotLinksUtility(this);
+                AntiBotLinksUtility solver = new AntiBotLinksUtility(this);
                 bool res = solver.DoInit();
-                if (!res)
+                if ( !res )
                 {
-                    result = 1;
+                    result=1;
                 }
             }
 
-            if (extraTask != null)
+            if ( extraTask!=null )
             {
 
-                extraTask.Wait();
+                extraTask.Wait ( );
 
 
-                result += extraTask.Result;
+                result+=extraTask.Result;
 
             }
             return result;
@@ -272,191 +167,92 @@ public class sunbtcScript : FaucetScript
 
         //This faucet has nothing to do here. We will let Faucet Collector handle it.
     }
-//================//
-//DoSolveCaptcha
-//================//
 
-
-
-    public override int AfterSolveCaptcha()
+    public override int DoSolveFaucet ( )
     {
-
-        //This faucet has nothing to do here. We will let Faucet Collector handle it.
-        return base.AfterSolveCaptcha();
-    }
-
-
-    public override int BeforeSolveFaucet()
-    {
-
-        //This faucet has nothing to do here. We will let Faucet Collector handle it.
-        return base.BeforeSolveCaptcha();
-    }
-
-
-
-//============//
-//DoSolveFaucet
-//============//
-    public override int DoSolveFaucet()
-    {
-        Wait();
-		//Bonus
-		BonusFunction(); //call to Function
+        Wait ( );
+        //Bonus
+        BonusFunction ( ); //call to Function
 
         var Elem = ElementByXPath("//div[contains(text(),'Click HERE to claim again')]");
-        if (IsVisible(Elem))
+        if ( IsVisible ( Elem ) )
         {
-            Click(Elem);
+            Click ( Elem );
         }
 
         var ClaimNew = ElementByXPath("//div[@id='claim']");  // if this apper
-        if (IsVisible(ClaimNew))
+        if ( IsVisible ( ClaimNew ) )
         {
-            Click(ClaimNew);
-        }
-		
-        var ClaimButton = ElementByXPath("//div[contains(text(),'Claim your Satoshi') and not(contains(@style,'display: none;'))]");
-        if (IsVisible(ClaimButton))
-        {
-            Click(ClaimButton);
+            Click ( ClaimNew );
         }
 
-        Wait();
+        var ClaimButton = ElementByXPath("//div[contains(text(),'Claim your Satoshi') and not(contains(@style,'display: none;'))]");
+        if ( IsVisible ( ClaimButton ) )
+        {
+            Click ( ClaimButton );
+        }
+
+        Wait ( );
 
         var result = DoSolveCaptcha();
-        if (result > 0)
+        if ( result>0 )
         {
-            return Fail("Fail solving captcha");
+            return Fail ( "Fail solving captcha" );
         }
-		Wait(3);
-        var button = ElementByXPath("//div[@id='submit'] | //button[@id='submit'] | //center/div[3] | //div[contains(text(),'Claim your Satoshi') and contains(@style,'display: block')]");
-        if (!IsVisible(button))
+        Wait ( 3 );
+        var button = ElementsByXPath("//div[@id='submit']").FirstOrDefault(X=>(IsVisible(X)));
+        if ( !IsVisible ( button ) )
         {
-            return Fail("Button submit isn't visible");
+            return Fail ( "Button submit isn't visible" );
         }
-        Click(button);
+        Click ( button );
 
-		//SuccessEnd
+        //SuccessEnd
         var SuccessEnd = ElementByXPath("//div[@class='additionally success' and contains(text(),'satoshi')]");
-        if (IsVisible(SuccessEnd))
+        if ( IsVisible ( SuccessEnd ) )
         {
-         Log(SuccessEnd.Text);
+            Log ( SuccessEnd.Text );
         }
-		
-        Wait();
 
-        //============//
-        // AutoWithdraw
-        //============//
-        if (GetBoolSetting("AutoWithdraw"))	
-        {
-		    var PayoutTabVar = ElementByXPath("//li[text()='Payout']");
-            if (IsVisible(PayoutTabVar))
-            {
-	        Click(PayoutTabVar);
-            }
+        Wait ( );
 
-            var BalanceVAR = ElementByXPath("//div[@id='balance'] | //div[@id='payout']/span[@class='h']");
-            double BalanceDOUBLE; //
-            double.TryParse(BalanceVAR.Text.Trim(), out BalanceDOUBLE); //decimals  0.1  1.1  2.2  etc
-			
-            double MyAmount;		
-            double.TryParse(GetSetting("LimiToWithdraw"), out MyAmount);
-			
-            if (BalanceDOUBLE > MyAmount) // the Default Limit to withdraw is 1000
-            {
-			  Wait();
-			
-               var withdrawTimerVar = ElementByXPath("//div[@id='withdrawTimer']");
-               if (!IsVisible(withdrawTimerVar)) // if the timer not visible - go to Withdraw
-               {
-                 GoToUrl("http://sunbtc.space/main/withdrawFaucetHub");
-                 var SuccessWithdrawVar = ElementByXPath("//div[@class='additionally success']/div[@class='alert alert-success']");
-                 if (IsVisible(SuccessWithdrawVar))
-                 {
-                 Log(SuccessWithdrawVar.Text);
-                 }
-               } // end withdrawTimerVar
-			
-            }// end BalanceDOUBLE				
-			
-        } // end AutoWithdraw  
-        //============//
-		  
-        Wait();
+      
+
+        Wait ( );
 
         //This faucet has nothing to do here. We will let Faucet Collector handle it.
-        return base.DoSolveCaptcha();
+        return base.DoSolveFaucet ( );
     }
-//============//
-//DoSolveFaucet
-//============//
-
-
-
-//===============//
-//AfterSolveFaucet
-//===============//
-    public override int AfterSolveFaucet()
+  
+    private bool BonusFunction ( )
     {
 
-       
-        //This faucet has nothing to do here. We will let Faucet Collector handle it.
-        return base.AfterSolveFaucet();
-    }
-//===============//
-//AfterSolveFaucet
-//===============//
-
-
-
-    /// <summary>
-    /// This method gets called in the end after the BeforeSolveFaucet/DoSolveFaucet and AfterSolveFaucet methods were done.
-    /// The base.CheckFaucetResult will try to find a visible element on the page using the XPath from SuccessXPath and FailXPath (see the Start method)
-    /// These properties should contain XPath expressions to find certain elements on the page.
-    /// For example if it finds one of the elements from the SuccessXPath, and it is visible, then it will flag the claim attempt as a success.
-    /// Or if it finds one of the elements from the FailXPath, and it is visible, then it will flag the claim attempt as a failure.
-    /// </summary>
-    public override int CheckFaucetResult()
-    {
-        //This faucet has nothing to do here. We will let Faucet Collector handle it.
-        return base.CheckFaucetResult();
-    }
-
-    //=============//
-    //BonusFunction
-    //=============//
-    private bool BonusFunction()
-    {
-
-        if (GetBoolSetting("Bonus"))
+        if ( GetBoolSetting ( "Bonus" ) )
         {
 
             var BonusVar = ElementByXPath("//*[@id='bonusAds']");
-            if (IsVisible(BonusVar))
+            if ( IsVisible ( BonusVar ) )
             {
-                Click(BonusVar);
-                Wait();
+                Click ( BonusVar );
+                Wait ( );
                 var GetBonusVar = ElementByXPath("//input[@id='getBonusBut']");
-                if (IsVisible(GetBonusVar))
+                if ( IsVisible ( GetBonusVar ) )
                 {
-                    Click(GetBonusVar);
+                    Click ( GetBonusVar );
                 }
-                Wait();
+                Wait ( );
                 var SuccessFaucet = ElementByXPath("//*[@id='centerArea']/div[2]");
-                if (IsVisible(SuccessFaucet))
+                if ( IsVisible ( SuccessFaucet ) )
                 {
-                    Log(SuccessFaucet.Text);
+                    Log ( SuccessFaucet.Text );
                 }
-                Driver.Navigate().Refresh();
+                Driver.Navigate ( ).Refresh ( );
             }
 
-        } // end Bonus
+        } 
 
         return true;
-    } // end BonusFunction
-      //=============//
+    } 
 
 
-} // end class
+} 
