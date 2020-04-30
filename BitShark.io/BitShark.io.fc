@@ -2,7 +2,7 @@
 
 //==================//
 //script Written by: ••AviramDayan•• 10/04/2020 17:30PM - Version 1
-//Last Update: 28/04/2020 07:15PM - Version 1
+//Last Update: 30/04/2020 18:00PM - Version 2
 //==================//
 
 using System;
@@ -97,7 +97,7 @@ public class BitShark : FaucetScript
     {
 
         //In this case we check for en element with the class "loggedIn"
-		return ElementByXPath("//li//a[contains(text(),'Logout')] | //div[contains(@id,'go-to-dashboard')]//button[contains(text(),'dashboard')] ") != null;
+		return ElementByXPath("//li//a[contains(text(),'Logout')] | //div[contains(@id,'go-to-dashboard') and @class='active']") != null;
 		//return true;
     }
 //==================//
@@ -135,7 +135,7 @@ public class BitShark : FaucetScript
   //=====//
   //Login
   //=====//
-  var ExitButton = ElementByXPath ("//li//a[contains(text(),'Logout')] | //div[contains(@id,'go-to-dashboard')]//button[contains(text(),'dashboard')] "); 
+  var ExitButton = ElementByXPath ("//li//a[contains(text(),'Logout')] | //div[contains(@id,'go-to-dashboard') and @class='active']"); 
 
   //if i NOT Login - go to Login Page
   if (!IsVisible(ExitButton))
