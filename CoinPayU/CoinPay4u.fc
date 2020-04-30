@@ -3,7 +3,7 @@ using OpenQA.Selenium;
 using System;
 using System.Linq;
 
-//css_inc RecaptchaUtilities
+//css_ref FaucetCollector.Utilities
 class ScriptCoinPayU: FaucetScript
 {
    
@@ -74,6 +74,9 @@ class ScriptCoinPayU: FaucetScript
 
     public override int DoLogin()
     {
+        GoToUrl ( "https://coinpayu.com/login" );
+        Wait ( 2 );
+
         var UserBox = ElementByXPath("//input[@type='email']");
         if (!IsVisible(UserBox))
         {
@@ -155,7 +158,7 @@ class ScriptCoinPayU: FaucetScript
             {
                 return result;
             }
-            RecaptchaUtility utility = new RecaptchaUtility(this);
+            FaucetCollector.Captcha.RecaptchaUtility utility = new FaucetCollector.Captcha.RecaptchaUtility(this);
 
            
             if (!utility.DoSolve())
