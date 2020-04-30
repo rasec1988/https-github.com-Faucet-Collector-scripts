@@ -320,7 +320,7 @@ namespace Adbtc
                     //We  are ready to see the ad
                     else
                     {
-                        var bt = ElementByXPath("//*[contains(@class,'col') and contains(@class,'nopad offset')]//a[contains(@class,'btn')]");
+                        var bt = ElementByXPath("//a[contains(@class,'pulse animated valign-wrapper')]");
                         if (IsVisible(bt))
                         {
                             try
