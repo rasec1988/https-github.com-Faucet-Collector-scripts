@@ -1,0 +1,76 @@
+﻿using FaucetCollector.Script;
+//css_ref FaucetCollector.FaucetTemplates
+//css_ref FaucetCollector.Utilities
+public class ImajBux : FaucetScript
+{
+
+    public override FaucetSettings Settings
+    {
+        get
+        {
+            return new FaucetSettings ( "https://www.imajbux.com/" )
+            {
+                new FaucetSetting(){Name="User",Display="Username",Type=EditorType.TextBox,Required=true},
+                new FaucetSetting(){Name="Pass",Display="Password",Type=EditorType.Password,Required=true},
+                new FaucetSetting(){Name="ExtraPass",Display="Extra Password(Only when you did set)",Type=EditorType.TextBox,Default="none"},
+                new FaucetSetting(){Name="Security",Display="Security Question",Type=EditorType.TextBox,Required=true},
+
+            };
+        }
+    }
+
+    FaucetCollector.FaucetTemplates.PtcEvolutionTemplate Template { get; set; }
+
+    public override void Start ( )
+    {
+        //Title that shows in the browser. Is used to identify and close popup windows
+        Title="ImajBux";
+
+        //After we did try to claim on the faucet we search for these elements to determine if it was a success or a fail
+        SuccessXPath="//div[@class='alert alert-success']";
+        FailXPath="//div[@class='alert alert-danger']";
+        Template=new FaucetCollector.FaucetTemplates.PtcEvolutionTemplate ( this );
+        //Let Faucet Collector start up everything
+        base.Start ( );
+    }
+
+
+
+    public override bool IsLoggedIn ( )
+    {
+        return Template.IsLoggedIn ( );
+    }
+
+
+    public override int BeforeLogin ( )
+    {
+
+        return Template.BeforeLogin ( );
+    }
+
+
+    public override int DoLogin ( )
+    {
+        return Template.DoLogin ( );
+    }
+
+
+    public override int AfterLogin ( )
+    {
+        return Template.AfterLogin ( );
+    }
+
+
+
+
+
+    public override int DoSolveFaucet ( )
+    {
+
+        GoToUrl ( "https://www.imajbux.com/index.php?view=ads" );
+        Wait ( );
+
+        return Template.DoSolveFaucet ( );
+
+    }
+}
