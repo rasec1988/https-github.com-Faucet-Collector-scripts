@@ -78,7 +78,7 @@ public class Qocoinad : FaucetScript
         }
         SetText ( PasswordBox , GetPassword ( "Pass" ) );
 
-        var LoginBtn=ElementByXPath("//input[contains(@id,'Username')]");
+        var LoginBtn=ElementByXPath("//input[contains(@id,'LoginButton')]");
         if ( !IsVisible(LoginBtn) )
         {
             return Fail ( "Login btn is not visible" );
@@ -99,8 +99,11 @@ public class Qocoinad : FaucetScript
     
         return base.DoLogin();
  }
+    public override bool IsLoggedIn ( )
+    {
+        return ElementByXPath ( "//a[contains(@href,'logout')]" )!=null;
+    }
 
- 
 
     public override int DoSolveFaucet()
  {
