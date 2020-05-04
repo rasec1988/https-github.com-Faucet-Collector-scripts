@@ -1,15 +1,12 @@
-﻿using System;
+﻿using FaucetCollector.Script;
+using OpenQA.Selenium;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
-using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
-using FaucetCollector.Script;
-using ImageProcessing.UsingColors;
-using OpenQA.Selenium;
-using OpenQA.Selenium.Interactions;
-//css_ref ImageProcessing
+//css_ref FaucetCollector.Utilities
+//css_ref FaucetCollector.Captcha
 public class EasyHits4u : FaucetScript
 {
     /// <summary>
@@ -21,7 +18,7 @@ public class EasyHits4u : FaucetScript
     {
         get
         {
-            return new FaucetSettings("https://www.easyhits4u.com")
+            return new FaucetSettings ( "https://www.easyhits4u.com" )
             {
                 new FaucetSetting(){Name="User",Display="Username",Type=EditorType.TextBox,Required=true},
                 new FaucetSetting(){Name="Pass",Display="Password",Type=EditorType.Password,Required=true},
@@ -45,28 +42,28 @@ public class EasyHits4u : FaucetScript
     /// <summary>
     /// This method gets called when the faucet is enabled and the GO button is clicked
     /// </summary>
-    public override void Start()
+    public override void Start ( )
     {
         //Title that shows in the browser. Is used to identify and close popup windows
-        Title = "Easy";
-        cont = 0;
-     
+        Title="Easy";
+        cont=0;
+
         //After we did try to claim on the faucet we search for these elements to determine if it was a success or a fail
-        SuccessXPath = "//li[@class='gift']//div[@class='icon']";
-        FailXPath = "//li[@class='fail']";
-        cs = false;
+        SuccessXPath="//li[@class='gift']//div[@class='icon']";
+        FailXPath="//li[@class='fail']";
+        cs=false;
         //Let Faucet Collector start up everything
-        base.Start();
+        base.Start ( );
     }
 
     /// <summary>
     /// This is the first method to run after the browser is opened and the first page is loaded.
     /// </summary>
-    public override int DoInit()
+    public override int DoInit ( )
     {
-       
+
         //Let Faucet Collector continue.
-        return base.DoInit();
+        return base.DoInit ( );
     }
 
     /// <summary>
@@ -75,22 +72,22 @@ public class EasyHits4u : FaucetScript
     /// After those Login methods are called it will call this IsLoggedIn method again to see if the login did succeed.
     /// If you return true Faucet Collector will store all cookies so it will probably be already logged in on the next attempt.
     /// </summary>
-    public override bool IsLoggedIn()
+    public override bool IsLoggedIn ( )
     {
         //In here we can check for the presence of an element that is only present when you are logged in.
         //In this case we check for en element with the class "loggedIn"
 
         // CHECK 
-        return ElementByXPath("//a[@href='/logout/']") != null;
+        return ElementByXPath ( "//a[@href='/logout/']" )!=null;
     }
 
     /// <summary>
     /// This method gets called if IsLoggedIn returned false, right before the DoLogin method is called.
     /// </summary>
-    public override int BeforeLogin()
+    public override int BeforeLogin ( )
     {
         //This faucet has nothing to do here. We will let Faucet Collector handle it.
-        return base.BeforeLogin();
+        return base.BeforeLogin ( );
     }
 
     /// <summary>
@@ -98,65 +95,65 @@ public class EasyHits4u : FaucetScript
     /// It can be used to actually login the user/enter wallet details in the faucet
     /// </summary>
     /// <returns></returns>
-    public override int DoLogin()
+    public override int DoLogin ( )
     {
-        
+
         // CLICK THE DIV 
         var Div_login = ElementByXPath("//div[@class='menu menu-fixed']//ul//li[@class='lore']//div//a[@href='#login-popup']");
-        if (IsVisible(Div_login))
+        if ( IsVisible ( Div_login ) )
         {
-            Click(Div_login);
+            Click ( Div_login );
         }
-        Wait();
+        Wait ( );
         // PUT EMAIL
         var email_box = ElementByXPath("//input[@placeholder='E-mail or Username']");
-        if (!IsVisible(email_box))
+        if ( !IsVisible ( email_box ) )
         {
-            return Fail("Email box not visible");
+            return Fail ( "Email box not visible" );
         }
-        SetText(email_box, GetSetting("User"));
-        Wait();
+        SetText ( email_box , GetSetting ( "User" ) );
+        Wait ( );
         //PUT Password
         var password_box = ElementByXPath("//input[@id='log-pass']");
-        if (!IsVisible(password_box))
+        if ( !IsVisible ( password_box ) )
         {
-            return Fail("Password box not visible");
+            return Fail ( "Password box not visible" );
 
         }
-        SetText(password_box, GetPassword("Pass"));
-        Wait();
+        SetText ( password_box , GetPassword ( "Pass" ) );
+        Wait ( );
         var keep = ElementByXPath("//input[@name='keepsigned']");
-        if (IsVisible(keep))
+        if ( IsVisible ( keep ) )
         {
-            Click(keep);
+            Click ( keep );
         }
         // SOLVE RECAPTCHA
         var result = DoSolveCaptcha();
-        if (result > 0)
+        if ( result>0 )
         {
-            return Fail("Solve captcha failed");
+            return Fail ( "Solve captcha failed" );
         }
-        Wait();
+        Wait ( );
         // CLICK BUTTON LOGIN
         var button = ElementByXPath("//input[@id='enter_btn']");
-        if (!IsVisible(button))
+        if ( !IsVisible ( button ) )
         {
-            return Fail("Button not visible");
+            return Fail ( "Button not visible" );
         }
-        Click(button);
-        Wait();
+        Click ( button );
+        Wait ( );
 
         //This faucet has nothing to do here. We will let Faucet Collector handle it.
-        return base.DoLogin();
+        return base.DoLogin ( );
     }
 
     /// <summary>
     /// This method gets called after the DoLogin method.
     /// </summary>
-    public override int AfterLogin()
+    public override int AfterLogin ( )
     {
         //This faucet has nothing to do here. We will let Faucet Collector handle it.
-        return base.AfterLogin();
+        return base.AfterLogin ( );
     }
 
     /// <summary>
@@ -165,242 +162,196 @@ public class EasyHits4u : FaucetScript
     /// This is used to pause the script while the faucet its timer runs out.
     /// Return the number of seconds the bot should wait.
     /// </summary>
-    public override int GetFaucetWaitTime()
+    public override int GetFaucetWaitTime ( )
     {
-        if (cs)
+        if ( cs )
         {
             return 5;
         }
         int sites_count;
         try
         {
-            sites_count = Convert.ToInt32(GetSetting("N").Replace(".", "").Replace(",", ""));
+            sites_count=Convert.ToInt32 ( GetSetting ( "N" ).Replace ( "." , "" ).Replace ( "," , "" ) );
         }
-        catch (Exception)
+        catch ( Exception )
         {
-            Log("Exception has been ocurred calculating sites count, You need write only a number, you surf now the sites for default: 50");
-            sites_count = 50;
+            Log ( "Exception has been ocurred calculating sites count, You need write only a number, you surf now the sites for default: 50" );
+            sites_count=50;
         }
-        if (cont > sites_count)
+        if ( cont>sites_count )
         {
             return 300;
         }
         //let Faucet Collector continue.
-        return base.GetFaucetWaitTime();
+        return base.GetFaucetWaitTime ( );
     }
 
-    /// <summary>
-    /// This method is called right before a captcha will be solved. 
-    /// If you call SolveCaptcha() in other methods it will start this flow and tries to solve the captcha on the page.
-    /// </summary>
-    public override int BeforeSolveCaptcha()
+    public void reset_result ( )
     {
-        //This faucet has nothing to do here. We will let Faucet Collector handle it.
-        return base.BeforeSolveCaptcha();
-    }
-
-    /// <summary>
-    /// This method gets called after BeforeSolveCaptcha and it does the actual captcha solving
-    /// It will automatically try to see if there is a SolveMedia captcha active or a reCAPTCHA active. 
-    /// If it finds either one it will then use the selected method on the Captcha tab of FaucetCollector to solve the Captcha.
-    /// </summary>
-    public override int DoSolveCaptcha()
-    {
-        //This faucet has nothing to do here. We will let Faucet Collector handle it.
-        return base.DoSolveCaptcha();
-    }
-
-    /// <summary>
-    /// This method will get called after DoSolveCaptcha returned it was a success.
-    /// </summary>
-    /// <returns></returns>
-    public override int AfterSolveCaptcha()
-    {
-        //This faucet has nothing to do here. We will let Faucet Collector handle it.
-        return base.AfterSolveCaptcha();
-    }
-
-    /// <summary>
-    /// This method is called right before we attempt to claim on the faucet. So we are logged in and good to go.
-    /// Next methods that will be called are DoSolveFaucet, AfterSolveFaucet and CheckFaucetResult.
-    /// </summary>
-    public override int BeforeSolveFaucet()
-    {
-        //This faucet has nothing to do here. We will let Faucet Collector handle it.
-        return base.BeforeSolveCaptcha();
-    }
-
-    /// <summary>
-    /// This method gets called after the BeforeSolveFaucet. You can do the actual claiming of the faucet in here.
-    /// </summary>
-    /// <returns></returns>
-    public void reset_result()
-    {
-        onincorrect = false;
-        for (int i = 0; i < 5; i++)
+        onincorrect=false;
+        for ( int i = 0 ; i<5 ; i++ )
         {
-            resp[i] = false;
-            if (i < 3)
+            resp[i]=false;
+            if ( i<3 )
             {
-                resp_[i] = false;
+                resp_[i]=false;
             }
         }
     }
-    public int get_random()
+    public int get_random ( )
     {
         var ran = 0;
         bool term = false;
-        if (resp[0] && resp[1] && resp[2] && resp[3] && resp[4])
+        if ( resp.All(x=>x) )
         {
-            reset_result();
+            reset_result ( );
         }
-        DateTime bre = DateTime.Now.AddSeconds(10);
-        while (!term)
+        int count=0;
+        // try get random element else get first not clicked
+        while ( !term )
         {
-            ran = Random(0, 4);
-            if (!resp[ran])
+            ran=Random ( 0 , 4 );
+            if ( !resp[ran] )
             {
-                term = true;
+                term=true;
             }
-            if (DateTime.Now > bre)
+            if ( count>5)
             {
-                break;
+                return Array.IndexOf ( resp , false );                
             }
-           
+            count++;
         }
         return ran;
     }
-    public bool click_icon(int ran)
+    public bool click_icon ( int ran )
     {
         try
-        {
-          
-            IJavaScriptExecutor exec = (IJavaScriptExecutor)Driver;
-            exec.ExecuteScript("var map=document.getElementsByName('surfmap');map[0].children[" + ran.ToString() + "].click();");
-            Wait();
-            resp[ran] = true;
-          return   true;
+        {       
+            ExecuteScript ( "var map=document.getElementsByName('surfmap');map[0].children["+ran.ToString ( )+"].click();" );
+            Wait ( );
+
+            resp[ran]=true;
+            return true;
         }
-        catch (Exception)
+        catch ( Exception )
         {
             return false;
         }
 
     }
-    public bool click_math(int ran)
+    public bool click_math ( int ran )
     {
         ran++;
         var xpath_sol = ElementByXPath("//div[@class='answer']//a[" + ran + "]");
-        Click(xpath_sol);
-        resp_[ran-1] = true;
+        Click ( xpath_sol );
+        resp_[ran-1]=true;
         return true;
 
-
     }
-   private string SetCaptchaSolution(string res)
+    private string SetCaptchaSolution ( string res )
     {
         List<String> Numbers = new List<string>();
-        Numbers.Add("one");
-        Numbers.Add("two");
-        Numbers.Add("three");
-        Numbers.Add("four");
-        Numbers.Add("five");
-        Numbers.Add("six");
-        Numbers.Add("seven");
-        Numbers.Add("eight");
-        Numbers.Add("nine");
-        Numbers.Add("ten");
-        Numbers.Add("eleven");
-        Numbers.Add("twelve");
-        Numbers.Add("thirteen");
-        Numbers.Add("fourteen");
-        Numbers.Add("fifteen");
-        Numbers.Add("sixteen");
-        Numbers.Add("seventeen");
-        Numbers.Add("eighteen");
-        Numbers.Add("nineteen");
-        Numbers.Add("twenty");
-        for(int i = 0; i < 9; i++)
+        Numbers.Add ( "one" );
+        Numbers.Add ( "two" );
+        Numbers.Add ( "three" );
+        Numbers.Add ( "four" );
+        Numbers.Add ( "five" );
+        Numbers.Add ( "six" );
+        Numbers.Add ( "seven" );
+        Numbers.Add ( "eight" );
+        Numbers.Add ( "nine" );
+        Numbers.Add ( "ten" );
+        Numbers.Add ( "eleven" );
+        Numbers.Add ( "twelve" );
+        Numbers.Add ( "thirteen" );
+        Numbers.Add ( "fourteen" );
+        Numbers.Add ( "fifteen" );
+        Numbers.Add ( "sixteen" );
+        Numbers.Add ( "seventeen" );
+        Numbers.Add ( "eighteen" );
+        Numbers.Add ( "nineteen" );
+        Numbers.Add ( "twenty" );
+        for ( int i = 0 ; i<9 ; i++ )
         {
-            Numbers.Add("twenty" + Numbers[i]);
+            Numbers.Add ( "twenty"+Numbers[i] );
         }
-        Numbers.Add("thirty");
+        Numbers.Add ( "thirty" );
 
-        if (res.Split('+').Length == 2)
+        if ( res.Split ( '+' ).Length==2 )
         {
             var response = res.Split('+');
             int First_=-1;
             int Last = -1;
-            for(int i = 0; i < Numbers.Count; i++)
+            for ( int i = 0 ; i<Numbers.Count ; i++ )
             {
-                if (Numbers[i] == response[0] || response[0]==(i+1).ToString())
+                if ( Numbers[i]==response[0]||response[0]==( i+1 ).ToString ( ) )
                 {
-                    First_ = i + 1;
+                    First_=i+1;
                 }
-                if (Numbers[i] == response[1] || response[1]==(i+1).ToString())
+                if ( Numbers[i]==response[1]||response[1]==( i+1 ).ToString ( ) )
                 {
-                    Last = i + 1;
+                    Last=i+1;
                 }
             }
-            if(First_!=-1 && Last != -1)
+            if ( First_!=-1&&Last!=-1 )
             {
-                res = (First_ + Last).ToString();
+                res=( First_+Last ).ToString ( );
             }
 
-     
+
         }
-        else if(res.Split('-').Length==2)
+        else if ( res.Split ( '-' ).Length==2 )
         {
             var response = res.Split('-');
             int First_ = -1;
             int Last = -1;
-            for (int i = 0; i < Numbers.Count; i++)
+            for ( int i = 0 ; i<Numbers.Count ; i++ )
             {
-                if (Numbers[i] == response[0] || response[0] == (i + 1).ToString())
+                if ( Numbers[i]==response[0]||response[0]==( i+1 ).ToString ( ) )
                 {
-                    First_ = i + 1;
+                    First_=i+1;
                 }
-                if (Numbers[i] == response[1] || response[1] == (i + 1).ToString())
+                if ( Numbers[i]==response[1]||response[1]==( i+1 ).ToString ( ) )
                 {
-                    Last = i + 1;
+                    Last=i+1;
                 }
             }
-            if (First_ != -1 && Last != -1)
+            if ( First_!=-1&&Last!=-1 )
             {
-                res = (First_ - Last).ToString();
+                res=( First_-Last ).ToString ( );
             }
         }
         else
         {
-            for(int i = 0; i < Numbers.Count; i++)
+            for ( int i = 0 ; i<Numbers.Count ; i++ )
             {
-                if (Numbers[i] == res)
+                if ( Numbers[i]==res )
                 {
-                    res = (i + 1).ToString();
+                    res=( i+1 ).ToString ( );
                 }
             }
         }
-        
+
         return res;
     }
-    public int random_math()
+    public int random_math ( )
     {
 
         var ran = 0;
         bool term = false;
-        if(resp_[0] && resp_[1] && resp_[2])
+        if ( resp_[0]&&resp_[1]&&resp_[2] )
         {
-            reset_result();
+            reset_result ( );
         }
         DateTime bre = DateTime.Now.AddSeconds(10);
-        while (!term)
+        while ( !term )
         {
-            ran = Random(0, 2);
-            if (!resp_[ran])
+            ran=Random ( 0 , 2 );
+            if ( !resp_[ran] )
             {
-                term = true;
+                term=true;
             }
-            if (DateTime.Now > bre)
+            if ( DateTime.Now>bre )
             {
                 break;
             }
@@ -408,137 +359,137 @@ public class EasyHits4u : FaucetScript
         }
         return ran;
     }
-     int cont;
-     bool[] resp = new bool[5];
-     bool[] resp_ = new bool[3];
-     bool onincorrect;
-     bool cs;
-    public override int DoSolveFaucet()
+    int cont;
+    bool[] resp = new bool[5];
+    bool[] resp_ = new bool[3];
+    bool onincorrect;
+    bool cs;
+    public override int DoSolveFaucet ( )
     {
-        reset_result();
-        Wait();
+        reset_result ( );
+        Wait ( );
         var s = ElementByXPath("//span[contains(text(),'(1:1, 20 sec)')]");
-        if (IsVisible(s))
+        if ( IsVisible ( s ) )
         {
-            Click(s);
+            Click ( s );
         }
-      
-        Wait();
+
+        Wait ( );
         bool ul = GetBoolSetting("UL");
         int sites_count;
         try
         {
-            sites_count = Convert.ToInt32(GetSetting("N").Replace(".", "").Replace(",", ""));
+            sites_count=Convert.ToInt32 ( GetSetting ( "N" ).Replace ( "." , "" ).Replace ( "," , "" ) );
         }
-        catch (Exception)
+        catch ( Exception )
         {
-            Log("Exception has been ocurred calculating sites count, You need write only a number, you surf now the sites for default: 50");
-            sites_count = 50;
+            Log ( "Exception has been ocurred calculating sites count, You need write only a number, you surf now the sites for default: 50" );
+            sites_count=50;
         }
-        while (cont < sites_count || ul)
+        while ( cont<sites_count||ul )
         {
             try
             {
-                if (!Driver.Url.Contains("http://www.easyhits4u.com/surf/?surftype=2&q=start"))
+                if ( !Driver.Url.Contains ( "http://www.easyhits4u.com/surf/?surftype=2&q=start" ) )
                 {
-                    GoToUrl("http://www.easyhits4u.com/surf/?surftype=2&q=start");
+                    GoToUrl ( "http://www.easyhits4u.com/surf/?surftype=2&q=start" );
                 }
-         
 
-                Wait();
+
+                Wait ( );
                 DateTime t2 = DateTime.Now.AddMinutes(1);
-                Wait(2, 3);
+                Wait ( 2 , 3 );
                 var frame = ElementByXPath("//iframe[@id='frame']");
-                
-                if (IsVisible(frame))
+
+                if ( IsVisible ( frame ) )
                 {
                     try
                     {
-                        Driver.SwitchTo().Frame(frame);
+                        Driver.SwitchTo ( ).Frame ( frame );
                         var button = ElementByXPath("//input[@class='styled button big-btn green']");
-                        if (IsVisible(button))
+                        if ( IsVisible ( button ) )
                         {
 
-                            Click(button);
-                            Wait();
+                            Click ( button );
+                            Wait ( );
                         }
                     }
-                    catch (Exception)
+                    catch ( Exception )
                     {
-                        Driver.SwitchTo().DefaultContent();
+                        Driver.SwitchTo ( ).DefaultContent ( );
                     }
                     finally
                     {
-                        Driver.SwitchTo().DefaultContent();
+                        Driver.SwitchTo ( ).DefaultContent ( );
                     }
                 }
-           
-                Wait();
+
+                Wait ( );
                 var incorrect = ElementByXPath("//div[@class='red']");
-                if (IsVisible(incorrect))
+                if ( IsVisible ( incorrect ) )
                 {
-                    onincorrect = true;
+                    onincorrect=true;
 
                 }
                 else
                 {
-                    reset_result();
+                    reset_result ( );
                 }
-                while (IsVisible(ElementByXPath("//div[@id='countDown']")))
+                while ( IsVisible ( ElementByXPath ( "//div[@id='countDown']" ) ) )
                 {
-                    Wait();
-                    if (DateTime.Now > t2)
+                    Wait ( );
+                    if ( DateTime.Now>t2 )
                     {
                         break;
                     }
                 }
-         
-                Wait(2, 3);
+
+                Wait ( 2 , 3 );
                 DateTime t1 = DateTime.Now.AddMinutes(1);
-                while (!IsVisible(ElementByXPath("//img[@id='surf_image']")))
+                while ( !IsVisible ( ElementByXPath ( "//img[@id='surf_image']" ) ) )
                 {
-                    Wait();
-                    if (DateTime.Now > t1)
+                    Wait ( );
+                    if ( DateTime.Now>t1 )
                     {
                         break;
                     }
 
                 }
-             
+
                 var comp = ElementByXPath("//map[@name='surfmap']");
 
-                if (comp!=null)
+                if ( comp!=null )
                 {
-                    if (true)
+                    if ( true )
                     {
-                        Wait();
+                        Wait ( );
                         bool solved = SolveImage();
 
-                        Wait();
-                        if (solved == false)
+                        Wait ( );
+                        if ( solved==false )
                         {
                             int ran = get_random();
 
                             try
                             {
-                                click_icon(ran);
+                                click_icon ( ran );
                             }
-                            catch (Exception)
+                            catch ( Exception )
                             {
-                                Driver.Navigate().Refresh();
-                                Log("Fail click");
+                                Driver.Navigate ( ).Refresh ( );
+                                Log ( "Fail click" );
                             }
                         }
                         else
                         {
-                            Wait();
+                            Wait ( );
                         }
                     }
                     else
                     {
                         int ran = get_random();
 
-                        click_icon(ran);
+                        click_icon ( ran );
 
 
 
@@ -546,104 +497,82 @@ public class EasyHits4u : FaucetScript
                 }
                 else
                 {
-                    if (!GetBoolSetting("RM"))
+                    if ( !GetBoolSetting ( "RM" ) )
                     {
-                        if (!onincorrect)
+                        if ( !onincorrect )
                         {
-                            if (ElementByName("cap") == null)
+                            if ( ElementByName ( "cap" )==null )
                             {
-                                ExecuteScript("var element=document.getElementsByClassName('menu1');element[0].outerHTML+=\"<input type='text' name='cap'>\"");
+                                ExecuteScript ( "var element=document.getElementsByClassName('menu1');element[0].outerHTML+=\"<input type='text' name='cap'>\"" );
                             }
-                            Wait();
+                            Wait ( );
                             var ans = ElementsByXPath("//div[@class='answer']//a");
-                            DoSolveImageCaptcha(ElementByXPath("//img[@id='surf_image']"), ElementByName("cap"));
-                           // var xpath_sol = ElementByXPath("//a[contains(text(),'" + Context.CaptchaResult.Result + "')]");
+                            DoSolveImageCaptcha ( ElementByXPath ( "//img[@id='surf_image']" ) , ElementByName ( "cap" ) );
+                            // var xpath_sol = ElementByXPath("//a[contains(text(),'" + Context.CaptchaResult.Result + "')]");
                             var sols = ElementsByXPath("//div[@class='answer']//a");
-                            if (sols.Count>0)
+                            if ( sols.Count>0 )
                             {
                                 string ContextSolution = SetCaptchaSolution(Context.CaptchaResult.Result);
                                 bool clicked = false;
                                 int cont_ = 0;
-                                foreach(var sol in sols)
+                                foreach ( var sol in sols )
                                 {
-                                    if (sol.Text ==ContextSolution)
+                                    if ( sol.Text==ContextSolution )
                                     {
-                                        click_math(cont_);
-                                        clicked = true;
+                                        click_math ( cont_ );
+                                        clicked=true;
                                     }
                                     cont_++;
 
                                 }
-                                if (!clicked)
+                                if ( !clicked )
                                 {
                                     int rand = random_math();
-                                    click_math(rand);
+                                    click_math ( rand );
                                 }
                             }
                             else
                             {
                                 int rand = random_math();
-                                click_math(rand);
+                                click_math ( rand );
                             }
-                            Wait();
+                            Wait ( );
                         }
                         else
                         {
                             int rand = random_math();
-                            click_math(rand);
+                            click_math ( rand );
                         }
                     }
                     else
                     {
                         int rand = random_math();
-                        click_math(rand);
+                        click_math ( rand );
                     }
                 }
             }
-            catch (Exception ex)
+            catch ( Exception ex )
             {
-          
-                Log(ex.ToString());
-                Driver.Navigate().Refresh();
-                Wait();
+
+                Log ( ex.ToString ( ) );
+                Driver.Navigate ( ).Refresh ( );
+                Wait ( );
             }
             cont++;
         }
-        cs = true;
+        cs=true;
         //This faucet has nothing to do here. We will let Faucet Collector handle it.
-        return base.DoSolveCaptcha();
+        return base.DoSolveCaptcha ( );
     }
 
-    /// <summary>
-    /// This method will get called after the DoSolveFaucet is completed and returned it was a success.
-    /// For example you can wait for a processing popup to go away until actual faucet claim result is on the page.
-    /// </summary>
-    public override int AfterSolveFaucet()
-    {
-        //This faucet has nothing to do here. We will let Faucet Collector handle it.
-        return base.AfterSolveFaucet();
-    }
 
-    /// <summary>
-    /// This method gets called in the end after the BeforeSolveFaucet/DoSolveFaucet and AfterSolveFaucet methods were done.
-    /// The base.CheckFaucetResult will try to find a visible element on the page using the XPath from SuccessXPath and FailXPath (see the Start method)
-    /// These properties should contain XPath expressions to find certain elements on the page.
-    /// For example if it finds one of the elements from the SuccessXPath, and it is visible, then it will flag the claim attempt as a success.
-    /// Or if it finds one of the elements from the FailXPath, and it is visible, then it will flag the claim attempt as a failure.
-    /// </summary>
-    public override int CheckFaucetResult()
+    private bool SolveImage ( )
     {
-        //This faucet has nothing to do here. We will let Faucet Collector handle it.
-        return base.CheckFaucetResult();
-    }
 
-    private bool SolveImage()
-    {
-       
-        Wait();
+        Wait ( );
         int solution = getIconCaptchaSol();
-       
-        if (solution == -1)
+
+        if ( solution==-1 )
         {
             return false;
         }
@@ -654,18 +583,18 @@ public class EasyHits4u : FaucetScript
 
             return c;
         }
-        catch (Exception)
+        catch ( Exception )
         {
             return false;
         }
-      
+
     }
-    
-     static Color S_;
-    private int getIconCaptchaSol()
+
+    static Color S_;
+    private int getIconCaptchaSol ( )
     {
-    
-        Wait();
+
+        Wait ( );
         int sol = -1;
 
 
@@ -682,53 +611,47 @@ public class EasyHits4u : FaucetScript
         //     {
 
         Bitmap Surf_I = TakeScreenshot(Base.Captcha.CaptchaService.Manual,Icons);
-        if(Surf_I.Width!=275 || Surf_I.Height != 56)
+        if ( Surf_I.Width!=275||Surf_I.Height!=56 )
         {
-            Surf_I = ResizeImage(Surf_I, new Size(275,56), false);
+            Surf_I=ResizeImage ( Surf_I , new Size ( 275 , 56 ) , false );
         }
-        Wait();
-        icons[0] = Surf_I.Clone(new Rectangle(0, 2, 50, 50),PixelFormat.Format32bppArgb);
-        icons[1] = Surf_I.Clone(new Rectangle(55, 2, 50, 50), PixelFormat.Format32bppArgb);
-        icons[2] = Surf_I.Clone(new Rectangle(110, 2, 50, 50), PixelFormat.Format32bppArgb);
-        icons[3] = Surf_I.Clone(new Rectangle(165, 2, 50, 50), PixelFormat.Format32bppArgb);
-        icons[4] = Surf_I.Clone(new Rectangle(220, 2, 50, 50), PixelFormat.Format32bppArgb);
+        Wait ( );
+        icons[0]=Surf_I.Clone ( new Rectangle ( 0 , 2 , 50 , 50 ) , PixelFormat.Format32bppArgb );
+        icons[1]=Surf_I.Clone ( new Rectangle ( 55 , 2 , 50 , 50 ) , PixelFormat.Format32bppArgb );
+        icons[2]=Surf_I.Clone ( new Rectangle ( 110 , 2 , 50 , 50 ) , PixelFormat.Format32bppArgb );
+        icons[3]=Surf_I.Clone ( new Rectangle ( 165 , 2 , 50 , 50 ) , PixelFormat.Format32bppArgb );
+        icons[4]=Surf_I.Clone ( new Rectangle ( 220 , 2 , 50 , 50 ) , PixelFormat.Format32bppArgb );
 
-        List<MyImage> Icons_ = new List<MyImage>();
+        List<FaucetCollector.Utilities.ImageProcessing.UsingColors.MyImage> Icons_ = new List<FaucetCollector.Utilities.ImageProcessing.UsingColors.MyImage>();
 
-        for(int i = 0; i < 5; i++)
+        for ( int i = 0 ; i<5 ; i++ )
         {
-            Icons_.Add(new MyImage(icons[i],10));
+            Icons_.Add ( new FaucetCollector.Utilities.ImageProcessing.UsingColors.MyImage ( icons[i] , 10 ) );
         }
-        Wait();
-        
-        ImageProcessing.UsingColors.SameImagesFinder sameImagesFinder = new SameImagesFinder();
- 
-        for(int i = 0; i < Icons_.Count; i++)
+        Wait ( );
+
+        FaucetCollector.Utilities.ImageProcessing.UsingColors.SameImagesFinder sameImagesFinder = new FaucetCollector.Utilities.ImageProcessing.UsingColors.SameImagesFinder();
+
+        for ( int i = 0 ; i<Icons_.Count ; i++ )
         {
-            sameImagesFinder.AddNewImage(Icons_[i]);
+            sameImagesFinder.AddNewImage ( Icons_[i] );
         }
-      
-        for(int i = 0; i < sameImagesFinder.GetListPosition().Count; i++)
+
+        for ( int i = 0 ; i<sameImagesFinder.GetListPosition ( ).Count ; i++ )
         {
-       
-            if (!resp[sameImagesFinder.GetListPosition()[i][0]])
+
+            if ( !resp[sameImagesFinder.GetListPosition ( )[i][0]] )
             {
-                sol = sameImagesFinder.GetListPosition()[i][0];
+                sol=sameImagesFinder.GetListPosition ( )[i][0];
                 break;
             }
         }
 
-        Log(sol.ToString());
-
-
-
-
-     
+        Log ( sol.ToString ( ) );
 
         return sol;
 
-
     }
-  
+
 
 }
