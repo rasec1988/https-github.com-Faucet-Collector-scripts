@@ -1,0 +1,152 @@
+﻿using FaucetCollector.Script;
+
+public class IndigoCoinScript : FaucetScript
+{
+
+    public override FaucetSettings Settings
+    {
+        get
+        {
+            return new FaucetSettings ( BaseUrl )
+            {
+                new FaucetSetting(){Name="Email",Display="UserName",Type=EditorType.TextBox,Required=true},
+                new FaucetSetting(){Name="Pass",Display="Password",Type=EditorType.Password,Required=true},
+
+            };
+        }
+    }
+
+    /// <summary>
+    /// Base url of the site
+    /// </summary>
+    const string  BaseUrl = "https://indigocoin.cloud";
+    /// <summary>
+    ///  Login url of the site
+    /// </summary>
+
+    const string LoginUrl=BaseUrl+"/login";
+
+    /// <summary>
+    /// Claim bonus url
+    /// </summary>
+
+    const string ClaimBonusUrl=BaseUrl+"/cabinet/bonuses";
+    public override void Start ( )
+    {
+
+        //Title that shows in the browser. Is used to identify and close popup windows
+        Title="Indigocoin CloudMining";
+
+        //After we did try to claim on the faucet we search for these elements to determine if it was a success or a fail
+        SuccessXPath="//tr[@class='odd']//td[contains(text(),'Bonus')]"; 
+        FailXPath="//td[contains(text(),'You Already')]";
+
+        //Let Faucet Collector start up everything
+        base.Start ( );
+    }
+    public override bool IsLoggedIn ( )
+    {
+
+        //In this case we check for en element with the class "loggedIn"
+        return ElementByXPath ( "//a[contains(@href,'logout')]" )!=null;
+        //return true;
+    }
+
+    public override int DoLogin ( )
+    {   // We go to login url
+        GoToUrl ( LoginUrl );
+        Wait ( );
+
+        // We get the element for email
+        var box_user = ElementByXPath("//input[@type='email']");
+        if ( !IsVisible ( box_user ) )
+        {
+            return Fail ( "Box user not visible" );
+        }
+        // we set the email
+        SetText ( box_user , GetSetting ( "Email" ) );
+
+        // we get the element for the pass
+        var box_pass = ElementByXPath("//input[@type='password']");
+        if ( !IsVisible ( box_pass ) )
+        {
+            return Fail ( "Box pass not visible" );
+        }
+        // we set the pass
+        SetText ( box_pass , GetPassword ( "Pass" ) );
+        // we get the button to login
+
+        var ButtonLog = ElementByXPath("//input[@type='submit']");
+        if ( !IsVisible ( ButtonLog ) )
+        {
+            return Fail ( "Button log is not visible" );
+        }
+
+        // Click the button to login
+        Click ( ButtonLog );
+        // Wait 1 -2 seconds
+        Wait ( );
+
+        var Error=ElementByXPath("//div[@class='ui-pnotify-text']");
+        if ( IsVisible ( Error ) )
+        {
+            // If is visible the error log it 
+            Log ( Error.Text );
+        }
+        //This faucet has nothing to do here.    
+        return base.DoLogin ( );
+    }
+
+    public override int DoSolveFaucet ( )
+    {
+        // We go to bonus site if we are not here
+        if ( Driver.Url!=ClaimBonusUrl )
+        {
+            GoToUrl ( ClaimBonusUrl );
+        }
+        // Wait 1-2 seconds 
+
+        Wait ( );
+
+        // Get the button to claim
+        var submitButton = ElementByXPath("//button[@id='get-bonus']");
+        if ( !IsVisible ( submitButton ) )
+        {
+            //Unable to find the submit button - return the failure.
+            return Fail ( "Get Bonus not visible" );
+        }
+        // Click the button
+        Click ( submitButton );
+        Wait ( );
+
+
+
+        return base.DoSolveFaucet ( );
+    }
+
+    public override int GetFaucetWaitTime ( )
+    {
+        if ( Driver.Url!=ClaimBonusUrl )
+        {
+            GoToUrl ( ClaimBonusUrl );
+            Wait ( );
+        }
+        var TimeElem=ElementByXPath("//span[contains(text(),':')]");
+        if ( IsVisible ( TimeElem ) )
+        {
+            var SplitedTime=TimeElem.Text.Trim().Replace("\"","").Split('\n')[0].Split(' ')[0].Split(':');
+
+
+            int h,m,s;
+
+            if ( int.TryParse ( SplitedTime[0] , out h )&&int.TryParse ( SplitedTime[1] , out m )&&int.TryParse ( SplitedTime[2] , out s ) )
+            {
+                return h*3600+m*60+s;
+            }
+        }
+
+
+        return base.GetFaucetWaitTime ( );
+    }
+
+}
