@@ -364,8 +364,29 @@ public class EasyHits4u : FaucetScript
     bool[] resp_ = new bool[3];
     bool onincorrect;
     bool cs;
+    private string PreviusSrc { get; set; }
+    bool ImgChanged
+    {
+        get
+        {
+            var Img=ElementByXPath("//img[@id='surf_image']");
+            if ( Img!=null )
+            {
+              
+                var Src=Img.GetAttribute("src");
+
+                bool Same=Src==PreviusSrc;
+
+                PreviusSrc=Src;
+
+                return !Same;
+            }
+            return true;
+        }
+    }
     public override int DoSolveFaucet ( )
     {
+        PreviusSrc=string.Empty;
         reset_result ( );
         Wait ( );
         var s = ElementByXPath("//span[contains(text(),'(1:1, 20 sec)')]");
@@ -425,8 +446,8 @@ public class EasyHits4u : FaucetScript
                 }
 
                 Wait ( );
-                var incorrect = ElementByXPath("//div[@class='red']");
-                if ( IsVisible ( incorrect ) )
+                var incorrect = ElementByXPath("//div[@class='wrong']" );
+                if ( IsVisible ( incorrect )  || !ImgChanged )
                 {
                     onincorrect=true;
 
@@ -435,7 +456,8 @@ public class EasyHits4u : FaucetScript
                 {
                     reset_result ( );
                 }
-                while ( IsVisible ( ElementByXPath ( "//div[@id='countDown']" ) ) )
+                var Progress=ElementByXPath("//div[@class='progress']");
+                while (  IsVisible(Progress) && !Progress.GetAttribute("style").Contains("100%") )
                 {
                     Wait ( );
                     if ( DateTime.Now>t2 )
