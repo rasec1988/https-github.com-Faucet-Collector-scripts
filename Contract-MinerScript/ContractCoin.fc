@@ -1,7 +1,8 @@
 ﻿using System;
+using System.Linq;
 using FaucetCollector.Script;
-//css_inc RecaptchaUtilities
-//css_inc ShortLinkUtilitiesV2
+//css_ref FaucetCollector.Utilities
+//css_ref FaucetCollector.Captcha
 public class ContractMiner : FaucetScript
 {
     /// <summary>
@@ -164,7 +165,7 @@ public class ContractMiner : FaucetScript
         }
         if (GetSetting("LoginW") == "Recaptcha")
         {
-            RecaptchaUtility utility = new RecaptchaUtility(this);
+            FaucetCollector.Captcha.RecaptchaUtility utility = new FaucetCollector.Captcha.RecaptchaUtility(this);
             utility.DoSolve();
         }
         var KeepSign = ElementByXPath("//input[@name='remember_me_login']");
@@ -172,12 +173,12 @@ public class ContractMiner : FaucetScript
         {
             Click(KeepSign);
         }
-        var button = ElementByXPath("//button[@class='btn btn-primary submit-btn btn-block']");
-        if (!IsVisible(button))
+        var LoginBtn = ElementsByXPath("//button[contains(@class,'btn btn-primary')]").FirstOrDefault();
+        if (!IsVisible(LoginBtn))
         {
             return Fail("Button login is not visible");
         }
-        Click(button);
+        Click(LoginBtn);
 
         var Error = ElementByXPath("//div[@class='toast-message']");
         if (IsVisible(Error))
@@ -481,7 +482,7 @@ public class ContractMiner : FaucetScript
         SelectCorrectCaptcha ( );
 
 
-            var Bypasser = new ShortLinkBypasser(this);
+            var Bypasser = new FaucetCollector.Utilities.ShortLinkBypasser(this);
             IsSolved=Bypasser.DoShortLink();
         
 
