@@ -12,7 +12,7 @@
 //===========//
 
 //==================//
-//new update & Features by: ••AviramDayan•• 09/05/2020 14:15PM - Version 1 (last updates)
+//new update & Features by: ••AviramDayan•• 09/05/2020 21:30PM - Version 1 (last updates)
 //fix the old menu 
 //Add new Menus - different way - separated Menu by Subject X3 - RewardPoints,BTCBonus,TicketsLottery
 //invisible_AND_Normal_ReCaptcha - (fix if class of invisibleReCaptcha apper (do not do) if class of NormalReCaptcha (do) - general at end - before the Rool)		
@@ -361,6 +361,7 @@ public class investimerNameScript : FaucetScript
         {
             //do not do nothing	
         }
+		
         else
         {
             Action_Function(ActionType.Bonus, MenuVar_BTCBonus, BTCBonus_BarCheck, "//*[@id='fp_bonus_rewards']/div[1]//button", "1000% BTCBonus / 3200 RP"); //call
@@ -368,9 +369,10 @@ public class investimerNameScript : FaucetScript
             Action_Function(ActionType.Bonus, MenuVar_BTCBonus, BTCBonus_BarCheck, "//*[@id='fp_bonus_rewards']/div[3]//button", "100% BTCBonus / 320 RP"); //call
             Action_Function(ActionType.Bonus, MenuVar_BTCBonus, BTCBonus_BarCheck, "//*[@id='fp_bonus_rewards']/div[4]//button", "50% BTCBonus / 160 RP"); //call
             Action_Function(ActionType.Bonus, MenuVar_BTCBonus, BTCBonus_BarCheck, "//*[@id='fp_bonus_rewards']/div[5]//button", "10% BTCBonus / 32 RP"); //call
-        }// end BTCBonus 32
+        }
 
         //===================================//
+
 
         //================//
         //Menu_Tickets
@@ -391,6 +393,7 @@ public class investimerNameScript : FaucetScript
         {
             //do not do nothing	
         }
+		
         else
         {
             Action_Function(ActionType.Ticket, MenuVar_Tickets, Tickets_BarCheck, "//*[@id='free_lott_rewards']/div[1]//button", "100 Tickets / 1200 RP"); //call
@@ -401,6 +404,7 @@ public class investimerNameScript : FaucetScript
         }
 
         //===================================//
+
 
         //================//
         //Menu_RewardPoints
@@ -420,15 +424,15 @@ public class investimerNameScript : FaucetScript
         {
             //do not do nothing	
         }
+		
         else
         {
-
-            Action_Function(ActionType.Rewards, MenuVar_RewardPoints, RewardPoints_BarCheck, "//*[@id='free_points_rewards']/div[1]//button", "100 Tickets / 1200 RP"); //call	
-            Action_Function(ActionType.Rewards, MenuVar_RewardPoints, RewardPoints_BarCheck, "//*[@id='free_points_rewards']/div[2]//button", "50 Tickets / 600 RP"); //call	
-            Action_Function(ActionType.Rewards, MenuVar_RewardPoints, RewardPoints_BarCheck, "//*[@id='free_points_rewards']/div[3]//button", "25 Tickets / 300 RP"); //call	
-            Action_Function(ActionType.Rewards, MenuVar_RewardPoints, RewardPoints_BarCheck, "//*[@id='free_points_rewards']/div[4]//button", "10 Tickets / 120 RP"); //call	
-            Action_Function(ActionType.Rewards, MenuVar_RewardPoints, RewardPoints_BarCheck, "//*[@id='free_points_rewards']/div[5]//button", "1 Tickets / 12 RP"); //call	
-        } // end
+            Action_Function(ActionType.Rewards, MenuVar_RewardPoints, RewardPoints_BarCheck, "//*[@id='free_points_rewards']/div[1]//button", "100 RewardPoints / 1200 RP"); //call	
+            Action_Function(ActionType.Rewards, MenuVar_RewardPoints, RewardPoints_BarCheck, "//*[@id='free_points_rewards']/div[2]//button", "50 RewardPoints / 600 RP"); //call	
+            Action_Function(ActionType.Rewards, MenuVar_RewardPoints, RewardPoints_BarCheck, "//*[@id='free_points_rewards']/div[3]//button", "25 RewardPoints / 300 RP"); //call	
+            Action_Function(ActionType.Rewards, MenuVar_RewardPoints, RewardPoints_BarCheck, "//*[@id='free_points_rewards']/div[4]//button", "10 RewardPoints / 120 RP"); //call	
+            Action_Function(ActionType.Rewards, MenuVar_RewardPoints, RewardPoints_BarCheck, "//*[@id='free_points_rewards']/div[5]//button", "1 RewardPoints / 12 RP"); //call	
+        }
 
         //===================================//
 
