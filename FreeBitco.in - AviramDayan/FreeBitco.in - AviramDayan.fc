@@ -27,6 +27,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using FaucetCollector.Script;
+using OpenQA.Selenium;
 //css_inc ShortLinkUtilities
 //css_inc RecaptchaUtilities
 
