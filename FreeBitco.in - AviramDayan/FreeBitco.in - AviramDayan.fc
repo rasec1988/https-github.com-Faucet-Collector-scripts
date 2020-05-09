@@ -12,7 +12,7 @@
 //===========//
 
 //==================//
-//new update & Features by: ••AviramDayan•• 18/04/2019 08:00PM - Version 14 (last updates)
+//new update & Features by: ••AviramDayan•• 09/05/2020 14:15PM - Version 14 (last updates)
 //fix the old menu 
 //Add new Menus - different way - separated Menu by Subject X3 - RewardPoints,BTCBonus,TicketsLottery
 //invisible_AND_Normal_ReCaptcha - (fix if class of invisibleReCaptcha apper (do not do) if class of NormalReCaptcha (do) - general at end - before the Rool)		
@@ -70,7 +70,8 @@ public class FreeBitcoinScript : FaucetScript
  public override void Start()
  {
         //Title that shows in the browser. Is used to close popups
-        Title = "freebitco.in";
+        Title = "freebitco.in | investimer.name";
+
 		
         SuccessXPath = "//*[@id='free_play_result']";   
         FailXPath = "//*[text()='']";   //*[@id='free_play_error']
@@ -270,16 +271,6 @@ public override int DoInit()
         return base.AfterSolveCaptcha();
     }
 
-	
-
-	
-//loops
-	public static int RP;
-    public static int AP;
-//
-
-
-	
 
 
 //=================//
@@ -299,7 +290,13 @@ public override int DoInit()
 	
 	
 	
-	
+    public enum ActionType
+    {
+        Bonus,
+        Ticket,
+        Rewards
+    };
+
 	
 	
 //==============//
@@ -340,398 +337,101 @@ public override int DoInit()
 
 		//==========//
 
-	
-		//==================//      
-		//Menus general vars
-		//==================// 
-		var MainPage = ElementByXPath("//*[@id='free_play_link_li']/a");
-		var RewardsPage = ElementByXPath("//a[text()='REWARDS']"); 
-		var Info_General_SuccessOrFalse = ElementByXPath("//*[@id='reward_point_redeem_result_container_div']/p");		
-		//==================// 
+
+        //==================//      
+        //Menus general vars
+        //==================// 
+        var MainPage = ElementByXPath("//*[@id='free_play_link_li']/a");
+        //==================// 
 
 
-
-		//================//
+        //================//
         //Menu_BTCBonus
-		//================//
-        var MenuVar_BTCBonus = GetSetting("Menu_BTCBonus");  
-	    //============//
+        //================//
+        var MenuVar_BTCBonus = GetSetting("Menu_BTCBonus");
+        //============//
 
         //BTCBonus_BarCheck
-		var BTCBonus_BarCheck = ElementByXPath("//div[@id='bonus_container_fp_bonus']");	
+        var BTCBonus_BarCheck = ElementByXPath("//div[@id='bonus_container_fp_bonus']");
 
-		//================//
-		//Menu_BTCBonus
-		//================//
-		
-        if(MenuVar_BTCBonus=="none")
-        {	
-	       //do not do nothing	
+        //================//
+        //Menu_BTCBonus
+        //================//
+
+        if (MenuVar_BTCBonus == "none")
+        {
+            //do not do nothing	
         }
-		
-        if(MenuVar_BTCBonus=="1000% BTCBonus / 3200 RP")
-        {	
-
-           BTCBonus_Function(); //call
-
-           if (!IsVisible(BTCBonus_BarCheck))
-		   {
-		     var BTCBonus_1000_Button = ElementByXPath("//*[@id='fp_bonus_rewards']/div[1]//button");  
-             if (IsVisible(BTCBonus_1000_Button))
-		     {
-             Log("BTCBonus: click on BTCBonus_1000_Button");		
-             Wait(2); 
-             Click(BTCBonus_1000_Button);
-             Wait(1); 
-             Log(Info_General_SuccessOrFalse.Text);	
-		     }
-		   }
-
-        }// end BTCBonus 3200
-
-
-        if(MenuVar_BTCBonus=="500% BTCBonus / 1600 RP")
-        {	
-
-           BTCBonus_Function(); //call
-	
-           if (!IsVisible(BTCBonus_BarCheck))
-		   {
-		     var BTCBonus_500_Button = ElementByXPath("//*[@id='fp_bonus_rewards']/div[2]//button");  
-             if (IsVisible(BTCBonus_500_Button))
-		     {
-             Log("BTCBonus: click on BTCBonus_500_Button");		
-             Wait(2); 
-             Click(BTCBonus_500_Button);
-             Wait(1); 
-             Log(Info_General_SuccessOrFalse.Text);	
-		     }
-		   }
-
-        } // end BTCBonus 1600
-		
-		
-        if(MenuVar_BTCBonus=="100% BTCBonus / 320 RP")
-        {	
-	
-           BTCBonus_Function(); //call
-	
-           if (!IsVisible(BTCBonus_BarCheck))
-		   {
-		     var BTCBonus_100_Button = ElementByXPath("//*[@id='fp_bonus_rewards']/div[3]//button");  
-             if (IsVisible(BTCBonus_100_Button))
-		     {
-             Log("BTCBonus: click on BTCBonus_100_Button");		
-             Wait(2); 
-             Click(BTCBonus_100_Button);
-             Wait(1); 
-             Log(Info_General_SuccessOrFalse.Text);	
-		     }
-		   }
-		   
-        } // end BTCBonus 320
-		
-		
-        if(MenuVar_BTCBonus=="50% BTCBonus / 160 RP")
-        {	
-
-           BTCBonus_Function(); //call
-	
-           if (!IsVisible(BTCBonus_BarCheck))
-		   {
-		     var BTCBonus_50_Button = ElementByXPath("//*[@id='fp_bonus_rewards']/div[4]//button");  
-             if (IsVisible(BTCBonus_50_Button))
-		     {
-             Log("BTCBonus: click on BTCBonus_50_Button");		
-             Wait(2); 
-             Click(BTCBonus_50_Button);
-             Wait(1); 
-             Log(Info_General_SuccessOrFalse.Text);	
-		     }
-		   }
-
-        }// end BTCBonus 160
-		
-		
-		
-        if(MenuVar_BTCBonus=="10% BTCBonus / 32 RP")
-        {	
-
-           BTCBonus_Function(); //call
-	
-           if (!IsVisible(BTCBonus_BarCheck))
-		   {
-		     var BTCBonus_10_Button = ElementByXPath("//*[@id='fp_bonus_rewards']/div[5]//button");  
-             if (IsVisible(BTCBonus_10_Button))
-		     {
-             Log("BTCBonus: click on BTCBonus_10_Button");		
-             Wait(2); 
-             Click(BTCBonus_10_Button);
-             Wait(1); 
-             Log(Info_General_SuccessOrFalse.Text);	
-		     }
-		   }
-
+        else
+        {
+            Action_Function(ActionType.Bonus, MenuVar_BTCBonus, BTCBonus_BarCheck, "//*[@id='fp_bonus_rewards']/div[1]//button", "1000% BTCBonus / 3200 RP"); //call
+            Action_Function(ActionType.Bonus, MenuVar_BTCBonus, BTCBonus_BarCheck, "//*[@id='fp_bonus_rewards']/div[2]//button", "500% BTCBonus / 1600 RP"); //call
+            Action_Function(ActionType.Bonus, MenuVar_BTCBonus, BTCBonus_BarCheck, "//*[@id='fp_bonus_rewards']/div[3]//button", "100% BTCBonus / 320 RP"); //call
+            Action_Function(ActionType.Bonus, MenuVar_BTCBonus, BTCBonus_BarCheck, "//*[@id='fp_bonus_rewards']/div[4]//button", "50% BTCBonus / 160 RP"); //call
+            Action_Function(ActionType.Bonus, MenuVar_BTCBonus, BTCBonus_BarCheck, "//*[@id='fp_bonus_rewards']/div[5]//button", "10% BTCBonus / 32 RP"); //call
         }// end BTCBonus 32
 
-		//======//
-		
-	
-	
+        //===================================//
+
         //================//
         //Menu_Tickets
         //================//
-        var MenuVar_Tickets = GetSetting("Menu_Tickets");  
+        var MenuVar_Tickets = GetSetting("Menu_Tickets");
         //================//
 
         //Tickets Vars
-		//check if exists "Tickets_BarCheck" exists
-		var Tickets_BarCheck = ElementByXPath("//div[@id='bonus_container_free_lott']");	
-		//=============//
-		
+        //check if exists "Tickets_BarCheck" exists
+        var Tickets_BarCheck = ElementByXPath("//div[@id='bonus_container_free_lott']");
+        //=============//
+
         //================//
-		//Menu_Tickets
+        //Menu_Tickets
         //================//
-		
-        if(MenuVar_Tickets=="none")
-        {	
-	       //do not do nothing	
+
+        if (MenuVar_Tickets == "none")
+        {
+            //do not do nothing	
         }
-		
-        if(MenuVar_Tickets=="100 Tickets / 1200 RP")
-        {	
-	
-           Tickets_Function(); //call
-		   
-           if (!IsVisible(Tickets_BarCheck))
-		   {
-		     var Tickets_100_Button = ElementByXPath("//*[@id='free_lott_rewards']/div[1]//button");  
-             if (IsVisible(Tickets_100_Button))
-		     {
-             Log("Tickets: click on Tickets_100_Button");		
-             Wait(2); 
-             Click(Tickets_100_Button);
-             Wait(1); 
-             Log(Info_General_SuccessOrFalse.Text);	
-		     }
-		   }
- 
-        } // end Menu_Tickets 1200
-		
-		
-		
-        if(MenuVar_Tickets=="50 Tickets / 600 RP")
-        {	
-	
-           Tickets_Function(); //call
-		   
-           if (!IsVisible(Tickets_BarCheck))
-		   {
-		     var Tickets_50_Button = ElementByXPath("//*[@id='free_lott_rewards']/div[2]//button");  
-             if (IsVisible(Tickets_50_Button))
-		     {
-             Log("Tickets: click on Tickets_50_Button");		
-             Wait(2); 
-             Click(Tickets_50_Button);
-             Wait(1); 
-             Log(Info_General_SuccessOrFalse.Text);	
-		     }
-		   }
- 
-        } // end Menu_Tickets 600
-		
-		
-        if(MenuVar_Tickets=="25 Tickets / 300 RP")
-        {	
-	
-           Tickets_Function(); //call
-		   
-           if (!IsVisible(Tickets_BarCheck))
-		   {
-		     var Tickets_25_Button = ElementByXPath("//*[@id='free_lott_rewards']/div[3]//button");  
-             if (IsVisible(Tickets_25_Button))
-		     {
-             Log("Tickets: click on Tickets_25_Button");		
-             Wait(2); 
-             Click(Tickets_25_Button);
-             Wait(1); 
-             Log(Info_General_SuccessOrFalse.Text);	
-		     }
-		   }
- 
-        } // end Menu_Tickets 300
-		
-		
-		
-        if(MenuVar_Tickets=="10 Tickets / 120 RP")
-        {	
-	
-           Tickets_Function(); //call
-		   
-           if (!IsVisible(Tickets_BarCheck))
-		   {
-		     var Tickets_10_Button = ElementByXPath("//*[@id='free_lott_rewards']/div[4]//button");  
-             if (IsVisible(Tickets_10_Button))
-		     {
-             Log("Tickets: click on Tickets_10_Button");		
-             Wait(2); 
-             Click(Tickets_10_Button);
-             Wait(1); 
-             Log(Info_General_SuccessOrFalse.Text);	
-		     }
-		   }
-		   
-        } // end Menu_Tickets 120
-		
-		
-        if(MenuVar_Tickets=="1 Tickets / 12 RP")
-        {	
-	
-           Tickets_Function(); //call
-		   
-           if (!IsVisible(Tickets_BarCheck))
-		   {
-		     var Tickets_1_Button = ElementByXPath("//*[@id='free_lott_rewards']/div[5]//button");  
-             if (IsVisible(Tickets_1_Button))
-		     {
-             Log("Tickets: click on Tickets_1_Button");		
-             Wait(2); 
-             Click(Tickets_1_Button);
-             Wait(1); 
-             Log(Info_General_SuccessOrFalse.Text);	
-		     }
-		   }
- 
-        } // end Menu_Tickets 12
+        else
+        {
+            Action_Function(ActionType.Ticket, MenuVar_Tickets, Tickets_BarCheck, "//*[@id='free_lott_rewards']/div[1]//button", "100 Tickets / 1200 RP"); //call
+            Action_Function(ActionType.Ticket, MenuVar_Tickets, Tickets_BarCheck, "//*[@id='free_lott_rewards']/div[2]//button", "50 Tickets / 600 RP"); //call	
+            Action_Function(ActionType.Ticket, MenuVar_Tickets, Tickets_BarCheck, "//*[@id='free_lott_rewards']/div[3]//button", "25 Tickets / 300 RP"); //call	
+            Action_Function(ActionType.Ticket, MenuVar_Tickets, Tickets_BarCheck, "//*[@id='free_lott_rewards']/div[4]//button", "10 Tickets / 120 RP"); //call	
+            Action_Function(ActionType.Ticket, MenuVar_Tickets, Tickets_BarCheck, "//*[@id='free_lott_rewards']/div[5]//button", "1 Tickets / 12 RP"); //call	
+        }
 
-		//======//
-		
-
+        //===================================//
 
         //================//
         //Menu_RewardPoints
         //================//
-        var MenuVar_RewardPoints = GetSetting("Menu_RewardPoints");  
+        var MenuVar_RewardPoints = GetSetting("Menu_RewardPoints");
         //================//
 
         //RewardPoints Vars
-		//check if exists "RewardPoints_BarCheck" exists
-		var RewardPoints_BarCheck = ElementByXPath("//div[@id='bonus_container_free_points']");	
-		
-        //================//
-		//Menu_RewardPoints
-        //================//
-		
-        if(MenuVar_RewardPoints=="none")
-        {	
-	       //do not do nothing	
-        }
-		
-        if(MenuVar_RewardPoints=="100 RewardPoints / 1200 RP")
-        {	
-	
-           RewardPoints_Function(); //call
-		   
-           if (!IsVisible(RewardPoints_BarCheck))
-		   {
-		     var RewardPoints_100_Button = ElementByXPath("//*[@id='free_points_rewards']/div[1]//button");  
-             if (IsVisible(RewardPoints_100_Button))
-		     {
-             Log("RewardPoints: click on RewardPoints_100_Button");		
-             Wait(2); 
-             Click(RewardPoints_100_Button);
-             Wait(1); 
-             Log(Info_General_SuccessOrFalse.Text);	
-		     }
-		   }  
- 
-        } // end Menu_RewardPoints 1200
-		
-			
-        if(MenuVar_RewardPoints=="50 RewardPoints / 600 RP")
-        {	
-	
-           RewardPoints_Function(); //call
-		   
-           if (!IsVisible(RewardPoints_BarCheck))
-		   {
-		     var RewardPoints_50_Button = ElementByXPath("//*[@id='free_points_rewards']/div[2]//button");  
-             if (IsVisible(RewardPoints_50_Button))
-		     {
-             Log("RewardPoints: click on RewardPoints_50_Button");		
-             Wait(2); 
-             Click(RewardPoints_50_Button);
-             Wait(1); 
-             Log(Info_General_SuccessOrFalse.Text);	
-		     }
-		   }  
-		   
-        } // end Menu_RewardPoints 600
-		
-		
-        if(MenuVar_RewardPoints=="25 RewardPoints / 300 RP")
-        {	
-	
-           RewardPoints_Function(); //call
-		   
-           if (!IsVisible(RewardPoints_BarCheck))
-		   {
-		     var RewardPoints_25_Button = ElementByXPath("//*[@id='free_points_rewards']/div[3]//button");  
-             if (IsVisible(RewardPoints_25_Button))
-		     {
-             Log("RewardPoints: click on RewardPoints_25_Button");		
-             Wait(2); 
-             Click(RewardPoints_25_Button);
-             Wait(1); 
-             Log(Info_General_SuccessOrFalse.Text);	
-		     }
-		   }  
-		   
-        } // end Menu_RewardPoints 300
-		
-		
-        if(MenuVar_RewardPoints=="10 RewardPoints / 120 RP")
-        {	
-	
-           RewardPoints_Function(); //call
-		   
-           if (!IsVisible(RewardPoints_BarCheck))
-		   {
-		     var RewardPoints_10_Button = ElementByXPath("//*[@id='free_points_rewards']/div[4]//button");  
-             if (IsVisible(RewardPoints_10_Button))
-		     {
-             Log("RewardPoints: click on RewardPoints_10_Button");		
-             Wait(2); 
-             Click(RewardPoints_10_Button);
-             Wait(1); 
-             Log(Info_General_SuccessOrFalse.Text);	
-		     }
-		   }  
-		   
-        } // end Menu_RewardPoints 120
-		
-		
-        if(MenuVar_RewardPoints=="1 RewardPoints / 12 RP")
-        {	
-	
-           RewardPoints_Function(); //call
-		   
-           if (!IsVisible(RewardPoints_BarCheck))
-		   {
-		     var RewardPoints_1_Button = ElementByXPath("//*[@id='free_points_rewards']/div[5]//button");  
-             if (IsVisible(RewardPoints_1_Button))
-		     {
-             Log("RewardPoints: click on RewardPoints_1_Button");		
-             Wait(2); 
-             Click(RewardPoints_1_Button);
-             Wait(1); 
-             Log(Info_General_SuccessOrFalse.Text);	
-		     }
-		   }  
- 
-        } // end Menu_RewardPoints 12
+        //check if exists "RewardPoints_BarCheck" exists
+        var RewardPoints_BarCheck = ElementByXPath("//div[@id='bonus_container_free_points']");
 
-		//======//
+        //================//
+        //Menu_RewardPoints
+        //================//
+
+        if (MenuVar_RewardPoints == "none")
+        {
+            //do not do nothing	
+        }
+        else
+        {
+
+            Action_Function(ActionType.Rewards, MenuVar_RewardPoints, RewardPoints_BarCheck, "//*[@id='free_points_rewards']/div[1]//button", "100 Tickets / 1200 RP"); //call	
+            Action_Function(ActionType.Rewards, MenuVar_RewardPoints, RewardPoints_BarCheck, "//*[@id='free_points_rewards']/div[2]//button", "50 Tickets / 600 RP"); //call	
+            Action_Function(ActionType.Rewards, MenuVar_RewardPoints, RewardPoints_BarCheck, "//*[@id='free_points_rewards']/div[3]//button", "25 Tickets / 300 RP"); //call	
+            Action_Function(ActionType.Rewards, MenuVar_RewardPoints, RewardPoints_BarCheck, "//*[@id='free_points_rewards']/div[4]//button", "10 Tickets / 120 RP"); //call	
+            Action_Function(ActionType.Rewards, MenuVar_RewardPoints, RewardPoints_BarCheck, "//*[@id='free_points_rewards']/div[5]//button", "1 Tickets / 12 RP"); //call	
+        } // end
+
+        //===================================//
 
 
 	//=======================//
@@ -1005,6 +705,50 @@ public override int DoInit()
         //This faucet has nothing to do here. We will let Faucet Collector handle it.
         return base.CheckFaucetResult();
     }
+
+
+
+    //=================//
+    //Action_Function
+    //=================//
+    public void Action_Function(ActionType type, string bonusSetting, IWebElement barCheck, string xpath, string bonus)
+    {
+        if (bonusSetting != bonus)
+        {
+            //this one isn't selected, we can exit.
+            return;
+        }
+
+        switch (type)
+        {
+            case ActionType.Bonus:
+                BTCBonus_Function();
+                break;
+
+            case ActionType.Ticket:
+                Tickets_Function();
+                break; 
+
+            case ActionType.Rewards:
+                RewardPoints_Function();
+                break;
+        }
+
+        if (!IsVisible(barCheck))
+        {
+            var bonusButton = ElementByXPath(xpath);
+            if (IsVisible(bonusButton))
+            {
+                Log("Clicking on bonus" + bonus);
+                Click(bonusButton);
+                Wait(1);
+				var Info_General_SuccessOrFalse = ElementByXPath("//*[@id='reward_point_redeem_result_container_div']/p");
+                Log(Info_General_SuccessOrFalse.Text);
+            }
+        }
+
+    } //end Action_Function
+      //=================//
 
 
         //=================//
