@@ -12,7 +12,7 @@
 //===========//
 
 //==================//
-//new update & Features by: ••AviramDayan•• 06/10/2019 19:20PM - Version 11 (last updates)
+//new update & Features by: ••AviramDayan•• 09/05/2020 21:30PM - Version 14 (last updates)
 //fix the old menu 
 //Add new Menus - different way - separated Menu by Subject X3 - RewardPoints,BTCBonus,TicketsLottery
 //invisible_AND_Normal_ReCaptcha - (fix if class of invisibleReCaptcha apper (do not do) if class of NormalReCaptcha (do) - general at end - before the Rool)		
@@ -27,6 +27,9 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using FaucetCollector.Script;
+using OpenQA.Selenium;
+//css_inc ShortLinkUtilities
+//css_inc RecaptchaUtilities
 
 public class FreeBitcoinScript : FaucetScript
 {
@@ -68,7 +71,7 @@ public class FreeBitcoinScript : FaucetScript
  public override void Start()
  {
         //Title that shows in the browser. Is used to close popups
-        Title = "freebitco.in";
+        Title = "freebitco.in | investimer.name";
 
 		
         SuccessXPath = "//*[@id='free_play_result']";   
@@ -145,7 +148,7 @@ public override int DoInit()
  public override int DoLogin()
  {
         //Find the input field that holds the email address
-        var signInEmail = ElementById("login_form_btc_address");
+        var signInEmail = ElementByXPath("//input[contains(@id,'login_form_btc_address')] | //input[contains(@id,'login_form_doge_address')] ");
         if (!IsVisible(signInEmail))
         {
             //We couldn't find it. Register it as a fail so it can reload the page and try again in 10-15 seconds.
@@ -162,9 +165,7 @@ public override int DoInit()
             return Fail("Signin password input not found.");
         }
         SetText(signInPassword, GetPassword("Password"));
-		   
-        Wait(3);  
-		
+
         //Now we search for the login submit button
         var loginButton = ElementById("login_button");
         if (!IsVisible(loginButton))
@@ -176,6 +177,12 @@ public override int DoInit()
         //We are ready to click the login button.
         Click(loginButton);
 
+        Wait(3);  
+
+        //Recaptcha_Function(); //call if apper
+
+        Wait();
+		
         //Let Faucet Collector continue
         return base.DoLogin();
  }
@@ -265,16 +272,6 @@ public override int DoInit()
         return base.AfterSolveCaptcha();
     }
 
-	
-
-	
-//loops
-	public static int RP;
-    public static int AP;
-//
-
-
-	
 
 
 //=================//
@@ -294,7 +291,13 @@ public override int DoInit()
 	
 	
 	
-	
+    public enum ActionType
+    {
+        Bonus,
+        Ticket,
+        Rewards
+    };
+
 	
 	
 //==============//
@@ -309,7 +312,7 @@ public override int DoInit()
         Log("Roll: go to 'FreeBtc' page ");				
 		//======//
 
-		
+
 		//==========// 
 	    //TimerCheck
 		//==========//
@@ -328,1020 +331,113 @@ public override int DoInit()
         var seconds = Convert.ToString(ExecuteScript("return $('#time_remaining .countdown_amount')[1].innerText"));
         var min = Convert.ToInt32(minutes.Trim());
         var sec = Convert.ToInt32(seconds.Trim());
-		
-	    Driver.Close();  // Close specific chrome window
-	    Driver.Quit();  // also Close the console app, that was used to kick off the chrome window
-	    Driver.Dispose();  // Close the chromedriver.exe
+
         //return the total wait time in seconds
         return (min * 60) + sec;
 		}
 
 		//==========//
-		
-		
-		
-	
-		//==================//      
-		//Menus general vars
-		//==================// 
-		var MainPage = ElementByXPath("//*[@id='free_play_link_li']/a");
-		var RewardsPage = ElementByXPath("//a[text()='REWARDS']"); 
-		var Info_General_SuccessOrFalse = ElementByXPath("//*[@id='reward_point_redeem_result_container_div']/p");		
-		//==================// 
-		
-		
-		//================//
-        //Menu_BTCBonus
-		//================//
-        var MenuVar_BTCBonus = GetSetting("Menu_BTCBonus");  
-	    //============//
-		
-		//=============//
-        //BTCBonus vars
-		//=============//		
-		//check if exists "BTCBonus_BarCheck" exists
-		var BTCBonus_BarCheck = ElementByXPath("//div[@id='bonus_container_fp_bonus']");	
-		
-		var Open_BTCBonus_Tab = ElementByXPath("//div[text()=' FREE BTC BONUS ']"); 
 
-		//=============//
-		
-		//================//
-		//Menu_BTCBonus
-		//================//
-		
-        if(MenuVar_BTCBonus=="none")
-        {	
-	       //do not do nothing	
+
+        //==================//      
+        //Menus general vars
+        //==================// 
+        var MainPage = ElementByXPath("//*[@id='free_play_link_li']/a");
+        //==================// 
+
+
+        //================//
+        //Menu_BTCBonus
+        //================//
+        var MenuVar_BTCBonus = GetSetting("Menu_BTCBonus");
+        //============//
+
+        //BTCBonus_BarCheck
+        var BTCBonus_BarCheck = ElementByXPath("//div[@id='bonus_container_fp_bonus']");
+
+        //================//
+        //Menu_BTCBonus
+        //================//
+
+        if (MenuVar_BTCBonus == "none")
+        {
+            //do not do nothing	
         }
 		
-        if(MenuVar_BTCBonus=="1000% BTCBonus / 3200 RP")
-        {	
-	
-	       //first go to main page to check
-		   Click(MainPage);
-           Log("MainPage: go to MainPage to check");	
-		   
-           Wait();   
-		   
-		   //if it's apper - do not do nothing
-           if (IsVisible(BTCBonus_BarCheck))
-           {
-	       //do not do nothing
-           Log("BTCBonus: BTCBonus Bar Active"); 
-           }	
+        else
+        {
+            Action_Function(ActionType.Bonus, MenuVar_BTCBonus, BTCBonus_BarCheck, "//*[@id='fp_bonus_rewards']/div[1]//button", "1000% BTCBonus / 3200 RP"); //call
+            Action_Function(ActionType.Bonus, MenuVar_BTCBonus, BTCBonus_BarCheck, "//*[@id='fp_bonus_rewards']/div[2]//button", "500% BTCBonus / 1600 RP"); //call
+            Action_Function(ActionType.Bonus, MenuVar_BTCBonus, BTCBonus_BarCheck, "//*[@id='fp_bonus_rewards']/div[3]//button", "100% BTCBonus / 320 RP"); //call
+            Action_Function(ActionType.Bonus, MenuVar_BTCBonus, BTCBonus_BarCheck, "//*[@id='fp_bonus_rewards']/div[4]//button", "50% BTCBonus / 160 RP"); //call
+            Action_Function(ActionType.Bonus, MenuVar_BTCBonus, BTCBonus_BarCheck, "//*[@id='fp_bonus_rewards']/div[5]//button", "10% BTCBonus / 32 RP"); //call
+        }
 
-		   
-		   //if it's not visible - do all stuff
-           if (!IsVisible(BTCBonus_BarCheck))
-           {
-		   Click(RewardsPage);
-           Log("BTCBonus: go to RewardsPage");	
-		   
-           Wait(3);  
-		   
-           //var BalanceVar = ElementByXPath("//div[@class='reward_table_box br_0_0_5_5 user_reward_points font_bold']");
-           //int balance;
-           //int.TryParse(BalanceVar.GetAttribute("value"), out balance);  //<<< normal way - ".Text" get the text of ElementByXPath
+        //===================================//
 
-           //if (balance > 3200)
-           //{
-			   
-           Log("BTCBonus: click on Open_BTCBonus_Tab");				   
-           Click(Open_BTCBonus_Tab);
-	   
-           Wait(3);  
-           Log("BTCBonus: click on BTCBonus_1000_Button");	
-		   var BTCBonus_1000_Button = ElementByXPath("//*[@id='fp_bonus_rewards']/div[1]/div[2]/div[3]/button");   
-           Click(BTCBonus_1000_Button);
-		   
-           Wait(3);  
-			   
-           //info
-           Log(Info_General_SuccessOrFalse.Text);	
-		   		   
-		   //} 
-		   
-	 
-           //if (balance < 3200)
-           //{
-	       //do not do nothing				 
-		   //}   
 
-		   
-           } // end BTCBonus_BarCheck - not visible
-
-        }// end BTCBonus 3200
-		
-		
-		
-		
-        if(MenuVar_BTCBonus=="500% BTCBonus / 1600 RP")
-        {	
-	
-	       //first go to main page to check
-		   Click(MainPage);
-           Log("MainPage: go to MainPage to check");	
-		   
-           Wait();   
-		   
-		   //if it's apper - do not do nothing
-           if (IsVisible(BTCBonus_BarCheck))
-           {
-	       //do not do nothing
-           Log("BTCBonus: BTCBonus Bar Active"); 
-           }	
-
-		   
-		   //if it's not visible - do all stuff
-           if (!IsVisible(BTCBonus_BarCheck))
-           {
-		   Click(RewardsPage);
-           Log("BTCBonus: go to RewardsPage");	
-		   
-           Wait(3);  
-		   
-           //var BalanceVar = ElementByXPath("//div[@class='reward_table_box br_0_0_5_5 user_reward_points font_bold']");
-           //int balance;
-           //int.TryParse(BalanceVar.GetAttribute("value"), out balance);  //<<< normal way - ".Text" get the text of ElementByXPath
-
-           //if (balance > 1600)
-           //{
-			   
-           Log("BTCBonus: click on Open_BTCBonus_Tab");				   
-           Click(Open_BTCBonus_Tab);
-	   
-           Wait(3);  
-           Log("BTCBonus: click on BTCBonus_500_Button");	
-           var BTCBonus_500_Button = ElementByXPath("//*[@id='fp_bonus_rewards']/div[2]/div[2]/div[3]/button");
-           Click(BTCBonus_500_Button);
-		   
-           Wait(3);  
-			   
-           //info
-           Log(Info_General_SuccessOrFalse.Text);	
-		   		   
-		   //} 
-		   
-	 
-           //if (balance < 1600)
-           //{
-	       //do not do nothing				 
-		   //}   
-
-		   
-           } // end BTCBonus_BarCheck - not visible
-
-        }// end BTCBonus 1600
-		
-		
-		
-        if(MenuVar_BTCBonus=="100% BTCBonus / 320 RP")
-        {	
-	
-	       //first go to main page to check
-		   Click(MainPage);
-           Log("MainPage: go to MainPage to check");	
-		   
-           Wait();   
-		   
-		   //if it's apper - do not do nothing
-           if (IsVisible(BTCBonus_BarCheck))
-           {
-	       //do not do nothing
-           Log("BTCBonus: BTCBonus Bar Active"); 
-           }	
-
-		   
-		   //if it's not visible - do all stuff
-           if (!IsVisible(BTCBonus_BarCheck))
-           {
-		   Click(RewardsPage);
-           Log("BTCBonus: go to RewardsPage");	
-		   
-           Wait(3);  
-		   
-           //var BalanceVar = ElementByXPath("//div[@class='reward_table_box br_0_0_5_5 user_reward_points font_bold']");
-           //int balance;
-           //int.TryParse(BalanceVar.GetAttribute("value"), out balance);  //<<< normal way - ".Text" get the text of ElementByXPath
-
-           //if (balance > 320)
-           //{
-			   
-           Log("BTCBonus: click on Open_BTCBonus_Tab");				   
-           Click(Open_BTCBonus_Tab);
-	   
-           Wait(3);  
-           Log("BTCBonus: click on BTCBonus_100_Button");	
-		   var BTCBonus_100_Button = ElementByXPath("//*[@id='fp_bonus_rewards']/div[3]/div[2]/div[3]/button"); 
-           Click(BTCBonus_100_Button);
-		   
-           Wait(3);  
-			   
-           //info
-           Log(Info_General_SuccessOrFalse.Text);	
-		   		   
-		   //} 
-		   
-	 
-           //if (balance < 320)
-           //{
-	       //do not do nothing				 
-		   //}   
-
-		   
-           } // end BTCBonus_BarCheck - not visible
-
-        }// end BTCBonus 320
-		
-		
-		
-        if(MenuVar_BTCBonus=="50% BTCBonus / 160 RP")
-        {	
-	
-	       //first go to main page to check
-		   Click(MainPage);
-           Log("MainPage: go to MainPage to check");	
-		   
-           Wait();   
-		   
-		   //if it's apper - do not do nothing
-           if (IsVisible(BTCBonus_BarCheck))
-           {
-	       //do not do nothing
-           Log("BTCBonus: BTCBonus Bar Active"); 
-           }	
-
-		   
-		   //if it's not visible - do all stuff
-           if (!IsVisible(BTCBonus_BarCheck))
-           {
-		   Click(RewardsPage);
-           Log("BTCBonus: go to RewardsPage");	
-		   
-           Wait(3);  
-		   
-           //var BalanceVar = ElementByXPath("//div[@class='reward_table_box br_0_0_5_5 user_reward_points font_bold']");
-           //int balance;
-           //int.TryParse(BalanceVar.GetAttribute("value"), out balance);  //<<< normal way - ".Text" get the text of ElementByXPath
-
-           //if (balance > 160)
-           //{
-			   
-           Log("BTCBonus: click on Open_BTCBonus_Tab");				   
-           Click(Open_BTCBonus_Tab);
-	   
-           Wait(3);  
-           Log("BTCBonus: click on BTCBonus_50_Button");
-		   var BTCBonus_50_Button = ElementByXPath("//*[@id='fp_bonus_rewards']/div[4]/div[2]/div[3]/button"); 
-           Click(BTCBonus_50_Button);
-		   
-           Wait(3);  
-			   
-           //info
-           Log(Info_General_SuccessOrFalse.Text);	
-		   		   
-		   //} 
-		   
-	 
-           //if (balance < 160)
-           //{
-	       //do not do nothing				 
-		   //}   
-
-		   
-           } // end BTCBonus_BarCheck - not visible
-
-        }// end BTCBonus 160
-		
-		
-		
-        if(MenuVar_BTCBonus=="10% BTCBonus / 32 RP")
-        {	
-	
-	       //first go to main page to check
-		   Click(MainPage);
-           Log("MainPage: go to MainPage to check");	
-		   
-           Wait();   
-		   
-		   //if it's apper - do not do nothing
-           if (IsVisible(BTCBonus_BarCheck))
-           {
-	       //do not do nothing
-           Log("BTCBonus: BTCBonus Bar Active"); 
-           }	
-
-		   
-		   //if it's not visible - do all stuff
-           if (!IsVisible(BTCBonus_BarCheck))
-           {
-		   Click(RewardsPage);
-           Log("BTCBonus: go to RewardsPage");	
-		   
-           Wait(3);  
-		   
-           //var BalanceVar = ElementByXPath("//div[@class='reward_table_box br_0_0_5_5 user_reward_points font_bold']");
-           //int balance;
-           //int.TryParse(BalanceVar.GetAttribute("value"), out balance);  //<<< normal way - ".Text" get the text of ElementByXPath
-
-           //if (balance > 32)
-           //{
-			   
-           Log("BTCBonus: click on Open_BTCBonus_Tab");				   
-           Click(Open_BTCBonus_Tab);
-	   
-           Wait(3);  
-           Log("BTCBonus: click on BTCBonus_10_Button");
-		   var BTCBonus_10_Button = ElementByXPath("//*[@id='fp_bonus_rewards']/div[5]/div[2]/div[3]/button"); 
-           Click(BTCBonus_10_Button);
-		   
-           Wait(3);  
-			   
-           //info
-           Log(Info_General_SuccessOrFalse.Text);	
-		   		   
-		   //} 
-		   
-	 
-           //if (balance < 32)
-           //{
-	       //do not do nothing				 
-		   //}   
-
-		   
-           } // end BTCBonus_BarCheck - not visible
-
-        }// end BTCBonus 32
-			
-			
-		//======//
-		
-	
-	
         //================//
         //Menu_Tickets
         //================//
-        var MenuVar_Tickets = GetSetting("Menu_Tickets");  
+        var MenuVar_Tickets = GetSetting("Menu_Tickets");
         //================//
 
-		//=============//
         //Tickets Vars
-		//=============//	
-		//check if exists "Tickets_BarCheck" exists
-		var Tickets_BarCheck = ElementByXPath("//div[@id='bonus_container_free_lott']");	
-		
-		var Open_Tickets_Tab = ElementByXPath("//div[text()=' LOTTERY TICKETS BONUS ']"); 
+        //check if exists "Tickets_BarCheck" exists
+        var Tickets_BarCheck = ElementByXPath("//div[@id='bonus_container_free_lott']");
+        //=============//
 
-	
-		//=============//
-		
         //================//
-		//Menu_Tickets
+        //Menu_Tickets
         //================//
-		
-        if(MenuVar_Tickets=="none")
-        {	
-	       //do not do nothing	
+
+        if (MenuVar_Tickets == "none")
+        {
+            //do not do nothing	
         }
 		
-        if(MenuVar_Tickets=="100 Tickets / 1200 RP")
-        {	
-	
-	       //first go to main page to check
-		   Click(MainPage);
-           Log("MainPage: go to MainPage to check");	
-		   
-           Wait();   
-		   
-		   //if it's apper - do not do nothing
-           if (IsVisible(BTCBonus_BarCheck))
-           {
-	       //do not do nothing
-           Log("Tickets: Tickets Bar Active"); 
-           }	
+        else
+        {
+            Action_Function(ActionType.Ticket, MenuVar_Tickets, Tickets_BarCheck, "//*[@id='free_lott_rewards']/div[1]//button", "100 Tickets / 1200 RP"); //call
+            Action_Function(ActionType.Ticket, MenuVar_Tickets, Tickets_BarCheck, "//*[@id='free_lott_rewards']/div[2]//button", "50 Tickets / 600 RP"); //call	
+            Action_Function(ActionType.Ticket, MenuVar_Tickets, Tickets_BarCheck, "//*[@id='free_lott_rewards']/div[3]//button", "25 Tickets / 300 RP"); //call	
+            Action_Function(ActionType.Ticket, MenuVar_Tickets, Tickets_BarCheck, "//*[@id='free_lott_rewards']/div[4]//button", "10 Tickets / 120 RP"); //call	
+            Action_Function(ActionType.Ticket, MenuVar_Tickets, Tickets_BarCheck, "//*[@id='free_lott_rewards']/div[5]//button", "1 Tickets / 12 RP"); //call	
+        }
 
-		   
-		   //if it's not visible - do all stuff
-           if (!IsVisible(BTCBonus_BarCheck))
-           {
-		   Click(RewardsPage);
-           Log("Tickets: go to RewardsPage");	
-		   
-           Wait(3);  
-		   
-           //var BalanceVar = ElementByXPath("//div[@class='reward_table_box br_0_0_5_5 user_reward_points font_bold']");
-           //int balance;
-           //int.TryParse(BalanceVar.GetAttribute("value"), out balance);  //<<< normal way - ".Text" get the text of ElementByXPath
-
-           //if (balance > 1200)
-           //{
-			   
-           Log("Tickets: click on Open_Tickets_Tab");				   
-           Click(Open_Tickets_Tab);
-	   
-           Wait(3);  
-           Log("Tickets: click on Tickets_100_Button");
-           var Tickets_100_Button = ElementByXPath("//*[@id='free_lott_rewards']/div[1]/div[2]/div[3]/button"); 
-           Click(Tickets_100_Button);
-		   
-           Wait(3);  
-			   
-           //info
-           Log(Info_General_SuccessOrFalse.Text);	
-		   		   
-		   //} 
-		   
-	   
-           //if (balance < 1200)
-           //{
-	       //do not do nothing				 
-		   //}   
-	   
-	   
-           } // end Tickets_BarCheck - not visible
-		   
- 
-        } // end Menu_Tickets 1200
-		
-		
-		
-        if(MenuVar_Tickets=="50 Tickets / 600 RP")
-        {	
-	
-	       //first go to main page to check
-		   Click(MainPage);
-           Log("MainPage: go to MainPage to check");	
-		   
-           Wait();   
-		   
-		   //if it's apper - do not do nothing
-           if (IsVisible(Tickets_BarCheck))
-           {
-	       //do not do nothing
-           Log("Tickets: Tickets Bar Active"); 
-           }	
-
-		   
-		   //if it's not visible - do all stuff
-           if (!IsVisible(Tickets_BarCheck))
-           {
-		   Click(RewardsPage);
-           Log("Tickets: go to RewardsPage");	
-		   
-           Wait(3);  
-		   
-           //var BalanceVar = ElementByXPath("//div[@class='reward_table_box br_0_0_5_5 user_reward_points font_bold']");
-           //int balance;
-           //int.TryParse(BalanceVar.GetAttribute("value"), out balance);  //<<< normal way - ".Text" get the text of ElementByXPath
-
-           //if (balance > 600)
-           //{
-			   
-           Log("Tickets: click on Open_Tickets_Tab");				   
-           Click(Open_Tickets_Tab);
-	   
-           Wait(3);  
-           Log("Tickets: click on Tickets_50_Button");		
-		   var Tickets_50_Button = ElementByXPath("//*[@id='free_lott_rewards']/div[2]/div[2]/div[3]/button"); 
-           Click(Tickets_50_Button);
-		   
-           Wait(3);  
-			   
-           //info
-           Log(Info_General_SuccessOrFalse.Text);	
-		   		   
-		   //} 
-		   
-	   
-           //if (balance < 600)
-           //{
-	       //do not do nothing				 
-		   //}   
-	   
-	   
-           } // end BTCBonus_BarCheck - not visible
-		   
- 
-        } // end Menu_Tickets 600
-		
-		
-        if(MenuVar_Tickets=="25 Tickets / 300 RP")
-        {	
-	
-	       //first go to main page to check
-		   Click(MainPage);
-           Log("MainPage: go to MainPage to check");	
-		   
-           Wait();   
-		   
-		   //if it's apper - do not do nothing
-           if (IsVisible(Tickets_BarCheck))
-           {
-	       //do not do nothing
-           Log("Tickets: Tickets Bar Active"); 
-           }	
-
-		   
-		   //if it's not visible - do all stuff
-           if (!IsVisible(Tickets_BarCheck))
-           {
-		   Click(RewardsPage);
-           Log("Tickets: go to RewardsPage");	
-		   
-           Wait(3);  
-		   
-           //var BalanceVar = ElementByXPath("//div[@class='reward_table_box br_0_0_5_5 user_reward_points font_bold']");
-           //int balance;
-           //int.TryParse(BalanceVar.GetAttribute("value"), out balance);  //<<< normal way - ".Text" get the text of ElementByXPath
-
-           //if (balance > 300)
-           //{
-			   
-           Log("Tickets: click on Open_Tickets_Tab");				   
-           Click(Open_Tickets_Tab);
-	   
-           Wait(3);  
-           Log("Tickets: click on Tickets_25_Button");	
-		   var Tickets_25_Button = ElementByXPath("//*[@id='free_lott_rewards']/div[3]/div[2]/div[3]/button"); 
-           Click(Tickets_25_Button);
-		   
-           Wait(3);  
-			   
-           //info
-           Log(Info_General_SuccessOrFalse.Text);	
-		   		   
-		   //} 
-		   
-	   
-           //if (balance < 300)
-           //{
-	       //do not do nothing				 
-		   //}   
-	   
-	   
-           } // end BTCBonus_BarCheck - not visible
-		   
- 
-        } // end Menu_Tickets 300
-		
-		
-		
-        if(MenuVar_Tickets=="10 Tickets / 120 RP")
-        {	
-	
-	       //first go to main page to check
-		   Click(MainPage);
-           Log("MainPage: go to MainPage to check");	
-		   
-           Wait();   
-		   
-		   //if it's apper - do not do nothing
-           if (IsVisible(Tickets_BarCheck))
-           {
-	       //do not do nothing
-           Log("Tickets: Tickets Bar Active"); 
-           }	
-
-		   
-		   //if it's not visible - do all stuff
-           if (!IsVisible(Tickets_BarCheck))
-           {
-		   Click(RewardsPage);
-           Log("Tickets: go to RewardsPage");	
-		   
-           Wait(3);  
-		   
-           //var BalanceVar = ElementByXPath("//div[@class='reward_table_box br_0_0_5_5 user_reward_points font_bold']");
-           //int balance;
-           //int.TryParse(BalanceVar.GetAttribute("value"), out balance);  //<<< normal way - ".Text" get the text of ElementByXPath
-
-           //if (balance > 120)
-           //{
-			   
-           Log("Tickets: click on Open_Tickets_Tab");				   
-           Click(Open_Tickets_Tab);
-	   
-           Wait(3);  
-           Log("Tickets: click on Tickets_10_Button");	
-		   var Tickets_10_Button = ElementByXPath("//*[@id='free_lott_rewards']/div[4]/div[2]/div[3]/button"); 
-           Click(Tickets_10_Button);
-		   
-           Wait(3);  
-			   
-           //info
-           Log(Info_General_SuccessOrFalse.Text);	
-		   		   
-		   //} 
-		   
-	   
-           //if (balance < 120)
-           //{
-	       //do not do nothing				 
-		   //}   
-	   
-	   
-           } // end BTCBonus_BarCheck - not visible
-		   
- 
-        } // end Menu_Tickets 120
-		
-		
-        if(MenuVar_Tickets=="1 Tickets / 12 RP")
-        {	
-	
-	       //first go to main page to check
-		   Click(MainPage);
-           Log("MainPage: go to MainPage to check");	
-		   
-           Wait();   
-		   
-		   //if it's apper - do not do nothing
-           if (IsVisible(Tickets_BarCheck))
-           {
-	       //do not do nothing
-           Log("Tickets: Tickets Bar Active"); 
-           }	
-
-		   
-		   //if it's not visible - do all stuff
-           if (!IsVisible(Tickets_BarCheck))
-           {
-		   Click(RewardsPage);
-           Log("Tickets: go to RewardsPage");	
-		   
-           Wait(3);  
-		   
-           //var BalanceVar = ElementByXPath("//div[@class='reward_table_box br_0_0_5_5 user_reward_points font_bold']");
-           //int balance;
-           //int.TryParse(BalanceVar.GetAttribute("value"), out balance);  //<<< normal way - ".Text" get the text of ElementByXPath
-
-           //if (balance > 12)
-           //{
-			   
-           Log("Tickets: click on Open_Tickets_Tab");				   
-           Click(Open_Tickets_Tab);
-	   
-           Wait(3);  
-           Log("Tickets: click on Tickets_1_Button");	
-		   var Tickets_1_Button = ElementByXPath("//*[@id='free_lott_rewards']/div[5]/div[2]/div[3]/button"); 
-           Click(Tickets_1_Button);
-		   
-           Wait(3);  
-			   
-           //info
-           Log(Info_General_SuccessOrFalse.Text);	
-		   		   
-		   //} 
-		   
-	   
-           //if (balance < 12)
-           //{
-	       //do not do nothing				 
-		   //}   
-	   
-	   
-           } // end BTCBonus_BarCheck - not visible
-		   
- 
-        } // end Menu_Tickets 12
-
-		//======//
-		
+        //===================================//
 
 
         //================//
         //Menu_RewardPoints
         //================//
-        var MenuVar_RewardPoints = GetSetting("Menu_RewardPoints");  
+        var MenuVar_RewardPoints = GetSetting("Menu_RewardPoints");
         //================//
 
-		//=============//
         //RewardPoints Vars
-		//=============//
-		//check if exists "RewardPoints_BarCheck" exists
-		var RewardPoints_BarCheck = ElementByXPath("//div[@id='bonus_container_free_points']");	
-		
-		var Open_RewardPoints_Tab = ElementByXPath("//div[text()=' REWARD POINTS BONUS ']"); 	
-		
+        //check if exists "RewardPoints_BarCheck" exists
+        var RewardPoints_BarCheck = ElementByXPath("//div[@id='bonus_container_free_points']");
 
-     	//==================//	
-		
         //================//
-		//Menu_RewardPoints
+        //Menu_RewardPoints
         //================//
-		
-        if(MenuVar_RewardPoints=="none")
-        {	
-	       //do not do nothing	
+
+        if (MenuVar_RewardPoints == "none")
+        {
+            //do not do nothing	
         }
-		
-        if(MenuVar_RewardPoints=="100 RewardPoints / 1200 RP")
-        {	
-	
-	       //first go to main page to check
-		   Click(MainPage);
-           Log("MainPage: go to MainPage to check");	
-		   
-           Wait();   
-		   
-		   //if it's apper - do not do nothing
-           if (IsVisible(BTCBonus_BarCheck))
-           {
-	       //do not do nothing
-           Log("RewardPoints: RewardPoints Bar Active"); 
-           }	
 
-		   
-		   //if it's not visible - do all stuff
-           if (!IsVisible(BTCBonus_BarCheck))
-           {
-		   Click(RewardsPage);
-           Log("RewardPoints: go to RewardsPage");	
-		   
-           Wait(3);  
-		   
-           //var BalanceVar = ElementByXPath("//div[@class='reward_table_box br_0_0_5_5 user_reward_points font_bold']");
-           //int balance;
-           //int.TryParse(BalanceVar.GetAttribute("value"), out balance);  //<<< normal way - ".Text" get the text of ElementByXPath
+        else
+        {
+            Action_Function(ActionType.Rewards, MenuVar_RewardPoints, RewardPoints_BarCheck, "//*[@id='free_points_rewards']/div[1]//button", "100 RewardPoints / 1200 RP"); //call	
+            Action_Function(ActionType.Rewards, MenuVar_RewardPoints, RewardPoints_BarCheck, "//*[@id='free_points_rewards']/div[2]//button", "50 RewardPoints / 600 RP"); //call	
+            Action_Function(ActionType.Rewards, MenuVar_RewardPoints, RewardPoints_BarCheck, "//*[@id='free_points_rewards']/div[3]//button", "25 RewardPoints / 300 RP"); //call	
+            Action_Function(ActionType.Rewards, MenuVar_RewardPoints, RewardPoints_BarCheck, "//*[@id='free_points_rewards']/div[4]//button", "10 RewardPoints / 120 RP"); //call	
+            Action_Function(ActionType.Rewards, MenuVar_RewardPoints, RewardPoints_BarCheck, "//*[@id='free_points_rewards']/div[5]//button", "1 RewardPoints / 12 RP"); //call	
+        }
 
-           //if (balance > 1200)
-           //{
-			   
-           Log("RewardPoints: click on Open_RewardPoints_Tab");				   
-           Click(Open_RewardPoints_Tab);
-	   
-           Wait(3);  
-           Log("RewardPoints: click on RewardPoints_100_Button");
-           var RewardPoints_100_Button = ElementByXPath("//*[@id='free_points_rewards']/div[1]/div[2]/div[3]/button"); 
-           Click(RewardPoints_100_Button);
-		   
-           Wait(3);  
-			   
-           //info
-           Log(Info_General_SuccessOrFalse.Text);	
-		   		   
-		   //} 
-		   
-	   
-           //if (balance < 1200)
-           //{
-	       //do not do nothing				 
-		   //}   
-	   
-	   
-           } // end RewardPoints_BarCheck - not visible
-		   
- 
-        } // end Menu_RewardPoints 1200
-		
-		
-		
-        if(MenuVar_RewardPoints=="50 RewardPoints / 600 RP")
-        {	
-	
-	       //first go to main page to check
-		   Click(MainPage);
-           Log("MainPage: go to MainPage to check");	
-		   
-           Wait();   
-		   
-		   //if it's apper - do not do nothing
-           if (IsVisible(RewardPoints_BarCheck))
-           {
-	       //do not do nothing
-           Log("RewardPoints: RewardPoints Bar Active"); 
-           }	
+        //===================================//
 
-		   
-		   //if it's not visible - do all stuff
-           if (!IsVisible(RewardPoints_BarCheck))
-           {
-		   Click(RewardsPage);
-           Log("RewardPoints: go to RewardsPage");	
-		   
-           Wait(3);  
-		   
-           //var BalanceVar = ElementByXPath("//div[@class='reward_table_box br_0_0_5_5 user_reward_points font_bold']");
-           //int balance;
-           //int.TryParse(BalanceVar.GetAttribute("value"), out balance);  //<<< normal way - ".Text" get the text of ElementByXPath
-
-           //if (balance > 600)
-           //{
-			   
-           Log("RewardPoints: click on Open_RewardPoints_Tab");				   
-           Click(Open_RewardPoints_Tab);
-	   
-           Wait(3);  
-           Log("RewardPoints: click on RewardPoints_50_Button");	
-           var RewardPoints_50_Button = ElementByXPath("//*[@id='free_points_rewards']/div[2]/div[2]/div[3]/button"); 		   
-           Click(RewardPoints_50_Button);
-		   
-           Wait(3);  
-			   
-           //info
-           Log(Info_General_SuccessOrFalse.Text);	
-		   		   
-		   //} 
-		   
-	   
-           //if (balance < 600)
-           //{
-	       //do not do nothing				 
-		   //}   
-	   
-	   
-           } // end BTCBonus_BarCheck - not visible
-		   
- 
-        } // end Menu_RewardPoints 600
-		
-		
-        if(MenuVar_RewardPoints=="25 RewardPoints / 300 RP")
-        {	
-	
-	       //first go to main page to check
-		   Click(MainPage);
-           Log("MainPage: go to MainPage to check");	
-		   
-           Wait();   
-		   
-		   //if it's apper - do not do nothing
-           if (IsVisible(RewardPoints_BarCheck))
-           {
-	       //do not do nothing
-           Log("RewardPoints: RewardPoints Bar Active"); 
-           }	
-
-		   
-		   //if it's not visible - do all stuff
-           if (!IsVisible(RewardPoints_BarCheck))
-           {
-		   Click(RewardsPage);
-           Log("RewardPoints: go to RewardsPage");	
-		   
-           Wait(3);  
-		   
-           //var BalanceVar = ElementByXPath("//div[@class='reward_table_box br_0_0_5_5 user_reward_points font_bold']");
-           //int balance;
-           //int.TryParse(BalanceVar.GetAttribute("value"), out balance);  //<<< normal way - ".Text" get the text of ElementByXPath
-
-           //if (balance > 300)
-           //{
-			   
-           Log("RewardPoints: click on Open_RewardPoints_Tab");				   
-           Click(Open_RewardPoints_Tab);
-	   
-           Wait(3);  
-           Log("RewardPoints: click on RewardPoints_25_Button");
-		   var RewardPoints_25_Button = ElementByXPath("//*[@id='free_points_rewards']/div[3]/div[2]/div[3]/button"); 
-           Click(RewardPoints_25_Button);
-		   
-           Wait(3);  
-			   
-           //info
-           Log(Info_General_SuccessOrFalse.Text);	
-		   		   
-		   //} 
-		   
-	   
-           //if (balance < 300)
-           //{
-	       //do not do nothing				 
-		   //}   
-	   
-	   
-           } // end BTCBonus_BarCheck - not visible
-		   
- 
-        } // end Menu_RewardPoints 300
-		
-		
-		
-        if(MenuVar_RewardPoints=="10 RewardPoints / 120 RP")
-        {	
-	
-	       //first go to main page to check
-		   Click(MainPage);
-           Log("MainPage: go to MainPage to check");	
-		   
-           Wait();   
-		   
-		   //if it's apper - do not do nothing
-           if (IsVisible(RewardPoints_BarCheck))
-           {
-	       //do not do nothing
-           Log("RewardPoints: RewardPoints Bar Active"); 
-           }	
-
-		   
-		   //if it's not visible - do all stuff
-           if (!IsVisible(RewardPoints_BarCheck))
-           {
-		   Click(RewardsPage);
-           Log("RewardPoints: go to RewardsPage");	
-		   
-           Wait(3);  
-		   
-           //var BalanceVar = ElementByXPath("//div[@class='reward_table_box br_0_0_5_5 user_reward_points font_bold']");
-           //int balance;
-           //int.TryParse(BalanceVar.GetAttribute("value"), out balance);  //<<< normal way - ".Text" get the text of ElementByXPath
-
-           //if (balance > 120)
-           //{
-			   
-           Log("RewardPoints: click on Open_RewardPoints_Tab");				   
-           Click(Open_RewardPoints_Tab);
-	   
-           Wait(3);  
-           Log("RewardPoints: click on RewardPoints_10_Button");	
-	       var RewardPoints_10_Button = ElementByXPath("//*[@id='free_points_rewards']/div[4]/div[2]/div[3]/button"); 
-           Click(RewardPoints_10_Button);
-		   
-           Wait(3);  
-			   
-           //info
-           Log(Info_General_SuccessOrFalse.Text);	
-		   		   
-		   //} 
-		   
-	   
-           //if (balance < 120)
-           //{
-	       //do not do nothing				 
-		   //}   
-	   
-	   
-           } // end BTCBonus_BarCheck - not visible
-		   
- 
-        } // end Menu_RewardPoints 120
-		
-		
-        if(MenuVar_RewardPoints=="1 RewardPoints / 12 RP")
-        {	
-	
-	       //first go to main page to check
-		   Click(MainPage);
-           Log("MainPage: go to MainPage to check");	
-		   
-           Wait();   
-		   
-		   //if it's apper - do not do nothing
-           if (IsVisible(RewardPoints_BarCheck))
-           {
-	       //do not do nothing
-           Log("RewardPoints: RewardPoints Bar Active"); 
-           }	
-
-		   
-		   //if it's not visible - do all stuff
-           if (!IsVisible(RewardPoints_BarCheck))
-           {
-		   Click(RewardsPage);
-           Log("RewardPoints: go to RewardsPage");	
-		   
-           Wait(3);  
-		   
-           //var BalanceVar = ElementByXPath("//div[@class='reward_table_box br_0_0_5_5 user_reward_points font_bold']");
-           //int balance;
-           //int.TryParse(BalanceVar.GetAttribute("value"), out balance);  //<<< normal way - ".Text" get the text of ElementByXPath
-
-           //if (balance > 12)
-           //{
-			   
-           Log("RewardPoints: click on Open_RewardPoints_Tab");				   
-           Click(Open_RewardPoints_Tab);
-	   
-           Wait(3);  
-           Log("RewardPoints: click on RewardPoints_1_Button");		
-		   var RewardPoints_1_Button = ElementByXPath("//*[@id='free_points_rewards']/div[5]/div[2]/div[3]/button"); 			   
-           Click(RewardPoints_1_Button);
-		   
-           Wait(3);  
-			   
-           //info
-           Log(Info_General_SuccessOrFalse.Text);	
-		   		   
-		   //} 
-		   
-	   
-           //if (balance < 12)
-           //{
-	       //do not do nothing				 
-		   //}   
-	   
-	   
-           } // end BTCBonus_BarCheck - not visible
-		   
- 
-        } // end Menu_RewardPoints 12
-
-		//======//
-	
-	
-	
-	
 
 	//=======================//
 	//====MenuVar_Captcha====//
@@ -1472,8 +568,8 @@ public override int DoInit()
             Wait();
 
 
-            var NormalReCaptchaVar = ElementByXPath("//*[@id='free_play_recaptcha']/form/div/div/div/iframe");	//div[@class='rc-anchor-center-item rc-anchor-checkbox-label'] //rc-anchor rc-anchor-normal rc-anchor-light				
-            var invisibleReCaptchaVar = ElementByXPath("//div[@class='rc-anchor rc-anchor-invisible rc-anchor-light  rc-anchor-invisible-hover']");		//grecaptcha-badge
+            var NormalReCaptchaVar = ElementByXPath("//div[contains(@id,'free_play_')]//iframe[contains(@src,'recaptcha/api2/anchor')]");	
+            var invisibleReCaptchaVar = ElementByXPath("//div[@class='rc-anchor rc-anchor-invisible rc-anchor-light  rc-anchor-invisible-hover']");	
 			
             if (IsVisible(invisibleReCaptchaVar))
 			{			
@@ -1523,9 +619,6 @@ public override int DoInit()
             var minEnd = Convert.ToInt32(minutesEnd.Trim());
             var secEnd = Convert.ToInt32(secondsEnd.Trim());	
 			
-	        Driver.Close();  // Close specific chrome window
-	        Driver.Quit();  // also Close the console app, that was used to kick off the chrome window
-	        Driver.Dispose();  // Close the chromedriver.exe
             return (minEnd * 60) + secEnd; //we return after custom time
 			}
 		
@@ -1557,9 +650,6 @@ public override int DoInit()
             var min2End = Convert.ToInt32(minutes2End.Trim());
             var sec2End = Convert.ToInt32(seconds2End.Trim());
 			
-			Driver.Close();  // Close specific chrome window
-	        Driver.Quit();  // also Close the console app, that was used to kick off the chrome window
-	        Driver.Dispose();  // Close the chromedriver.exe
             return (min2End * 60) + sec2End; //we return after custom time
 
 			} //end timer2Check
@@ -1622,5 +712,220 @@ public override int DoInit()
     }
 
 
+
+    //=================//
+    //Action_Function
+    //=================//
+    public void Action_Function(ActionType type, string bonusSetting, IWebElement barCheck, string xpath, string bonus)
+    {
+        if (bonusSetting != bonus)
+        {
+            //this one isn't selected, we can exit.
+            return;
+        }
+
+        switch (type)
+        {
+            case ActionType.Bonus:
+                BTCBonus_Function();
+                break;
+
+            case ActionType.Ticket:
+                Tickets_Function();
+                break; 
+
+            case ActionType.Rewards:
+                RewardPoints_Function();
+                break;
+        }
+
+        if (!IsVisible(barCheck))
+        {
+            var bonusButton = ElementByXPath(xpath);
+            if (IsVisible(bonusButton))
+            {
+                Log("Clicking on bonus" + bonus);
+                Click(bonusButton);
+                Wait(1);
+				var Info_General_SuccessOrFalse = ElementByXPath("//*[@id='reward_point_redeem_result_container_div']/p");
+                Log(Info_General_SuccessOrFalse.Text);
+            }
+        }
+
+    } //end Action_Function
+      //=================//
+
+
+        //=================//
+       //BTCBonus_Function
+        //=================//
+        public int BTCBonus_Function()
+        {
+  
+		//Menus general vars
+		var MainPage = ElementByXPath("//*[@id='free_play_link_li']/a");
+		var RewardsPage = ElementByXPath("//a[text()='REWARDS']"); 
+		//==================// 
+		
+        //BTCBonus vars
+		//check if exists "BTCBonus_BarCheck" exists
+		var BTCBonus_BarCheck = ElementByXPath("//div[@id='bonus_container_fp_bonus']");		
+		var Open_BTCBonus_Tab = ElementByXPath("//div[contains(text(),'FREE BTC BONUS')]"); 
+		//=============//
+
+	       //first go to main page to check
+		   Click(MainPage);
+           Log("MainPage: go to MainPage to check");	
+		   
+           Wait();   
+		   
+		   //if it's apper - do not do nothing
+           if (IsVisible(BTCBonus_BarCheck))
+           {
+	       //do not do nothing
+           Log("BTCBonus: BTCBonus Bar Active"); 
+           }	
+	   
+		   //if it's not visible - do all stuff
+           if (!IsVisible(BTCBonus_BarCheck))
+           {
+		   Click(RewardsPage);
+           Log("BTCBonus: go to RewardsPage");	
+		   
+           Wait(3);  
+
+           Log("BTCBonus: click on Open_BTCBonus_Tab");				   
+           Click(Open_BTCBonus_Tab);
+	   
+           Wait(3);  
+           } // end BTCBonus_BarCheck - not visible		  
+
+		return 0;
+        }//end BTCBonus_Function
+        //=================//	
+
+
+        //=================//
+       //Tickets_Function
+        //=================//
+        public int Tickets_Function()
+        {
+			
+		//Menus general vars
+		var MainPage = ElementByXPath("//*[@id='free_play_link_li']/a");
+		var RewardsPage = ElementByXPath("//a[text()='REWARDS']"); 
+		//==================// 
+
+        //Tickets Vars
+		//check if exists "Tickets_BarCheck" exists
+		var Tickets_BarCheck = ElementByXPath("//div[@id='bonus_container_free_lott']");	
+		var Open_Tickets_Tab = ElementByXPath("//div[contains(text(),'LOTTERY TICKETS BONUS')]"); 
+		//=============//
+
+	       //first go to main page to check
+		   Click(MainPage);
+           Log("MainPage: go to MainPage to check");	
+		   
+           Wait();   
+		   
+		   //if it's apper - do not do nothing
+           if (IsVisible(Tickets_BarCheck))
+           {
+	       //do not do nothing
+           Log("Tickets: Tickets Bar Active"); 
+           }	
+		   
+		   //if it's not visible - do all stuff
+           if (!IsVisible(Tickets_BarCheck))
+           {
+		   Click(RewardsPage);
+           Log("Tickets: go to RewardsPage");	
+		   
+           Wait(3);  
+			   
+           Log("Tickets: click on Open_Tickets_Tab");				   
+           Click(Open_Tickets_Tab);
+           Wait(3);  
+           } // end Tickets_BarCheck - not visible
+
+		return 0;
+        }//end Tickets_Function
+        //=================//	
+
+
+        //=================//
+       //RewardPoints_Function
+        //=================//
+        public int RewardPoints_Function()
+        {
+			
+		//Menus general vars
+		var MainPage = ElementByXPath("//*[@id='free_play_link_li']/a");
+		var RewardsPage = ElementByXPath("//a[text()='REWARDS']"); 
+		//==================// 
+
+        //RewardPoints Vars
+		//check if exists "RewardPoints_BarCheck" exists
+		var RewardPoints_BarCheck = ElementByXPath("//div[@id='bonus_container_free_points']");	
+		var Open_RewardPoints_Tab = ElementByXPath("//div[contains(text(),'REWARD POINTS BONUS')]"); 		
+    	//==================//	
+
+	       //first go to main page to check
+		   Click(MainPage);
+           Log("MainPage: go to MainPage to check");	
+		   
+           Wait();   
+		   
+		   //if it's apper - do not do nothing
+           if (IsVisible(RewardPoints_BarCheck))
+           {
+	       //do not do nothing
+           Log("RewardPoints: RewardPoints Bar Active"); 
+           }	
+		   
+		   //if it's not visible - do all stuff
+           if (!IsVisible(RewardPoints_BarCheck))
+           {
+		   Click(RewardsPage);
+           Log("RewardPoints: go to RewardsPage");	
+		   
+           Wait(3);  
+
+           Log("RewardPoints: click on Open_RewardPoints_Tab");				   
+           Click(Open_RewardPoints_Tab);
+	   
+           Wait(3);  
+           } // end RewardPoints_BarCheck - not visible
+
+		return 0;
+        }//end RewardPoints_Function
+        //=================//	
+
+
+        //=================//
+       //Recaptcha_Function
+        //=================//
+        public int Recaptcha_Function()
+        {
+
+         //for recaptcha invisible only - popup after click on button - ("//iframe[contains(@src,'recaptcha/api2/anchor') and contains(@src,'size=invisible') ]")
+         //for recaptcha Normal visible only - ("//iframe[contains(@src,'recaptcha/api2/anchor') and contains(@src,'size=normal') ]")
+
+          var RecaptchaOpen_Iframe = ElementByXPath ("//iframe[contains(@src,'recaptcha/api2/anchor') ]"); 
+          if (IsVisible(RecaptchaOpen_Iframe))
+          {
+            //SolveCaptcha if apper
+            var result = base.DoSolveCaptcha();
+            if (result > 0)
+            {
+                return Fail("Fail solving captcha");
+            }
+            RecaptchaUtility utility = new RecaptchaUtility(this);
+            utility.DoSolve();
+           }
+
+		return 0;
+        }//end Recaptcha_Function
+        //=================//	
 	
 } //end public class FreeBitcoinScript
