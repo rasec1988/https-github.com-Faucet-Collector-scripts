@@ -2,7 +2,7 @@
 
 //==================//
 //script Written by: ••AviramDayan•• 01/02/2020 10:30AM - Version 1
-//Last Update: 05/05/2020 00:00PM - Version 1
+//Last Update: 20/05/2020 20:45PM - Version 2
 //==================//
 
 using System;
@@ -38,7 +38,9 @@ public class btcsamsity : FaucetScript
                 new FaucetSetting(){Name="Email",Display="UserName",Type=EditorType.TextBox,Required=true},
                 new FaucetSetting(){Name="Password",Display="Password",Type=EditorType.Password,Required=true},
 				
-                new FaucetSetting(){Name="AutoSurf",Display="AutoSurf - ON/OFF ",Type=EditorType.CheckBox,Default=true},		
+                new FaucetSetting(){Name="AutoSurf",Display="AutoSurf - ON/OFF ",Type=EditorType.CheckBox,Default=true},	
+                new FaucetSetting(){Name = "TimeToWaitBeforeBreak", Display = "TimeToWaitBeforeBreak - in sec", Type = EditorType.Numeric, Default = 70 },
+
                 //new FaucetSetting(){Name="AutoSurf_Errors",Display="AutoSurf_Errors - ON/OFF ",Type=EditorType.CheckBox,Default=true},	
                 
 			
@@ -294,7 +296,11 @@ public class btcsamsity : FaucetScript
 		 Log("AutoSurf - SurfStart");
 		}
 	
-          var TimeToWaitForBreak = DateTime.Now.AddSeconds(150);
+	
+          int MyCustomTimeINT;
+          MyCustomTimeINT = GetIntSetting("TimeToWaitBeforeBreak") ; 
+		 
+          var TimeToWaitForBreak = DateTime.Now.AddSeconds(MyCustomTimeINT);
           while (true)
           {
           
