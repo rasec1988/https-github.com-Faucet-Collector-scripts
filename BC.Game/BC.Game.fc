@@ -1,7 +1,7 @@
 
 //==================//
 //script Written by: ••AviramDayan•• 30/04/2019 21:09PM - Version 1
-//Last Update: 22/04/2020 09:00AM - Version 30
+//Last Update: 10/05/2020 21:15AM - Version 31
 //==================//
 
 using System;
@@ -315,9 +315,9 @@ public class bcgame : FaucetScript
           }
 		  
           // mouse position click switch - good for "canvas" TagName flash/Games
-          var canvas_VAR = Driver.FindElement(By.ClassName("ctx"));              
+          var canvas_VAR = Driver.FindElement(By.ClassName("spin-canvas")); //ctx - was             
           var size = canvas_VAR.Size;
-          new Actions(Driver).MoveToElement(canvas_VAR, 800, 246).Click().MoveByOffset(size.Width / 800, size.Height / 246).Release().Perform();
+          new Actions(Driver).MoveToElement(canvas_VAR, 800, 246).Click().MoveByOffset(size.Width / 800, size.Height / 246).Release().Perform(); //800 - was
           //=======//
 		  
 		  Wait(6);
