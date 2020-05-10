@@ -1,7 +1,7 @@
-﻿
+
 //==================//
 //script Written by: ••AviramDayan•• 05/11/2018 17:00PM
-//Last update - version 8 - 18/07/2019 03:10AM
+//Last update - version 11 - 10/05/2020 13:35PM
 //==================//
 
 using System;
@@ -31,10 +31,12 @@ public class bitsler : FaucetScript
 
 				//new FaucetSetting(){Name="Menu_SiteLanguage",Display="Menu_SiteLanguage - Select Your Language",Type=EditorType.ComboBox,Default="en",Items=new System.Collections.Generic.List<string>{"en","es","fr","br","ru","tr","jp"}},
 
-                new FaucetSetting(){Name="FreeBtc",Display="FreeBtc - if you have 0 in balance",Type=EditorType.CheckBox,Default=false},	
+                new FaucetSetting(){Name="FreeBtc",Display="FreeBtc - ON/OFF - if you have 0 in balance",Type=EditorType.CheckBox,Default=false},
+                new FaucetSetting(){Name="RakeBack",Display="RakeBack - ON/OFF - from Gold level",Type=EditorType.CheckBox,Default=false},
+                new FaucetSetting(){Name="Nitro",Display="Nitro - ON/OFF - from Platinum level",Type=EditorType.CheckBox,Default=false},
+				
 				new FaucetSetting() { Name = "Rain_AirDrop_Chat", Display = "Rain_AirDrop_Chat - ON/OFF", Type = EditorType.CheckBox, Default = false},		
                 new FaucetSetting(){Name="MessageChat",Display="Your Message In Chat - only need to be active to get any rain",Default = ".",Type=EditorType.TextBox,Required=false},
-
 				
 	            new FaucetSetting(){Name="AllGames_Menu",Display="AllGames_Menu - Select Favorite Game (Correctly available only 'Dice' AND 'Multicolor' Games)",Type=EditorType.ComboBox,Default="none",Items=new System.Collections.Generic.List<string>{"none","Dice","Roulette","Multicolor","CaraYcruz"}},
 				new FaucetSetting(){Name="MenuCoins",Display="MenuCoins - Select Favorite Coins",Type=EditorType.ComboBox,Default="btc",Items=new System.Collections.Generic.List<string>{"btc","eth","ltc","bch","xrp","doge","dash","zec","etc","neo","strat","kmd","burst","btg","lsk","dgb","qtum","waves","bsv","btslr"}},
@@ -144,7 +146,7 @@ bool ad;
     public override bool IsLoggedIn()
     {
 
-        return ElementByXPath("//a[@class='d-none d-md-block btn btn-primary btn-withdraw']") != null;  
+        return ElementByXPath("//a[@class='nav-link dropdown-toggle'] | //a[contains(text(),'Logout')] ") != null;  
 
         //return base.IsLoggedIn();
     }
@@ -165,7 +167,7 @@ bool ad;
 
 
 	 //var checks login or exit
-     var ExitButton = ElementByXPath("//a[@class='d-none d-md-block btn btn-primary btn-withdraw']");
+     var ExitButton = ElementByXPath("//a[@class='nav-link dropdown-toggle'] | //a[contains(text(),'Logout')] ") ;
 
 	 //if i already Login - go to "bonus"	 
 	 if (IsVisible(ExitButton))
@@ -178,9 +180,7 @@ bool ad;
 	 //============//
 	 //Site Language
 	 //============//
-	 
-     //var EnglishFlag = ElementByXPath("//a/img[@src='/static/img/en.7762ef48.png']");
-	 
+
      var SiteLanguageTAB = ElementByXPath("//*[@id='__BVID__40']"); 
      Click(SiteLanguageTAB);
 	 Log("Click - SiteLanguageTAB");
@@ -206,9 +206,6 @@ bool ad;
     }
 	
 	
-	
-	
-	
 
 	
 //=============//
@@ -216,58 +213,47 @@ bool ad;
 //=============//
     public override int DoLogin()
     {
-		
 
-     var ExitButton = ElementByXPath("//a[@class='d-none d-md-block btn btn-primary btn-withdraw']");
-
-
-	 //if i NOT Login - go to Login Page
+     var ExitButton = ElementByXPath("//a[@class='nav-link dropdown-toggle'] | //a[contains(text(),'Logout')] ");
 	 if (!IsVisible(ExitButton))
 	 {
 
-        //else go to normal login
 		GoToUrl("https://www.bitsler.com/login");
         Wait();	
         Wait(2);	
 		
         var box_user = ElementByXPath("//input[@id='lo-username']");
-            if (!IsVisible(box_user))
-            {
-                return Fail("UserBox not found");
-            }
+        if (!IsVisible(box_user))
+        {
+            return Fail("UserBox not found");
+        }
         SetText(box_user, GetSetting("UserName"));
 		
         Wait(2);
 		
         var box_pass = ElementByXPath("//input[@id='lo-password']");
-            if (!IsVisible(box_pass))
-            {
-                return Fail("Box pass not found");
-            }
+        if (!IsVisible(box_pass))
+        {
+            return Fail("Box pass not found");
+        }
         SetText(box_pass, GetPassword("Pass"));
 
-        Wait(3);
+        Wait(2);
 		
-        //Solve ReCaptcha
-        var result = DoSolveCaptcha();
-        if (result > 0)
-        {
-        return result;
-        }
-            var Bypasser = new RecaptchaUtility(this);
-            Bypasser.DoSolve();
+        Recaptcha_Function(); //call
+		
         Wait(4);
 		
         var ButtonLog = ElementByXPath("//button[contains(text(),'Login')] | //button[contains(text(),'Iniciar Sesión')] | //button[contains(text(),'Entrar')] | //button[contains(text(),'Логин')] | //button[contains(text(),'Giriş')] | //button[contains(text(),'ログイン')]");
-            if (!IsVisible(ButtonLog))
-            {
-                return Fail("Button login not visible");
-            }
+        if (!IsVisible(ButtonLog))
+        {
+            return Fail("Button login not visible");
+        }
         Click(ButtonLog);
 				
         Wait();
 		
-	 }
+	 } //end ExitButton
 	 
 		
         //This faucet has nothing to do here.    
@@ -288,9 +274,7 @@ bool ad;
  public override int AfterLogin()
  {
 	 
-        //Driver.Navigate().Refresh();
 
-		
         //This faucet has nothing to do here. We will let Faucet Collector handle it.
         return base.AfterLogin();
  }
@@ -308,11 +292,7 @@ public override int GetFaucetWaitTime()
  {
         if (ad)
         {
-			Log("GetFaucetWaitTime close");
-	        //Driver.Close();  // Close specific chrome window
-            //Driver.Quit();  // also Close the console app, that was used to kick off the chrome window
-            //Driver.Dispose();  // Close the chromedriver.exe
-			
+			Log("GetFaucetWaitTime close");		
             return GetWaitSetting();
         }
         //let Faucet Collector continue.
@@ -366,8 +346,6 @@ public override int GetFaucetWaitTime()
 	 
 	ad = false;
     
-
-		
      //=============//
      //AffWithdraw
      //=============// 
@@ -569,11 +547,7 @@ public override int GetFaucetWaitTime()
     //===========//
     if (GetBoolSetting("FreeBtc"))
     {
-        //SiteLanguage 
-        //var Menu_SiteLanguageVAR = GetSetting("Menu_SiteLanguage");
 
- 		//GoToUrl("https://www.bitsler.com/" + Menu_SiteLanguageVAR + "/bitsler-coins/claim");
-		
         GoToUrl("https://www.bitsler.com/en/bitsler-coins/claim");		
  		Log("FreeBtcVar: go to - bitsler-coins");
 		
@@ -582,30 +556,69 @@ public override int GetFaucetWaitTime()
         //call the function - to CloseChat
 		ADFunction_CloseChat();
 
- 		//Solve ReCaptcha
- 		var result = DoSolveCaptcha();
- 		if (result > 0)
- 		{
- 		return result;
- 		}
-            var Bypasser = new RecaptchaUtility(this);
-            Bypasser.DoSolve();
-            Wait();	
-
+        Recaptcha_Function(); //call
 	 
  		var ButtonGetFreeBtc = ElementByXPath("//button[@type='button' and contains(text(),'Claim')]");  //span[text()='FREE BTC']
  		Click(ButtonGetFreeBtc);
 
  		var AlertGeneral = ElementByXPath("//div[@role='alert']"); 
         Log(AlertGeneral.Text);
-		
-        /*
- 		var AlertMessage_NotAllow = ElementByXPath("//p[text()='You are not allowed to get any faucet.']"); 
- 		var AlertMessage_MustBeZero = ElementByXPath("//p[text()='All your coin balances must be at zero or below minimum bet.']"); 
-        */
 
  	} //end FreeBtc
 	
+
+	//=========//
+    //Nitro//
+	//=========//
+    if (GetBoolSetting("Nitro"))
+    {
+
+       GoToUrl("https://www.bitsler.com/en/vip-program/nitro");
+       Wait();
+       Wait(2);
+
+       Recaptcha_Function(); //call
+	   
+       var ClaimButton = ElementByXPath("//button[contains(@type,'button') and contains(text(),'Claim') ]"); 
+	   if (IsVisible(ClaimButton))
+	   {
+         Click(ClaimButton); 
+	     Log("Nitro - ClaimButton - success"); 
+	   }
+	   
+	   if (!IsVisible(ClaimButton))
+	   { 
+	     Log("Nitro - ClaimButton - not here - try next time"); 
+	   }
+
+	}
+	//=========//
+
+
+	//=========//
+    //RakeBack//
+	//=========//
+    if (GetBoolSetting("RakeBack"))
+    {
+
+       GoToUrl("https://www.bitsler.com/en/vip-program/rakeback");
+       Wait();
+       Wait(2);
+	   
+       var ClaimButton = ElementByXPath("//button[contains(@type,'button') and contains(text(),'Claim') ]");
+	   if (IsVisible(ClaimButton))
+	   {
+         Click(ClaimButton); 
+	     Log("RakeBack - ClaimButton - success"); 
+	   }
+	   
+	   if (!IsVisible(ClaimButton))
+	   { 
+	     Log("RakeBack - ClaimButton - not here - try next time"); 
+	   }
+
+	}
+	//=========//
 
 
     //===========//
@@ -633,21 +646,17 @@ public override int GetFaucetWaitTime()
 			Log("Rain_AirDrop_Chat: ChatAlready_Open");
 		   }   
    
-	       Wait();
 		   Wait(2);	
 		   
            var ChatInput_VAR = ElementByXPath("//textarea[@placeholder='Type your message']"); //ChatInput_VAR
            SetText(ChatInput_VAR, GetSetting("MessageChat"));
 		   
-	       Wait();
 		   Wait(2);			   
 
            Driver.Navigate().Refresh(); //RefrashPage	
 
-           Wait();
            Wait(2);				   
 
-		   
         }// end Rain_AirDrop_Chat
  
 	
@@ -666,12 +675,6 @@ public override int GetFaucetWaitTime()
          {
 			//we return after specific time  
 			Log("none: we return after specific time ");
-            //ad = true; //we return after 55 min
-			
-	        Driver.Close();  // Close specific chrome window
-            Driver.Quit();  // also Close the console app, that was used to kick off the chrome window
-            Driver.Dispose();  // Close the chromedriver.exe
-			return GetWaitSetting(); 
 		 }
 		//===========================//
 
@@ -699,11 +702,6 @@ public override int GetFaucetWaitTime()
 			
           //call to "Function" Dice Game
 		  ADFunction_Dice();
-
-	      Driver.Close();  // Close specific chrome window
-          Driver.Quit();  // also Close the console app, that was used to kick off the chrome window
-          Driver.Dispose();  // Close the chromedriver.exe
-	      return GetWaitSetting();  
 		
    }//end Dice Game
    
@@ -724,14 +722,8 @@ public override int GetFaucetWaitTime()
             Coins_Function(); //call to select coin function
             Wait();	
 					 
-			//we return after specific time  
 			Log("Roulette: we return after specific time ");
-            //ad = true; //we return after 55 min
-			
-	        Driver.Close();  // Close specific chrome window
-            Driver.Quit();  // also Close the console app, that was used to kick off the chrome window
-            Driver.Dispose();  // Close the chromedriver.exe
-			return GetWaitSetting();
+
 		 }
 		//===========================//
 		
@@ -756,16 +748,8 @@ public override int GetFaucetWaitTime()
 			
             Coins_Function(); //call to select coin function
             Wait();	
-			
-            //call to "Function" Multicolor Game
-		    ADFunction_Multicolor();
-
-            //ad = true; //we return after 55 min
-			
-	        Driver.Close();  // Close specific chrome window
-            Driver.Quit();  // also Close the console app, that was used to kick off the chrome window
-            Driver.Dispose();  // Close the chromedriver.exe
-			return GetWaitSetting();
+	
+		    ADFunction_Multicolor(); //call to "Function" Multicolor Game
 		
    }//end Multicolor Game
    
@@ -787,21 +771,14 @@ public override int GetFaucetWaitTime()
             Coins_Function(); //call to select coin function
             Wait();	
 			
-			//we return after specific time  
 			Log("CaraYcruz: we return after specific time ");
-            //ad = true; //we return after 55 min
-			
-	        Driver.Close();  // Close specific chrome window
-            Driver.Quit();  // also Close the console app, that was used to kick off the chrome window
-            Driver.Dispose();  // Close the chromedriver.exe
-			return GetWaitSetting();
-	
+
 		 }
 		//===========================//
 
-	
 
-		
+	    return GetWaitSetting(); //backup
+			
         //This faucet has nothing to do here. We will let Faucet Collector handle it.
         return base.DoSolveFaucet();
     }
@@ -1101,14 +1078,6 @@ public override int GetFaucetWaitTime()
 	      {		  
 	      Log("Spin: AlertMessage_MinimumBet - we return after 60 min");
           ad = true; //we return after 55 min
-
-/*		  
-	      Driver.Close();  // Close specific chrome window
-          Driver.Quit();  // also Close the console app, that was used to kick off the chrome window
-          Driver.Dispose();  // Close the chromedriver.exe
-      	  return GetWaitSetting();
-*/		  
-
 		  }
 	
 	
@@ -1119,24 +1088,11 @@ public override int GetFaucetWaitTime()
           {
 			 //so Wait until the button visible
              Wait();
-			 
-			 
+
             var Counterbreak = ElementByXPath("//input[@class='form-control text-center']");
 	        if (IsVisible(Counterbreak))
 	        {
-
-                    //var BalanceMulticolor = ElementByXPath("//p[@class='alert-message']");
-                    //Log("Balance - " + BalanceMulticolor.Text + "we return after 60 min");
-                    //after return 
-					
-                    ad = true; //we return after 55 min
-/*					
-	                Driver.Close();  // Close specific chrome window
-                    Driver.Quit();  // also Close the console app, that was used to kick off the chrome window
-                    Driver.Dispose();  // Close the chromedriver.exe
-      	            return GetWaitSetting();
-*/	
-                    break; 		
+               break; 						
 
             }	
 		  
@@ -1216,19 +1172,6 @@ Log("Dice - click on PayOut_Button");
 Wait(2);
 SetText(Dice_PayOut_Input_Var, GetSetting("Dice_PayOut_Input"));
 Log("Dice - set PayOut");
-
-
-/*
-Wait(1);
-
-Click(Dice_X2_Button);
-Log("Dice - click x2 button");
-
-Wait(1);
-
-Click(Dice_Division_2_Button);
-Log("Dice - click /2 button");
-*/
 
 Wait(2);
 
@@ -1413,12 +1356,6 @@ Log("Dice - click on Spin_Button");
 	  if (IsVisible(AlertMessage_MinimumBet))
 	  {		  
 	   Log("Spin: AlertMessage_MinimumBet - we return after 60 min");
-	   /*
-	   Driver.Close();  // Close specific chrome window
-       Driver.Quit();  // also Close the console app, that was used to kick off the chrome window
-       Driver.Dispose();  // Close the chromedriver.exe
-       return GetWaitSetting();
-	   */
 	   ad=true;
 	  }
 		  
@@ -1435,34 +1372,14 @@ Log("Dice - click on Spin_Button");
             var Counterbreak = ElementByXPath("//button[contains(text(),'Start autobet')]");
 	        if (IsVisible(Counterbreak))
 	        {
-			  
             break; 		
-
-		    //var BalanceMulticolor = ElementByXPath("//p[@class='alert-message']"); 
-	        //Log("Balance - " + BalanceMulticolor.Text + "we return after 60 min");	
-			
-	        /*
-	        Driver.Close();  // Close specific chrome window
-            Driver.Quit();  // also Close the console app, that was used to kick off the chrome window
-            Driver.Dispose();  // Close the chromedriver.exe
-            return GetWaitSetting();
-	        */
 	        ad=true;
             }	
 		  
           }//end while IsVisible
 
       }//end while
-	  
-	  
-	        /*
-            Driver.Close();  // Close specific chrome window
-            Driver.Quit();  // also Close the console app, that was used to kick off the chrome window
-            Driver.Dispose();  // Close the chromedriver.exe
-            return GetWaitSetting();
-	        */
-	        ad=true;
-	   
+
 	   
  return true;
  } //end private bool
@@ -1479,6 +1396,33 @@ Log("Dice - click on Spin_Button");
 		}// end WithdrawEndButton_Faunction
 		//=============// 	
 	
+
+
+        //=================//
+       //Recaptcha_Function
+        //=================//
+
+        public int Recaptcha_Function()
+        {
+
+	     //for recaptcha popup after click on button - ("//button[contains(@class,'reload')] | //button[contains(@id,'reload')] ")
+          var RecaptchaOpen_Iframe = ElementByXPath ("//iframe[contains(@src,'recaptcha/api2/anchor')]"); 
+          if (IsVisible(RecaptchaOpen_Iframe))
+		  {
+            //SolveCaptcha if apper
+            var result = base.DoSolveCaptcha();
+            if (result > 0)
+            {
+                return Fail("Fail solving captcha");
+            }
+            RecaptchaUtility utility = new RecaptchaUtility(this);
+            utility.DoSolve();
+		  }
+
+		return 0;
+        }//end VOID_Template_Function
+        //=================//	
+
 	
 	
 } //public class bitsler
