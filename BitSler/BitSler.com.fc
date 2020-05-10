@@ -1,7 +1,7 @@
 
 //==================//
 //script Written by: ••AviramDayan•• 05/11/2018 17:00PM
-//Last update - version 11 - 10/05/2020 00:30AM
+//Last update - version 11 - 10/05/2020 13:35PM
 //==================//
 
 using System;
@@ -31,9 +31,9 @@ public class bitsler : FaucetScript
 
 				//new FaucetSetting(){Name="Menu_SiteLanguage",Display="Menu_SiteLanguage - Select Your Language",Type=EditorType.ComboBox,Default="en",Items=new System.Collections.Generic.List<string>{"en","es","fr","br","ru","tr","jp"}},
 
-                new FaucetSetting(){Name="FreeBtc",Display="FreeBtc - if you have 0 in balance",Type=EditorType.CheckBox,Default=false},
-                new FaucetSetting(){Name="RakeBack",Display="RakeBack - from Gold level",Type=EditorType.CheckBox,Default=false},
-                new FaucetSetting(){Name="Nitro",Display="Nitro - from Platinum level",Type=EditorType.CheckBox,Default=false},
+                new FaucetSetting(){Name="FreeBtc",Display="FreeBtc - ON/OFF - if you have 0 in balance",Type=EditorType.CheckBox,Default=false},
+                new FaucetSetting(){Name="RakeBack",Display="RakeBack - ON/OFF - from Gold level",Type=EditorType.CheckBox,Default=false},
+                new FaucetSetting(){Name="Nitro",Display="Nitro - ON/OFF - from Platinum level",Type=EditorType.CheckBox,Default=false},
 				
 				new FaucetSetting() { Name = "Rain_AirDrop_Chat", Display = "Rain_AirDrop_Chat - ON/OFF", Type = EditorType.CheckBox, Default = false},		
                 new FaucetSetting(){Name="MessageChat",Display="Your Message In Chat - only need to be active to get any rain",Default = ".",Type=EditorType.TextBox,Required=false},
@@ -146,7 +146,7 @@ bool ad;
     public override bool IsLoggedIn()
     {
 
-        return ElementByXPath("//a[@class='d-none d-md-block btn btn-primary btn-withdraw']") != null;  
+        return ElementByXPath("//a[@class='nav-link dropdown-toggle'] | //a[contains(text(),'Logout')] ") != null;  
 
         //return base.IsLoggedIn();
     }
@@ -167,7 +167,7 @@ bool ad;
 
 
 	 //var checks login or exit
-     var ExitButton = ElementByXPath("//a[@class='d-none d-md-block btn btn-primary btn-withdraw']");
+     var ExitButton = ElementByXPath("//a[@class='nav-link dropdown-toggle'] | //a[contains(text(),'Logout')] ") ;
 
 	 //if i already Login - go to "bonus"	 
 	 if (IsVisible(ExitButton))
@@ -214,7 +214,7 @@ bool ad;
     public override int DoLogin()
     {
 
-     var ExitButton = ElementByXPath("//a[@class='d-none d-md-block btn btn-primary btn-withdraw']");
+     var ExitButton = ElementByXPath("//a[@class='nav-link dropdown-toggle'] | //a[contains(text(),'Logout')] ");
 	 if (!IsVisible(ExitButton))
 	 {
 
@@ -274,9 +274,7 @@ bool ad;
  public override int AfterLogin()
  {
 	 
-        //Driver.Navigate().Refresh();
 
-		
         //This faucet has nothing to do here. We will let Faucet Collector handle it.
         return base.AfterLogin();
  }
