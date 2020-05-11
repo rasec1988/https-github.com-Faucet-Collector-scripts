@@ -112,16 +112,27 @@ namespace Adbtc
             var PasswordBox = ElementByXPath("//input[@id='password']");
             if (!IsVisible(PasswordBox))
             {
-                return Fail("Fail login");
+                return Fail( "Fail login Password box not visible" );
             }
 
-            int result = DoSolveCaptcha();
+            int result = SolveCapt();
             if (result > 0)
             {
                 return Fail("Fail Solving captcha");
             }
+            //Captcha probably changed and site refreshed so we need to update the elements and check if it's visible
 
-            SetText(AddressBox, GetSetting("User"));
+            AddressBox=ElementByXPath ( "//input[@id='email']" );
+            if ( !IsVisible ( AddressBox ) )
+            {
+                return Fail ( "Fail To login address box is not visible  after solve login captcha" );
+            }
+            PasswordBox = ElementByXPath("//input[@id='password']");
+            if ( !IsVisible ( PasswordBox ) )
+            {
+                return Fail ( "Fail login Password box not visible after solve login captcha" );
+            }
+            SetText (AddressBox, GetSetting("User"));
             SetText(PasswordBox, GetPassword("Pass"));
             Wait(1);
 
@@ -528,7 +539,7 @@ namespace Adbtc
         {
             get
             {
-                return !( VisibleMath==UseMath );
+                return (!( VisibleMath==UseMath ) || ElementByXPath( "//li[@class='selected']//span[contains(text(),'hCaptcha')]")!=null);
             }
         }
         private bool VisibleMath
