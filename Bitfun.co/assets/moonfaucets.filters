@@ -22,6 +22,55 @@
       "Type": "Url"
     },
     {
+      "Host": "*view*",
+      "Action": "Allow",
+      "ProxyName": null,
+      "BlockStatusCode": null,
+      "Type": "Url"
+    },
+    {
+      "Host": "*request-global.czilladx.com*",
+      "Action": "Allow",
+      "ProxyName": null,
+      "BlockStatusCode": null,
+      "Type": "Url"
+    },
+    {
+      "Host": "*coinzillatag.com*",
+      "Action": "Allow",
+      "ProxyName": null,
+      "BlockStatusCode": null,
+      "Type": "Url"
+    },
+    {
+      "Host": "*cointraffic.io*",
+      "Action": "Allow",
+      "ProxyName": null,
+      "BlockStatusCode": null,
+      "Type": "Url"
+    },
+    {
+      "Host": "*refpaexhil.top*",
+      "Action": "Allow",
+      "ProxyName": null,
+      "BlockStatusCode": null,
+      "Type": "Url"
+    },
+    {
+      "Host": "*refpa.top*",
+      "Action": "Allow",
+      "ProxyName": null,
+      "BlockStatusCode": null,
+      "Type": "Url"
+    },
+    {
+      "Host": "*code.createjs.com*",
+      "Action": "Allow",
+      "ProxyName": null,
+      "BlockStatusCode": null,
+      "Type": "Url"
+    },
+    {
       "Host": "*solve*",
       "Action": "Allow",
       "ProxyName": null,
@@ -78,7 +127,7 @@
       "Type": "Url"
     },
     {
-      "Host": "*refpa.top*",
+      "Host": "*request-global.czilladx.com*",
       "Action": "Allow",
       "ProxyName": null,
       "BlockStatusCode": null,
