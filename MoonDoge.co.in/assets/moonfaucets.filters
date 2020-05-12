@@ -1,1 +1,95 @@
-{"Rules":[{"Host":"*moon*","Action":"Allow","ProxyName":null,"BlockStatusCode":null,"Type":"Url"},{"Host":"*bitfun*","Action":"Allow","ProxyName":null,"BlockStatusCode":null,"Type":"Url"},{"Host":"*bonusbitcoin*","Action":"Allow","ProxyName":null,"BlockStatusCode":null,"Type":"Url"},{"Host":"*solve*","Action":"Allow","ProxyName":null,"BlockStatusCode":null,"Type":"Url"},{"Host":"*google*","Action":"Allow","ProxyName":null,"BlockStatusCode":null,"Type":"Url"},{"Host":"*bootstrap*","Action":"Allow","ProxyName":null,"BlockStatusCode":null,"Type":"Url"},{"Host":"*jquery*","Action":"Allow","ProxyName":null,"BlockStatusCode":null,"Type":"Url"},{"Host":"*cloudflare*","Action":"Allow","ProxyName":null,"BlockStatusCode":null,"Type":"Url"},{"Host":"*gstatic*","Action":"Allow","ProxyName":null,"BlockStatusCode":null,"Type":"Url"},{"Host":"*netdna.bootstrapcdn*","Action":"Allow","ProxyName":null,"BlockStatusCode":null,"Type":"Url"},{"Host":"*ajax.googleapis.com*","Action":"Allow","ProxyName":null,"BlockStatusCode":null,"Type":"Url"},{"Host":"*","Action":"Block","ProxyName":null,"BlockStatusCode":null,"Type":"Host"}]}
+{
+  "Rules": [
+    {
+      "Host": "*moon*",
+      "Action": "Allow",
+      "ProxyName": null,
+      "BlockStatusCode": null,
+      "Type": "Url"
+    },
+    {
+      "Host": "*bitfun*",
+      "Action": "Allow",
+      "ProxyName": null,
+      "BlockStatusCode": null,
+      "Type": "Url"
+    },
+    {
+      "Host": "*bonusbitcoin*",
+      "Action": "Allow",
+      "ProxyName": null,
+      "BlockStatusCode": null,
+      "Type": "Url"
+    },
+    {
+      "Host": "*solve*",
+      "Action": "Allow",
+      "ProxyName": null,
+      "BlockStatusCode": null,
+      "Type": "Url"
+    },
+    {
+      "Host": "*google*",
+      "Action": "Allow",
+      "ProxyName": null,
+      "BlockStatusCode": null,
+      "Type": "Url"
+    },
+    {
+      "Host": "*bootstrap*",
+      "Action": "Allow",
+      "ProxyName": null,
+      "BlockStatusCode": null,
+      "Type": "Url"
+    },
+    {
+      "Host": "*jquery*",
+      "Action": "Allow",
+      "ProxyName": null,
+      "BlockStatusCode": null,
+      "Type": "Url"
+    },
+    {
+      "Host": "*cloudflare*",
+      "Action": "Allow",
+      "ProxyName": null,
+      "BlockStatusCode": null,
+      "Type": "Url"
+    },
+    {
+      "Host": "*gstatic*",
+      "Action": "Allow",
+      "ProxyName": null,
+      "BlockStatusCode": null,
+      "Type": "Url"
+    },
+    {
+      "Host": "*netdna.bootstrapcdn*",
+      "Action": "Allow",
+      "ProxyName": null,
+      "BlockStatusCode": null,
+      "Type": "Url"
+    },
+    {
+      "Host": "*ajax.googleapis.com*",
+      "Action": "Allow",
+      "ProxyName": null,
+      "BlockStatusCode": null,
+      "Type": "Url"
+    },
+    {
+      "Host": "*refpa.top*",
+      "Action": "Allow",
+      "ProxyName": null,
+      "BlockStatusCode": null,
+      "Type": "Url"
+    },
+    {
+      "Host": "*",
+      "Action": "Block",
+      "ProxyName": null,
+      "BlockStatusCode": null,
+      "Type": "Host"
+    }
+  ]
+}
