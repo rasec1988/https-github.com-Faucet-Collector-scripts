@@ -33,6 +33,7 @@ public class ImajBux : FaucetScript
         Template=new FaucetCollector.FaucetTemplates.PtcEvolutionTemplate ( this );
         Template.Controls.Add (PtcEvolutionTemplate.ControlName.CaptchaImgElem, "//img[@id='captcha_img']" );
         Template.Controls.Add ( PtcEvolutionTemplate.ControlName.CaptchaBoxElem , "//input[@name='captcha']" );
+        Template.Controls.Add ( PtcEvolutionTemplate.ControlName.LoginBtn , "//button[@class='btn btn-primary'][1]" );
 
         //Let Faucet Collector start up everything
         base.Start ( );
