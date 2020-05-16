@@ -1,8 +1,8 @@
-﻿
+
 
 //==================//
 //script Written by: ••AviramDayan•• 31/05/2019 19:09PM
-//Last Update: 03/06/2019 08:00PM - Version 3
+//Last Update: 17/05/2020 00:20PM - Version 4
 //==================//
 
 using System;
@@ -23,7 +23,7 @@ public class ytmonster : FaucetScript
         get
         {
 			
-            return new FaucetSettings("https://www.ytmonster.net/r/cosmiclogin")
+            return new FaucetSettings("https://www.ytmonster.net/")
             {
 				
                 new FaucetSetting() { Name = "Username", Display = "Username", Type = EditorType.TextBox, Required = true },           
@@ -88,9 +88,6 @@ public class ytmonster : FaucetScript
       if(IsVisible(ProtectionVAR))
       {	  
 	        Log("ProtectionVAR - the faucet are empty");  
-			Driver.Close();  // Close specific chrome window
-            Driver.Quit();  // also Close the console app, that was used to kick off the chrome window
-            Driver.Dispose();  // Close the chromedriver.exe
             return GetWaitSetting();  
 	  }
 	  //=======//
@@ -181,7 +178,7 @@ public class ytmonster : FaucetScript
         var loginButton = ElementByXPath("//button[@type='submit']");
         Click(loginButton);
 
-        var recaptcha_here = ElementByXPath("//span[@id='recaptcha-anchor']");
+        var recaptcha_here = ElementByXPath("//iframe[contains(@src,'recaptcha')]");
   	    if (IsVisible(recaptcha_here))
 	    {
 
@@ -236,27 +233,8 @@ public class ytmonster : FaucetScript
 
         if (ad)
         {
-			
 		 ad=false;
-		 
-         //=======//
-	     //Timer
-	     //=======//
-         //var MinuteVAR = ElementByXPath("//div[1]/p[3 and contains(text(),'wait' )]");
-				
-         //if(IsVisible(MinuteVAR))
-         //{
-	     //Log("MinuteVAR");  
-         //int MinuteINT = Convert.ToInt32(MinuteVAR.Text.Trim().Split(' ')[4])*60;	 // need [4] for example if we have Existing text "You have to wait 15 minutes"  it mean = You[0] have[1] to[2] wait[3] 15[4] minutes[5] 
-				
-         Driver.Close();  // Close specific chrome window
-         Driver.Quit();  // also Close the console app, that was used to kick off the chrome window
-         Driver.Dispose();  // Close the chromedriver.exe
-		 return GetWaitSetting();
-         //return MinuteINT;
-	     //}
-         //=======//
-			
+		 return GetWaitSetting();		
         }
 		
 
